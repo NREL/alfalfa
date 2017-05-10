@@ -1,0 +1,7 @@
+version: '2'
+
+services:
+  web: # main haystack application
+    build: web
+    ports:
+     - "3000:3000"
