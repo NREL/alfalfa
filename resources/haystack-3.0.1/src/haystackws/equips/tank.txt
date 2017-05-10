@@ -1,0 +1,3 @@
+temp sensor
+pressure sensor
+level sensor

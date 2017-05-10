@@ -1,0 +1,67 @@
+//
+// Copyright (c) 2015, Project-Haystack
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   22 Feb 11  Brian Frank  Creation
+//
+
+--------------------------------------------------------------------------
+tag: geoAddr
+kind: Str
+usedWith: site, weather
+alsoSee: geoCity, geoCountry, geoCoord, geoPostalCode, geoState, geoStreet
+doc:
+  Geographic street address.  This is a free form string which
+  may be used to geocode specific geolocation tags.
+--------------------------------------------------------------------------
+tag: geoCity
+kind: Str
+usedWith: site, weather, geoAddr
+doc:
+  Geographic city or locality name.
+--------------------------------------------------------------------------
+tag: geoCoord
+usedWith: site, weather, geoAddr
+kind: Coord
+doc: Geographic coordinate as "C(latitude,longitude)"
+--------------------------------------------------------------------------
+tag: geoCounty
+kind: Str
+doc:
+  Geographic subdivision of US state.
+--------------------------------------------------------------------------
+tag: geoCountry
+kind: Str
+usedWith: site, weather, geoAddr
+doc:
+  Geographic country as [ISO 3166-1]`http://en.wikipedia.org/wiki/ISO_3166-1`
+  two letter code.  Codes for common countries:
+    - US: United States
+    - CA: Canada
+    - GB: United Kingdom
+    - FR: France
+    - ES: Spain
+    - DE: Germany
+    - NL: Netherlands
+    - AU: Australia
+--------------------------------------------------------------------------
+tag: geoPostalCode
+kind: Str
+usedWith: site, weather, geoAddr
+doc:
+  Geographic postal code; for US this is a five digit zip code.
+--------------------------------------------------------------------------
+tag: geoState
+kind: Str
+usedWith: site, weather, geoAddr
+doc:
+  State or province name; for US this is two letter state code.  This
+  tag may also be used to model an adminstrative area betwen the `geoCity`
+  and `geoCountry` level.
+--------------------------------------------------------------------------
+tag: geoStreet
+kind: Str
+usedWith: site, weather, geoAddr
+doc:
+  Geographic street number and name.

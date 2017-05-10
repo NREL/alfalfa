@@ -1,0 +1,94 @@
+//
+// Copyright (c) 2016, Project-Haystack
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   12 Jul 16  Brian Frank  Creation
+//
+
+--------------------------------------------------------------------------
+tag: circ
+kind: Marker
+usedWith: point, pump
+doc:
+  Indicates a pump designed to circulate a fluid through an equipment
+  such as a `boiler`.
+--------------------------------------------------------------------------
+tag: diverting
+kind: Marker
+usedWith: point, valve
+alsoSee: mixing
+doc:
+  Indicates a three way `valve` which inputs one pipe and diverts
+  between two output pipes.
+--------------------------------------------------------------------------
+tag: header
+kind: Marker
+usedWith: point
+doc:
+  Header pipe used as central connection or manifold for other piping runs.
+--------------------------------------------------------------------------
+tag: isolation
+kind: Marker
+usedWith: point, valve, damper
+doc:
+  Indicates a `valve` or `damper` used to isolate a piece of equipment
+  from a piping system or ductwork respectively.
+--------------------------------------------------------------------------
+tag: level
+kind: Marker
+usedWith: point
+doc:
+  Indicates the fill level of a `tank` as a percentage where 0% is empty
+  and 100% is filled.
+--------------------------------------------------------------------------
+tag: mixing
+kind: Marker
+usedWith: point, valve
+alsoSee: diverting
+doc:
+  Indicates a three way `valve` which inputs two pipes and outputs
+  a mixture between the two to a single output pipe.
+--------------------------------------------------------------------------
+tag: primaryLoop
+kind: Marker
+usedWith: equip, point
+alsoSee: secondaryLoop
+doc:
+  Indicates equipment and points which are associated with a chiller or
+  boiler plant's primary loop - the pipework within the central plant.
+--------------------------------------------------------------------------
+tag: pump
+kind: Marker
+usedWith: equip, point
+docInclude: VFDs#pumps
+doc:
+  Marker tag for an `equip` or `point` which models a pump.
+--------------------------------------------------------------------------
+tag: secondaryLoop
+kind: Marker
+usedWith: equip, point
+alsoSee: primaryLoop
+doc:
+  Indicates equipment and points which are associated with a chiller or
+  boiler plant's secondary loop - the pipework from the central plant
+  to the building.
+--------------------------------------------------------------------------
+tag: tank
+kind: Marker
+usedWith: equip
+docInclude: Tanks
+doc:
+  Marker tag for an `equip` which models a storage tank vessel.
+--------------------------------------------------------------------------
+tag: valve
+kind: Marker
+usedWith: point
+doc:
+  Marker tag on `point` which indicates a valve used to regulate or control
+  the flow or pressure of a fluid.  It is used with `cmd` to indicate the
+  valve command: true/false (open/close) or 0% to 100%.  It may also
+  be used with `sensor` to indicate a feedback sensor such as a voltage
+  giving exact position between 0% and 100%.
+--------------------------------------------------------------------------
+
