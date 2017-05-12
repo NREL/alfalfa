@@ -1,6 +1,8 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+require 'json'
+
 # start the measure
 class Haystack < OpenStudio::Ruleset::ModelUserScript
 
@@ -35,12 +37,34 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
-    
+    #initialize variables
+    haystack_json = []
     num_economizers = 0
     airloops = []
+    
     # Report initial condition of model
     #runner.registerInitialCondition("The building started with ") 
     
+    #Site Data
+    if model.weatherFile.is_initialized 
+      site_json = Hash.new
+      weather_json = Hash.new
+      
+      wf = model.weatherFile.get
+      building = model.getBuilding
+      
+      site_json[:id] = "@#{building.name.to_s}"
+      site_json[:dis] = building.name.to_s
+      site_json[:site] = "m:"
+      site_json[:weatherRef] = "@#{wf.city}"
+      haystack_json << site_json
+      
+      weather_json[:id] = "@#{wf.city}"
+      weather_json[:dis] = wf.city
+      weather_json[:weather] = "m:"
+      weather_json[:geoCoord] = "C(#{wf.latitude},#{wf.longitude})"
+      haystack_json << weather_json      
+    end
     #loop through air loops and find economizers
     model.getAirLoopHVACs.each do |airloop|
       supply_components = airloop.supplyComponents
@@ -129,7 +153,11 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     end
       
     runner.registerFinalCondition("The building has #{num_economizers} economizers") 
-   
+    #write out the haystack json
+    File.open("./report_haystack.json","w") do |f|
+      f.write(haystack_json.to_json)
+    end
+ 
     return true
  
   end #end the run method

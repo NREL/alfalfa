@@ -20413,8 +20413,8 @@ OS:RunPeriod,
   Run Period 1,                           !- Name
   1,                                      !- Begin Month
   1,                                      !- Begin Day of Month
-  12,                                     !- End Month
-  31,                                     !- End Day of Month
+  1,                                      !- End Month
+  6,                                      !- End Day of Month
   ,                                       !- Use Weather File Holidays and Special Days
   ,                                       !- Use Weather File Daylight Saving Period
   ,                                       !- Apply Weekend Holiday Rule
@@ -23098,6 +23098,6 @@ OS:WeatherFile,
   -76.68,                                 !- Longitude {deg}
   -5,                                     !- Time Zone {hr}
   45,                                     !- Elevation {m}
-  file:USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw, !- Url
+  file:files/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw, !- Url
   A76C8897;                               !- Checksum
 
