@@ -45,7 +45,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     # Report initial condition of model
     #runner.registerInitialCondition("The building started with ") 
     
-    #Site Data
+    #Site and WeatherFile Data
     if model.weatherFile.is_initialized 
       site_json = Hash.new
       weather_json = Hash.new
@@ -56,15 +56,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       site_json[:id] = "@#{building.name.to_s}"
       site_json[:dis] = building.name.to_s
       site_json[:site] = "m:"
+      site_json[:area] = building.floorArea
       site_json[:weatherRef] = "@#{wf.city}"
+      site_json[:tz] = "#{wf.timeZone}"
+      site_json[:geoCity] = wf.city
+      site_json[:geoState] = wf.stateProvinceRegion
+      site_json[:geoCountry] = wf.country
+      site_json[:geoCoord] = "C(#{wf.latitude},#{wf.longitude})"
       haystack_json << site_json
       
       weather_json[:id] = "@#{wf.city}"
       weather_json[:dis] = wf.city
       weather_json[:weather] = "m:"
+      weather_json[:tz] = "#{wf.timeZone}"
       weather_json[:geoCoord] = "C(#{wf.latitude},#{wf.longitude})"
       haystack_json << weather_json      
     end
+    
     #loop through air loops and find economizers
     model.getAirLoopHVACs.each do |airloop|
       supply_components = airloop.supplyComponents
@@ -92,26 +100,71 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
 
     #loop through economizer loops and find fans and cooling coils    
     airloops.each do |airloop|
+      ahu_json = Hash.new
       supply_components = airloop.supplyComponents
 
       #find fan, cooling coil and heating coil on loop
       supply_components.each do |sc|
-        #its a unitary system so get sub components
+        #its a UnitarySystem so get sub components
         if sc.to_AirLoopHVACUnitarySystem.is_initialized
           sc = sc.to_AirLoopHVACUnitarySystem.get
           runner.registerInfo("found #{sc.name.to_s} on airloop #{airloop.name.to_s}")
+          ahu_json[:id] = "@#{sc.name.to_s}"
+          ahu_json[:dis] = sc.name.to_s
+          ahu_json[:ahu] = "m:"
+          ahu_json[:equip] = "m:"
           fan = sc.supplyFan
           if fan.is_initialized
-            runner.registerInfo("found #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
+            if fan.get.to_FanVariableVolume.is_initialized
+              runner.registerInfo("found VAV #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
+              ahu_json[:variableVolume] = "m:"
+              fan_json = Hash.new
+              fan_json[:id] = "@#{fan.get.name.to_s}"
+              fan_json[:dis] = "#{fan.get.name.to_s}"
+              fan_json[:fan] = "m:"
+              fan_json[:vfd] = "m:"
+              fan_json[:variableVolume] = "m:"
+              fan_json[:equip] = "m:"
+              fan_json[:equipRef] = "@#{sc.name.to_s}"
+              haystack_json << fan_json
+            else
+              runner.registerInfo("found CAV #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
+              ahu_json[:constantVolume] = "m:"
+              fan_json = Hash.new
+              fan_json[:id] = "@#{fan.get.name.to_s}"
+              fan_json[:dis] = "#{fan.get.name.to_s}"
+              fan_json[:fan] = "m:"
+              fan_json[:constantVolume] = "m:"
+              fan_json[:equip] = "m:"
+              fan_json[:equipRef] = "@#{sc.name.to_s}"
+              haystack_json << fan_json
+            end
           end
           cc = sc.coolingCoil
           if cc.is_initialized
-            runner.registerInfo("found #{cc.get.name.to_s} on airloop #{airloop.name.to_s}")
+            if cc.get.to_CoilCoolingWater.is_initialized || cc.get.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
+              runner.registerInfo("found WATER #{cc.get.name.to_s} on airloop #{airloop.name.to_s}")
+              ahu_json[:chilledWaterCool] = "m:"
+            else
+              runner.registerInfo("found DX #{cc.get.name.to_s} on airloop #{airloop.name.to_s}")   
+              ahu_json[:dxCool] = "m:"              
+            end
           end
           hc = sc.heatingCoil
           if hc.is_initialized
-            runner.registerInfo("found #{hc.get.name.to_s} on airloop #{airloop.name.to_s}")
+            if hc.get.to_CoilHeatingElectric.is_initialized
+              runner.registerInfo("found ELECTRIC #{hc.get.name.to_s} on airloop #{airloop.name.to_s}")
+              ahu_json[:elecHeat] = "m:"
+            elsif hc.get.to_CoilHeatingGas.is_initialized
+              runner.registerInfo("found GAS #{hc.get.name.to_s} on airloop #{airloop.name.to_s}")
+              ahu_json[:gasHeat] = "m:"
+            elsif hc.get.to_CoilHeatingWater.is_initialized || hc.get.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
+              runner.registerInfo("found WATER #{hc.get.name.to_s} on airloop #{airloop.name.to_s}")
+              ahu_json[:hotWaterHeat] = "m:"
+            end
           end
+          haystack_json << ahu_json
+        #END UnitarySystem  
         elsif sc.to_FanConstantVolume.is_initialized
           sc = sc.to_FanConstantVolume.get
           runner.registerInfo("found #{sc.name.to_s} on airloop #{airloop.name.to_s}")
