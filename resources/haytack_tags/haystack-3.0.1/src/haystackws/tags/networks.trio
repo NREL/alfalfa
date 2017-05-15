@@ -1,0 +1,64 @@
+//
+// Copyright (c) 2015, Project-Haystack
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   27 Nov 13  Brian Frank  Creation
+//
+
+--------------------------------------------------------------------------
+tag: connection
+kind: Marker
+alsoSee: network, device
+docInclude: Networks#connections
+doc:
+   Marker tag for a logical network connection between two devices
+   using a specific communications protocol.
+--------------------------------------------------------------------------
+tag: device
+kind: Marker
+alsoSee: network, connection
+docInclude: Networks#devices
+doc:
+  Models a physical device on a communication network.  Devices include
+  servers, area controllers, field controllers, and networking gear.
+--------------------------------------------------------------------------
+tag: device1Ref
+kind: Ref
+usedWith: connection
+doc:
+  Models the first end point `device` of a `connection`
+--------------------------------------------------------------------------
+tag: device2Ref
+kind: Ref
+usedWith: connection
+doc:
+  Models the second end point `device` of a `connection`
+--------------------------------------------------------------------------
+tag: network
+kind: Marker
+alsoSee: device, connection
+docInclude: Networks#networks
+doc:
+  Network models a communication network between multiple devices.
+--------------------------------------------------------------------------
+tag: networkRef
+kind: Ref
+usedWith: connection
+doc:
+  Models the network of a `connection`
+--------------------------------------------------------------------------
+tag: protocol
+kind: Str
+usedWith: connection
+doc:
+  String enumeration for a `connection` communication protocol.
+  Standardized values:
+    - Haystack
+    - oBIX
+    - BACnet/IP
+    - BACnet/MSTP
+    - Modbus/TCP
+    - Modbus/RTU
+--------------------------------------------------------------------------
+

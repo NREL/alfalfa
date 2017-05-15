@@ -1,0 +1,47 @@
+//
+// Copyright (c) 2015, Project-Haystack
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   26 Nov 13  Brian Frank  Creation
+//
+
+--------------------------------------------------------------------------
+tag: circuit
+kind: Marker
+usedWith: equip
+alsoSee: elecPanel, meter
+docInclude: ElecPanels#circuit
+doc:
+  An `equip` which models an electric circuit housed in an `elecPanel`.
+  A circuit contains the points associated with sensors, fuses, or
+  breakers.
+--------------------------------------------------------------------------
+tag: elecPanel
+kind: Marker
+usedWith: equip
+alsoSee: circuit, meter
+docInclude: ElecPanels#elecPanel
+doc:
+  An `equip` which models the physical housing for electric [circuits]`circuit`.
+--------------------------------------------------------------------------
+tag: elecPanelOf
+kind: Ref
+usedWith: circuit
+doc:
+  Associates a `circuit` with its `elecPanel`.
+--------------------------------------------------------------------------
+tag: sitePanel
+kind: Marker
+usedWith: elecPanel
+doc:
+  Marker tag for a `elecPanel` to indicate its the main site-level panel.
+--------------------------------------------------------------------------
+tag: subPanelOf
+kind: Ref
+usedWith: elecPanel
+doc:
+  Ref tag to indicate that an `elecPanel` is positioned underneath another
+  panel in the electric distribution system.
+--------------------------------------------------------------------------
+

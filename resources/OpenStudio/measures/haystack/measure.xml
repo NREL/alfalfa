@@ -1,0 +1,63 @@
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>haystack</name>
+  <uid>7fb36b3a-5591-4627-a2b0-7709fbeae593</uid>
+  <version_id>561b928c-970e-4675-9bc5-d2f2909bb280</version_id>
+  <version_modified>20170512T182511Z</version_modified>
+  <xml_checksum>A9D5932A</xml_checksum>
+  <class_name>Haystack</class_name>
+  <display_name>Haystack</display_name>
+  <description>This measure will find economizers on airloops and add haystack tags.</description>
+  <modeler_description>This measure loops through the existing airloops, looking for loops that have outdoor airsystems with economizers</modeler_description>
+  <arguments/>
+  <outputs/>
+  <provenances/>
+  <tags>
+    <tag>HVAC.Whole System</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Use Case</name>
+      <value>Model Articulation</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Use Case</name>
+      <value>New Construction EE</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>1.12.2</identifier>
+        <min_compatible>1.12.2</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>E7718592</checksum>
+    </file>
+  </files>
+</measure>

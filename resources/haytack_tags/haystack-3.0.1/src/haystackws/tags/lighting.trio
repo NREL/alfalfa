@@ -1,0 +1,42 @@
+//
+// Copyright (c) 2015, Project-Haystack
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   15 Jun 10  Brian Frank  Creation
+//
+
+--------------------------------------------------------------------------
+tag: lighting
+kind: Marker
+doc: Indicates association with the lighting system.
+--------------------------------------------------------------------------
+tag: lightLevel
+kind: Marker
+usedWith: point, unit
+doc:
+  Light level sensor point under `lightsGroup` measured in "lux" or "lumen".
+--------------------------------------------------------------------------
+tag: lights
+kind: Marker
+usedWith: point, unit
+docInclude: Lighting
+doc:
+  Lighting on/off status as a boolean or if dimmable a numeric between 0%
+  and 100%.
+--------------------------------------------------------------------------
+tag: lightsGroup
+kind: Marker
+usedWith: equip
+docInclude: Lighting
+doc:
+  Equip level of the lighting system which is a group of one or more
+  `lights` points.
+--------------------------------------------------------------------------
+tag: occupancyIndicator
+kind: Marker
+usedWith: point
+doc:
+  Occupancy sensor under `lightsGroup`.  Point must be Bool where true
+  indicates occupied and false indicates unoccupied
+

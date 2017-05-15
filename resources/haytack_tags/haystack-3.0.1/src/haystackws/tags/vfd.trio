@@ -1,0 +1,55 @@
+//
+// Copyright (c) 2015, Project-Haystack
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   12 Aug 14  Brian Frank  Creation
+//
+
+--------------------------------------------------------------------------
+tag: enable
+kind: Marker
+usedWith: point
+docInclude: VFDs#points
+doc:
+  Secondary on/off `point` of an `equip` especially used with a `vfd`.
+  Enable is used with Bool points where true indicates on and false
+  indicates off.  Equip with an enable should always also define a `run`
+  point which indicates the primary on/off state of the equipment.
+--------------------------------------------------------------------------
+tag: fan
+kind: Marker
+usedWith: equip, point, unit
+docInclude: VFDs#fans
+doc:
+  Fan `point` or `equip` associated with an `ahu`, `vav`, or `coolingTower`.
+--------------------------------------------------------------------------
+tag: freq
+kind: Marker
+usedWith: point, unit
+docInclude: VFDs#points
+doc:
+  Electrical A/C frequency `point` measured in "Hz" for `elec` `meter`
+  or a `vfd`.
+--------------------------------------------------------------------------
+tag: run
+kind: Marker
+ussedWith: point
+docInclude: VFDs#points
+doc:
+  Primary on/off `point` of an `equip` especially used with a `vfd`.
+  Run is used with Bool points where true indicates on and false indicates
+  off. When paired with `cmd` this is the commanded state of the equipment.
+  When paired with `sensor` this is the actual status of the equip.  If
+  the equipment also defines an `enable` point then both must be commanded
+  on in order to run the equipment.
+--------------------------------------------------------------------------
+tag: vfd
+kind: Marker
+usedWith: equip
+docInclude: VFDs
+doc:
+  Marker for a motor `equip` with variable frequency drive.  Commonly
+  used in combination with `fan` and `pump`.
+--------------------------------------------------------------------------
+

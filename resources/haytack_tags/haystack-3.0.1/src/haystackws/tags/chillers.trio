@@ -1,0 +1,184 @@
+//
+// Copyright (c) 2015, Project-Haystack
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   02 Dec 11  Brian Frank  Creation
+//
+
+--------------------------------------------------------------------------
+tag: absorption
+kind: Marker
+usedWith: equip, chiller
+doc:
+  Indicates a `chiller` which uses absorption driven by hot water
+  (as opposed to vapor compression).
+--------------------------------------------------------------------------
+tag: airCooled
+kind: Marker
+usedWith: equip, chiller
+doc:
+  Indicates `chiller` which uses air to cool the hot refrigerant.
+--------------------------------------------------------------------------
+tag: blowdown
+kind: Marker
+usedWith: water
+doc:
+  Paired with `water` to indicate control or measurement of the blowdown water
+  expelled from a `coolingTower` or `boiler` to remove mineral build up.
+--------------------------------------------------------------------------
+tag: condensate
+kind: Marker
+usedWith: water
+doc:
+  Paired with `water` to indicate control or measurement of the condensate
+  water in a `coolingTower` or `boiler`.
+--------------------------------------------------------------------------
+tag: coolingCapacity
+kind: Number
+usedWith: equip, chiller
+doc:
+  Measurement of a `chiller` ability to remove heat measured
+  in "tonref", "BTU/h", or "kW".
+--------------------------------------------------------------------------
+tag: centrifugal
+kind: Marker
+usedWith: equip, chiller
+alsoSee: reciprocal, screw
+doc:
+  Indicates `chiller` compressor which uses a continuous flow of
+  fluid through an impeller.
+--------------------------------------------------------------------------
+tag: chilled
+kind: Marker
+usedWith: point, water
+doc:
+  Marker tag used with `water` for the chilled water system between
+  the plant and `ahu`.
+--------------------------------------------------------------------------
+tag: chiller
+kind: Marker
+usedWith: equip
+docInclude: Chillers#chillers
+doc:
+  Chillers remove heat from a liquid via a vapor compression or
+  an absorption refrigeration cycle.
+--------------------------------------------------------------------------
+tag: chilledWaterPlant
+kind: Marker
+usedWith: equip
+docInclude: Chillers#chilledWaterPlants
+doc:
+  Models the entire plant and its system of equipment used to
+  generate chilled water.
+--------------------------------------------------------------------------
+tag: chilledWaterPlantRef
+kind: Ref
+doc:
+  Associate a record such as an `ahu` with its `chilledWaterPlant`.
+--------------------------------------------------------------------------
+tag: closedLoop
+kind: Marker
+usedWith: equip, coolingTower
+alsoSee: openLoop
+doc:
+  Indicates `coolingTower` which keeps the working fluid separate
+  from the fluid used for heat transfer into the atmosphere.
+--------------------------------------------------------------------------
+tag: condenser
+kind: Marker
+usedWith: point, water, refrig
+alsoSee: chiller, coolingTower, evaporator
+doc:
+  When combined with the `water` tag, this indicates points in a condenser
+  water system between a `chiller` and `coolingTower`.
+
+  When used with the `refrig` tag, this indicates points on the condenser
+  mechanism used to convert a refrigerant from its gaseous to liquid state.
+
+  If paired with the `cmd` tag this tag indicates the command status
+  of a condensor in a `chiller` modeled as true/false (on/off) or 0% to 100%.
+--------------------------------------------------------------------------
+tag: coolingTower
+kind: Marker
+usedWith: equip
+docInclude: Chillers#coolingTowers
+doc:
+  Cooling towers are used to transfer process waste heat to the atmosphere.
+--------------------------------------------------------------------------
+tag: evaporator
+kind: Marker
+usedWith: point
+alsoSee: condenser, chiller
+doc:
+  Indicates points on the evaporator mechanism used to convert a
+  refrigerant from its liquid to gageous state.  It is often paired
+  with the `refrig` marker tag.
+--------------------------------------------------------------------------
+tag: efficiency
+kind: Marker
+usedWith: point
+doc:
+  Efficiency point of a `chiller` measured in "COP" or "kW/ton".
+--------------------------------------------------------------------------
+tag: heatExchanger
+kind: Marker
+usedWith: equip
+doc:
+  Heat exchangers are used to transfer heat from one medium to another.
+  They are often used in a [chilled water plant]`Chillers#heatExchangers`
+  and in [hot water/steam plants]`Boilers#heatExchangers`.
+--------------------------------------------------------------------------
+tag: load
+kind: Marker
+usedWith: point, unit
+doc:
+  Models a `point` on a `chiller` used to command or measure the chiller's
+  load as a percentage from "0%" to "100%".  When paired with `cmd` this
+  models the chiller's load limit.  When paired with `sensor` this models
+  the chiller's current load factor.
+--------------------------------------------------------------------------
+tag: makeup
+kind: Marker
+usedWith: water
+doc:
+  Paired with `water` to indicate control or measurement of the makeup water
+  in a `coolingTower` or `boiler` used to replace water lost through leaks,
+  evaporation, or `blowdown`.
+--------------------------------------------------------------------------
+tag: openLoop
+kind: Marker
+usedWith: equip, coolingTower
+alsoSee: closedLoop
+doc:
+  Indicates `coolingTower` which uses the working fluid itself for
+  evaporation into the atmosphere.
+--------------------------------------------------------------------------
+tag: reciprocal
+kind: Marker
+usedWith: equip, chiller
+alsoSee: centrifugal, screw
+doc:
+  Indicates `chiller` compressor which uses pistons driven by a crankshaft.
+--------------------------------------------------------------------------
+tag: refrig
+kind: Marker
+usedWith: point
+doc:
+  Indicates points associated with the measurment or control of
+  the refrigerant substance in a cooling system like a `chiller`.
+--------------------------------------------------------------------------
+tag: screw
+kind: Marker
+usedWith: equip, chiller
+alsoSee: centrifugal, reciprocal
+doc:
+  Indicates `chiller` compressor which uses a rotary mechanism.
+--------------------------------------------------------------------------
+tag: waterCooled
+kind: Marker
+usedWith: equip, chiller
+doc:
+  Indicates `chiller` which uses water to cool the hot refrigerant.
+--------------------------------------------------------------------------
+

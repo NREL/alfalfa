@@ -1,0 +1,45 @@
+//
+// Copyright (c) 2016, Project-Haystack
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   12 Jul 16  Brian Frank  Creation
+//
+
+--------------------------------------------------------------------------
+tag: boiler
+kind: Marker
+usedWith: equip
+docInclude: Boilers#boilers
+doc:
+  Boiler `equip` used to generate hot water or steam for heating.
+--------------------------------------------------------------------------
+tag: flue
+kind: Marker
+usedWith: point, temp
+doc:
+  Indicates points placed in the flue-gas stack of a boiler system.
+--------------------------------------------------------------------------
+tag: hotWaterPlant
+kind: Marker
+docInclude: Boilers#hotWaterPlants
+doc:
+  Plant level tag for system which outputs `hot` `water`
+--------------------------------------------------------------------------
+tag: hotWaterPlantRef
+kind: Ref
+doc:
+  Associate an entity such as an `ahu` with its `hotWaterPlant`.
+--------------------------------------------------------------------------
+tag: steamPlant
+kind: Marker
+docInclude: Boilers#steamPlants
+doc:
+  Plant level tag for system which outputs `steam`
+--------------------------------------------------------------------------
+tag: steamPlantRef
+kind: Ref
+doc:
+  Associate an entity such as an `ahu` with its `steamPlant`.
+--------------------------------------------------------------------------
+
