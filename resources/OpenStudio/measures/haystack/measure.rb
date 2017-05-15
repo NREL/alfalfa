@@ -105,8 +105,80 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
 
       #find fan, cooling coil and heating coil on loop
       supply_components.each do |sc|
+        #get economizer on outdoor air system
+        if sc.to_AirLoopHVACOutdoorAirSystem.is_initialized
+          sc = sc.to_AirLoopHVACOutdoorAirSystem.get
+          #get ControllerOutdoorAir
+          controller_oa = sc.getControllerOutdoorAir
+          #mixed air node
+          if sc.mixedAirModelObject.is_initialized
+            mix_air_node = sc.mixedAirModelObject.get.to_Node.get
+            runner.registerInfo("found mixed air node #{mix_air_node.name.to_s} on airloop #{airloop.name.to_s}")
+            outputVariable = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate",model)
+            outputVariable.setKeyValue("#{mix_air_node.name.to_s}")
+            outputVariable.setReportingFrequency("hourly") 
+            mix_air_node_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, outputVariable)
+            mix_air_node_sensor.setKeyName(mix_air_node.handle.to_s)
+            mix_air_node_sensor.setName("#{mix_air_node.name.to_s} System Node Mass Flow Rate")              
+          end          
+          #outdoor air node
+          if sc.outdoorAirModelObject.is_initialized
+            outdoor_air_node = sc.outdoorAirModelObject.get.to_Node.get
+            runner.registerInfo("found outdoor air node #{outdoor_air_node.name.to_s} on airloop #{airloop.name.to_s}")
+            outputVariable = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate",model)
+            outputVariable.setKeyValue("#{outdoor_air_node.name.to_s}")
+            outputVariable.setReportingFrequency("hourly")
+            outdoor_air_node_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, outputVariable)
+            outdoor_air_node_sensor.setKeyName(outdoor_air_node.handle.to_s)
+            outdoor_air_node_sensor.setName("#{outdoor_air_node.name.to_s} System Node Mass Flow Rate") 
+          end         
+          #return air node
+          if sc.returnAirModelObject.is_initialized
+            return_air_node = sc.returnAirModelObject.get.to_Node.get
+            runner.registerInfo("found return air node #{return_air_node.name.to_s} on airloop #{airloop.name.to_s}")
+            outputVariable = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate",model)
+            outputVariable.setKeyValue("#{return_air_node.name.to_s}")
+            outputVariable.setReportingFrequency("hourly")
+            return_air_node_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, outputVariable)
+            return_air_node_sensor.setKeyName(return_air_node.handle.to_s)
+            return_air_node_sensor.setName("#{return_air_node.name.to_s} System Node Mass Flow Rate")  
+          end        
+          #relief air node
+          if sc.reliefAirModelObject.is_initialized
+            relief_air_node = sc.reliefAirModelObject.get.to_Node.get
+            runner.registerInfo("found relief air node #{relief_air_node.name.to_s} on airloop #{airloop.name.to_s}")
+            outputVariable = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate",model)
+            outputVariable.setKeyValue("#{relief_air_node.name.to_s}")
+            outputVariable.setReportingFrequency("hourly")
+            relief_air_node_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, outputVariable)
+            relief_air_node_sensor.setKeyName(relief_air_node.handle.to_s)
+            relief_air_node_sensor.setName("#{relief_air_node.name.to_s} System Node Mass Flow Rate")  
+          end
+          
+          outdoor_air_fraction_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Air System Outdoor Air Flow Fraction")
+          outdoor_air_fraction_sensor.setKeyName(airloop.handle.to_s)
+          outdoor_air_fraction_sensor.setName("#{airloop.name.to_s} Air System Outdoor Air Flow Fraction")  
+
+          #add outputvariables for testing
+          outputVariable = OpenStudio::Model::OutputVariable.new("Air System Outdoor Air Flow Fraction",model)
+          outputVariable.setKeyValue("*")
+          outputVariable.setReportingFrequency("hourly")
+          
+          #add EMS Actuator
+          damper_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(controller_oa,"Outdoor Air Controller","Air Mass Flow Rate") 
+          damper_actuator.setName("#{controller_oa.name.to_s.gsub('-','_')} Outdoor Air Mass Flow Rate")    
+              
+          program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+          program.setName("#{airloop.name.to_s}_OutdoorAir_Prgm")   
+          program.addLine("SET #{damper_actuator.handle.to_s} = 0.2")
+
+          pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+          pcm.setName("#{airloop.name.to_s} Outdoor Air Control Program")
+          pcm.setCallingPoint("AfterPredictorBeforeHVACManagers")
+          pcm.addProgram(program)
+      
         #its a UnitarySystem so get sub components
-        if sc.to_AirLoopHVACUnitarySystem.is_initialized
+        elsif sc.to_AirLoopHVACUnitarySystem.is_initialized
           sc = sc.to_AirLoopHVACUnitarySystem.get
           runner.registerInfo("found #{sc.name.to_s} on airloop #{airloop.name.to_s}")
           ahu_json[:id] = "@#{sc.name.to_s}"
