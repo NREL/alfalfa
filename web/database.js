@@ -8,10 +8,11 @@
 //   21 Mar 2015  Shawn Jacobson  Creation
 //
 
-var hs = require('nodehaystack');
+import AWS from 'aws-sdk';
+import os from 'os';
+import hs from 'nodehaystack';
 
-var os = require('os'),
-    HBool = hs.HBool,
+var HBool = hs.HBool,
     HDateTime = hs.HDateTime,
     HDictBuilder = hs.HDictBuilder,
     HGrid = hs.HGrid,
@@ -25,12 +26,15 @@ var os = require('os'),
     HServer = hs.HServer,
     HStdOps = hs.HStdOps;
 
+AWS.config.update({region: 'us-west-2'});
+var sqs = new AWS.SQS();
+
 /**
  * TestDatabase provides a simple implementation of
  * HDatabase with some test entities.
  * @constructor
  */
-class TestDatabase extends HServer {
+class Database extends HServer {
   constructor() {
     super();
     this.writeArrays = {};
@@ -243,6 +247,7 @@ class TestDatabase extends HServer {
   };
 
   onNavReadByUri(uri, callback) {
+    console.log("onNavReadByUri: " + uri);
     // return null;
   };
   
@@ -334,10 +339,23 @@ class TestDatabase extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onInvokeAction(rec, action, args, callback) {
+    var params = {
+     MessageBody: `{"id": "${rec.map.id.val}", "op": "InvokeAction", "action": "${action}"}`,
+     QueueUrl: process.env.JOB_QUEUE_URL
+    };
+
+    sqs.sendMessage(params, function(err, data) {
+      if (err) console.log(err, err.stack); // an error occurred
+      else     console.log(data);           // successful response
+    });
+
     console.log("-- invokeAction \"" + rec.dis() + "." + action + "\" " + args);
-    callback(null, HGrid.EMPTY);
+
+    // Build an empty response
+    // There is no grid data to communicate back to client at this time
+    callback(null, HGridBuilder.dictsToGrid([]));
   };
 }
 
-module.exports = TestDatabase;
+module.exports = Database;
 

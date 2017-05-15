@@ -1,13 +1,13 @@
 
 // Module dependencies.
-var hs = require('nodehaystack'),
-    express = require('express'),
-    url = require('url'),
-    bodyParser = require('body-parser'),
-    db = require('./database');
+import hs from 'nodehaystack';
+import express from 'express';
+import url from 'url';
+import bodyParser from 'body-parser';
+import database from './database';
 
-var app = express();
-db = new db();
+var app = express(),
+    db = new database();
 
 app.use(bodyParser.text({ type: 'text/*' }));
 app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
