@@ -15,7 +15,7 @@ def process_message(message):
     # Message needs to be deleted, otherwise it will show back up in the queue for processing
     if op == 'InvokeAction': 
         processed = process_invoke_action_message(message_body)
-    elif op == 'WritePoint':
+    elif op == 'PointWrite':
         processed = process_write_point_message(message_body)
 
     if processed:
@@ -38,34 +38,12 @@ def process_invoke_action_message(message_body):
 
 # Return true if the message was handled, otherwise false
 def process_write_point_message(message_body):
-    tags = message_body['tags']
-    print tags
-    # or whatever the tags are for an economizer point
-    if ['equip','ahu','economizer'] <= tags:
-        process_economizer_write_point(message_body)
-        return True
-    # elif ['x','y','z'] ...
-        # process_xyz_write
-
-    return False
-
-# This needs to map a point write to actual actuators in the simulation
-# Coordinate with Haystack measure
-# Here is one for an economizer point write
-def process_economizer_write_point(message_body):
-    # Use message_body for additional context and information
-    # May need to insert additional "meta" tag information in the message
-    # depending on the type of point written to
-
-    # This assumes there is a simulation running
-    # probably need some global information about the simulation, if any, that is running
-    print 'Writing economizer point'
-    return
-
-# There can be a wide range of process_foo_write_point methods
-# for all of the types of points that may be written
-#def process_xyz_write_point:
-#    return
+    haystack_id = message_body['id']
+    val = message_body['val']
+    level = message_body['level']
+    print "process_write_point_message: id = {haystack_id} val = {val} level = {level}".format(**locals()) 
+    # Master algorithm should assume that there is a extenal interface variable with name corresponding to haystack_id
+    return True
 
 def start_simulation():
     print 'Starting EnergyPlus Simulation'

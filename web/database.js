@@ -29,6 +29,13 @@ var HBool = hs.HBool,
 AWS.config.update({region: 'us-west-2'});
 var sqs = new AWS.SQS();
 
+class WriteArray {
+  constructor() {
+    this.val = [];
+    this.who = [];
+  }
+};
+
 /**
  * TestDatabase provides a simple implementation of
  * HDatabase with some test entities.
@@ -37,13 +44,10 @@ var sqs = new AWS.SQS();
 class Database extends HServer {
   constructor() {
     super();
-    this.writeArrays = {};
-    this.WriteArray = function() {
-      this.val = [];
-      this.who = [];
-    };
 
+    this.writeArrays = {};
     this.recs = {};
+
     this.addSite("A", "Richmond", "VA", 1000);
     this.addSite("B", "Richmond", "VA", 2000);
     this.addSite("C", "Washington", "DC", 3000);
@@ -176,27 +180,28 @@ class Database extends HServer {
   };
   
   iterator(callback) {
-    var _iterator = function(self) {
-      var index = 0;
-      var recs = self.recs;
-      var keys = Object.keys(recs);
-      var length = keys.length;
-      return {
-        next: function() {
-          var elem;
-          if (!this.hasNext()) {
-            return null;
-          }
-          elem = recs[keys[index]];
-          index++;
-          return elem;
-        },
-        hasNext: function() {
-          return index < length;
+    callback(null, this._iterator());
+  };
+
+  _iterator() {
+    var index = 0;
+    var recs = this.recs;
+    var keys = Object.keys(recs);
+    var length = keys.length;
+    return {
+      next: function() {
+        var elem;
+        if (!this.hasNext()) {
+          return null;
         }
-      };
+        elem = recs[keys[index]];
+        index++;
+        return elem;
+      },
+      hasNext: function() {
+        return index < length;
+      }
     };
-    callback(null, _iterator(this));
   };
   
   //////////////////////////////////////////////////////////////////////////
@@ -204,14 +209,7 @@ class Database extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onNav(navId, callback) {
-    var self = this;
-    // test database navId is record id
-    if (typeof(navId) !== 'undefined' && navId !== null) {
-      self.readById(HRef.make(navId), function(err, base) {
-        if (err) callback(err)
-        else _onNav(self, base, callback);
-      });
-    } else {
+    const _onNav = (base, callback) => {
       // map base record to site, equip, or point
       var filter = "site";
       if (typeof(base) !== 'undefined' && base !== null) {
@@ -227,7 +225,7 @@ class Database extends HServer {
       }
   
       // read children of base record
-      self.readAll(filter, function(err, grid) {
+      this.readAll(filter, function(err, grid) {
         if (err) callback(err);
         else {
           // add navId column to results
@@ -243,6 +241,18 @@ class Database extends HServer {
           callback(null, HGridBuilder.dictsToGrid(rows));
         }
       });
+    };
+
+    if (typeof(navId) !== 'undefined' && navId !== null) {
+      this.readById(HRef.make(navId), (err, base) => {
+        if (err) {
+          callback(err)
+        } else {
+          _onNav(base, callback);
+        }
+      });
+    } else {
+      _onNav(null, callback);
     }
   };
 
@@ -272,9 +282,10 @@ class Database extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onPointWriteArray(rec, callback) {
-    var array = writeArrays[rec.id()];
+    var array = this.writeArrays[rec.id()];
     if (typeof(array)==='undefined' || array===null) {
-      writeArrays[rec.id()] = array = new WriteArray();
+      array = new WriteArray();
+      this.writeArrays[rec.id()] = array;
     }
   
     var b = new HGridBuilder();
@@ -296,14 +307,27 @@ class Database extends HServer {
   };
   
   onPointWrite(rec, level, val, who, dur, opts, callback) {
-    console.log("onPointWrite: " + rec.dis() + "  " + val + " @ " + level + " [" + who + "]");
-    var array = writeArrays[rec.id()];
+    var array = this.writeArrays[rec.id()];
     if (typeof(array) === 'undefined' || array === null) {
-      writeArrays[rec.id()] = array = new WriteArray();
+      this.writeArrays[rec.id()] = array = new WriteArray();
     }
     array.val[level - 1] = val;
     array.who[level - 1] = who;
-    callback();
+
+    var params = {
+     MessageBody: `{"id": "${rec.id()}", "op": "PointWrite", "level": "${level}", "val": "${val}"}`,
+     QueueUrl: process.env.JOB_QUEUE_URL
+    };
+
+    sqs.sendMessage(params, function(err, data) {
+      if (err) {
+        console.log(err, err.stack); // an error occurred
+        callback();
+      } else {
+        console.log(data);           // successful response
+        callback();
+      }
+    });
   };
   
   //////////////////////////////////////////////////////////////////////////
@@ -339,21 +363,22 @@ class Database extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onInvokeAction(rec, action, args, callback) {
+    console.log("-- invokeAction \"" + rec.dis() + "." + action + "\" " + args);
+
     var params = {
-     MessageBody: `{"id": "${rec.map.id.val}", "op": "InvokeAction", "action": "${action}"}`,
+     MessageBody: `{"id": "${rec.id()}", "op": "InvokeAction", "action": "${action}"}`,
      QueueUrl: process.env.JOB_QUEUE_URL
     };
 
     sqs.sendMessage(params, function(err, data) {
-      if (err) console.log(err, err.stack); // an error occurred
-      else     console.log(data);           // successful response
+      if (err) {
+        console.log(err, err.stack); // an error occurred
+        callback(null, HGridBuilder.dictsToGrid([]));
+      } else {
+        console.log(data);           // successful response
+        callback(null, HGridBuilder.dictsToGrid([]));
+      }
     });
-
-    console.log("-- invokeAction \"" + rec.dis() + "." + action + "\" " + args);
-
-    // Build an empty response
-    // There is no grid data to communicate back to client at this time
-    callback(null, HGridBuilder.dictsToGrid([]));
   };
 }
 
