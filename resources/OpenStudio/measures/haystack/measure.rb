@@ -21,7 +21,22 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return "This measure loops through the existing airloops, looking for loops that have outdoor airsystems with economizers"
   end
   
-
+  def create_point(type, id, site, equip, where,what,measurement,kind,unit)
+    point_json = Hash.new
+    point_json[:id] = "@#{id}"
+    point_json[:dis] = "#{id}"
+    point_json[:siteRef] = "@#{site}"
+    point_json[:equipRef] = "@#{equip}"
+    point_json[:point] = "m:"
+    point_json["#{type}"] = "m:"
+    point_json["#{measurement}"] = "m:"   
+    point_json["#{where}"] = "m:" 
+    point_json["#{what}"] = "m:" 
+    point_json[:kind] = "#{kind}" 
+    point_json[:unit] = "#{unit}" 
+    return point_json
+  end
+  
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
@@ -133,7 +148,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             mixed_json_temp[:air] = "m:" 
             mixed_json_temp[:kind] = "Number" 
             mixed_json_temp[:unit] = "C" 
-            haystack_json << mixed_json_temp  
+            haystack_json << mixed_json_temp 
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}-mixed-air-temp-sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "temp", "Number", "C")            
             mixed_json_press = Hash.new
             mixed_json_press[:id] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}-mixed-air-pressure-sensor"
             mixed_json_press[:dis] = "#{airloop.name.to_s.gsub(/[\s-]/,'_')}-mixed-air-pressure-sensor"
