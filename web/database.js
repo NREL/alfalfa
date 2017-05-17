@@ -10,6 +10,7 @@
 
 import AWS from 'aws-sdk';
 import os from 'os';
+import fs from 'fs';
 import hs from 'nodehaystack';
 
 var HBool = hs.HBool,
@@ -24,7 +25,8 @@ var HBool = hs.HBool,
     HUri = hs.HUri,
     HGridBuilder = hs.HGridBuilder,
     HServer = hs.HServer,
-    HStdOps = hs.HStdOps;
+    HStdOps = hs.HStdOps,
+    HJsonReader = hs.HJsonReader;
 
 AWS.config.update({region: 'us-west-2'});
 var sqs = new AWS.SQS();
@@ -48,16 +50,47 @@ class Database extends HServer {
     this.writeArrays = {};
     this.recs = {};
 
-    this.addSite("A", "Richmond", "VA", 1000);
-    this.addSite("B", "Richmond", "VA", 2000);
-    this.addSite("C", "Washington", "DC", 3000);
-    this.addSite("D", "Boston", "MA", 4000);
-    this.addSite("E", "St. Louis", "MO", 5000);
+    fs.readFile('./haystack_report_haystack.json', 'utf8', (err, data) => {
+        if (err) {
+          console.log('Error parsing json points file: ',err); 
+        } else {
+          try {
+            var points = JSON.parse(data);
+            this.addPoints(points);
+          } catch(err) {
+            console.log(err);
+          }
+        }
+    });
+
+    //this.addSite("A", "Richmond", "VA", 1000);
+    //this.addSite("B", "Richmond", "VA", 2000);
+    //this.addSite("C", "Washington", "DC", 3000);
+    //this.addSite("D", "Boston", "MA", 4000);
+    //this.addSite("E", "St. Louis", "MO", 5000);
   }
-  //TestDatabase.prototype = Object.create(HServer.prototype);
-  //TestDatabase.prototype = Object.create(null);
-  //module.exports.TestDatabase = TestDatabase;
-  //module.exports = TestDatabase;
+
+  addPoints(points) {
+    for (let i = 0; i < points.length; i++) {
+      const point = points[i];
+      const keys = Object.keys(point);
+      var db = new HDictBuilder();
+      //const id = HRef.make(point['id']);
+      for (let j = 0; j < keys.length; j++) {
+        const key = keys[j];
+        const r = new HJsonReader(point[key]);
+        try {
+          const val = r.readScalar();
+          db.add(key,val);
+        }
+        catch(err) {
+          console.log(err);
+        }
+      }
+      const d = db.toDict();
+      this.recs[d.id()] = d;
+    }
+  }
   
   addSite(dis, geoCity, geoState, area) {
     var site = new HDictBuilder()
@@ -176,6 +209,7 @@ class Database extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onReadById(id, callback) {
+    console.log('onReadById: ',id.val);
     callback(null, this.recs[id.val]);
   };
   
@@ -209,7 +243,9 @@ class Database extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onNav(navId, callback) {
+    console.log('onNav navid: ',navId);
     const _onNav = (base, callback) => {
+      console.log('_onNav');
       // map base record to site, equip, or point
       var filter = "site";
       if (typeof(base) !== 'undefined' && base !== null) {
@@ -225,7 +261,7 @@ class Database extends HServer {
       }
   
       // read children of base record
-      this.readAll(filter, function(err, grid) {
+      this.readAll(filter, (err, grid) => {
         if (err) callback(err);
         else {
           // add navId column to results
@@ -243,15 +279,22 @@ class Database extends HServer {
       });
     };
 
+    console.log('starting to check type');
     if (typeof(navId) !== 'undefined' && navId !== null) {
+      console.log('navid defined');
+      //console.log('navId: ',HRef.make(navId));
+      console.log('going to readById');
       this.readById(HRef.make(navId), (err, base) => {
+      //this.readById(navId, (err, base) => {
         if (err) {
           callback(err)
         } else {
+          console.log('base id: ',base.id());
           _onNav(base, callback);
         }
       });
     } else {
+      console.log('navid undefined');
       _onNav(null, callback);
     }
   };
@@ -307,6 +350,9 @@ class Database extends HServer {
   };
   
   onPointWrite(rec, level, val, who, dur, opts, callback) {
+    // Consider making the worker update the WriteArray
+    // in response to the message handling, 
+    // that way there is no chance of write failing and WriteArray being inaccurate
     var array = this.writeArrays[rec.id()];
     if (typeof(array) === 'undefined' || array === null) {
       this.writeArrays[rec.id()] = array = new WriteArray();
