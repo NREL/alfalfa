@@ -416,6 +416,44 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           if equip.to_AirTerminalSingleDuctVAVReheat.is_initialized
             zone_json_temp[:vav] = "m:"
             zone_json_humidity[:vav] = "m:"
+            zone_json_cooling[:vav] = "m:"
+            zone_json_heating[:vav] = "m:"
+            ahu_json[:vavZone] = "m:"
+            
+            vav_json = Hash.new
+            vav_json[:id] = "@#{equip.name.to_s.gsub(/[\s-]/,'_')}"
+            vav_json[:dis] = "#{equip.name.to_s}"
+            vav_json[:hvac] = "m:"
+            vav_json[:vav] = "m:"
+            vav_json[:equip] = "m:"
+            vav_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+            vav_json[:ahuRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+            vav_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+            #check reheat coil
+            rc = equip.to_AirTerminalSingleDuctVAVReheat.get.reheatCoil
+            if rc.to_CoilHeatingWater.is_initialized
+              rc = rc.to_CoilHeatingWater.get
+              runner.registerInfo("found #{rc.name.to_s} on airloop #{airloop.name.to_s}") 
+              vav_json[:hotWaterReheat] = "m:"
+              if rc.plantLoop.is_initialized
+                pl = rc.plantLoop.get
+                vav_json[:hotWaterPlantRef] = "@#{pl.name.to_s.gsub(/[\s-]/,'_')}"
+              end          
+            elsif rc.to_CoilHeatingElectric.is_initialized
+              rc = rc.to_CoilHeatingElectric.get
+              runner.registerInfo("found #{rc.name.to_s} on airloop #{airloop.name.to_s}")  
+              vav_json[:elecReheat] = "m:"          
+            end
+            haystack_json << vav_json
+            #entering and discharge sensors
+            entering_node = equip.to_AirTerminalSingleDuctVAVReheat.get.inletModelObject.get.to_Node
+            haystack_json <<  create_point("sensor", "#{equip.name.to_s.gsub(/[\s-]/,'_')}_entering_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{equip.name.to_s.gsub(/[\s-]/,'_')}", "entering", "air", "temp", "Number", "C")   
+            discharge_node = equip.to_AirTerminalSingleDuctVAVReheat.get.outletModelObject.get.to_Node
+            haystack_json <<  create_point("sensor", "#{equip.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{equip.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "temp", "Number", "C")   
+            avail_sch = discharge_node = equip.to_AirTerminalSingleDuctVAVReheat.get.availabilitySchedule
+            #TODO 'reheat cmd'
+          elsif equip.to_AirTerminalSingleDuctUncontrolled.is_initialized
+            ahu_json[:directZone] = "m:"
           end
         end
         haystack_json << zone_json_temp
