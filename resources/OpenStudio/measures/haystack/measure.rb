@@ -21,28 +21,43 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return "This measure loops through the existing airloops, looking for loops that have outdoor airsystems with economizers"
   end
   
+  def create_ref(id)
+    #return string formatted for Ref (ie, "r:xxxxx") with no spaces or '-'
+    return "r:#{id.gsub(/[\s-]/,'_')}"
+  end
+  
+  def create_str(str)
+    #return string formatted for strings (ie, "s:xxxxx")
+    return "s:#{str}"
+  end
+  
+  def create_num(str)
+    #return string formatted for numbers (ie, "n:xxxxx")
+    return "n:#{str}"
+  end
+  
   def create_point(type, id, siteRef, equipRef, where,what,measurement,kind,unit)
     point_json = Hash.new
-    point_json[:id] = "r:#{id.gsub(/[\s-]/,'_')}"
-    point_json[:dis] = "#{id}"
-    point_json[:siteRef] = "r:#{siteRef.gsub(/[\s-]/,'_')}"
-    point_json[:equipRef] = "r:#{equipRef.gsub(/[\s-]/,'_')}"
+    point_json[:id] = create_ref(id)
+    point_json[:dis] = create_str(id)
+    point_json[:siteRef] = create_ref(siteRef)
+    point_json[:equipRef] = create_ref(equipRef)
     point_json[:point] = "m:"
     point_json["#{type}"] = "m:"
     point_json["#{measurement}"] = "m:"   
     point_json["#{where}"] = "m:" 
     point_json["#{what}"] = "m:" 
-    point_json[:kind] = "#{kind}" 
-    point_json[:unit] = "#{unit}" 
+    point_json[:kind] = create_str(kind) 
+    point_json[:unit] = create_str(unit) 
     return point_json
   end
   
   def create_fan(id, siteRef, equipRef, variable)
     point_json = Hash.new
-    point_json[:id] = "r:#{id.gsub(/[\s-]/,'_')}"
-    point_json[:dis] = "#{id}"
-    point_json[:siteRef] = "r:#{siteRef.gsub(/[\s-]/,'_')}"
-    point_json[:equipRef] = "r:#{equipRef.gsub(/[\s-]/,'_')}"
+    point_json[:id] = create_ref(id)
+    point_json[:dis] = create_str(id)
+    point_json[:siteRef] = create_ref(siteRef)
+    point_json[:equipRef] = create_ref(equipRef)
     point_json[:equip] = "m:"
     point_json[:fan] = "m:"
     if variable
@@ -53,12 +68,17 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     end     
     return point_json
   end
+
+  def create_ahu(id, siteRef)
+    ahu_json = Hash.new
+    ahu_json[:id] = create_ref(id)
+    ahu_json[:dis] = create_str(id)
+    ahu_json[:ahu] = "m:"
+    ahu_json[:hvac] = "m:"
+    ahu_json[:equip] = "m:"
+    ahu_json[:siteRef] = create_ref(siteRef)
+  end  
   
-  def create_ref(id)
-    #return string formatted for Ref (ie, "r:xxxxx") with no spaces or '-'
-    return "r:#{id.gsub(/[\s-]/,'_')}"
-  end
-   
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
@@ -91,21 +111,21 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       building = model.getBuilding
       
       site_json[:id] = create_ref(building.name.to_s)
-      site_json[:dis] = building.name.to_s
+      site_json[:dis] = create_str(building.name.to_s)
       site_json[:site] = "m:"
-      site_json[:area] = "n:#{building.floorArea}"
+      site_json[:area] = create_num(building.floorArea)
       site_json[:weatherRef] = create_ref(wf.city)
-      site_json[:tz] = "#{wf.timeZone}"
-      site_json[:geoCity] = wf.city
-      site_json[:geoState] = wf.stateProvinceRegion
-      site_json[:geoCountry] = wf.country
+      site_json[:tz] = create_num(wf.timeZone)
+      site_json[:geoCity] = create_str(wf.city)
+      site_json[:geoState] = create_str(wf.stateProvinceRegion)
+      site_json[:geoCountry] = create_str(wf.country)
       site_json[:geoCoord] = "c:#{wf.latitude},#{wf.longitude}"
       haystack_json << site_json
             
       weather_json[:id] = create_ref(wf.city)
       weather_json[:dis] = wf.city
       weather_json[:weather] = "m:"
-      weather_json[:tz] = "#{wf.timeZone}"
+      weather_json[:tz] = create_num(wf.timeZone)
       weather_json[:geoCoord] = "c:#{wf.latitude},#{wf.longitude}"
       haystack_json << weather_json      
     end
@@ -113,24 +133,20 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     #loop through air loops and find economizers
     model.getAirLoopHVACs.each do |airloop|
       supply_components = airloop.supplyComponents
-
       #find AirLoopHVACOutdoorAirSystem on loop
       supply_components.each do |supply_component|
         sc = supply_component.to_AirLoopHVACOutdoorAirSystem
         if sc.is_initialized
           sc = sc.get
-
           #get ControllerOutdoorAir
           controller_oa = sc.getControllerOutdoorAir
-
           #log initial economizer type
           if not controller_oa.getEconomizerControlType == "NoEconomizer"
             runner.registerInfo("found economizer on airloop #{airloop.name.to_s}")
             #puts "found economizer on airloop #{airloop.name.to_s}"
             num_economizers += 1
             airloops << airloop
-          end
-          
+          end         
         end
       end
     end  
@@ -369,10 +385,6 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     demand_components.each do |dc|
       if dc.to_ThermalZone.is_initialized
         tz = dc.to_ThermalZone.get
-        zone_json_temp = Hash.new
-        zone_json_humidity = Hash.new
-        zone_json_cooling = Hash.new
-        zone_json_heating = Hash.new
         #create sensor points
         zone_json_temp = create_point("sensor", "#{tz.name.to_s} Zone Air Temp Sensor", "#{building.name.to_s}", "#{airloop.name.to_s}", "zone", "air", "temp", "Number", "C")       
         zone_json_humidity = create_point("sensor", "#{tz.name.to_s} Zone Air Humidity Sensor", "#{building.name.to_s}", "#{airloop.name.to_s}", "zone", "air", "humidity", "Number", "%")                  
@@ -391,10 +403,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             zone_json_heating[:heating] = "m:"
           end
         end
-        zone_json_temp[:area] = "n:#{tz.floorArea}"
-        zone_json_temp[:volume] = "n:#{tz.volume}"
-        zone_json_humidity[:area] = "n:#{tz.floorArea}"
-        zone_json_humidity[:volume] = "n:#{tz.volume}"
+        zone_json_temp[:area] = create_num(tz.floorArea)
+        zone_json_temp[:volume] = create_num(tz.volume)
+        zone_json_humidity[:area] = create_num(tz.floorArea)
+        zone_json_humidity[:volume] = create_num(tz.volume)
         
         tz.equipment.each do |equip|
           if equip.to_AirTerminalSingleDuctVAVReheat.is_initialized
@@ -406,7 +418,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             
             vav_json = Hash.new
             vav_json[:id] = create_ref(equip.name.to_s)
-            vav_json[:dis] = "#{equip.name.to_s}"
+            vav_json[:dis] = create_str(equip.name.to_s)
             vav_json[:hvac] = "m:"
             vav_json[:vav] = "m:"
             vav_json[:equip] = "m:"
