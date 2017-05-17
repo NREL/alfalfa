@@ -37,6 +37,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return point_json
   end
   
+  def create_fan(id, siteRef, equipRef, variable)
+    point_json = Hash.new
+    point_json[:id] = "@#{id}"
+    point_json[:dis] = "#{id}"
+    point_json[:siteRef] = "@#{siteRef}"
+    point_json[:equipRef] = "@#{equipRef}"
+    point_json[:equip] = "m:"
+    point_json[:fan] = "m:"
+    if variable
+      point_json[:vfd] = "m:"
+      point_json[:variableVolume] = "m:"
+    else
+      point_json[:constantVolume] = "m:"
+    end     
+    return point_json
+  end
+   
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
@@ -122,13 +139,13 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       ahu_json[:hvac] = "m:"
       ahu_json[:equip] = "m:"
       ahu_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
-          
+      #AHU discharge sensors    
       discharge_node = airloop.supplyOutletNode
       #create sensor points
-      haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "temp", "Number", "C")            
-      haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_pressure_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "pressure", "Number", "Pa")            
-      haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_humidity_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "humidity", "Number", "%")            
-      haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_flow_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "flow", "Number", "Kg/s")            
+      haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_temp_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "temp", "Number", "C")            
+      haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_pressure_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "pressure", "Number", "Pa")            
+      haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_humidity_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "humidity", "Number", "%")            
+      haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_flow_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "flow", "Number", "Kg/s")            
 
       supply_components = airloop.supplyComponents
 
@@ -141,13 +158,14 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           controller_oa = sc.getControllerOutdoorAir
           #mixed air node
           if sc.mixedAirModelObject.is_initialized
+            #AHU mixed sensors
             mix_air_node = sc.mixedAirModelObject.get.to_Node.get
             runner.registerInfo("found mixed air node #{mix_air_node.name.to_s} on airloop #{airloop.name.to_s}")
             #create sensor points
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_mixed_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "temp", "Number", "C")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_mixed_air_pressure_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "pressure", "Number", "Pa")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_mixed_air_humidity_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "humidity", "Number", "%")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_mixed_air_flow_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "flow", "Number", "Kg/s")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_mixed_air_temp_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "temp", "Number", "C")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_mixed_air_pressure_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "pressure", "Number", "Pa")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_mixed_air_humidity_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "humidity", "Number", "%")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_mixed_air_flow_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "mixed", "air", "flow", "Number", "Kg/s")            
 
             outputVariable = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate",model)
             outputVariable.setKeyValue("#{mix_air_node.name.to_s}")
@@ -159,13 +177,14 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           end          
           #outdoor air node
           if sc.outdoorAirModelObject.is_initialized
+            #AHU outside sensors
             outdoor_air_node = sc.outdoorAirModelObject.get.to_Node.get
             runner.registerInfo("found outdoor air node #{outdoor_air_node.name.to_s} on airloop #{airloop.name.to_s}")
             #create sensor points
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_outside_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "outside", "air", "temp", "Number", "C")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_outside_air_pressure_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "outside", "air", "pressure", "Number", "Pa")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_outside_air_humidity_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "outside", "air", "humidity", "Number", "%")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_outside_air_flow_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "outside", "air", "flow", "Number", "Kg/s")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_outside_air_temp_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "outside", "air", "temp", "Number", "C")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_outside_air_pressure_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "outside", "air", "pressure", "Number", "Pa")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_outside_air_humidity_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "outside", "air", "humidity", "Number", "%")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_outside_air_flow_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "outside", "air", "flow", "Number", "Kg/s")            
 
             outputVariable = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate",model)
             outputVariable.setKeyValue("#{outdoor_air_node.name.to_s}")
@@ -177,13 +196,14 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           end         
           #return air node
           if sc.returnAirModelObject.is_initialized
+            #AHU return sensors
             return_air_node = sc.returnAirModelObject.get.to_Node.get
             runner.registerInfo("found return air node #{return_air_node.name.to_s} on airloop #{airloop.name.to_s}")
             #create sensor points
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_return_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "return", "air", "temp", "Number", "C")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_return_air_pressure_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "return", "air", "pressure", "Number", "Pa")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_return_air_humidity_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "return", "air", "humidity", "Number", "%")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_return_air_flow_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "return", "air", "flow", "Number", "Kg/s")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_return_air_temp_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "return", "air", "temp", "Number", "C")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_return_air_pressure_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "return", "air", "pressure", "Number", "Pa")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_return_air_humidity_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "return", "air", "humidity", "Number", "%")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_return_air_flow_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "return", "air", "flow", "Number", "Kg/s")            
 
             outputVariable = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate",model)
             outputVariable.setKeyValue("#{return_air_node.name.to_s}")
@@ -195,13 +215,14 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           end        
           #relief air node
           if sc.reliefAirModelObject.is_initialized
+            #AHU exhaust sensors
             relief_air_node = sc.reliefAirModelObject.get.to_Node.get
             runner.registerInfo("found relief air node #{relief_air_node.name.to_s} on airloop #{airloop.name.to_s}")
             #create sensor points
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_exhaust_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "exhaust", "air", "temp", "Number", "C")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_exhaust_air_pressure_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "exhaust", "air", "pressure", "Number", "Pa")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_exhaust_air_humidity_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "exhaust", "air", "humidity", "Number", "%")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_exhaust_air_flow_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "exhaust", "air", "flow", "Number", "Kg/s")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_exhaust_air_temp_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "exhaust", "air", "temp", "Number", "C")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_exhaust_air_pressure_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "exhaust", "air", "pressure", "Number", "Pa")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_exhaust_air_humidity_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "exhaust", "air", "humidity", "Number", "%")            
+            haystack_json << create_point("sensor", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}_exhaust_air_flow_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "exhaust", "air", "flow", "Number", "Kg/s")            
 
             outputVariable = OpenStudio::Model::OutputVariable.new("System Node Mass Flow Rate",model)
             outputVariable.setKeyValue("#{relief_air_node.name.to_s}")
@@ -214,7 +235,6 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           
           outdoor_air_fraction_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Air System Outdoor Air Flow Fraction")
           outdoor_air_fraction_sensor.setKeyName(airloop.handle.to_s)
-          #outdoor_air_fraction_sensor.setName("#{airloop.name.to_s} Air System Outdoor Air Flow Fraction")
           outdoor_air_fraction_sensor.setName("#{airloop.name.to_s.gsub(/[\s-]/,'_')}_Sensor")    
 
           #add outputvariables for testing
@@ -252,6 +272,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           ahu_json[:rooftop] = "m:"
           fan = sc.supplyFan
           if fan.is_initialized
+            #AHU FAN equip
             if fan.get.to_FanVariableVolume.is_initialized
               runner.registerInfo("found VAV #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
               ahu_json[:variableVolume] = "m:"
@@ -265,6 +286,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
               fan_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
               fan_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
               haystack_json << fan_json
+              haystack_json << create_fan("#{fan.get.name.to_s.gsub(/[\s-]/,'_')}", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", true)
             else
               runner.registerInfo("found CAV #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
               ahu_json[:constantVolume] = "m:"
@@ -277,6 +299,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
               fan_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
               fan_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
               haystack_json << fan_json
+              haystack_json << create_fan("#{fan.get.name.to_s.gsub(/[\s-]/,'_')}", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", false)
             end
           end
           cc = sc.coolingCoil
@@ -390,20 +413,20 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
         zone_json_cooling = Hash.new
         zone_json_heating = Hash.new
         #create sensor points
-        zone_json_temp = create_point("sensor", "#{tz.name.to_s.gsub(/[\s-]/,'_')}_zone_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "zone", "air", "temp", "Number", "C")       
-        zone_json_humidity = create_point("sensor", "#{tz.name.to_s.gsub(/[\s-]/,'_')}_zone_air_humidity_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "zone", "air", "humidity", "Number", "%")                  
+        zone_json_temp = create_point("sensor", "#{tz.name.to_s.gsub(/[\s-]/,'_')}_zone_air_temp_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "zone", "air", "temp", "Number", "C")       
+        zone_json_humidity = create_point("sensor", "#{tz.name.to_s.gsub(/[\s-]/,'_')}_zone_air_humidity_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "zone", "air", "humidity", "Number", "%")                  
 
         if tz.thermostatSetpointDualSetpoint.is_initialized
           if tz.thermostatSetpointDualSetpoint.get.coolingSetpointTemperatureSchedule.is_initialized
             cool_thermostat = tz.thermostatSetpointDualSetpoint.get.coolingSetpointTemperatureSchedule.get
             runner.registerInfo("found #{cool_thermostat.name.to_s} on airloop #{airloop.name.to_s} in thermalzone #{tz.name.to_s}") 
-            zone_json_cooling = create_point("sp", "#{tz.name.to_s.gsub(/[\s-]/,'_')}_zone_air_cooling_sp", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "zone", "air", "temp", "Number", "C") 
+            zone_json_cooling = create_point("sp", "#{tz.name.to_s.gsub(/[\s-]/,'_')}_zone_air_cooling_sp", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "zone", "air", "temp", "Number", "C") 
             zone_json_cooling[:cooling] = "m:"
           end
           if tz.thermostatSetpointDualSetpoint.get.heatingSetpointTemperatureSchedule.is_initialized
             heat_thermostat = tz.thermostatSetpointDualSetpoint.get.heatingSetpointTemperatureSchedule.get
             runner.registerInfo("found #{heat_thermostat.name.to_s} on airloop #{airloop.name.to_s} in thermalzone #{tz.name.to_s}") 
-            zone_json_heating = create_point("sp", "#{tz.name.to_s.gsub(/[\s-]/,'_')}_zone_air_heating_sp", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "zone", "air", "temp", "Number", "C")   
+            zone_json_heating = create_point("sp", "#{tz.name.to_s.gsub(/[\s-]/,'_')}_zone_air_heating_sp", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", "zone", "air", "temp", "Number", "C")   
             zone_json_heating[:heating] = "m:"
           end
         end
@@ -447,9 +470,9 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             haystack_json << vav_json
             #entering and discharge sensors
             entering_node = equip.to_AirTerminalSingleDuctVAVReheat.get.inletModelObject.get.to_Node
-            haystack_json <<  create_point("sensor", "#{equip.name.to_s.gsub(/[\s-]/,'_')}_entering_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{equip.name.to_s.gsub(/[\s-]/,'_')}", "entering", "air", "temp", "Number", "C")   
+            haystack_json <<  create_point("sensor", "#{equip.name.to_s.gsub(/[\s-]/,'_')}_entering_air_temp_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{equip.name.to_s.gsub(/[\s-]/,'_')}", "entering", "air", "temp", "Number", "C")   
             discharge_node = equip.to_AirTerminalSingleDuctVAVReheat.get.outletModelObject.get.to_Node
-            haystack_json <<  create_point("sensor", "#{equip.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_temp_sensor", "@#{building.name.to_s.gsub(/[\s-]/,'_')}", "@#{equip.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "temp", "Number", "C")   
+            haystack_json <<  create_point("sensor", "#{equip.name.to_s.gsub(/[\s-]/,'_')}_discharge_air_temp_sensor", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{equip.name.to_s.gsub(/[\s-]/,'_')}", "discharge", "air", "temp", "Number", "C")   
             avail_sch = discharge_node = equip.to_AirTerminalSingleDuctVAVReheat.get.availabilitySchedule
             #TODO 'reheat cmd'
           elsif equip.to_AirTerminalSingleDuctUncontrolled.is_initialized
