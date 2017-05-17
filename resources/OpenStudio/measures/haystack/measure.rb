@@ -80,6 +80,18 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return ahu_json
   end  
   
+  def create_vav(id, siteRef, equipRef)
+    vav_json = Hash.new
+    vav_json[:id] = create_ref(id)
+    vav_json[:dis] = create_str(id)
+    vav_json[:hvac] = "m:"
+    vav_json[:vav] = "m:"
+    vav_json[:equip] = "m:"
+    vav_json[:equipRef] = create_ref(equipRef)
+    vav_json[:ahuRef] = create_ref(equipRef)
+    vav_json[:siteRef] = create_ref(siteRef)
+    return vav_json
+  end
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
@@ -124,7 +136,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       haystack_json << site_json
             
       weather_json[:id] = create_ref(wf.city)
-      weather_json[:dis] = wf.city
+      weather_json[:dis] = create_str(wf.city)
       weather_json[:weather] = "m:"
       weather_json[:tz] = create_num(wf.timeZone)
       weather_json[:geoCoord] = "c:#{wf.latitude},#{wf.longitude}"
@@ -412,15 +424,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             zone_json_heating[:vav] = "m:"
             ahu_json[:vavZone] = "m:"
             
-            vav_json = Hash.new
-            vav_json[:id] = create_ref(equip.name.to_s)
-            vav_json[:dis] = create_str(equip.name.to_s)
-            vav_json[:hvac] = "m:"
-            vav_json[:vav] = "m:"
-            vav_json[:equip] = "m:"
-            vav_json[:equipRef] = create_ref(airloop.name.to_s)
-            vav_json[:ahuRef] = create_ref(airloop.name.to_s)
-            vav_json[:siteRef] = create_ref(building.name.to_s)
+            vav_json = create_vav(equip.name.to_s, building.name.to_s, airloop.name.to_s)
+
             #check reheat coil
             rc = equip.to_AirTerminalSingleDuctVAVReheat.get.reheatCoil
             if rc.to_CoilHeatingWater.is_initialized
