@@ -23,10 +23,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   
   def create_point(type, id, site, equip, where,what,measurement,kind,unit)
     point_json = Hash.new
-    point_json[:id] = "@#{id}"
+    point_json[:id] = "r:#{id}"
     point_json[:dis] = "#{id}"
-    point_json[:siteRef] = "@#{site}"
-    point_json[:equipRef] = "@#{equip}"
+    point_json[:siteRef] = "r:#{site}"
+    point_json[:equipRef] = "r:#{equip}"
     point_json[:point] = "m:"
     point_json["#{type}"] = "m:"
     point_json["#{measurement}"] = "m:"   
@@ -39,10 +39,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   
   def create_fan(id, siteRef, equipRef, variable)
     point_json = Hash.new
-    point_json[:id] = "@#{id}"
+    point_json[:id] = "r:#{id}"
     point_json[:dis] = "#{id}"
-    point_json[:siteRef] = "@#{siteRef}"
-    point_json[:equipRef] = "@#{equipRef}"
+    point_json[:siteRef] = "r:#{siteRef}"
+    point_json[:equipRef] = "r:#{equipRef}"
     point_json[:equip] = "m:"
     point_json[:fan] = "m:"
     if variable
@@ -85,23 +85,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       wf = model.weatherFile.get
       building = model.getBuilding
       
-      site_json[:id] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+      site_json[:id] = "r:#{building.name.to_s.gsub(/[\s-]/,'_')}"
       site_json[:dis] = building.name.to_s
       site_json[:site] = "m:"
-      site_json[:area] = building.floorArea
-      site_json[:weatherRef] = "@#{wf.city.gsub(/[\s-]/,'_')}"
+      site_json[:area] = "n:#{building.floorArea}"
+      site_json[:weatherRef] = "r:#{wf.city.gsub(/[\s-]/,'_')}"
       site_json[:tz] = "#{wf.timeZone}"
       site_json[:geoCity] = wf.city
       site_json[:geoState] = wf.stateProvinceRegion
       site_json[:geoCountry] = wf.country
-      site_json[:geoCoord] = "C(#{wf.latitude},#{wf.longitude})"
+      site_json[:geoCoord] = "c:#{wf.latitude},#{wf.longitude}"
       haystack_json << site_json
       
-      weather_json[:id] = "@#{wf.city.gsub(/[\s-]/,'_')}"
+      weather_json[:id] = "r:#{wf.city.gsub(/[\s-]/,'_')}"
       weather_json[:dis] = wf.city
       weather_json[:weather] = "m:"
       weather_json[:tz] = "#{wf.timeZone}"
-      weather_json[:geoCoord] = "C(#{wf.latitude},#{wf.longitude})"
+      weather_json[:geoCoord] = "c:#{wf.latitude},#{wf.longitude}"
       haystack_json << weather_json      
     end
     
@@ -133,12 +133,12 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     #loop through economizer loops and find fans and cooling coils    
     airloops.each do |airloop|
       ahu_json = Hash.new
-      ahu_json[:id] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+      ahu_json[:id] = "r:#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
       ahu_json[:dis] = airloop.name.to_s
       ahu_json[:ahu] = "m:"
       ahu_json[:hvac] = "m:"
       ahu_json[:equip] = "m:"
-      ahu_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+      ahu_json[:siteRef] = "r:#{building.name.to_s.gsub(/[\s-]/,'_')}"
       #AHU discharge sensors    
       discharge_node = airloop.supplyOutletNode
       #create sensor points
@@ -277,27 +277,27 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
               runner.registerInfo("found VAV #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
               ahu_json[:variableVolume] = "m:"
               fan_json = Hash.new
-              fan_json[:id] = "@#{fan.get.name.to_s.gsub(/[\s-]/,'_')}"
+              fan_json[:id] = "r:#{fan.get.name.to_s.gsub(/[\s-]/,'_')}"
               fan_json[:dis] = "#{fan.get.name.to_s}"
               fan_json[:fan] = "m:"
               fan_json[:vfd] = "m:"
               fan_json[:variableVolume] = "m:"
               fan_json[:equip] = "m:"
-              fan_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
-              fan_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+              fan_json[:equipRef] = "r:#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+              fan_json[:siteRef] = "r:#{building.name.to_s.gsub(/[\s-]/,'_')}"
               haystack_json << fan_json
               haystack_json << create_fan("#{fan.get.name.to_s.gsub(/[\s-]/,'_')}", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", true)
             else
               runner.registerInfo("found CAV #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
               ahu_json[:constantVolume] = "m:"
               fan_json = Hash.new
-              fan_json[:id] = "@#{fan.get.name.to_s.gsub(/[\s-]/,'_')}"
+              fan_json[:id] = "r:#{fan.get.name.to_s.gsub(/[\s-]/,'_')}"
               fan_json[:dis] = "#{fan.get.name.to_s}"
               fan_json[:fan] = "m:"
               fan_json[:constantVolume] = "m:"
               fan_json[:equip] = "m:"
-              fan_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
-              fan_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+              fan_json[:equipRef] = "r:#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+              fan_json[:siteRef] = "r:#{building.name.to_s.gsub(/[\s-]/,'_')}"
               haystack_json << fan_json
               haystack_json << create_fan("#{fan.get.name.to_s.gsub(/[\s-]/,'_')}", "#{building.name.to_s.gsub(/[\s-]/,'_')}", "#{airloop.name.to_s.gsub(/[\s-]/,'_')}", false)
             end
@@ -309,7 +309,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
               ahu_json[:chilledWaterCool] = "m:"
               if cc.get.plantLoop.is_initialized
                 pl = cc.get.plantLoop.get
-                ahu_json[:chilledWaterPlantRef] = "@#{pl.name.to_s.gsub(/[\s-]/,'_')}"
+                ahu_json[:chilledWaterPlantRef] = "r:#{pl.name.to_s.gsub(/[\s-]/,'_')}"
               end
               if cc.get.to_CoilCoolingWaterToAirHeatPumpEquationFit.is_initialized
                 ahu_json[:heatPump] = "m:"
@@ -332,7 +332,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
               ahu_json[:hotWaterHeat] = "m:"
               if hc.get.plantLoop.is_initialized
                 pl = hc.get.plantLoop.get
-                ahu_json[:hotWaterPlantRef] = "@#{pl.name.to_s.gsub(/[\s-]/,'_')}"
+                ahu_json[:hotWaterPlantRef] = "r:#{pl.name.to_s.gsub(/[\s-]/,'_')}"
               end
               if hc.get.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
                 ahu_json[:heatPump] = "m:"
@@ -345,40 +345,40 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           runner.registerInfo("found #{sc.name.to_s} on airloop #{airloop.name.to_s}")
           ahu_json[:constantVolume] = "m:"
           fan_json = Hash.new
-          fan_json[:id] = "@#{sc.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:id] = "r:#{sc.name.to_s.gsub(/[\s-]/,'_')}"
           fan_json[:dis] = "#{sc.name.to_s}"
           fan_json[:fan] = "m:"
           fan_json[:constantVolume] = "m:"
           fan_json[:equip] = "m:"
-          fan_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
-          fan_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:equipRef] = "r:#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:siteRef] = "r:#{building.name.to_s.gsub(/[\s-]/,'_')}"
           haystack_json << fan_json
         elsif sc.to_FanVariableVolume.is_initialized
           sc = sc.to_FanVariableVolume.get
           runner.registerInfo("found #{sc.name.to_s} on airloop #{airloop.name.to_s}")
           ahu_json[:variableVolume] = "m:"
           fan_json = Hash.new
-          fan_json[:id] = "@#{sc.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:id] = "r:#{sc.name.to_s.gsub(/[\s-]/,'_')}"
           fan_json[:dis] = "#{sc.name.to_s}"
           fan_json[:fan] = "m:"
           fan_json[:vfd] = "m:"
           fan_json[:variableVolume] = "m:"
           fan_json[:equip] = "m:"
-          fan_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
-          fan_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:equipRef] = "r:#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:siteRef] = "r:#{building.name.to_s.gsub(/[\s-]/,'_')}"
           haystack_json << fan_json
         elsif sc.to_FanOnOff.is_initialized
           sc = sc.to_FanOnOff.get
           runner.registerInfo("found #{sc.name.to_s} on airloop #{airloop.name.to_s}")
           ahu_json[:constantVolume] = "m:"
           fan_json = Hash.new
-          fan_json[:id] = "@#{sc.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:id] = "r:#{sc.name.to_s.gsub(/[\s-]/,'_')}"
           fan_json[:dis] = "#{sc.name.to_s}"
           fan_json[:fan] = "m:"
           fan_json[:constantVolume] = "m:"
           fan_json[:equip] = "m:"
-          fan_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
-          fan_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:equipRef] = "r:#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+          fan_json[:siteRef] = "r:#{building.name.to_s.gsub(/[\s-]/,'_')}"
           haystack_json << fan_json
         elsif sc.to_CoilCoolingWater.is_initialized
           sc = sc.to_CoilCoolingWater.get
@@ -386,7 +386,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           ahu_json[:chilledWaterCool] = "m:"
           if sc.plantLoop.is_initialized
             pl = sc.plantLoop.get
-            ahu_json[:chilledWaterPlantRef] = "@#{pl.name.to_s.gsub(/[\s-]/,'_')}"
+            ahu_json[:chilledWaterPlantRef] = "r:#{pl.name.to_s.gsub(/[\s-]/,'_')}"
           end
         elsif sc.to_CoilHeatingWater.is_initialized
           sc = sc.to_CoilHeatingWater.get
@@ -394,7 +394,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           ahu_json[:hotWaterHeat] = "m:"
           if sc.plantLoop.is_initialized
             pl = sc.plantLoop.get
-            ahu_json[:hotWaterPlantRef] = "@#{pl.name.to_s.gsub(/[\s-]/,'_')}"
+            ahu_json[:hotWaterPlantRef] = "r:#{pl.name.to_s.gsub(/[\s-]/,'_')}"
           end          
         elsif sc.to_CoilHeatingElectric.is_initialized
           sc = sc.to_CoilHeatingElectric.get
@@ -430,10 +430,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             zone_json_heating[:heating] = "m:"
           end
         end
-        zone_json_temp[:area] = "#{tz.floorArea}"
-        zone_json_temp[:volume] = "#{tz.volume}"
-        zone_json_humidity[:area] = "#{tz.floorArea}"
-        zone_json_humidity[:volume] = "#{tz.volume}"
+        zone_json_temp[:area] = "n:#{tz.floorArea}"
+        zone_json_temp[:volume] = "n:#{tz.volume}"
+        zone_json_humidity[:area] = "n:#{tz.floorArea}"
+        zone_json_humidity[:volume] = "n:#{tz.volume}"
         
         tz.equipment.each do |equip|
           if equip.to_AirTerminalSingleDuctVAVReheat.is_initialized
@@ -444,14 +444,14 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             ahu_json[:vavZone] = "m:"
             
             vav_json = Hash.new
-            vav_json[:id] = "@#{equip.name.to_s.gsub(/[\s-]/,'_')}"
+            vav_json[:id] = "r:#{equip.name.to_s.gsub(/[\s-]/,'_')}"
             vav_json[:dis] = "#{equip.name.to_s}"
             vav_json[:hvac] = "m:"
             vav_json[:vav] = "m:"
             vav_json[:equip] = "m:"
-            vav_json[:equipRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
-            vav_json[:ahuRef] = "@#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
-            vav_json[:siteRef] = "@#{building.name.to_s.gsub(/[\s-]/,'_')}"
+            vav_json[:equipRef] = "r:#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+            vav_json[:ahuRef] = "r:#{airloop.name.to_s.gsub(/[\s-]/,'_')}"
+            vav_json[:siteRef] = "r:#{building.name.to_s.gsub(/[\s-]/,'_')}"
             #check reheat coil
             rc = equip.to_AirTerminalSingleDuctVAVReheat.get.reheatCoil
             if rc.to_CoilHeatingWater.is_initialized
@@ -460,7 +460,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
               vav_json[:hotWaterReheat] = "m:"
               if rc.plantLoop.is_initialized
                 pl = rc.plantLoop.get
-                vav_json[:hotWaterPlantRef] = "@#{pl.name.to_s.gsub(/[\s-]/,'_')}"
+                vav_json[:hotWaterPlantRef] = "r:#{pl.name.to_s.gsub(/[\s-]/,'_')}"
               end          
             elsif rc.to_CoilHeatingElectric.is_initialized
               rc = rc.to_CoilHeatingElectric.get
