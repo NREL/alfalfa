@@ -77,6 +77,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     ahu_json[:hvac] = "m:"
     ahu_json[:equip] = "m:"
     ahu_json[:siteRef] = create_ref(siteRef)
+    return ahu_json
   end  
   
   #define the arguments that the user will input
@@ -153,13 +154,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
 
     #loop through economizer loops and find fans and cooling coils    
     airloops.each do |airloop|
-      ahu_json = Hash.new
-      ahu_json[:id] = create_ref(airloop.name.to_s)
-      ahu_json[:dis] = airloop.name.to_s
-      ahu_json[:ahu] = "m:"
-      ahu_json[:hvac] = "m:"
-      ahu_json[:equip] = "m:"
-      ahu_json[:siteRef] = create_ref(building.name.to_s)
+      ahu_json = create_ahu(airloop.name.to_s, building.name.to_s)
+
       #AHU discharge sensors    
       discharge_node = airloop.supplyOutletNode
       #create sensor points
