@@ -28,7 +28,7 @@ var HBool = hs.HBool,
     HStdOps = hs.HStdOps,
     HJsonReader = hs.HJsonReader;
 
-AWS.config.update({region: 'us-west-2'});
+AWS.config.update({region: 'us-west-1'});
 var sqs = new AWS.SQS();
 
 class WriteArray {
