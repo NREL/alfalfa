@@ -3,7 +3,7 @@
 
 require 'json'
 require 'openstudio'
-require 'rexml\document'
+require 'rexml/document'
 
 # start the measure
 class Haystack < OpenStudio::Ruleset::ModelUserScript
@@ -139,7 +139,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return variable
   end
   
-  def add_xml_ptolemy(source, type, name)
+  def add_xml_ptolemy(type, name)
     #schedule
     variable = REXML::Element.new "variable"
     variable.attributes["source"] = "Ptolemy"
@@ -262,7 +262,9 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       discharge_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", discharge_air_node, "#{airloop.name.to_s} Discharge Air Humidity Sensor", report_freq, model)
       #Flow Sensor
       discharge_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", discharge_air_node, "#{airloop.name.to_s} Discharge Air Flow Sensor", report_freq, model)
+      #Add to BCVTB xml 
       bcvtb.add_element add_xml_output("System Node Mass Flow Rate", discharge_air_node.name.to_s)
+      bcvtb.add_element add_xml_output("System Node Temperature", discharge_air_node.name.to_s)
       
       supply_components = airloop.supplyComponents
 
@@ -283,7 +285,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
 
           #Damper Sensor
           outside_air_damper_sensor = create_EMS_sensor("Air System Outdoor Air Flow Fraction", airloop, "#{airloop.name.to_s} Outside Air Damper Sensor", report_freq, model)         
-          
+          #Add to BCVTB xml 
+          bcvtb.add_element add_xml_output("Air System Outdoor Air Flow Fraction", airloop.name.to_s)
           #add EMS Actuator for Damper
           damper_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(controller_oa,"Outdoor Air Controller","Air Mass Flow Rate") 
           damper_actuator.setName(create_ems_str("#{airloop.name.to_s} Outside Air Mass Flow Rate"))
@@ -291,6 +294,9 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           #ExternalInterfaceVariables
           damper_variable_enable = OpenStudio::Model::ExternalInterfaceVariable.new(model, damper_command_enable, 1)
           damper_variable = OpenStudio::Model::ExternalInterfaceVariable.new(model, damper_command, 0.5)
+          #Add to BCVTB xml 
+          bcvtb.add_element add_xml_ptolemy("variable", damper_command_enable)
+          bcvtb.add_element add_xml_ptolemy("variable", damper_command)
           #EnergyManagementSystemVariables
           # damper_variable_enable_ems = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{damper_command_enable}_ems")
           # damper_variable_ems = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{damper_command}_ems")
@@ -314,6 +320,9 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             mixed_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", mix_air_node, "#{airloop.name.to_s} Mixed Air Humidity Sensor", report_freq, model)
             #Flow Sensor
             mixed_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", mix_air_node, "#{airloop.name.to_s} Mixed Air Flow Sensor", report_freq, model)
+            #Add to BCVTB xml 
+            bcvtb.add_element add_xml_output("System Node Mass Flow Rate", mix_air_node.name.to_s)
+            bcvtb.add_element add_xml_output("System Node Temperature", mix_air_node.name.to_s)
           end          
           #outdoor air node
           if sc.outdoorAirModelObject.is_initialized
@@ -333,7 +342,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             #Humidity Sensor
             outside_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", outdoor_air_node, "#{airloop.name.to_s} Outside Air Humidity Sensor", report_freq, model)
             #Flow Sensor
-            outside_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", outdoor_air_node, "#{airloop.name.to_s} Outside Air Flow Sensor", report_freq, model)            
+            outside_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", outdoor_air_node, "#{airloop.name.to_s} Outside Air Flow Sensor", report_freq, model)
+            #Add to BCVTB xml 
+            bcvtb.add_element add_xml_output("System Node Mass Flow Rate", outdoor_air_node.name.to_s)  
+            bcvtb.add_element add_xml_output("System Node Temperature", outdoor_air_node.name.to_s)             
           end         
           #return air node
           if sc.returnAirModelObject.is_initialized
@@ -353,7 +365,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             #Humidity Sensor
             return_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", return_air_node, "#{airloop.name.to_s} Return Air Humidity Sensor", report_freq, model)
             #Flow Sensor
-            return_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", return_air_node, "#{airloop.name.to_s} Return Air Flow Sensor", report_freq, model)             
+            return_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", return_air_node, "#{airloop.name.to_s} Return Air Flow Sensor", report_freq, model)
+            #Add to BCVTB xml 
+            bcvtb.add_element add_xml_output("System Node Mass Flow Rate", return_air_node.name.to_s) 
+            bcvtb.add_element add_xml_output("System Node Temperature", return_air_node.name.to_s)            
           end        
           #relief air node
           if sc.reliefAirModelObject.is_initialized
@@ -373,7 +388,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             #Humidity Sensor
             exhaust_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Humidity Sensor", report_freq, model)
             #Flow Sensor
-            exhaust_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Flow Sensor", report_freq, model)                      
+            exhaust_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Flow Sensor", report_freq, model)
+            #Add to BCVTB xml 
+            bcvtb.add_element add_xml_output("System Node Mass Flow Rate", exhaust_air_node.name.to_s)  
+            bcvtb.add_element add_xml_output("System Node Temperature", exhaust_air_node.name.to_s)            
           end           
           #initialization program
           # program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -577,6 +595,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     end
  
     #create variables.cfg file for BCVTB
+    doc = REXML::Document.new
     doc.add_element bcvtb
     #create header
     fo = File.open('report_variables.cfg', 'w')
