@@ -57,6 +57,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return point_json
   end
   
+  def create_point2(type, type2, id, siteRef, equipRef, where,what,measurement,kind,unit)
+    point_json = Hash.new
+    point_json[:id] = create_ref(id)
+    point_json[:dis] = create_str(id)
+    point_json[:siteRef] = create_ref(siteRef)
+    point_json[:equipRef] = create_ref(equipRef)
+    point_json[:point] = "m:"
+    point_json["#{type}"] = "m:"
+    point_json["#{type2}"] = "m:"
+    point_json["#{measurement}"] = "m:"   
+    point_json["#{where}"] = "m:" 
+    point_json["#{what}"] = "m:" 
+    point_json[:kind] = create_str(kind) 
+    point_json[:unit] = create_str(unit) 
+    return point_json
+  end
+  
   def create_fan(id, siteRef, equipRef, variable)
     point_json = Hash.new
     point_json[:id] = create_ref(id)
@@ -134,7 +151,22 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
         
     # Report initial condition of model
     #runner.registerInitialCondition("The building started with ") 
+    #externalInterface = model.getExternalInterface
+    #externalInterface.setNameofExternalInterface("PtolemyServer")
     
+    #master_enable = OpenStudio::Model::ExternalInterfaceVariable.new(model, "MasterEnable", 1)
+    #EMS Version
+    master_enable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "MasterEnable")
+    #initialization program
+    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program.setName("Master_Enable")   
+    program.addLine("SET #{master_enable.handle.to_s} = 1")
+
+    pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    pcm.setName("Master_Enable_Prgm_Mgr")
+    pcm.setCallingPoint("BeginNewEnvironment")
+    pcm.addProgram(program)
+          
     #Site and WeatherFile Data
     if model.weatherFile.is_initialized 
       site_json = Hash.new
@@ -215,8 +247,12 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           #get ControllerOutdoorAir
           controller_oa = sc.getControllerOutdoorAir
           #create damper sensor and cmd points
-          haystack_json << create_point("sensor", "#{airloop.name.to_s} Outside Air Damper Sensor", "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
-          haystack_json << create_point("cmd", "#{airloop.name.to_s} Outside Air Damper CMD", "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
+          damper_command = create_ems_str("#{airloop.name.to_s} Outside Air Damper CMD")
+          damper_command_enable = create_ems_str("#{airloop.name.to_s} Outside Air Damper CMD Enable")
+          damper_curVal = create_ems_str("#{airloop.name.to_s} Outside Air Damper Sensor curVal")
+          haystack_json << create_point2("sensor", "curVal", damper_curVal, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
+          haystack_json << create_point("cmd", damper_command, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
+          haystack_json << create_point2("cmd", "enable", damper_command_enable, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Bool", "")            
 
           #Damper Sensor
           outside_air_damper_sensor = create_EMS_sensor("Air System Outdoor Air Flow Fraction", airloop, "#{airloop.name.to_s} Outside Air Damper Sensor", report_freq, model)         
@@ -225,8 +261,13 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           damper_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(controller_oa,"Outdoor Air Controller","Air Mass Flow Rate") 
           damper_actuator.setName(create_ems_str("#{airloop.name.to_s} Outside Air Mass Flow Rate"))
           #Variable to read the Damper CMD
-          damper_command = create_ems_str("#{airloop.name.to_s} Outside Air Damper CMD")
-          damper_variable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, damper_command)
+          #ExternalInterfaceVariables
+          damper_variable_enable = OpenStudio::Model::ExternalInterfaceVariable.new(model, damper_command_enable, 1)
+          damper_variable = OpenStudio::Model::ExternalInterfaceVariable.new(model, damper_command, 0.5)
+          #EnergyManagementSystemVariables
+          # damper_variable_enable_ems = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{damper_command_enable}_ems")
+          # damper_variable_ems = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{damper_command}_ems")
+
           #mixed air node
           if sc.mixedAirModelObject.is_initialized
             #AHU mixed sensors
@@ -308,20 +349,25 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             exhaust_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Flow Sensor", report_freq, model)                      
           end           
           #initialization program
-          program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-          program.setName("#{damper_command}_Prgm_init")   
-          program.addLine("SET #{damper_command} = 1.0")
+          # program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+          # program.setName("#{damper_command}_Prgm_init")   
+          # program.addLine("SET #{damper_variable_enable_ems.handle.to_s} = 1")
+          # program.addLine("SET #{damper_variable_ems.handle.to_s} = 0.5")
 
-          pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-          pcm.setName("#{damper_command}_Prgm_Mgr_init")
-          pcm.setCallingPoint("BeginNewEnvironment")
-          pcm.addProgram(program)
+          # pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+          # pcm.setName("#{damper_command}_Prgm_Mgr_init")
+          # pcm.setCallingPoint("BeginNewEnvironment")
+          # pcm.addProgram(program)
           
           program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-          program.setName("#{damper_command}_Prgm")   
-          #program.addLine("SET Temp = #{oa_sensor.handle.to_s}")
-          program.addLine("SET Temp2 = #{mixed_air_flow_sensor.handle.to_s}")
-          program.addLine("SET #{damper_actuator.handle.to_s} = #{damper_command}*#{mixed_air_flow_sensor.handle.to_s}")
+          program.setName("#{damper_command}_Prgm")
+          program.addLine("IF #{master_enable.handle.to_s} == 1")
+          program.addLine(" SET DampPos = #{damper_variable.handle.to_s}")
+          program.addLine(" SET MixAir = #{mixed_air_flow_sensor.handle.to_s}")
+          program.addLine(" IF #{damper_variable_enable.handle.to_s} == 1")
+          program.addLine("   SET #{damper_actuator.handle.to_s} = DampPos*MixAir")
+          program.addLine(" ENDIF")
+          program.addLine("ENDIF")
 
           pcm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
           pcm.setName("#{damper_command}_Prgm_Mgr")
