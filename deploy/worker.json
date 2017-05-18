@@ -1,0 +1,20 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "worker",
+      "image": "431265468707.dkr.ecr.us-west-1.amazonaws.com/alfalfa_worker:latest",
+      "cpu": 0,
+      "memory": 512,
+      "essential": true,
+      "environment": [
+          {
+              "name": "JOB_QUEUE_URL",
+              "value": "https://sqs.us-west-1.amazonaws.com/431265468707/alfalfa"
+          },
+      ]
+    }
+  ],
+  "family": "worker",
+  "taskRoleArn": "arn:aws:iam::431265468707:role/ecsRole"
+}
+

@@ -1,0 +1,140 @@
+#!/usr/bin/env ruby -w
+
+require 'json'
+
+SERVICES = Dir.glob("#{File.dirname(__FILE__)}/*.json").map { |f| File.basename(f, '.json') }
+
+require 'optparse'
+
+#options = {}
+
+subtext = <<HELP
+Commonly used command are:
+   up
+   create
+   start
+   stop
+   down
+See 'deploy COMMAND --help' for more information on a specific command.
+HELP
+
+global = OptionParser.new do |opts|
+  opts.banner = "Usage: deploy [options] [subcommand [options]]"
+  opts.on("-h", "--help") do
+    puts subtext
+    exit
+  end
+end
+#end.parse!
+
+up = {
+  :count => 3
+}
+
+create = {}
+
+start = {}
+
+subcommands = { 
+  'up' => OptionParser.new do |opts|
+      opts.banner = "Usage: up [OPTIONS]"
+      opts.on("-c", "--count [COUNT]", "Number of instances") do |count|
+        up[:count] = count
+      end
+      opts.on_tail("-h", "--help", "Show help") do
+        puts 'Creates the ECS cluster (if it does not already exist) and the AWS resources required to set up the cluster'
+        puts opts
+        exit
+      end
+   end,
+
+   'create' => OptionParser.new do |opts|
+      opts.banner = "Usage: create [OPTIONS]"
+      opts.on("-s", "--service [SERVICE]") do |service|
+        create[:service] = service
+      end
+      opts.on_tail("-h", "--help", "Show help") do
+        puts 'Create task definitions'
+        puts opts
+        exit
+      end
+   end,
+
+   'start' => OptionParser.new do |opts|
+      opts.banner = "Usage: start [SERVICE]"
+      opts.on("-s", "--service [SERVICE]") do |service|
+        start[:service] = service
+      end
+      opts.on_tail("-h", "--help", "Show help") do
+        puts 'Start a task from the task definition'
+        puts opts
+        exit
+      end
+   end,
+
+   'stop' => OptionParser.new do |opts|
+      opts.banner = "Usage: stop"
+      opts.on_tail("-h", "--help", "Show help") do
+        puts 'Stop all running tasks'
+        puts opts
+        exit
+      end
+   end,
+
+   'down' => OptionParser.new do |opts|
+      opts.banner = "Usage: down"
+      opts.on_tail("-h", "--help", "Show help") do
+        puts 'Stop all running EC2 instances'
+        puts opts
+        exit
+      end
+   end
+}
+
+global.order!
+command = ARGV.shift
+subcommands[command].order!
+
+case command
+
+when 'up'
+  puts %x(aws ec2 run-instances --image-id ami-689bc208 --count #{up[:count]} --instance-type t2.micro --key-name alfalfakey  --iam-instance-profile Name="ecsInstanceRole")
+
+when 'create'
+  if create[:service]
+    puts %x(aws ecs register-task-definition --cli-input-json "file://#{File.dirname(__FILE__)}/#{create[:service]}.json")
+  else
+    SERVICES.each do |t|
+      puts %x(aws ecs register-task-definition --cli-input-json "file://#{File.dirname(__FILE__)}/#{t}.json")
+    end
+  end
+
+when 'start'
+  if start[:service]
+    puts %x(aws ecs run-task --task-definition #{start[:service]})
+  else
+    SERVICES.each do |t|
+      puts %x(aws ecs run-task --task-definition #{t})
+    end
+  end
+
+when 'stop'
+  result = JSON.parse(%x(aws ecs list-tasks))
+
+  result['taskArns'].each do |arn|
+    puts %x(aws ecs stop-task --task #{arn})
+  end
+
+when 'down'
+
+  result = JSON.parse(%x(aws ec2 describe-instances))
+
+  result['Reservations'].first['Instances'].each do |inst|
+    puts inst['InstanceId']
+    puts %x(aws ec2 terminate-instances --instance-ids #{inst['InstanceId']})
+  end
+
+end
+
+
+

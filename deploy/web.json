@@ -1,0 +1,31 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "web",
+      "image": "431265468707.dkr.ecr.us-west-1.amazonaws.com/alfalfa_web:latest",
+      "cpu": 0,
+      "memory": 512,
+      "essential": true,
+      "environment": [
+          {
+              "name": "JOB_QUEUE_URL",
+              "value": "https://foo/Jobs"
+          },
+          {
+              "name": "NODE_ENV",
+              "value": "production"
+          }
+      ],
+      "portMappings": [
+        {
+          "hostPort": 8080,
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ]
+    }
+  ],
+  "family": "web",
+  "taskRoleArn": "arn:aws:iam::431265468707:role/ecsRole"
+}
+
