@@ -2,6 +2,8 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'json'
+require 'openstudio'
+require 'rexml\document'
 
 # start the measure
 class Haystack < OpenStudio::Ruleset::ModelUserScript
@@ -126,6 +128,27 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return sensor
   end
   
+  def add_xml_output(name, keyValue)
+    #output variable
+    variable = REXML::Element.new "variable"
+    variable.attributes["source"] = "EnergyPlus"
+    energyplus = REXML::Element.new "EnergyPlus"
+    energyplus.attributes["name"] = name
+    energyplus.attributes["type"] = keyValue
+    variable.add_element energyplus
+    return variable
+  end
+  
+  def add_xml_ptolemy(source, type, name)
+    #schedule
+    variable = REXML::Element.new "variable"
+    variable.attributes["source"] = "Ptolemy"
+    energyplus = REXML::Element.new "EnergyPlus"
+    energyplus.attributes[type] = name
+    variable.add_element energyplus
+    return variable
+  end
+  
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
@@ -148,7 +171,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     haystack_json = []
     num_economizers = 0
     airloops = []
-        
+    
+    #initialize BCVTB XML config file elements    
+    bcvtb = REXML::Element.new "BCVTB-variables"   
+    
     # Report initial condition of model
     #runner.registerInitialCondition("The building started with ") 
     #externalInterface = model.getExternalInterface
@@ -236,7 +262,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       discharge_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", discharge_air_node, "#{airloop.name.to_s} Discharge Air Humidity Sensor", report_freq, model)
       #Flow Sensor
       discharge_air_flow_sensor = create_EMS_sensor("System Node Mass Flow Rate", discharge_air_node, "#{airloop.name.to_s} Discharge Air Flow Sensor", report_freq, model)
-
+      bcvtb.add_element add_xml_output("System Node Mass Flow Rate", discharge_air_node.name.to_s)
+      
       supply_components = airloop.supplyComponents
 
       #find fan, cooling coil and heating coil on loop
@@ -549,6 +576,18 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       f.write(haystack_json.to_json)
     end
  
+    #create variables.cfg file for BCVTB
+    doc.add_element bcvtb
+    #create header
+    fo = File.open('report_variables.cfg', 'w')
+      fo.puts '<?xml version="1.0" encoding="ISO-8859-1"?>'
+      fo.puts '<!DOCTYPE BCVTB-variables SYSTEM "variables.dtd">'
+    fo.close
+    #add xml part
+    formatter = REXML::Formatters::Pretty.new
+    formatter.compact = true
+    File.open('report_variables.cfg',"a"){|file| file.puts formatter.write(doc.root,"")}
+
     return true
  
   end #end the run method
