@@ -65,6 +65,9 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 
+    runner.registerInitialCondition("Creating BCVTB XML file.") 
+    
+    counter = 0
     #initialize BCVTB XML config file elements    
     bcvtb = REXML::Element.new "BCVTB-variables"   
     
@@ -74,6 +77,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB && (outvar.keyValue != "*"))
         bcvtb.add_element add_xml_output(outvar.variableName, outvar.keyValue)
+        runner.registerInfo("Added #{outvar.variableName.to_s} #{outvar.keyValue.to_s} to BCVTB XML file.") 
+        counter += 1
       end
     end  #end outputVariables
     
@@ -83,6 +88,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB)
         bcvtb.add_element add_xml_output("EMS", outvar.emsVariableName)
+        runner.registerInfo("Added #{outvar.emsVariableName.to_s} to BCVTB XML file.") 
+        counter += 1
       end
     end  #end EMSoutputVariables
     
@@ -92,6 +99,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB)
         bcvtb.add_element add_xml_ptolemy("variable", outvar.name)
+        runner.registerInfo("Added #{outvar.name.to_s} to BCVTB XML file.") 
+        counter += 1
       end
     end  #end ExternalInterfaceVariables
     
@@ -101,6 +110,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (schedule.exportToBCVTB)
         bcvtb.add_element add_xml_ptolemy("schedule", schedule.name)
+        runner.registerInfo("Added #{schedule.name.to_s} to BCVTB XML file.") 
+        counter += 1
       end
     end  #end ExternalInterfaceSchedules
     
@@ -110,10 +121,12 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (actuator.exportToBCVTB)
         bcvtb.add_element add_xml_ptolemy("actuator", actuator.name)
+        runner.registerInfo("Added #{actuator.name.to_s} to BCVTB XML file.") 
+        counter += 1
       end
     end  #end ExternalInterfaceActuators
       
-    runner.registerFinalCondition("The building has ") 
+    runner.registerFinalCondition("The building has exported #{counter} variables to XML file.") 
  
     #create variables.cfg file for BCVTB
     doc = REXML::Document.new
