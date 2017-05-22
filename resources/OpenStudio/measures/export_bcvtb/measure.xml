@@ -1,14 +1,14 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <name>haystack</name>
-  <uid>a3201f8c-bc3d-4fe1-a945-4a4f22471c06</uid>
-  <version_id>3e06a933-1b33-45c3-8105-27e0d0f985cd</version_id>
-  <version_modified>20170522T165546Z</version_modified>
+  <name>export_bcvtb</name>
+  <uid>7fb36b3a-5591-4627-a2b0-7709fbeae593</uid>
+  <version_id>1fc21cf6-b665-414c-9adc-a6224e412ef2</version_id>
+  <version_modified>20170522T165741Z</version_modified>
   <xml_checksum>A9D5932A</xml_checksum>
-  <class_name>Haystack</class_name>
-  <display_name>Haystack</display_name>
-  <description>This measure will find economizers on airloops and add haystack tags.</description>
-  <modeler_description>This measure loops through the existing airloops, looking for loops that have outdoor airsystems with economizers</modeler_description>
+  <class_name>ExportBCVTB</class_name>
+  <display_name>ExportBCVTB</display_name>
+  <description>This measure will create the variables.cfg xml file for BCVTB</description>
+  <modeler_description>This measure loops through outputvariables, EMS:outputvariables and ExternalInterface objects and will create the variables.cfg xml file for BCVTB.</modeler_description>
   <arguments/>
   <outputs/>
   <provenances/>
@@ -57,7 +57,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>689A2154</checksum>
+      <checksum>218DC6D3</checksum>
     </file>
   </files>
 </measure>
