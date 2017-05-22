@@ -3,7 +3,7 @@ import boto3
 import os
 import json
 
-sqs = boto3.resource('sqs', region_name='us-west-2', endpoint_url=os.environ['JOB_QUEUE_URL'])
+sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
 
 def process_message(message):
