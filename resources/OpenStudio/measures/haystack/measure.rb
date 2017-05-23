@@ -2,8 +2,6 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'json'
-require 'openstudio'
-require 'rexml/document'
 
 # start the measure
 class Haystack < OpenStudio::Ruleset::ModelUserScript
