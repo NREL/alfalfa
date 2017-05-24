@@ -20293,13 +20293,13 @@ OS:Generator:FuelCell:PowerModule,
   Generator Fuel Cell Power Module 1,     !- Name
   Normalized,                             !- Efficiency Curve Mode
   {20196e8f-2186-4fc0-a6a5-0ccd43be190e}, !- Efficiency Curve Name
-  1,                                      !- Nominal Efficiency
-  400000,                                 !- Nominal Electrical Power {W}
+  0.354,                                  !- Nominal Efficiency
+  3400,                                   !- Nominal Electrical Power {W}
   0,                                      !- Number of Stops at Start of Simulation
   0,                                      !- Cycling Performance Degradation Coefficient
-  1000,                                   !- Number of Run Hours at Beginning of Simulation {hr}
+  0,                                      !- Number of Run Hours at Beginning of Simulation {hr}
   0,                                      !- Accumulated Run Time Degradation Coefficient
-  100000,                                 !- Run Time Degradation Initiation Time Threshold {hr}
+  10000,                                  !- Run Time Degradation Initiation Time Threshold {hr}
   1.4,                                    !- Power Up Transient Limit {W/s}
   0.2,                                    !- Power Down Transient Limit {W/s}
   0,                                      !- Start Up Time {s}
@@ -20322,7 +20322,7 @@ OS:Generator:FuelCell:PowerModule,
   ,                                       !- Dilution Inlet Air Node Name
   ,                                       !- Dilution Outlet Air Node Name
   0,                                      !- Minimum Operating Point {W}
-  500000;                                 !- Maximum Operating Point {W}
+  3728;                                   !- Maximum Operating Point {W}
 
 OS:Generator:FuelCell:AirSupply,
   {02b8302b-82a6-4b84-8a86-dc2862aa0d68}, !- Handle
@@ -20485,7 +20485,7 @@ OS:Generator:FuelCell:ElectricalStorage,
 OS:Generator:FuelCell:Inverter,
   {154aac19-d6b1-4d16-9275-9f3af1acf07b}, !- Handle
   Generator Fuel Cell Inverter 1,         !- Name
-  Constant,                               !- Inverter Efficiency Calculation Mode
+  Quadratic,                              !- Inverter Efficiency Calculation Mode
   1,                                      !- Inverter Efficiency
   {154aac19-d6b1-4d16-9275-9f3af1acf06b}; !- Efficiency Function of DC Power Curve Name
 
@@ -20494,7 +20494,7 @@ OS:Curve:Quadratic,
   FCT Inverter Quadratic,                 !- Name
   0.560717,                               !- Coefficient1 Constant
   1.24019E-4,                             !- Coefficient2 x
-  -2.01648E-19,                           !- Coefficient3 x**2
+  -2.01648e-08,                           !- Coefficient3 x**2
   -1.0E+10,                               !- Minimum Value of x
   1.0E+10;                                !- Maximum Value of x
 
