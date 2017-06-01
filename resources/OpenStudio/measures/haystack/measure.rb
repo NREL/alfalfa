@@ -115,6 +115,16 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return vav_json
   end
   
+  def create_mapping_output(emsName)
+    json = Hash.new
+    json[:id] = create_ref(emsName)
+    json[:source] = "Ptolemy" 
+    json[:name] = ""
+    json[:type] = ""
+    json[:variable] = emsName
+    return json
+  end
+  
   def create_EMS_sensor_bcvtb(outVarName, key, emsName, report_freq, model)
     outputVariable = OpenStudio::Model::OutputVariable.new(outVarName,model)
     outputVariable.setKeyValue("#{key.name.to_s}")
@@ -131,7 +141,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     json[:source] = "EnergyPlus" 
     json[:name] = outVarName
     json[:type] = key.name.to_s
-    
+    json[:variable] = ""
     return sensor, json
   end
   
@@ -180,9 +190,6 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     mapping_json = []
     num_economizers = 0
     airloops = []
-
-    # Report initial condition of model
-    #
     
     #Master Enable
     if local_test == false
@@ -193,6 +200,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       externalInterface.setNameofExternalInterface("PtolemyServer")
     else
       #EMS Version
+      runner.registerInitialCondition("Initializing EnergyManagementSystem")
       master_enable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "MasterEnable")
     end
     
@@ -306,12 +314,15 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           if local_test == false
             #ExternalInterfaceVariables
             damper_variable_enable = OpenStudio::Model::ExternalInterfaceVariable.new(model, damper_command_enable, 1)
+            mapping_json << create_mapping_output(damper_command_enable)
             damper_variable = OpenStudio::Model::ExternalInterfaceVariable.new(model, damper_command, 0.5)
+            mapping_json << create_mapping_output(damper_command)
           else
             #EnergyManagementSystemVariables
             damper_variable_enable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{damper_command_enable}")
+            mapping_json << create_mapping_output(damper_command_enable)
             damper_variable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{damper_command}")
-            
+            mapping_json << create_mapping_output(damper_command)
             #initialization program
             program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
             program.setName("#{damper_command}_Prgm_init")   

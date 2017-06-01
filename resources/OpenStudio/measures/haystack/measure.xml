@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>haystack</name>
   <uid>a3201f8c-bc3d-4fe1-a945-4a4f22471c06</uid>
-  <version_id>11a234d8-adbe-4539-9fd0-b2e197852f90</version_id>
-  <version_modified>20170601T185300Z</version_modified>
+  <version_id>b28c0b12-e369-47c6-bbc3-d0132e8fe67a</version_id>
+  <version_modified>20170601T190935Z</version_modified>
   <xml_checksum>A9D5932A</xml_checksum>
   <class_name>Haystack</class_name>
   <display_name>Haystack</display_name>
@@ -77,7 +77,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>1A3FEF01</checksum>
+      <checksum>608E9EB3</checksum>
     </file>
   </files>
 </measure>
