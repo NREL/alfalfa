@@ -9,6 +9,14 @@ This is a Haystack implementation backed by a virtual building. Virtual building
 1. Navigate to http://localhost:3000/nav to verify that the Haystack implementation is running.
 1. Use ```Ctrl-C``` to stop the services.
 
+## Running Tests
+
+1. Install node LTS, https://nodejs.org/. 
+1. Follow the Getting Started directions to start the application server. 
+1. Navigate to the <project-root>/web directory from a command prompts (ie ```cd /home/harry/alfalfa/web```)
+1. Run npm to install dependencies ```npm update```.
+1. Run the following command to execute the tests ```./node_modules/.bin/mocha test/economizer.js```.
+
 ## Making changes
 
 1. Make source code changes as needed.

@@ -1849,6 +1849,7 @@
         "id": "r:DataCenter_mid_ZN_6_ZN_Zone_Air_Heating_sp",
         "kind": "s:Number",
         "point": "m:",
+        "writable": "m:",
         "siteRef": "r:Test_Building",
         "sp": "m:",
         "temp": "m:",
