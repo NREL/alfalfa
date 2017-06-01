@@ -20,11 +20,19 @@
 import sys
 #sys.path.append("./")
 import mlep
-
+import shutil
+import os
 # Create an mlepProcess instance and configure it
 ep = mlep.mlepProcess()
-ep.arguments = ('SmOffPSZ', 'USA_IL_Chicago-OHare.Intl.AP.725300_TMY3')
-ep.acceptTimeout = 6000
+idfFileOriginal = '../resources/OpenStudio/LargeOfficeDC_HX_econ2_bcvtb/run/in.idf'
+#idfFileOriginal = 'SmOffPSZ.idf'
+idfFileOriginalDetails = os.path.split(idfFileOriginal)
+idfFile = os.path.join(idfFileOriginalDetails[0],'mlep.idf')
+shutil.copy(idfFileOriginal,idfFile)
+#weatherFile = '../resources/OpenStudio/weather/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
+weatherFile = '/Applications/EnergyPlus-8-7-0/WeatherData/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
+ep.arguments = (idfFile, weatherFile)
+ep.acceptTimeout = 200000
 
 # Start EnergyPlus cosimulation
 (status,msg) = ep.start()
@@ -69,7 +77,8 @@ while kStep <= MAXSTEPS:
         break
 
     # Inputs
-    inputs = (16, 30)
+    #inputs = (18,19,)
+    inputs = (1,1,1,1,1,1,1,1,)
 
     # Write to inputs of E+
     ep.write(mlep.mlepEncodeRealData(2, 0, (kStep-1)*deltaT, inputs));    
