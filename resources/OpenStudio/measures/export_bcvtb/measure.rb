@@ -72,7 +72,10 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     bcvtb = REXML::Element.new "BCVTB-variables"   
     
     #loop through outputVariables 
-    outputVariables = model.getOutputVariables  
+    outputVariables = model.getOutputVariables
+    #alphabetize
+    outputVariables = outputVariables.sort_by{ |m| [ m.name.to_s.downcase, m.keyValue.to_s]}  
+    #outputVariables = outputVariables.sort_by{ |m| [ m.keyValue.to_s, m.name.to_s.downcase]}    
     outputVariables.each do |outvar|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB && (outvar.keyValue != "*"))
@@ -84,6 +87,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     
     #loop through EMSoutputVariables 
     outputVariables = model.getEnergyManagementSystemOutputVariables 
+    #alphabetize
+    outputVariables = outputVariables.sort_by{ |m| m.name.to_s.downcase } 
     outputVariables.each do |outvar|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB)
@@ -95,6 +100,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     
     #loop through ExternalInterfaceVariables 
     externalVariables = model.getExternalInterfaceVariables 
+    #alphabetize
+    externalVariables = externalVariables.sort_by{ |m| m.name.to_s.downcase } 
     externalVariables.each do |outvar|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB)
@@ -106,6 +113,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     
     #loop through ExternalInterfaceSchedule 
     externalSchedules = model.getExternalInterfaceSchedules 
+    #alphabetize
+    externalSchedules = externalSchedules.sort_by{ |m| m.name.to_s.downcase } 
     externalSchedules.each do |schedule|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (schedule.exportToBCVTB)
@@ -117,6 +126,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     
     #loop through ExternalInterfaceActuators 
     externalActuators = model.getExternalInterfaceActuators 
+    #alphabetize
+    externalActuators = externalActuators.sort_by{ |m| m.name.to_s.downcase } 
     externalActuators.each do |actuator|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (actuator.exportToBCVTB)
