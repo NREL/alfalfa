@@ -127,6 +127,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return sensor
   end
   
+  #will get deprecated by 'create_EMS_sensor_bcvtb' once Master Algo debugged
   def create_EMS_sensor(outVarName, key, emsName, report_freq, model)
     outputVariable = OpenStudio::Model::OutputVariable.new(outVarName,model)
     outputVariable.setKeyValue("#{key.name.to_s}")
@@ -141,7 +142,13 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   #define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
-
+    
+    local_test = OpenStudio::Ruleset::OSArgument::makeBoolArgument("local_test", false)
+    local_test.setDisplayName("Local Test")
+    local_test.setDescription("Use EMS for Local Testing")
+    local_test.setDefaultValue(true)
+    args << local_test
+    
     return args
   end #end the arguments method
 
@@ -153,6 +160,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
+    
+    local_test = runner.getBoolArgumentValue("local_test",user_arguments) 
+    runner.registerInfo("local_test = #{local_test}")
+    
     #Global Vars
     report_freq = "hourly"
     
@@ -166,9 +177,14 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     #externalInterface = model.getExternalInterface
     #externalInterface.setNameofExternalInterface("PtolemyServer")
     
-    #master_enable = OpenStudio::Model::ExternalInterfaceVariable.new(model, "MasterEnable", 1)
-    #EMS Version
-    master_enable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "MasterEnable")
+    #Master Enable
+    if local_test == false
+      #External Interface version
+      master_enable = OpenStudio::Model::ExternalInterfaceVariable.new(model, "MasterEnable", 1)
+    else
+      #EMS Version
+      master_enable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "MasterEnable")
+    end
     #initialization program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     program.setName("Master_Enable")   
@@ -264,7 +280,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           damper_curVal = create_ems_str("#{airloop.name.to_s} Outside Air Damper Sensor curVal")
           haystack_json << create_point2("sensor", "curVal", damper_curVal, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
           haystack_json << create_point("cmd", damper_command, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
-          haystack_json << create_point2("cmd", "enable", damper_command_enable, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Bool", "")            
+          #remove enable from haystack json but keep for external interface variable
+          #haystack_json << create_point2("cmd", "enable", damper_command_enable, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Bool", "")            
 
           #Damper Sensor
           outside_air_damper_sensor = create_EMS_sensor_bcvtb("Air System Outdoor Air Flow Fraction", airloop, "#{airloop.name.to_s} Outside Air Damper Sensor", report_freq, model)         
