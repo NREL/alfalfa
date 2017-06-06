@@ -12,6 +12,7 @@ services:
      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
     links:
       - goaws
+      - mongo
 
   goaws:
     image: pafortin/goaws
@@ -27,3 +28,8 @@ services:
      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
     links:
       - goaws
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
