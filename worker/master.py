@@ -1,3 +1,22 @@
+ #!/usr/bin/env python
+
+# -*- coding: utf-8 -*-
+
+"""
+ This script is for testing purposes only.
+
+ This script illustrates the usage of class mlepProcess.
+
+ This example is taken from an example distributed with BCVTB version
+ 0.8.0 (https://gaia.lbl.gov/bcvtb).
+
+ This script is free software.
+
+ (C) 2017 by Willy Bernal (Willy.BernalHeredia@nrel.gov)
+"""
+import sys
+import mlep
+import shutil
 import time
 import boto3
 import os
@@ -7,7 +26,7 @@ sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JO
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
 
 def process_message(message):
-    print 'got a message'
+    print('got a message')
     message_body = json.loads(message.body)
     processed = False;
 
@@ -41,12 +60,12 @@ def process_write_point_message(message_body):
     haystack_id = message_body['id']
     val = message_body['val']
     level = message_body['level']
-    print "process_write_point_message: id = {haystack_id} val = {val} level = {level}".format(**locals()) 
+    print("process_write_point_message: id = {haystack_id} val = {val} level = {level}".format(**locals()))
     # Master algorithm should assume that there is a extenal interface variable with name corresponding to haystack_id
     return True
 
 def start_simulation():
-    print 'Starting EnergyPlus Simulation'
+    print('Starting EnergyPlus Simulation')
     return
 
 # Main loop 
@@ -67,5 +86,5 @@ while True:
 
     # Push latest point values to database
 
-    print 'ping'
+    print('ping')
 

@@ -2493,6 +2493,8 @@
     Temperature,             !- Schedule Type Limits Name
     20;                      !- Initial Value
 
+  Output:SQLite, Simple;
+
   Output:Variable,TSetHea,Schedule Value,TimeStep;
 
   Output:Variable,TSetCoo,Schedule Value,TimeStep;

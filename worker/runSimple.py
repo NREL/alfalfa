@@ -14,14 +14,12 @@
 
  (C) 2017 by Willy Bernal (Willy.BernalHeredia@nrel.gov)
 """
-#from mlepProcess import *
-#from mlepDecodePacket import *
-#from mlepEncodeRealData import *
 import sys
 #sys.path.append("./")
 import mlep
 import shutil
 import os
+
 # Create an mlepProcess instance and configure it
 ep = mlep.mlepProcess()
 idfFileOriginal = '../resources/OpenStudio/LargeOfficeDC_HX_econ2_bcvtb/run/in.idf'
