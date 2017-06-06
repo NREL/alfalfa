@@ -74,8 +74,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     #loop through outputVariables 
     outputVariables = model.getOutputVariables
     #alphabetize
-    outputVariables = outputVariables.sort_by{ |m| [ m.name.to_s.downcase, m.keyValue.to_s]}  
-    #outputVariables = outputVariables.sort_by{ |m| [ m.keyValue.to_s, m.name.to_s.downcase]}    
+    #outputVariables = outputVariables.sort_by{ |m| [ m.name.to_s.downcase, m.keyValue.to_s]}  
+    outputVariables = outputVariables.sort_by{ |m| [ m.keyValue.to_s, m.name.to_s.downcase]}    
     outputVariables.each do |outvar|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB && (outvar.keyValue != "*"))

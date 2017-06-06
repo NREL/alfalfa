@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>export_bcvtb</name>
   <uid>7fb36b3a-5591-4627-a2b0-7709fbeae593</uid>
-  <version_id>efe6c097-fda2-4d4a-a98a-139ca70db4d6</version_id>
-  <version_modified>20170601T200907Z</version_modified>
+  <version_id>4f37aeeb-874f-44b6-a17a-f96b88231054</version_id>
+  <version_modified>20170606T224843Z</version_modified>
   <xml_checksum>A9D5932A</xml_checksum>
   <class_name>ExportBCVTB</class_name>
   <display_name>ExportBCVTB</display_name>
@@ -57,7 +57,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>9CD45D4A</checksum>
+      <checksum>8678A122</checksum>
     </file>
   </files>
 </measure>
