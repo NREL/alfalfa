@@ -15,22 +15,28 @@
  (C) 2017 by Willy Bernal (Willy.BernalHeredia@nrel.gov)
 """
 import sys
-#sys.path.append("./")
 import mlep
 import shutil
 import os
 
 # Create an mlepProcess instance and configure it
 ep = mlep.mlepProcess()
-idfFileOriginal = '../resources/OpenStudio/LargeOfficeDC_HX_econ2_bcvtb/run/in.idf'
-#idfFileOriginal = 'SmOffPSZ.idf'
-idfFileOriginalDetails = os.path.split(idfFileOriginal)
-idfFile = os.path.join(idfFileOriginalDetails[0],'mlep.idf')
-shutil.copy(idfFileOriginal,idfFile)
-#weatherFile = '../resources/OpenStudio/weather/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
+
+# Arguments
+idfFile = '/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf'
 weatherFile = '/Applications/EnergyPlus-8-7-0/WeatherData/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
+ep.acceptTimeout = 20000
+mapping_file = "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/haystack_report_mapping.json"
+
+# Parse directory
+idfFileDetails = os.path.split(idfFile)
+ep.workDir =  idfFileDetails[0]
 ep.arguments = (idfFile, weatherFile)
-ep.acceptTimeout = 200000
+
+# Get Mapping
+[inputs_list, outputs_list] = mlep.mlepJSON(mapping_file)
+print(inputs_list)
+print(outputs_list)
 
 # Start EnergyPlus cosimulation
 (status,msg) = ep.start()
@@ -49,19 +55,9 @@ if status != 0:
 deltaT = 15*60          # time step = 15 minutes
 kStep = 1               # current simulation step
 MAXSTEPS = 4*24*4+1     # max simulation time = 4 days
-
-TCRooLow = 22           # Zone temperature is kept between TCRooLow & TCRooHi
-TCRooHi = 26
-TOutLow = 22            # Low level of outdoor temperature
-TOutHi = 24             # High level of outdoor temperature
-ratio = (TCRooHi - TCRooLow)/(TOutHi - TOutLow)
-
-# logdata stores set-points, outdoor temperature, and zone temperature at
-# each time step.
-logdata = ()
 flag = 0
-print('Stopped with flag %d'%flag)
 
+# Simulation
 while kStep <= MAXSTEPS:
     # Read a data packet from E+
     packet = ep.read()
@@ -70,13 +66,16 @@ while kStep <= MAXSTEPS:
 
     # Parse it to obtain building outputs
     [flag, eptime, outputs] = mlep.mlepDecodePacket(packet)
+    print(kStep)
+    print(eptime)
+    print(outputs)
     eptime = kStep
     if flag != 0:
         break
 
     # Inputs
     #inputs = (18,19,)
-    inputs = (1,1,1,1,1,1,1,1,)
+    inputs = (1,1,0)
 
     # Write to inputs of E+
     ep.write(mlep.mlepEncodeRealData(2, 0, (kStep-1)*deltaT, inputs));    
@@ -86,6 +85,7 @@ while kStep <= MAXSTEPS:
     
 # Stop EnergyPlus
 ep.stop(True)
+print('Stopped with flag %d'%flag)
 
 '''
 # ==========FLAGS==============
