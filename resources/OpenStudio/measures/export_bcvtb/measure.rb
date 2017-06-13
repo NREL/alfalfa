@@ -28,13 +28,13 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     return "#{id.gsub(/[\s-]/,'_')}"
   end
         
-  def add_xml_output(name, keyValue)
+  def add_xml_output(object, energyPlusName)
     #output variable
     variable = REXML::Element.new "variable"
     variable.attributes["source"] = "EnergyPlus"
     energyplus = REXML::Element.new "EnergyPlus"
-    energyplus.attributes["name"] = name
-    energyplus.attributes["type"] = keyValue
+    energyplus.attributes["name"] = energyPlusName
+    energyplus.attributes["type"] = object
     variable.add_element energyplus
     return variable
   end
@@ -74,8 +74,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     #loop through outputVariables 
     outputVariables = model.getOutputVariables
     #alphabetize
-    outputVariables = outputVariables.sort_by{ |m| [ m.name.to_s.downcase, m.keyValue.to_s]}  
-    #outputVariables = outputVariables.sort_by{ |m| [ m.keyValue.to_s, m.name.to_s.downcase]}    
+    #outputVariables = outputVariables.sort_by{ |m| [ m.name.to_s.downcase, m.keyValue.to_s]}  
+    outputVariables = outputVariables.sort_by{ |m| [ m.keyValue.to_s, m.name.to_s.downcase]}    
     outputVariables.each do |outvar|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB && (outvar.keyValue != "*"))

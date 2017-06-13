@@ -23,3 +23,4 @@ from .mlepDecodePacket import mlepDecodePacket
 from .mlepEncodeRealData import mlepEncodeRealData
 from .mlepEncodeStatus import mlepEncodeStatus
 from .mlepError import *
+from .mlepJSON import mlepJSON
