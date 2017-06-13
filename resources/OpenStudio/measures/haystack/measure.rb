@@ -299,8 +299,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           #create damper sensor and cmd points
           damper_command = create_ems_str("#{airloop.name.to_s} Outside Air Damper CMD")
           damper_command_enable = create_ems_str("#{airloop.name.to_s} Outside Air Damper CMD Enable")
-          damper_curVal = create_ems_str("#{airloop.name.to_s} Outside Air Damper Sensor curVal")
-          haystack_json << create_point2("sensor", "curVal", damper_curVal, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
+          damper_position = create_ems_str("#{airloop.name.to_s} Outside Air Damper Sensor position")
+          haystack_json << create_point2("sensor", "position", damper_position, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
           haystack_json << create_point2("cmd", "writable", damper_command, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Number", "%")            
           #remove enable from haystack json but keep for external interface variable
           #haystack_json << create_point2("cmd", "enable", damper_command_enable, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Bool", "")            
