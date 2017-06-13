@@ -1,11 +1,10 @@
-FROM ubuntu:16.04
+FROM ubuntu:17.04
 
 RUN apt-get update
 RUN apt-get -y install ca-certificates curl
+RUN apt-get -y install python-software-properties
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get -y install nodejs
-RUN apt-get -y install npm
-RUN ln -s /usr/bin/nodejs /usr/bin/node
 
 RUN cd /root
 
