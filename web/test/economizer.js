@@ -39,6 +39,22 @@ describe('Economizer simulation', function() {
     });
   });
 
+  describe('POST /invokeAction', function() {
+    this.timeout(100000);
+    it('should start the simulation', function(done) {
+      agent
+      .post('/invokeAction')
+      .set('Accept', 'application/json')
+      // Empty cols and rows does not seem agreeable
+      .send({"meta": {"ver": "2.0", "id": "r:Test_Building", "action": "s:Start"},
+        "cols": [{"name": "foo"}],
+        "rows": [{"foo": "s:bar"}]
+      })
+      .expect('Content-Type', /json/)
+      .expect(200,done)
+    });
+  });
+
   describe('POST /pointWrite', function() {
     it('should return the current write array', function(done) {
       agent
