@@ -4,6 +4,7 @@ RUN apt-get update
 RUN apt-get -y install ca-certificates curl
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get -y install nodejs
+RUN apt-get -y install npm
 
 RUN cd /root
 
