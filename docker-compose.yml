@@ -10,6 +10,7 @@ services:
      - AWS_ACCESS_KEY_ID=foo
      - AWS_SECRET_ACCESS_KEY=foo
      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
+     - MONGO_URL=mongodb://mongo:27017/
     links:
       - goaws
       - mongo

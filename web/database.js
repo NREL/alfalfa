@@ -12,6 +12,9 @@ import AWS from 'aws-sdk';
 import os from 'os';
 import fs from 'fs';
 import hs from 'nodehaystack';
+import mongojs from 'mongojs';
+
+let db = mongojs(process.env.MONGO_URL);
 
 var HBool = hs.HBool,
     HDateTime = hs.HDateTime,
@@ -325,11 +328,19 @@ class Database extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onPointWriteArray(rec, callback) {
-    var array = this.writeArrays[rec.id()];
-    if (typeof(array)==='undefined' || array===null) {
-      array = new WriteArray();
-      this.writeArrays[rec.id()] = array;
-    }
+    let array = null;
+
+    db.writearrays.findOne({_id: rec.id()}, (err,doc) => {
+      if( doc ) {
+        array = doc;
+        console.log('found one');
+      } else {
+        array = new WriteArray();
+        array._id = rec.id();
+        db.writearrays.save(array);
+        console.log('didnt find one');
+      }
+    });
   
     var b = new HGridBuilder();
     b.addCol("level");
