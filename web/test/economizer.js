@@ -56,6 +56,7 @@ describe('Economizer simulation', function() {
   });
 
   describe('POST /pointWrite', function() {
+    this.timeout(100000);
     it('should return the current write array', function(done) {
       agent
       .post('/pointWrite')
@@ -73,33 +74,33 @@ describe('Economizer simulation', function() {
     });
   });
 
-  describe('POST /pointWrite with value', function() {
-    this.timeout(100000);
-    it('should return an updated write array', function(done) {
-      agent
-      .post('/pointWrite')
-      .set('Accept', 'application/json')
-      .send({
-        "meta": {
-          "ver": "2.0"
-        },
-        "cols": [{"name": "id"},{"name": "level"},{"name": "val"},{"name": "who"},{"name": "duration"}],
-        "rows": [{
-            "id": "r:DataCenter_mid_ZN_6_ZN_Zone_Air_Heating_sp",
-            "level": "n:6",
-            "val": "n:100",
-            "who": "s:",
-            "duration": "s:"
-        }]
-      })
-      .expect('Content-Type', /json/)
-      .expect(200)
-      .expect( (res) => {
-        res.body.rows[5].should.have.property("level","n:6");
-        res.body.rows[5].should.have.property("val","n:100")
-      })
-      .end(done);
-    });
-  });
+  //describe('POST /pointWrite with value', function() {
+  //  this.timeout(100000);
+  //  it('should return an updated write array', function(done) {
+  //    agent
+  //    .post('/pointWrite')
+  //    .set('Accept', 'application/json')
+  //    .send({
+  //      "meta": {
+  //        "ver": "2.0"
+  //      },
+  //      "cols": [{"name": "id"},{"name": "level"},{"name": "val"},{"name": "who"},{"name": "duration"}],
+  //      "rows": [{
+  //          "id": "r:DataCenter_mid_ZN_6_ZN_Zone_Air_Heating_sp",
+  //          "level": "n:6",
+  //          "val": "n:100",
+  //          "who": "s:",
+  //          "duration": "s:"
+  //      }]
+  //    })
+  //    .expect('Content-Type', /json/)
+  //    .expect(200)
+  //    .expect( (res) => {
+  //      res.body.rows[5].should.have.property("level","n:6");
+  //      res.body.rows[5].should.have.property("val","n:100")
+  //    })
+  //    .end(done);
+  //  });
+  //});
 
 });

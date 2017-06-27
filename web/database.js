@@ -12,9 +12,7 @@ import AWS from 'aws-sdk';
 import os from 'os';
 import fs from 'fs';
 import hs from 'nodehaystack';
-import mongojs from 'mongojs';
-
-let db = mongojs(process.env.MONGO_URL);
+import {MongoClient} from 'mongodb';
 
 var HBool = hs.HBool,
     HDateTime = hs.HDateTime,
@@ -65,12 +63,16 @@ class Database extends HServer {
           }
         }
     });
+  }
 
-    //this.addSite("A", "Richmond", "VA", 1000);
-    //this.addSite("B", "Richmond", "VA", 2000);
-    //this.addSite("C", "Washington", "DC", 3000);
-    //this.addSite("D", "Boston", "MA", 4000);
-    //this.addSite("E", "St. Louis", "MO", 5000);
+  mongo() {
+    return MongoClient.connect(process.env.MONGO_URL);
+  }
+
+  writearrays() {
+    return this.mongo().then((db) => {
+      return db.collection('writearrays');
+    });
   }
 
   addPoints(points) {
@@ -327,64 +329,180 @@ class Database extends HServer {
   //Point Write
   //////////////////////////////////////////////////////////////////////////
   
-  onPointWriteArray(rec, callback) {
-    let array = null;
-
-    db.writearrays.findOne({_id: rec.id()}, (err,doc) => {
-      if( doc ) {
-        array = doc;
-        console.log('found one');
-      } else {
-        array = new WriteArray();
-        array._id = rec.id();
-        db.writearrays.save(array);
-        console.log('didnt find one');
-      }
-    });
-  
-    var b = new HGridBuilder();
+  writeArrayToGrid(array) {
+    let b = new HGridBuilder();
     b.addCol("level");
     b.addCol("levelDis");
     b.addCol("val");
     b.addCol("who");
-  
+    
     for (var i = 0; i < 17; ++i) {
-      b.addRow([
-        HNum.make(i + 1),
-        HStr.make("" + (i + 1)),
-        array.val[i],
-        HStr.make(array.who[i]),
-      ]);
+      if( array.val[i] ) {
+        b.addRow([
+          HNum.make(i + 1),
+          HStr.make("" + (i + 1)),
+          array.val[i],
+          HStr.make(array.who[i]),
+        ]);
+      } else {
+        b.addRow([
+          HNum.make(i + 1),
+          HStr.make("" + (i + 1)),
+          undefined,
+          HStr.make(undefined),
+        ]);
+      }
     }
-  
-    callback(null, b.toGrid());
+
+    return b;
+  }
+
+  onPointWriteArray(rec, callback) {
+    this.writearrays().then((collection) => {
+      return new Promise((resolve,reject) => {
+        collection.findOne({_id: rec.id().val}).then((array) => {
+          if( array ) {
+            resolve(array);
+          } else {
+            let array = new WriteArray();
+            array._id = rec.id().val;
+            collection.insertOne(array).then(() => {
+              resolve(array);
+            }).catch(() => {
+              reject();
+            });
+          }
+        }).catch(() => {
+          reject();
+        })
+      })
+    }).then((array) => {
+      const b = this.writeArrayToGrid(array);
+      callback(null, b.toGrid());
+    }).catch(() => {
+      callback();
+    });
   };
   
   onPointWrite(rec, level, val, who, dur, opts, callback) {
-    // Consider making the worker update the WriteArray
-    // in response to the message handling, 
-    // that way there is no chance of write failing and WriteArray being inaccurate
-    var array = this.writeArrays[rec.id()];
-    if (typeof(array) === 'undefined' || array === null) {
-      this.writeArrays[rec.id()] = array = new WriteArray();
-    }
-    array.val[level - 1] = val;
-    array.who[level - 1] = who;
+    this.writearrays().then((collection) => {
+      return new Promise((resolve,reject) => {
+        collection.findOne({_id: rec.id().val}).then((array) => {
+          if( array ) {
+            array.val[level - 1] = val.val;
+            array.who[level - 1] = who;
+            collection.updateOne(
+              { "_id": array._id },
+              { $set: { "val": array.val, "who": array.who } 
+            }).then(() => {
+              resolve(array);
+            }).catch(() => {
+              reject();
+            });
+          } else {
+            let array = new WriteArray();
+            array._id = rec.id().val;
+            array.val[level - 1] = val.val;
+            array.who[level - 1] = who;
+            collection.insertOne(array).then(() => {
+              resolve(array);
+            }).catch(() => {
+              reject();
+            });
+          }
+        }).catch(() => {
+          reject();
+        });
+      });
+    }).then((array) => {
+      var params = {
+       MessageBody: `{"id": "${rec.id()}", "op": "PointWrite", "level": "${level}", "val": "${val}"}`,
+       QueueUrl: process.env.JOB_QUEUE_URL
+      };
 
-    var params = {
-     MessageBody: `{"id": "${rec.id()}", "op": "PointWrite", "level": "${level}", "val": "${val}"}`,
-     QueueUrl: process.env.JOB_QUEUE_URL
-    };
-
-    sqs.sendMessage(params, function(err, data) {
-      if (err) {
-        console.log(err, err.stack); // an error occurred
-        callback();
-      } else {
-        console.log(data);           // successful response
-        callback();
-      }
+      sqs.sendMessage(params, (err, data) => {
+        if (err) {
+          console.log(err, err.stack); // an error occurred
+          callback();
+        } else {
+          console.log(data);           // successful response
+          const b = this.writeArrayToGrid(array);
+          callback(null, b.toGrid());
+        }
+      });
+    }).catch(() => {
+      callback();
     });
+
+    //this.writearrays().then((collection) => {
+    //  return new Promise((resolve,reject) => {
+    //    collection.findOne({_id: rec.id()}).then((array) => {
+    //      array.val[level - 1] = val;
+    //      array.who[level - 1] = who;
+    //      collection.updateOne(
+    //        { "_id": array._id },
+    //        { $set: { "val": array.val, "who": array.who } },
+    //        (err, result) => {
+    //          if(err) {
+    //            console.log('updateOne:', err);
+    //            reject(err);
+    //          } else {
+    //            console.log('updateOne:', array);
+    //            resolve(array);
+    //          }
+    //        }
+    //      );
+    //    }).catch(() => {
+    //      console.log('onPointWrite new WriteArray');
+    //      let array = new WriteArray();
+    //      array._id = rec.id();
+    //      array.val[level - 1] = val;
+    //      array.who[level - 1] = who;
+    //      collection.insertOne(array, (err, result) => {
+    //        if( err ) {
+    //          reject(err);
+    //        } else {
+    //          resolve(array);
+    //        }
+    //      });
+    //    });
+    //  })
+    //}).then((array) => {
+    //  var params = {
+    //   MessageBody: `{"id": "${rec.id()}", "op": "PointWrite", "level": "${level}", "val": "${val}"}`,
+    //   QueueUrl: process.env.JOB_QUEUE_URL
+    //  };
+
+    //  sqs.sendMessage(params, function(err, data) {
+    //    if (err) {
+    //      console.log(err, err.stack); // an error occurred
+    //      callback();
+    //    } else {
+    //      console.log(data);           // successful response
+
+    //      let b = new HGridBuilder();
+    //      b.addCol("level");
+    //      b.addCol("levelDis");
+    //      b.addCol("val");
+    //      b.addCol("who");
+  
+    //      for (var i = 0; i < 17; ++i) {
+    //        b.addRow([
+    //          HNum.make(i + 1),
+    //          HStr.make("" + (i + 1)),
+    //          array.val[i],
+    //          HStr.make(array.who[i]),
+    //        ]);
+    //      }
+
+    //      callback(null, b.toGrid());
+    //      //callback();
+    //    }
+    //  });
+    //}).catch((err) => {
+    //  console.log(err); // an error occurred
+    //  callback();
+    //});
   };
   
   //////////////////////////////////////////////////////////////////////////
