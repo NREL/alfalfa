@@ -36,6 +36,11 @@ class WriteArray {
   constructor() {
     this.val = [];
     this.who = [];
+
+    for (var i = 0; i < 17; ++i) {
+      this.val[i] = null;
+      this.who[i] = null;
+    }
   }
 };
 
@@ -336,22 +341,13 @@ class Database extends HServer {
     b.addCol("val");
     b.addCol("who");
     
-    for (var i = 0; i < 17; ++i) {
-      if( array.val[i] ) {
-        b.addRow([
-          HNum.make(i + 1),
-          HStr.make("" + (i + 1)),
-          array.val[i],
-          HStr.make(array.who[i]),
-        ]);
-      } else {
-        b.addRow([
-          HNum.make(i + 1),
-          HStr.make("" + (i + 1)),
-          undefined,
-          HStr.make(undefined),
-        ]);
-      }
+    for (var i = 0; i < array.val.length; ++i) {
+      b.addRow([
+        HNum.make(i + 1),
+        HStr.make("" + (i + 1)),
+        HNum.make(array.val[i]),
+        HStr.make(array.who[i]),
+      ]);
     }
 
     return b;
@@ -433,76 +429,6 @@ class Database extends HServer {
     }).catch(() => {
       callback();
     });
-
-    //this.writearrays().then((collection) => {
-    //  return new Promise((resolve,reject) => {
-    //    collection.findOne({_id: rec.id()}).then((array) => {
-    //      array.val[level - 1] = val;
-    //      array.who[level - 1] = who;
-    //      collection.updateOne(
-    //        { "_id": array._id },
-    //        { $set: { "val": array.val, "who": array.who } },
-    //        (err, result) => {
-    //          if(err) {
-    //            console.log('updateOne:', err);
-    //            reject(err);
-    //          } else {
-    //            console.log('updateOne:', array);
-    //            resolve(array);
-    //          }
-    //        }
-    //      );
-    //    }).catch(() => {
-    //      console.log('onPointWrite new WriteArray');
-    //      let array = new WriteArray();
-    //      array._id = rec.id();
-    //      array.val[level - 1] = val;
-    //      array.who[level - 1] = who;
-    //      collection.insertOne(array, (err, result) => {
-    //        if( err ) {
-    //          reject(err);
-    //        } else {
-    //          resolve(array);
-    //        }
-    //      });
-    //    });
-    //  })
-    //}).then((array) => {
-    //  var params = {
-    //   MessageBody: `{"id": "${rec.id()}", "op": "PointWrite", "level": "${level}", "val": "${val}"}`,
-    //   QueueUrl: process.env.JOB_QUEUE_URL
-    //  };
-
-    //  sqs.sendMessage(params, function(err, data) {
-    //    if (err) {
-    //      console.log(err, err.stack); // an error occurred
-    //      callback();
-    //    } else {
-    //      console.log(data);           // successful response
-
-    //      let b = new HGridBuilder();
-    //      b.addCol("level");
-    //      b.addCol("levelDis");
-    //      b.addCol("val");
-    //      b.addCol("who");
-  
-    //      for (var i = 0; i < 17; ++i) {
-    //        b.addRow([
-    //          HNum.make(i + 1),
-    //          HStr.make("" + (i + 1)),
-    //          array.val[i],
-    //          HStr.make(array.who[i]),
-    //        ]);
-    //      }
-
-    //      callback(null, b.toGrid());
-    //      //callback();
-    //    }
-    //  });
-    //}).catch((err) => {
-    //  console.log(err); // an error occurred
-    //  callback();
-    //});
   };
   
   //////////////////////////////////////////////////////////////////////////
