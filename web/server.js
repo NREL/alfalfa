@@ -4,10 +4,10 @@ import hs from 'nodehaystack';
 import express from 'express';
 import url from 'url';
 import bodyParser from 'body-parser';
-import database from './database';
+import alfalfaServer from './alfalfa-server';
+import {MongoClient} from 'mongodb';
 
-var app = express(),
-    db = new database();
+var app = express();
 
 app.use(bodyParser.text({ type: 'text/*' }));
 app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
@@ -26,8 +26,9 @@ app.all('*', function(req, res) {
   if (slash < 0) slash = path.length;
   var opName = path.substring(1, slash);
 
+
   // resolve the op
-  db.op(opName, false, function(err, op) {
+  app.locals.alfalfaServer.op(opName, false, function(err, op) {
     if (typeof(op) === 'undefined' || op === null) {
       res.status(404);
       res.send("404 Not Found");
@@ -36,7 +37,7 @@ app.all('*', function(req, res) {
     }
 
     // route to the op
-    op.onServiceOp(db, req, res, function(err) {
+    op.onServiceOp(app.locals.alfalfaServer, req, res, function(err) {
       if (err) {
         console.log(err.stack);
         throw err;
@@ -47,14 +48,19 @@ app.all('*', function(req, res) {
   });
 });
 
-var server = app.listen(3000, function() {
-
-  var host = server.address().address;
-  var port = server.address().port;
-
-  if (host.length === 0 || host === "::") host = "localhost";
-
-  console.log('Node Haystack Toolkit listening at http://%s:%s', host, port);
-
+MongoClient.connect(process.env.MONGO_URL).then((db) => {
+  app.locals.alfalfaServer = new alfalfaServer(db);
+  let server = app.listen(3000, () => {
+  
+    var host = server.address().address;
+    var port = server.address().port;
+  
+    if (host.length === 0 || host === "::") host = "localhost";
+  
+    console.log('Node Haystack Toolkit listening at http://%s:%s', host, port);
+  
+  });
+}).catch((err) => {
+  console.log(err);
 });
 
