@@ -13,7 +13,9 @@ WORKDIR /root
 COPY package.json /root/
 RUN npm update
 
-COPY ./haystack_report_haystack.json  /root
+#COPY ./haystack_report_haystack.json  /root
 COPY . /root
+
+RUN npm run build
 
 CMD [ "npm", "start" ]
