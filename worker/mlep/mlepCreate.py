@@ -92,112 +92,116 @@ co-simulation protocol.
 :copyright: (c) 2016 by The Alliance for Sustainable Energy
 :license: BSD-3
 """
-#from subprocess import call
+# from subprocess import call
 import subprocess
 import os
 import sys
 import numbers
 import socket
+from socket import gethostbyname, gethostname
 
-def mlepCreate (progname, arguments, workdir, timeout, port, host, bcvtbdir, configfile, env, execcmd):
-  # Programe Name
-  if progname is None:
-    progname = 'runnergyplus'
 
-  # Environment Variable
-  if env is None:
-    env = {'BCVTB_HOME':bcvtbdir}
+def mlepCreate(progname, arguments, workdir, timeout, port, host, bcvtbdir, configfile, env, execcmd):
+    # Programe Name
+    if progname is None:
+        progname = 'runnergyplus'
 
-  # Exec command by default is 'system'
-  if execcmd is None:
-    execcmd = 'subprocess'
+    # Environment Variable
+    if env is None:
+        env = {'BCVTB_HOME': bcvtbdir}
 
-  # Save current directory and change directory if necessary
-  if workdir is not None:
-    oldCurDir = os.getcwd()
-    os.chdir(workdir)
-  # Get the correct directory
-  workdir = os.getcwd()  
+    # Exec command by default is 'system'
+    if execcmd is None:
+        execcmd = 'subprocess'
 
-  # If port is a ServerSocket java object then re-use it
-  if isinstance(port,socket.socket):
-    if port._closed:
-      port = 0  # Create a new socket
+    # Save current directory and change directory if necessary
+    if workdir is not None:
+        oldCurDir = os.getcwd()
+        os.chdir(workdir)
+    # Get the correct directory
+    workdir = os.getcwd()
+
+    # If port is a ServerSocket java object then re-use it
+    if isinstance(port, socket.socket):
+        if port._closed:
+            port = 0  # Create a new socket
+        else:
+            serversock = port
+
+    # Port
+    if port is None:
+        port = 0
+
+    # Create server socket if necessary
+    if isinstance(port, numbers.Number):
+        # Create a TCP/IP socket
+        serversock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Check host
+        if host is None:
+            # Check
+            host = '127.0.0.1'
+
+        # Bind the socket to the port
+        serversock.bind((host, port))
+        # Listen for incoming connections
+        serversock.listen(1)
+        port = serversock.getsockname()[1]
+        server_address = ('127.0.0.1', port)
+        print('Server started on %s:%s' % server_address)
+        # Hostname
+        hostname = host
     else:
-      serversock = port
-  
-  # Port
-  if port is None:
-    port = 0
+        hostname = gethostbyname(gethostname())
 
-	# Create server socket if necessary
-  if isinstance(port, numbers.Number):
-    # Create a TCP/IP socket
-    serversock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # Check host
-    if host is None:
-      # Check 
-      host = '127.0.0.1'
+    # Set Timeout
+    serversock.settimeout(timeout / 1000)
 
-    # Bind the socket to the port
-    serversock.bind((host,port))
-    # Listen for incoming connections
-    serversock.listen(1)
-    port = serversock.getsockname()[1]
-    server_address = ('127.0.0.1', port)
-    print('Server started on %s:%s' % server_address)
-    # Hostname
-    hostname = host
-  else:
-    hostname = port.gethostname()
+    # Write socket config file if necessary (configfile ~= -1)
+    if configfile != -1:
+        fid = open(configfile, 'w')
+        if fid == -1:
+            # error
+            serversock.close();
+            serversock = None;
+            print('Error while creating socket config file: %s').format(fid)
 
-  # Set Timeout
-  serversock.settimeout(timeout/1000)
+        else:
+            # Write socket config to file
+            if not isinstance(port, numbers.Number):
+                port_number = port.getsockname()[1]
+            else:
+                port_number = port
 
-  # Write socket config file if necessary (configfile ~= -1)
-  if configfile != -1:
-    fid = open(configfile, 'w')
-    if fid == -1:
-        # error
-        serversock.close();
-        serversock = None;
-        print('Error while creating socket config file: %s').format(fid)
-    
-    else:
-      # Write socket config to file
-      socket_config = ['<?xml version="1.0" encoding="ISO-8859-1"?>\n',
-      '<BCVTB-client>\n',
-      '<ipc>\n',
-      '<socket port="%d" hostname="%s"/>\n' %(port, host),
-      '</ipc>\n',
-      '</BCVTB-client>']
-      try:
-        fid.write(socket_config[0])
-        fid.write(socket_config[1])
-        fid.write(socket_config[2])
-        fid.write(socket_config[3])
-        fid.write(socket_config[4])
-        fid.write(socket_config[5])
-        
-      except:
-        print('Error while writing socket config file: %s', femsg)
-      
-    fid.close()
-    print('Wrote socket.cfg')
+            socket_config = ['<?xml version="1.0" encoding="ISO-8859-1"?>\n', '<BCVTB-client>\n', '<ipc>\n',
+                             '<socket port="%d" hostname="%s"/>\n' % (port_number, host), '</ipc>\n', '</BCVTB-client>']
+            try:
+                fid.write(socket_config[0])
+                fid.write(socket_config[1])
+                fid.write(socket_config[2])
+                fid.write(socket_config[3])
+                fid.write(socket_config[4])
+                fid.write(socket_config[5])
 
-  # Start Process
-  [status,pid] = startProcess(progname, arguments, env, workdir)
+            except:
+                print('Error while writing socket config file: %s', femsg)
 
-  # Return
-  simsock = None
-  msg = 'msg'
-  status = 0
-  pid = 0
+        fid.close()
+        print('Wrote socket.cfg')
 
-  return [serversock, simsock, status, msg, pid]
+    # Start Process
+    [status, pid] = startProcess(progname, arguments, env, workdir)
+
+    # Return
+    simsock = None
+    msg = 'msg'
+    status = 0
+    pid = 0
+
+    return [serversock, simsock, status, msg, pid]
+
 
 def startProcess(progname, args, env, workdir):
-  """
+    """
    This function starts a new process of a given program in the
    background and returns the status and process ID.
    progname: the command that will be executed
@@ -211,32 +215,32 @@ def startProcess(progname, args, env, workdir):
    (obsolete) msg: string message returned by the program (e.g. its standard output)
    pid: process ID/object; this ID is often not used but may be useful later.
   """
-  # Set Variables
-  cmd = [progname]
-  for kk in range(0,len(args)):
-    cmd.append(args[kk])
+    # Set Variables
+    cmd = [progname]
+    for kk in range(0, len(args)):
+        cmd.append(args[kk])
 
-  # Process and set env variables
-  for kk in range(0,len(env)):
-    os.environ[list(env.keys())[kk]] = env[list(env.keys())[kk]]
+    # Process and set env variables
+    for kk in range(0, len(env)):
+        os.environ[list(env.keys())[kk]] = env[list(env.keys())[kk]]
 
-  # Start Co-Simulation Program (Write to log file)
-  fid_log = open('mlep.log','w')
-  completedProcess = 1
-  if os.name == 'nt':
-    completedProcess = subprocess.Popen(cmd,stdout=fid_log)
-  else:
-    print('Launch EnergyPlus')
-    completedProcess = subprocess.Popen(cmd,stdout=fid_log)
-  
-  # Status
-  if completedProcess is None:
-    status = 0
-  else:
-    status = 1
+    # Start Co-Simulation Program (Write to log file)
+    fid_log = open('mlep.log', 'w')
+    completedProcess = 1
+    if os.name == 'nt':
+        completedProcess = subprocess.Popen(cmd, stdout=fid_log)
+    else:
+        print('Launch EnergyPlus')
+        completedProcess = subprocess.Popen(cmd, stdout=fid_log)
 
-  # Not Used
-  pid = 0
+    # Status
+    if completedProcess is None:
+        status = 0
+    else:
+        status = 1
 
-  # Return
-  return [status, pid]
+    # Not Used
+    pid = 0
+
+    # Return
+    return [status, pid]

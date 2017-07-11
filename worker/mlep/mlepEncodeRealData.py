@@ -64,7 +64,7 @@ def mlepEncodeRealData (vernumber, flag, timevalue, realvalues):
       packet = ' '.join(realvaluesString) + ' \n'
     else:
       # flag != 0
-      packet = '%d %d'%(vernumber, flag)
+      packet = '%d %d '%(vernumber, flag)
   else:
     packet = ''
 

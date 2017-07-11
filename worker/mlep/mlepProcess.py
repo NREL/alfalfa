@@ -56,10 +56,16 @@ class mlepProcess:
         self.writer = ''                    # Buffered writer stream
         self.reader = ''                    # Buffered reader stream
         self.pid = ()                       # Process ID for E+
-    
+        self.deltaT = 0                     # Timestep for E+
+        self.kStep = 0                      # E+ simulation step
+        self.flag = 0                       # Co-simulation flag
+        self.MAXSTEPS = 0                   # Co-simulation max. steps
+        self.inputs_list = None             # Co-simulation input list
+        self.outputs_list = None            # Co-simulation output list
+
     # Start
     #==============================================================
-    def start(self):
+    def start(self) -> object:
         # status and msg are returned from the client process
         # status = 0 --> success
         if self.isRunning:
@@ -67,18 +73,18 @@ class mlepProcess:
 
         # Check parameters
         if self.program is None:
-            print('Program name must be specified.');
+            print('Program name must be specified.')
 
         # Call mlepCreate
         try:
             if self.serverSocket is not None:
                 theport = self.serverSocket
                 if self.configFileWriteOnce:
-                    theConfigFile = -1;  # Do not write socket config file
+                    theConfigFile = -1  # Do not write socket config file
                 else:
                     theConfigFile = self.configFile
             else:
-                theport = self.port;
+                theport = self.port
                 theConfigFile = self.configFile
 
             # Call MLEPCreate function
@@ -100,7 +106,7 @@ class mlepProcess:
         msg = self.msg
 
         # Accept Socket
-        (self.commSocket, clientAddress) = self.serverSocket.accept()
+        (self.commSocket, self.clientAddress) = self.serverSocket.accept()
 
         # Create Streams
         if status == 0 and isinstance(self.commSocket,socket.socket):
@@ -117,22 +123,26 @@ class mlepProcess:
         if not self.isRunning:
             return
 
-        # Send stop signal
-        if stopSignal:
-            self.write(mlep.mlepEncodeStatus(self.version, 1))
+        try:
+            # Send stop signal
+            if stopSignal:
+                self.write(mlep.mlepEncodeRealData(2, 1, None, (1,)))
 
-        # Close connection
-        self.serverSocket.close()
-
+            # Close connection
+            self.commSocket.shutdown(socket.SHUT_RDWR)
+            self.commSocket.close()
+            
+        except Exception as exc:
+            print('Error')
         # Update
-        self.isRunning = False;
+        self.isRunning = False
     
     # Read
     #==============================================================
     def read(self):
         # Read Packet
         if self.isRunning:
-            packet = self.commSocket.recv(500)
+            packet = self.commSocket.recv(1000)
         else:
             print('Co-simulation is not running.')
 

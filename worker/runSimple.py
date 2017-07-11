@@ -14,9 +14,7 @@
 
  (C) 2017 by Willy Bernal (Willy.BernalHeredia@nrel.gov)
 """
-import sys
 import mlep
-import shutil
 import os
 
 # Create an mlepProcess instance and configure it
@@ -35,8 +33,8 @@ ep.arguments = (idfFile, weatherFile)
 
 # Get Mapping
 [inputs_list, outputs_list] = mlep.mlepJSON(mapping_file)
-print(inputs_list)
-print(outputs_list)
+#print(inputs_list)
+#print(outputs_list)
 
 # Start EnergyPlus cosimulation
 (status,msg) = ep.start()
@@ -49,7 +47,7 @@ if status != 0:
 [status, msg] = ep.acceptSocket()
 
 if status != 0:
-    print('Could not connect to EnergyPlus: %s.', msg)
+    raise Exception('Could not connect EnergyPlus: %s.'%(msg))
 
 # The main simulation loop
 deltaT = 15*60          # time step = 15 minutes
@@ -66,26 +64,24 @@ while kStep <= MAXSTEPS:
 
     # Parse it to obtain building outputs
     [flag, eptime, outputs] = mlep.mlepDecodePacket(packet)
-    print(kStep)
-    print(eptime)
-    print(outputs)
-    eptime = kStep
+    #print(kStep)
     if flag != 0:
         break
 
     # Inputs
-    #inputs = (18,19,)
     inputs = (1,1,0)
 
     # Write to inputs of E+
-    ep.write(mlep.mlepEncodeRealData(2, 0, (kStep-1)*deltaT, inputs));    
-    
+    ep.write(mlep.mlepEncodeRealData(2, 0, (kStep-1)*deltaT, inputs))
+
     # Advance time
+    print(kStep)
     kStep = kStep + 1
     
 # Stop EnergyPlus
 ep.stop(True)
 print('Stopped with flag %d'%flag)
+
 
 '''
 # ==========FLAGS==============
