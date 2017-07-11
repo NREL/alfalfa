@@ -12,10 +12,13 @@ import AWS from 'aws-sdk';
 import os from 'os';
 import fs from 'fs';
 import hs from 'nodehaystack';
+import HDict from 'nodehaystack/HDict';
+import {MongoClient} from 'mongodb';
 
 var HBool = hs.HBool,
     HDateTime = hs.HDateTime,
     HDictBuilder = hs.HDictBuilder,
+    //HDict = hs.HDict,
     HGrid = hs.HGrid,
     HHisItem = hs.HHisItem,
     HMarker = hs.HMarker,
@@ -35,6 +38,11 @@ class WriteArray {
   constructor() {
     this.val = [];
     this.who = [];
+
+    for (var i = 0; i < 17; ++i) {
+      this.val[i] = null;
+      this.who[i] = null;
+    }
   }
 };
 
@@ -43,128 +51,58 @@ class WriteArray {
  * HDatabase with some test entities.
  * @constructor
  */
-class Database extends HServer {
-  constructor() {
+class AlfalfaServer extends HServer {
+  constructor(mongodb) {
     super();
 
-    this.writeArrays = {};
+    this.db = mongodb
+    this.writearrays = this.db.collection('writearrays');
+    this.mrecs = this.db.collection('recs');
     this.recs = {};
 
-    fs.readFile('./haystack_report_haystack.json', 'utf8', (err, data) => {
+    this.addFile('./haystack_report_haystack.json');
+
+  }
+
+  addFile(json_file) {
+    fs.readFile(json_file, 'utf8', (err, data) => {
         if (err) {
           console.log('Error parsing json points file: ',err); 
         } else {
           try {
-            var points = JSON.parse(data);
-            this.addPoints(points);
+            let recs = JSON.parse(data);
+            let array = recs.map((rec) => {
+              let reader = new HJsonReader(rec.id)
+              let id = reader.readScalar().val;
+              return {
+                _id: id,
+                rec: rec
+              };
+            });
+            this.mrecs.insertMany(array).catch(() => {});
           } catch(err) {
             console.log(err);
           }
         }
     });
-
-    //this.addSite("A", "Richmond", "VA", 1000);
-    //this.addSite("B", "Richmond", "VA", 2000);
-    //this.addSite("C", "Washington", "DC", 3000);
-    //this.addSite("D", "Boston", "MA", 4000);
-    //this.addSite("E", "St. Louis", "MO", 5000);
   }
 
-  addPoints(points) {
-    for (let i = 0; i < points.length; i++) {
-      const point = points[i];
-      const keys = Object.keys(point);
-      var db = new HDictBuilder();
-      //const id = HRef.make(point['id']);
-      for (let j = 0; j < keys.length; j++) {
-        const key = keys[j];
-        const r = new HJsonReader(point[key]);
-        try {
-          const val = r.readScalar();
-          db.add(key,val);
-        }
-        catch(err) {
-          console.log(err);
-        }
+  recToDict(rec) {
+    const keys = Object.keys(rec);
+    var db = new HDictBuilder();
+    for (let j = 0; j < keys.length; j++) {
+      const key = keys[j];
+      const r = new HJsonReader(rec[key]);
+      try {
+        const val = r.readScalar();
+        db.add(key,val);
       }
-      const d = db.toDict();
-      this.recs[d.id()] = d;
+      catch(err) {
+        console.log(err);
+      }
     }
+    return db.toDict();
   }
-  
-  addSite(dis, geoCity, geoState, area) {
-    var site = new HDictBuilder()
-        .add("id", HRef.make(dis))
-        .add("dis", dis)
-        .add("site", HMarker.VAL)
-        .add("geoCity", geoCity)
-        .add("geoState", geoState)
-        .add("geoAddr", "" + geoCity + "," + geoState)
-        .add("tz", "New_York")
-        .add("area", HNum.make(area, "ft\u00B2"))
-        .toDict();
-    this.recs[dis] = site;
-  
-    this.addMeter(site, dis + "-Meter");
-    this.addAhu(site, dis + "-AHU1");
-    this.addAhu(site, dis + "-AHU2");
-  };
-  
-  addMeter(site, dis) {
-    HServer.call(this);
-    var equip = new HDictBuilder()
-        .add("id", HRef.make(dis))
-        .add("dis", dis)
-        .add("equip", HMarker.VAL)
-        .add("elecMeter", HMarker.VAL)
-        .add("siteMeter", HMarker.VAL)
-        .add("siteRef", site.get("id"))
-        .toDict();
-    this.recs[dis] = equip;
-    this.addPoint(equip, dis + "-KW", "kW", "elecKw");
-    this.addPoint(equip, dis + "-KWH", "kWh", "elecKwh");
-  };
-  
-  addAhu(site, dis) {
-    var equip = new HDictBuilder()
-        .add("id", HRef.make(dis))
-        .add("dis", dis)
-        .add("equip", HMarker.VAL)
-        .add("ahu", HMarker.VAL)
-        .add("siteRef", site.get("id"))
-        .toDict();
-    this.recs[dis] = equip;
-    this.addPoint(equip, dis + "-Fan", null, "discharge air fan cmd");
-    this.addPoint(equip, dis + "-Cool", null, "cool cmd");
-    this.addPoint(equip, dis + "-Heat", null, "heat cmd");
-    this.addPoint(equip, dis + "-DTemp", "\u00B0F", "discharge air temp sensor");
-    this.addPoint(equip, dis + "-RTemp", "\u00B0F", "return air temp sensor");
-    this.addPoint(equip, dis + "-ZoneSP", "\u00B0F", "zone air temp sp writable");
-  };
-  
-  addPoint(equip, dis, unit, markers) {
-    var b = new HDictBuilder()
-        .add("id", HRef.make(dis))
-        .add("dis", dis)
-        .add("point", HMarker.VAL)
-        .add("his", HMarker.VAL)
-        .add("siteRef", equip.get("siteRef"))
-        .add("equipRef", equip.get("id"))
-        .add("kind", typeof(unit) === 'undefined' || unit === null ? "Bool" : "Number")
-        .add("tz", "New_York");
-    if (typeof(unit) !== 'undefined' && unit !== null) {
-      b.add("unit", unit);
-      if (unit === 'kW') {
-        b.add("power", HMarker.VAL);
-        b.add("siteMeter", HMarker.VAL);
-      }
-    }
-    var st = markers.split(" ");
-    for (var i = 0; i < st.length; i++) {
-      b.add(st[i]);
-    }
-    this.recs[dis] = b.toDict();
-  };
   
   //////////////////////////////////////////////////////////////////////////
   //Ops
@@ -209,43 +147,111 @@ class Database extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onReadById(id, callback) {
-    console.log('onReadById: ',id.val);
-    callback(null, this.recs[id.val]);
+    this.mrecs.findOne({_id: id.val}).then((doc) => {
+      if( doc ) {
+        let dict = this.recToDict(doc.rec);
+        callback(null,dict);
+      } else {
+        callback(null);
+      }
+    }).catch((err) => {
+      callback(err);
+    });
   };
   
   iterator(callback) {
-    callback(null, this._iterator());
+    let self = this;
+    this.mrecs.find().toArray().then((array) => {
+      let index = 0;
+      let length = array.length;
+
+      let it = {
+        next: function() {
+          var dict;
+          if (!this.hasNext()) {
+            return null;
+          }
+          dict = self.recToDict(array[index].rec);
+          index++;
+          return dict;
+        },
+        hasNext: function() {
+          return index < length;
+        }
+      };
+      callback(null,it);
+    }).catch((err) => {
+      console.log(err);
+      const it = {
+        next: function() {
+          return null;
+        },
+        hasNext: function() {
+          return false;
+        }
+      };
+      callback(null,it);
+      //const a = [];
+      //return a;
+    });
+
+    //var index = 0;
+    //var length = docs.length;
+
+    //console.log('boom 2');
+    //return {
+    //  next: function() {
+    //    var dict;
+    //    if (!this.hasNext()) {
+    //      return null;
+    //    }
+    //    dict = this.recToDict(docs[index].rec);
+    //    index++;
+    //    return dict;
+    //  },
+    //  hasNext: function() {
+    //    return index < length;
+    //  }
+    //};
+
+    //callback(null, this._iterator());
   };
 
-  _iterator() {
-    var index = 0;
-    var recs = this.recs;
-    var keys = Object.keys(recs);
-    var length = keys.length;
-    return {
-      next: function() {
-        var elem;
-        if (!this.hasNext()) {
-          return null;
-        }
-        elem = recs[keys[index]];
-        index++;
-        return elem;
-      },
-      hasNext: function() {
-        return index < length;
-      }
-    };
-  };
+  //_iterator() {
+  //  var docs = this.mrecs.find().toArray().then((array) => {
+  //    console.log('boom 1');
+  //    return array;
+  //  }).catch(() => {
+  //    const a = [];
+  //    return a;
+  //  });
+
+  //  var index = 0;
+  //  var length = docs.length;
+
+  //  console.log('boom 2');
+  //  return {
+  //    next: function() {
+  //      var dict;
+  //      if (!this.hasNext()) {
+  //        return null;
+  //      }
+  //      dict = this.recToDict(docs[index].rec);
+  //      index++;
+  //      return dict;
+  //    },
+  //    hasNext: function() {
+  //      return index < length;
+  //    }
+  //  };
+  //};
   
   //////////////////////////////////////////////////////////////////////////
   //Navigation
   //////////////////////////////////////////////////////////////////////////
   
   onNav(navId, callback) {
-    console.log('onNav navid: ',navId);
     const _onNav = (base, callback) => {
-      console.log('_onNav');
       // map base record to site, equip, or point
       var filter = "site";
       if (typeof(base) !== 'undefined' && base !== null) {
@@ -279,22 +285,16 @@ class Database extends HServer {
       });
     };
 
-    console.log('starting to check type');
     if (typeof(navId) !== 'undefined' && navId !== null) {
-      console.log('navid defined');
-      //console.log('navId: ',HRef.make(navId));
-      console.log('going to readById');
       this.readById(HRef.make(navId), (err, base) => {
       //this.readById(navId, (err, base) => {
         if (err) {
           callback(err)
         } else {
-          console.log('base id: ',base.id());
           _onNav(base, callback);
         }
       });
     } else {
-      console.log('navid undefined');
       _onNav(null, callback);
     }
   };
@@ -324,56 +324,93 @@ class Database extends HServer {
   //Point Write
   //////////////////////////////////////////////////////////////////////////
   
-  onPointWriteArray(rec, callback) {
-    var array = this.writeArrays[rec.id()];
-    if (typeof(array)==='undefined' || array===null) {
-      array = new WriteArray();
-      this.writeArrays[rec.id()] = array;
-    }
-  
-    var b = new HGridBuilder();
+  writeArrayToGrid(array) {
+    let b = new HGridBuilder();
     b.addCol("level");
     b.addCol("levelDis");
     b.addCol("val");
     b.addCol("who");
-  
-    for (var i = 0; i < 17; ++i) {
+    
+    for (var i = 0; i < array.val.length; ++i) {
       b.addRow([
         HNum.make(i + 1),
         HStr.make("" + (i + 1)),
-        array.val[i],
+        HNum.make(array.val[i]),
         HStr.make(array.who[i]),
       ]);
     }
-  
-    callback(null, b.toGrid());
+
+    return b;
+  }
+
+  onPointWriteArray(rec, callback) {
+    this.writearrays.findOne({_id: rec.id().val}).then((array) => {
+      if( array ) {
+        const b = this.writeArrayToGrid(array);
+        callback(null, b.toGrid());
+      } else {
+        let array = new WriteArray();
+        array._id = rec.id().val;
+        this.writearrays.insertOne(array).then(() => {
+          const b = this.writeArrayToGrid(array);
+          callback(null, b.toGrid());
+        }).catch((err) => {
+          callback(err);
+        });
+      }
+    }).catch((err) => {
+      callback(err);
+    })
   };
   
   onPointWrite(rec, level, val, who, dur, opts, callback) {
-    // Consider making the worker update the WriteArray
-    // in response to the message handling, 
-    // that way there is no chance of write failing and WriteArray being inaccurate
-    var array = this.writeArrays[rec.id()];
-    if (typeof(array) === 'undefined' || array === null) {
-      this.writeArrays[rec.id()] = array = new WriteArray();
-    }
-    array.val[level - 1] = val;
-    array.who[level - 1] = who;
+    let writeArray = null;
 
-    var params = {
-     MessageBody: `{"id": "${rec.id()}", "op": "PointWrite", "level": "${level}", "val": "${val}"}`,
-     QueueUrl: process.env.JOB_QUEUE_URL
-    };
-
-    sqs.sendMessage(params, function(err, data) {
-      if (err) {
-        console.log(err, err.stack); // an error occurred
-        callback();
+    this.writearrays.findOne({_id: rec.id().val}).then((array) => {
+      if( array ) {
+        array.val[level - 1] = val.val;
+        array.who[level - 1] = who;
+        this.writearrays.updateOne(
+          { "_id": array._id },
+          { $set: { "val": array.val, "who": array.who } 
+        }).then(() => {
+          writeArray = array;
+        }).catch((err) => {
+          callback(err);
+        });
       } else {
-        console.log(data);           // successful response
-        callback();
+        let array = new WriteArray();
+        array._id = rec.id().val;
+        array.val[level - 1] = val.val;
+        array.who[level - 1] = who;
+        this.writearrays.insertOne(array).then(() => {
+          writeArray = array;
+        }).catch((err) => {
+          callback(err);
+        });
       }
+    }).catch((err) => {
+      callback(err);
     });
+
+    if( writeArray ) {
+      var params = {
+       MessageBody: `{"id": "${rec.id()}", "op": "PointWrite", "level": "${level}", "val": "${val}"}`,
+       QueueUrl: process.env.JOB_QUEUE_URL
+      };
+
+      sqs.sendMessage(params, (err, data) => {
+        if (err) {
+          callback(err);
+        } else {
+          console.log(data);           // successful response
+          const b = this.writeArrayToGrid(writeArray);
+          callback(null, b.toGrid());
+        }
+      });
+    } else {
+      callback();
+    }
   };
   
   //////////////////////////////////////////////////////////////////////////
@@ -428,5 +465,5 @@ class Database extends HServer {
   };
 }
 
-module.exports = Database;
+module.exports = AlfalfaServer;
 
