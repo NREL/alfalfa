@@ -14,14 +14,14 @@
 	"events": 
 	[
 		{
-			"action": "startSimulation",
-			"timestepFactor": 6,
-			"timeScaler": 100,
-			"startTime": "12:00",			
-			"startDate": "01/22",
-			"endTime": "12:00",			
-			"endDate": "01/26",
-			"acceptTimeout": 20000,
+			"action": "start",
+			"time_step": 6,
+			"time_scale": 100,
+			"start_hour": "12:00",
+			"start_date": "01/22",
+			"end_hour": "12:00",
+			"end_date": "01/26",
+			"accept_timeout": 20000,
 			"arguments":
 			[
 				{
@@ -31,10 +31,13 @@
 			]
 		},
 		{
-			"action": "pauseSimulation"
+			"action": "pause"
 		},
 		{
-			"action": "stopSimulation"
+			"action": "resume"
+		},
+		{
+			"action": "stop"
 		},
 		{
 			"action": "addFeedbackVariable",

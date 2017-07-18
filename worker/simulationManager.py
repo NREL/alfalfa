@@ -5,8 +5,6 @@
 """
  This script is for testing purposes only.
 
- This script is free software.
-
  (C) 2017 by Willy Bernal (Willy.BernalHeredia@nrel.gov)
 """
 import mlep
@@ -15,40 +13,65 @@ import boto3
 import json
 import time
 
+
+# Simulation Process Class
+class SimProcess:
+    def __init__(self):
+        self.sim_status = 0             # 0=init, 1=running, 2=pause, 3=stop
+        self.step_time = 0              # Real-time step
+        self.start_time = 0             # Real-time step
+        self.next_time = 0              # Real-time step
+        self.start_date = '01/01'       # Start date for simulation (01/01)
+        self.end_date = '12/31'         # End date for simulation (12/31)
+        self.start_hour = 1             # Start hour for simulation (1-23)
+        self.end_hour = 23              # End hour for simulation (1-23)
+        self.accept_timeout = 10000     # Accept timeout for simulation (ms)
+
+
+# Process Message
 def process_message(message):
     print('got a message')
-    message_body = json.loads(message.body)
-    processed = False
-
-    op = message_body['op']
-    # Message needs to be deleted, otherwise it will show back up in the queue for processing
-    if op == 'InvokeAction':
-        [processed, flag] = process_invoke_action_message(message_body)
-    elif op == 'PointWrite':
-        processed = process_write_point_message(message_body)
-    if processed:
+    try:
+        processed = False
+        message_body = json.loads(message.body)
+    except Exception as e:
+        print('Exception: {0}'.format(e))
         message.delete()
+    else:
+        op = message_body['op']
+        # Message needs to be deleted, otherwise it will show back up in the queue for processing
+        if op == 'InvokeAction':
+            [processed, flag] = process_invoke_action_message(message_body)
+        elif op == 'PointWrite':
+            processed = process_write_point_message(message_body)
+        if processed:
+            message.delete()
 
     return
 
 
+# Process Invoke Action Message
 # Return true if the message was handled, otherwise false
 def process_invoke_action_message(message_body):
-    global ep
-    global sim_status
-    global start_time
-    global step_time
+    global sp
     action = message_body['action']
 
     # Start
     if action == 'start':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
-        step_time = 5
+        time_step = 15  # Simulation time step
+        sp.step_time = time_step*3600/message_body['time_scale']
+        sp.start_date = message_body['start_date']
+        sp.end_date = message_body['end_date']
+        sp.start_hour = message_body['start_hour']
+        sp.end_hour = message_body['end_hour']
+        sp.accept_timeout = message_body['accept_timeout']*1000
+
         print('START')
-        if not ep.isRunning:
+        if not ep.is_running:
             flag = start_simulation()
-            start_time = time.time()
+            sp.start_time = time.time()
         else:
             flag = 0
         return True, flag
@@ -56,29 +79,26 @@ def process_invoke_action_message(message_body):
     elif action == 'pause':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
-        # (ep,status,deltaT,kStep,flag,MAXSTEPS) = start_simulation()
-        print('PAUSE')
-        sim_status = 2
-        return True
+        print('Pausing Simulation...')
+        sp.sim_status = 2
+        return True, 0
     elif action == 'resume':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
-        # (ep,status,deltaT,kStep,flag,MAXSTEPS) = start_simulation()
-        print('RESUME')
-        sim_status = 1
-        return True
+        print('Resuming Simulation...')
+        sp.sim_status = 1
+        return True, 0
     # Stop
     elif action == 'stop':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
-        # (ep,status,deltaT,kStep,flag,MAXSTEPS) = start_simulation()
-        print('STOP')
-        sim_status = 3
-        return True
+        print('Stopping Simulation...')
+        sp.sim_status = 3
+        return True, 0
     # Unknown
     else:
         # Do nothing
-        return False
+        return False, 0
 
 
 # Return true if the message was handled, otherwise false
@@ -92,14 +112,14 @@ def process_write_point_message(message_body):
 
 
 def start_simulation():
-    global sim_status
+    global sp
     global ep
     print('Starting EnergyPlus Simulation')
 
     # Arguments
     idf_file = '/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf'
     weather_file = '/Applications/EnergyPlus-8-7-0/WeatherData/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
-    ep.acceptTimeout = 20000
+    ep.accept_timeout = sp.accept_timeout
     mapping_file = "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/haystack_report_mapping.json"
 
     # Parse directory
@@ -108,7 +128,7 @@ def start_simulation():
     ep.arguments = (idf_file, weather_file)
 
     # Get Mapping
-    [ep.inputs_list, ep.outputs_list] = mlep.mlepJSON(mapping_file)
+    [ep.inputs_list, ep.outputs_list] = mlep.mlep_parse_json(mapping_file)
 
     # Start EnergyPlus co-simulation
     (ep.status, ep.msg) = ep.start()
@@ -118,7 +138,7 @@ def start_simulation():
         raise Exception('Could not start EnergyPlus: %s.' % ep.msg)
 
     # Accept Socket
-    [ep.status, ep.msg] = ep.acceptSocket()
+    [ep.status, ep.msg] = ep.accept_socket()
 
     if ep.status != 0:
         raise Exception('Could not connect EnergyPlus: %s.' % ep.msg)
@@ -126,120 +146,82 @@ def start_simulation():
     # The main simulation loop
     ep.deltaT = 15 * 60  # time step = 15 minutes
     ep.kStep = 1  # current simulation step
-    ep.MAXSTEPS = 1 * 24 * 4 + 1  # max simulation time = 4 days
+    ep.MAX_STEPS = 1 * 24 * 4 + 1  # max simulation time = 4 days
     ep.flag = 0
 
     # Simulation Status
-    if ep.isRunning:
-        sim_status = 1
+    if ep.is_running:
+        sp.sim_status = 1
 
     return ep.flag
 
+# ======================================================= MAIN ========================================================
+if __name__ == '__main__':
+    # Initialized process
+    ep = mlep.MlepProcess()
+    sp = SimProcess()
 
-# Main loop
-# 1. Process messages (start sim, set actuators, maybe other things)
-# 2. Step simulation
-# 3. Push current sensor values to database
-# Create an mlepProcess instance 
-ep = mlep.mlepProcess()
-sim_status = 0
-# 0 init
-# 1 running
-# 2 pause
-# 3 stop
+    # Get the service resource
+    sqs = boto3.resource('sqs')
 
-# Init
-start_time = 0
-step_time = 0
-next_time = 0
+    # Create the queue. This returns an SQS.Queue instance
+    queue = sqs.create_queue(QueueName='test1', Attributes={'DelaySeconds': '0'})
 
-# Get the service resource
-sqs = boto3.resource('sqs')
+    # Create a new message
+    # response = queue.send_message(MessageBody='{"op":"InvokeAction",\
+    # "action":"start", "time_step":6, "time_scale": 54000, "start_hour": "12:00",\
+    # "start_date": "01/22", "end_hour": "12:00", "end_date": "01/26",\
+    # "accept_timeout": 20}')
+    # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"pause_simulation"}')
+    # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"resume_simulation"}')
+    # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"stop_simulation"}')
 
-# Create the queue. This returns an SQS.Queue instance
-queue = sqs.create_queue(QueueName='test1', Attributes={'DelaySeconds': '0'})
+    while True:
+        # WaitTimeSeconds triggers long polling that will wait for events to enter queue
+        # Receive Message
+        messages = queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=0)
+        if len(messages) > 0:
+            for msg in messages:
+                print('Got Message')
+                print(msg.body)
+            # Process Message
+            process_message(messages[0])
 
-# Get the queue. This returns an SQS.Queue instance
-# queue = sqs.get_queue_by_name(QueueName='test1')
+        # Step simulation in time
+        # Adjust next real-time simulation step
+        sp.next_time = time.time()
+        if ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and \
+                (sp.next_time - sp.start_time >= sp.step_time):
+            sp.start_time = time.time()
+            packet = ep.read()
+            if packet == '':
+                raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
 
-# Send two messages
-# response = queue.send_messages(MessageBody='hello')
-# Create a new message
-# response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"start"}')
-# response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"pause"}')
-# response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"resume"}')
-# response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"stop"}')
+            # Parse it to obtain building outputs
+            [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
+            print(ep.kStep)
 
-# Receive Message
-# message  = queue.receive_messages(MaxNumberOfMessages=1)
-# print(message[0].message_id)
-# print(message[0].body)
-# print(message[0].message_attributes)
-# print(type(message[0]))
-# message[0].delete()
+            if ep.flag != 0:
+                break
 
-# Process messages by printing out body and optional author name
-# for message in queue.receive_messages(
-#    MessageAttributeNames=['Author'],
-#    MaxNumberOfMessages=10):
-#    # Get the custom author message attribute if it was set
-#    author_text = ''
-#    if message.message_attributes is not None:
-#        author_name = message.message_attributes.get('Author').get('StringValue')
-#        if author_name:
-#            author_text = ' ({0})'.format(author_name)
+            # Inputs
+            inputs = (1, 1, 0)
 
-# Print out the body and author (if set)
-#    print('Hello, {0}!{1}'.format(message.body, author_text))
+            # Write to inputs of E+
+            ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
 
-# Let the queue know that the message is processed
-# message.delete()
+            # Advance time
+            ep.kStep = ep.kStep + 1
 
-while True:
-    # WaitTimeSeconds triggers long polling that will wait for events to enter queue
-    # Once this framework has the ability to run real simulations then the wait time
-    # should probably be removed, because the simulation will establish a pace, perhaps
-    # with some sleep commands to artificially slow things down to wall clock time
-    messages = queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=0)
-    if len(messages) > 0:
-        for msg in messages:
-            print('Got Message')
-            print(msg.body)
+            # Push latest point values to database
+            # Need to do
 
-        process_message(messages[0])
+        # Check Stop
+        if (ep.is_running and (ep.kStep >= ep.MAX_STEPS)) or (sp.sim_status == 3 and ep.is_running):
+            ep.stop(True)
+            ep.is_running = 0
+            sp.sim_status = 0
+            print('Simulation Terminated')
 
-    # Step simulation in time
-    next_time = time.time()
-    if ep.isRunning & (sim_status == 1) & (ep.kStep < ep.MAXSTEPS) & (next_time - start_time >= step_time):
-        start_time = time.time()
-        packet = ep.read()
-        if packet == '':
-            raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
-
-        # Parse it to obtain building outputs
-        [ep.flag, eptime, outputs] = mlep.mlepDecodePacket(packet)
-        print(ep.kStep)
-
-        if ep.flag != 0:
-            break
-
-        # Inputs
-        inputs = (1, 1, 0)
-
-        # Write to inputs of E+
-        ep.write(mlep.mlepEncodeRealData(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
-
-        # Advance time
-        ep.kStep = ep.kStep + 1
-
-        # Push latest point values to database
-        # Need to do
-
-    # Check Stop
-    if ep.isRunning & (ep.kStep >= ep.MAXSTEPS):
-        ep.stop(True)
-        ep.isRunning = 0
-        sim_status = 0
-
-    # Done with simulation step    
-    print('ping')
+        # Done with simulation step
+        print('ping')
