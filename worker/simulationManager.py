@@ -183,14 +183,20 @@ if __name__ == '__main__':
     # Initialized process
     ep = mlep.MlepProcess()
     sp = SimProcess()
+    local_flag = True
 
     # Get the service resource
     sqs = boto3.resource('sqs')
 
-    # Create the queue. This returns an SQS.Queue instance
-    queue = sqs.create_queue(QueueName='test1', Attributes={'DelaySeconds': '0'})
+    # ============= SQS Queue =============
+    if local_flag:
+        # Create the queue. This returns an SQS.Queue instance
+        queue = sqs.create_queue(QueueName='test1', Attributes={'DelaySeconds': '0'})
+    else:
+        # Define a remote queue
+        print('Define a remote queue')
 
-    # Create a new message
+    # ============= Messages Available =============
     # response = queue.send_message(MessageBody='{"op":"InvokeAction",\
     # "action":"start_simulation", \
     # "arguments":{"idf": "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf",\
