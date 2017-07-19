@@ -66,7 +66,7 @@ def process_invoke_action_message(message_body):
     action = message_body['action']
 
     # Start
-    if action == 'start':
+    if action == 'start_simulation':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
         time_step = 15  # Simulation time step
@@ -80,26 +80,26 @@ def process_invoke_action_message(message_body):
         sp.weather = message_body['arguments']['weather']
         sp.mapping = message_body['mapping']
 
-        print('START')
+        print('Starting Simulation')
         if not ep.is_running:
             start_simulation()
             sp.start_time = time.time()
         return True
     # Pause
-    elif action == 'pause':
+    elif action == 'pause_simulation':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
         print('Pausing Simulation...')
         sp.sim_status = 2
         return True
-    elif action == 'resume':
+    elif action == 'resume_simulation':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
         print('Resuming Simulation...')
         sp.sim_status = 1
         return True
     # Stop
-    elif action == 'stop':
+    elif action == 'stop_simulation':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
         print('Stopping Simulation...')
@@ -192,7 +192,8 @@ if __name__ == '__main__':
 
     # Create a new message
     # response = queue.send_message(MessageBody='{"op":"InvokeAction",\
-    # "action":"start", "arguments":{"idf": "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf",\
+    # "action":"start_simulation", \
+    # "arguments":{"idf": "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf",\
     # "weather": "USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw"},\
     # "mapping":"/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/haystack_report_mapping.json",\
     # "time_step":6, "time_scale": 54000, "start_hour": "12:00",\

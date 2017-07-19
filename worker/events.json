@@ -14,7 +14,7 @@
 	"events": 
 	[
 		{
-			"action": "start",
+			"action": "start_simulation",
 			"time_step": 6,
 			"time_scale": 100,
 			"start_hour": "12:00",
@@ -29,13 +29,13 @@
 			}
 		},
 		{
-			"action": "pause"
+			"action": "pause_simulation"
 		},
 		{
-			"action": "resume"
+			"action": "resume_simulation"
 		},
 		{
-			"action": "stop"
+			"action": "stop_simulation"
 		},
 		{
 			"action": "addFeedbackVariable",
