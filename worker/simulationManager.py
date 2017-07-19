@@ -26,6 +26,8 @@ class SimProcess:
         self.start_hour = 1             # Start hour for simulation (1-23)
         self.end_hour = 23              # End hour for simulation (1-23)
         self.accept_timeout = 10000     # Accept timeout for simulation (ms)
+        self.idf = None                 # EnergyPlus file path (/path/to/energyplus/file)
+        self.weather = None             # Weather file path (/path/to/weather/file)
 
 
 # Process Message
@@ -41,11 +43,17 @@ def process_message(message):
         op = message_body['op']
         # Message needs to be deleted, otherwise it will show back up in the queue for processing
         if op == 'InvokeAction':
-            [processed, flag] = process_invoke_action_message(message_body)
+            processed = process_invoke_action_message(message_body)
         elif op == 'PointWrite':
             processed = process_write_point_message(message_body)
+
         if processed:
-            message.delete()
+            print('Message processed successfully:\n{}'.format(message_body))
+        else:
+            print('Message could not be processed:\n{}'.format(message_body))
+
+        # Delete Message
+        message.delete()
 
     return
 
@@ -54,6 +62,7 @@ def process_message(message):
 # Return true if the message was handled, otherwise false
 def process_invoke_action_message(message_body):
     global sp
+    global ep
     action = message_body['action']
 
     # Start
@@ -67,93 +76,107 @@ def process_invoke_action_message(message_body):
         sp.start_hour = message_body['start_hour']
         sp.end_hour = message_body['end_hour']
         sp.accept_timeout = message_body['accept_timeout']*1000
+        sp.idf = message_body['arguments']['idf']
+        sp.weather = message_body['arguments']['weather']
+        sp.mapping = message_body['mapping']
 
         print('START')
         if not ep.is_running:
-            flag = start_simulation()
+            start_simulation()
             sp.start_time = time.time()
-        else:
-            flag = 0
-        return True, flag
+        return True
     # Pause
     elif action == 'pause':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
         print('Pausing Simulation...')
         sp.sim_status = 2
-        return True, 0
+        return True
     elif action == 'resume':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
         print('Resuming Simulation...')
         sp.sim_status = 1
-        return True, 0
+        return True
     # Stop
     elif action == 'stop':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
         print('Stopping Simulation...')
         sp.sim_status = 3
-        return True, 0
+        return True
     # Unknown
     else:
         # Do nothing
-        return False, 0
+        return False
 
 
 # Return true if the message was handled, otherwise false
 def process_write_point_message(message_body):
-    haystack_id = message_body['id']
-    val = message_body['val']
-    level = message_body['level']
-    print("process_write_point_message: id = {haystack_id} val = {val} level = {level}".format(**locals()))
-    # Master algorithm should assume that there is an extenal interface variable with name corresponding to haystack_id
-    return True
+    global ep
+
+    try:
+        haystack_id = message_body['haystack_id']
+        val = message_body['val']
+        print("process_write_point_message: id = {haystack_id}, val = {val}".format(**locals()))
+        # Get index
+        index = ep.inputs_list.index(haystack_id)
+        # Update Inputs list
+        ep.inputs[index] = 1
+        ep.inputs[index+1] = val
+    except:
+        flag = False
+    else:
+        flag = True
+    return flag
 
 
+# Start Simulation
 def start_simulation():
     global sp
     global ep
     print('Starting EnergyPlus Simulation')
 
     # Arguments
-    idf_file = '/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf'
-    weather_file = '/Applications/EnergyPlus-8-7-0/WeatherData/USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
     ep.accept_timeout = sp.accept_timeout
-    mapping_file = "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/haystack_report_mapping.json"
+    ep.mapping = sp.mapping
+    ep.flag = 0
 
     # Parse directory
-    idf_file_details = os.path.split(idf_file)
+    idf_file_details = os.path.split(sp.idf)
     ep.workDir = idf_file_details[0]
-    ep.arguments = (idf_file, weather_file)
+    ep.arguments = (sp.idf, sp.weather)
 
     # Get Mapping
-    [ep.inputs_list, ep.outputs_list] = mlep.mlep_parse_json(mapping_file)
+    [ep.outputs_list, ep.inputs_list] = mlep.mlep_parse_json(ep.mapping)
+    # Initialize input tuplet
+    ep.inputs = [0] * (len(ep.inputs_list)+1)
 
     # Start EnergyPlus co-simulation
     (ep.status, ep.msg) = ep.start()
 
     # Check E+
     if ep.status != 0:
-        raise Exception('Could not start EnergyPlus: %s.' % ep.msg)
+        print('Could not start EnergyPlus: %s.' % ep.msg)
+        ep.flag = 1
 
     # Accept Socket
     [ep.status, ep.msg] = ep.accept_socket()
 
     if ep.status != 0:
-        raise Exception('Could not connect EnergyPlus: %s.' % ep.msg)
+        print('Could not connect EnergyPlus: %s.' % ep.msg)
+        ep.flag = 1
 
     # The main simulation loop
     ep.deltaT = 15 * 60  # time step = 15 minutes
     ep.kStep = 1  # current simulation step
     ep.MAX_STEPS = 1 * 24 * 4 + 1  # max simulation time = 4 days
-    ep.flag = 0
 
     # Simulation Status
     if ep.is_running:
         sp.sim_status = 1
 
-    return ep.flag
+    return
 
 # ======================================================= MAIN ========================================================
 if __name__ == '__main__':
@@ -169,12 +192,17 @@ if __name__ == '__main__':
 
     # Create a new message
     # response = queue.send_message(MessageBody='{"op":"InvokeAction",\
-    # "action":"start", "time_step":6, "time_scale": 54000, "start_hour": "12:00",\
+    # "action":"start", "arguments":{"idf": "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf",\
+    # "weather": "USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw"},\
+    # "mapping":"/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/haystack_report_mapping.json",\
+    # "time_step":6, "time_scale": 54000, "start_hour": "12:00",\
     # "start_date": "01/22", "end_hour": "12:00", "end_date": "01/26",\
     # "accept_timeout": 20}')
     # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"pause_simulation"}')
     # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"resume_simulation"}')
     # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"stop_simulation"}')
+    # response = queue.send_message(MessageBody='{"op":"PointWrite",\
+    # "haystack_id":"VAV_mid_WITH_REHEAT_Outside_Air_Damper_CMD","val":1}')
 
     while True:
         # WaitTimeSeconds triggers long polling that will wait for events to enter queue
@@ -199,13 +227,15 @@ if __name__ == '__main__':
 
             # Parse it to obtain building outputs
             [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
+            # Log Output Data
+            ep.outputs = outputs
             print(ep.kStep)
 
             if ep.flag != 0:
                 break
 
             # Inputs
-            inputs = (1, 1, 0)
+            inputs = tuple(ep.inputs)
 
             # Write to inputs of E+
             ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))

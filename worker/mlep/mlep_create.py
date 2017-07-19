@@ -143,10 +143,10 @@ def mlep_create(program_name, arguments, work_dir, timeout, port, host, bcvtb_di
         port = server_sock.getsockname()[1]
         server_address = ('127.0.0.1', port)
         print('Server started on %s:%s' % server_address)
-        # Hostname
-        hostname = host
+        # Host name
+        host_name = host
     else:
-        hostname = gethostbyname(gethostname())
+        host_name = gethostbyname(gethostname())
 
     # Set Timeout
     server_sock.settimeout(timeout / 1000)
@@ -178,37 +178,33 @@ def mlep_create(program_name, arguments, work_dir, timeout, port, host, bcvtb_di
                 fid.write(socket_config[5])
 
             except:
-                print('Error while writing socket config file: %s', femsg)
+                print('Error while writing socket config file: %s', config_file)
 
         fid.close()
         print('Wrote socket.cfg')
 
     # Start Process
-    [status, pid] = start_process(program_name, arguments, env, work_dir)
+    status = start_process(program_name, arguments, env, work_dir)
 
     # Return
     sim_sock = None
     msg = 'msg'
-    status = 0
-    pid = 0
 
-    return [server_sock, sim_sock, status, msg, pid]
+    return [server_sock, sim_sock, status, msg]
 
 
 def start_process(program_name, args, env, work_dir):
     """
     This function starts a new process of a given program in the
     background and returns the status and process ID.
-    progname: the command that will be executed
+    program_name: the command that will be executed
     args: arguments, either a string or a cell of strings
     env: environment variables, a dictionary that contains key-value pairs:
         + the first is the env variable name
         + the second is the value that will overwrite the current value.
-    workdir: working directory
+    work_dir: working directory
 
     status: 0 if successful, != 0 if error (then status is error code)
-    (obsolete) msg: string message returned by the program (e.g. its standard output)
-    pid: process ID/object; this ID is often not used but may be useful later.
     """
 
     # Set Variables
@@ -229,13 +225,10 @@ def start_process(program_name, args, env, work_dir):
         completed_process = subprocess.Popen(cmd, stdout=fid_log)
 
     # Status
-    if completed_process is None:
+    if completed_process is not None:
         status = 0
     else:
         status = 1
 
-    # Not Used
-    pid = 0
-
     # Return
-    return [status, pid]
+    return status

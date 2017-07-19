@@ -2,7 +2,8 @@
 
 # -*- coding: utf-8 -*-
 '''
-MLEPJSON Read json file with inputs and outputs. Need to extract the order for both 
+mlep_parse_json Read json file with inputs and outputs. Need to extract the order for both.
+Creates a list of inputs and outputs.
 
  (C) 2017 by Willy Bernal (Willy.BernalHeredia@nrel.gov)
 '''
@@ -23,12 +24,12 @@ def mlep_parse_json(filename):
     # Loop
     for i in range(0, len(parsed_json)):
         if parsed_json[i]['source'] == 'EnergyPlus':
-            inputs_dict = {key: parsed_json[i][key] for key in ('type', 'name', 'id')}
-            inputs_list.append(inputs_dict['id'].replace('r:', ''))
-            inputs_num += 1
-        elif parsed_json[i]['source'] == 'Ptolemy':
-            outputs_dict = {key: parsed_json[i][key] for key in ('variable', 'id')}
+            outputs_dict = {key: parsed_json[i][key] for key in ('type', 'name', 'id')}
             outputs_list.append(outputs_dict['id'].replace('r:', ''))
             outputs_num += 1
+        elif parsed_json[i]['source'] == 'Ptolemy':
+            inputs_dict = {key: parsed_json[i][key] for key in ('variable', 'id')}
+            inputs_list.append(inputs_dict['id'].replace('r:', ''))
+            inputs_num += 1
 
-    return [inputs_list, outputs_list]
+    return [outputs_list, inputs_list]

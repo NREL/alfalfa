@@ -82,13 +82,16 @@ class MlepProcess:
         self.kStep = 0                      # E+ simulation step
         self.flag = 0                       # Co-simulation flag
         self.MAX_STEPS = 0                  # Co-simulation max. steps
-        self.inputs_list = None             # Co-simulation input list
-        self.outputs_list = None            # Co-simulation output list
+        self.inputs_list = []               # Co-simulation input list
+        self.outputs_list = []              # Co-simulation output list
         self.client_address = None          # Client Address
+        self.inputs = []                    # E+ Simulation Inputs
+        self.outputs = []                   # E+ Simulation Outputs
+        self.mapping = ''                   # Path to the haystack mapping file
 
     # Start
     # ==============================================================
-    def start(self) -> object:
+    def start(self):
         # status and msg are returned from the client process
         # status = 0 --> success
         if self.is_running:
@@ -111,13 +114,15 @@ class MlepProcess:
                 the_config_file = self.configFile
 
             # Call MLEPCreate function
-            [self.server_socket, self.comm_socket, status, msg, self.pid] = \
+            [self.server_socket, self.comm_socket, status, msg] = \
                 mlep.mlep_create(self.program, self.arguments, self.workDir, self.accept_timeout, the_port,
                                  self.host, self.bcvtbDir, the_config_file, self.env, self.exe_cmd)
         except:
             import traceback
             traceback.print_exc()
-            raise Exception('Throw Error/Close Socket')
+            print('Throw Error/Close Socket')
+            status = 1
+            msg = 'Could not start the process.'
 
         # Return
         return status, msg
