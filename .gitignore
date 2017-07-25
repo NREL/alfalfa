@@ -1,0 +1,33 @@
+# E+
+*.audit
+*.bnd
+*.edd
+*.eio
+*.err
+*.eso
+*.mdd
+*.mtd
+*.mtr
+*.rdd
+*.rvaudit
+*.sql
+*.log
+*.svg
+*Zsz.csv
+*Ssz.csv
+*Meter.csv
+*.shd
+*.dbg
+*.idd
+socket.cfg
+fort.6
+
+# Mac
+*.DS_Store
+
+# Autosave
+*.autosave
+*~
+
+# Python
+

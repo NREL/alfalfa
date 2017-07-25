@@ -14,27 +14,28 @@
 	"events": 
 	[
 		{
-			"action": "startSimulation",
-			"timestepFactor": 6,
-			"timeScaler": 100,
-			"startTime": "12:00",			
-			"startDate": "01/22",
-			"endTime": "12:00",			
-			"endDate": "01/26",
-			"acceptTimeout": 20000,
+			"action": "start_simulation",
+			"time_step": 6,
+			"time_scale": 100,
+			"start_hour": "12:00",
+			"start_date": "01/22",
+			"end_hour": "12:00",
+			"end_date": "01/26",
+			"accept_timeout": 20000,
 			"arguments":
-			[
-				{
-					"idfFile": "in.idf",
-					"weatherFile": "USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw"
-				}
-			]
+			{
+					"idf": "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf",
+					"weather": "USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw"
+			}
 		},
 		{
-			"action": "pauseSimulation"
+			"action": "pause_simulation"
 		},
 		{
-			"action": "stopSimulation"
+			"action": "resume_simulation"
+		},
+		{
+			"action": "stop_simulation"
 		},
 		{
 			"action": "addFeedbackVariable",
@@ -46,7 +47,7 @@
 		},
 		{
 			"action": "setCurrentValue",
-			"id": "xyz",
+			"id": "VAV_mid_WITH_REHEAT_Outside_Air_Damper_CMD",
 			"value": "100"
 		}
 	]

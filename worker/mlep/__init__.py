@@ -17,10 +17,10 @@ Modules:
 :copyright: (c) 2016 by The Alliance for Sustainable Energy
 :lice
 """
-from .mlepProcess import mlepProcess
-from .mlepCreate import mlepCreate
-from .mlepDecodePacket import mlepDecodePacket
-from .mlepEncodeRealData import mlepEncodeRealData
-from .mlepEncodeStatus import mlepEncodeStatus
-from .mlepError import *
-from .mlepJSON import mlepJSON
+from .mlep_process import MlepProcess
+from .mlep_create import mlep_create
+from .mlep_decode_packet import mlep_decode_packet
+from .mlep_encode_real_data import mlep_encode_real_data
+from .mlep_encode_status import mlep_encode_status
+from .mlep_error import *
+from .mlep_parse_json import mlep_parse_json
