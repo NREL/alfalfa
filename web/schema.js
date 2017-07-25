@@ -41,36 +41,32 @@ var queryType = new GraphQLObjectType({
   }),
 });
 
-//const addJobMutation = new GraphQLObjectType({
-//  name: 'AddJob',
-//  inputFields: {
-//    fileName: { type: new GraphQLNonNull(GraphQLString) },
-//    username: { type: new GraphQLNonNull(GraphQLString) },
-//  },
-//  outputFields: {
-//    result: {
-//      type: GraphQLString,
-//      resolve: ({result}) => {
-//        return result;
-//      }
-//    },
-//  },
-//
-//  //mutateAndGetPayload: ({ fileName, username }) => addJob(fileName, username)
-//});
+const addJobMutation = new GraphQLObjectType({
+  name: 'AddJob',
+  type: GraphQLString,
+  args: {
+    modelFile : { type: new GraphQLNonNull(GraphQLString) },
+  },
+  resolve: (_,args,request) => {},
+});
 
-var mutationType = new GraphQLObjectType({
-  name: 'Mutation',
+const mutationType = new GraphQLObjectType({
+  name: 'Mutations',
   fields: () => ({
-    // Add your own mutations here
-    addJob: addJobMutation, 
+    addJob: { 
+      name: 'AddJob',
+      type: GraphQLString,
+      args: {
+        fileName : { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (_,args,request) => {console.log("AddJob", args)},
+    }
   })
 });
 
 export var Schema = new GraphQLSchema({
   query: queryType,
   // Uncomment the following after adding some mutation fields:
-  //mutation: mutationType,
-  //subscription: subscriptionType,
+  mutation: mutationType,
 });
 
