@@ -92,7 +92,7 @@ class Upload extends React.Component {
     /* This event is raised when the server send back a response */
     console.log("Done - " + evt.target.responseText );
 
-    this.props.boom(this.state.modelFile.name);
+    this.props.addJobProp(this.state.modelFile.name);
 
     //var xhr = new XMLHttpRequest();
 
@@ -165,15 +165,15 @@ class Upload extends React.Component {
   }
 }
 
-const boomy = gql`
-  mutation boomish($fileName: String!) {
+const addJobQL = gql`
+  mutation addJobMutation($fileName: String!) {
     addJob(fileName: $fileName)
   }
 `;
 
-export default graphql(boomy, {
+export default graphql(addJobQL, {
   props: ({ mutate }) => ({
-    boom: (fileName) => mutate({ variables: { fileName } }),
+    addJobProp: (fileName) => mutate({ variables: { fileName } }),
   }),
 })(Upload);
 

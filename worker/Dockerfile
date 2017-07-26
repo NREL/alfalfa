@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 
-ENV OPENSTUDIO_VERSION 2.1.1
-ENV OPENSTUDIO_SHA 141d4b9cb6
+ENV OPENSTUDIO_VERSION 2.1.2
+ENV OPENSTUDIO_SHA b36b04cd5f
 
 ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://s3.amazonaws.com/openstudio-builds/$OPENSTUDIO_VERSION
 ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-$OPENSTUDIO_VERSION.$OPENSTUDIO_SHA-Linux.deb
@@ -43,6 +43,9 @@ RUN apt-get -y install python
 RUN apt-get -y install python-pip
 RUN pip install --upgrade pip
 
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN apt-get -y install nodejs
+
 RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL
 RUN gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME
 RUN rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
@@ -55,5 +58,7 @@ COPY requirements.txt /root/
 RUN pip install -r requirements.txt
 
 COPY . /root
+RUN tar -czf workflow.tar.gz workflow
+RUN rm -rf workflow
 
 CMD [ "python", "-u", "simulationManager.py" ]

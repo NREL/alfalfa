@@ -7,8 +7,8 @@ services:
     ports:
      - "3000:3000"
     environment:
-     - AWS_ACCESS_KEY_ID=foo
-     - AWS_SECRET_ACCESS_KEY=foo
+     - AWS_ACCESS_KEY_ID
+     - AWS_SECRET_ACCESS_KEY
      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
      - MONGO_URL=mongodb://mongo:27017/
     links:
@@ -24,9 +24,10 @@ services:
     build: worker
     image: 431265468707.dkr.ecr.us-west-1.amazonaws.com/alfalfa_worker:latest
     environment:
-     - AWS_ACCESS_KEY_ID=foo
-     - AWS_SECRET_ACCESS_KEY=foo
+     - AWS_ACCESS_KEY_ID
+     - AWS_SECRET_ACCESS_KEY
      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
+     - MONGO_URL=mongodb://mongo:27017/
     links:
       - goaws
 

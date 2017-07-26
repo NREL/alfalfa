@@ -19,6 +19,8 @@ import {
   GraphQLString,
 } from 'graphql';
 
+import resolvers from './resolvers';
+
 var userType = new GraphQLObjectType({
   name: 'User',
   description: 'A person who uses our app',
@@ -59,7 +61,10 @@ const mutationType = new GraphQLObjectType({
       args: {
         fileName : { type: new GraphQLNonNull(GraphQLString) },
       },
-      resolve: (_,args,request) => {console.log("AddJob", args)},
+      resolve: (_,args,request) => {
+        console.log("AddJob", args)
+        resolvers.addJobResolver(args.fileName);
+      },
     }
   })
 });

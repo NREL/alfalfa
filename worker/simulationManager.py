@@ -13,6 +13,9 @@ import ast
 import boto3
 import json
 import time
+import tarfile
+import shutil
+from subprocess import call
 
 
 # Simulation Process Class
@@ -106,11 +109,60 @@ def process_invoke_action_message(message_body):
         print('Stopping Simulation...')
         sp.sim_status = 3
         return True
+    # Add Site
+    elif action == 'add_site':
+        print('Adding New Site...')
+        add_new_site(message_body['site_name'])
+        return True
     # Unknown
     else:
         # Do nothing
         return False
 
+# Download an osm file and use OpenStudio Haystack measure to 
+# add a new haystack site
+def add_new_site(site_name):
+    print(site_name)
+    if not local_flag:
+        key = "uploads/%s" % (site_name)
+        basename = os.path.splitext(site_name)[0]
+        directory = os.path.join('/work',basename)
+        seedpath = os.path.join(directory,'seed.osm')
+        workflowpath = os.path.join(directory,'workflow/workflow.osw')
+        jsonpath = os.path.join(directory,'workflow/reports/haystack_report_haystack.json');
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        tar = tarfile.open("workflow.tar.gz")
+        tar.extractall(directory)
+        tar.close()
+
+        time.sleep(5)
+
+        bucket = s3.Bucket('alfalfa')
+        bucket.download_file(key, seedpath)
+
+        call(['openstudio', 'run', '-m', '-w', workflowpath])
+
+        call(['npm', 'run', 'start', jsonpath])
+
+        def reset(tarinfo):
+            tarinfo.uid = tarinfo.gid = 0
+            tarinfo.uname = tarinfo.gname = "root"
+            return tarinfo
+
+        tarname = "%s.tar.gz" % (basename)
+        tar = tarfile.open(tarname, "w:gz")
+        tar.add(directory, filter=reset)
+        tar.close()
+
+        bucket.upload_file(tarname, "parsed/%s" % (tarname) )
+
+        os.remove(tarname)
+        shutil.rmtree(directory)
+
+    return
 
 # Return true if the message was handled, otherwise false
 def process_write_point_message(message_body):
@@ -199,6 +251,7 @@ if __name__ == '__main__':
         # Define a remote queue
         sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
         queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
+        s3 = boto3.resource('s3', region_name='us-west-1')
 
     # ============= Messages Available =============
     # response = queue.send_message(MessageBody='{"op":"InvokeAction",\
