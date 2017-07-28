@@ -198,8 +198,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       runner.registerInitialCondition("Initializing ExternalInterface") 
       master_enable = OpenStudio::Model::ExternalInterfaceVariable.new(model, "MasterEnable", 1)
       #TODO uncomment out for real use
-      #externalInterface = model.getExternalInterface
-      #externalInterface.setNameofExternalInterface("PtolemyServer")
+      externalInterface = model.getExternalInterface
+      externalInterface.setNameofExternalInterface("PtolemyServer")
     else
       #EMS Version
       runner.registerInitialCondition("Initializing EnergyManagementSystem")

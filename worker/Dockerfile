@@ -57,6 +57,10 @@ WORKDIR /root
 COPY requirements.txt /root/
 RUN pip install -r requirements.txt
 
+RUN apt-get -y install default-jre
+RUN curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz
+RUN tar -xzf bcvtb-linux.tar.gz
+
 COPY . /root
 RUN tar -czf workflow.tar.gz workflow
 RUN rm -rf workflow
