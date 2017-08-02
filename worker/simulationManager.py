@@ -13,13 +13,17 @@ import ast
 import boto3
 import json
 import time
+import tarfile
+import shutil
+from subprocess import call
+from shutil import copyfile
 
 
 # Simulation Process Class
 class SimProcess:
     def __init__(self):
         self.sim_status = 0             # 0=init, 1=running, 2=pause, 3=stop
-        self.step_time = 0              # Real-time step
+        self.step_time = 20              # Real-time step
         self.start_time = 0             # Real-time step
         self.next_time = 0              # Real-time step
         self.start_date = '01/01'       # Start date for simulation (01/01)
@@ -28,7 +32,9 @@ class SimProcess:
         self.end_hour = 23              # End hour for simulation (1-23)
         self.accept_timeout = 10000     # Accept timeout for simulation (ms)
         self.idf = None                 # EnergyPlus file path (/path/to/energyplus/file)
+        self.mapping = None
         self.weather = None             # Weather file path (/path/to/weather/file)
+        self.site_ref = None
 
 
 # Process Message
@@ -50,11 +56,11 @@ def process_message(message):
 
         if processed:
             print('Message processed successfully:\n{}'.format(message_body))
+            # Only delete if we successfully handled it
+            # Otherwise wait for worker to try again
+            message.delete()
         else:
             print('Message could not be processed:\n{}'.format(message_body))
-
-        # Delete Message
-        message.delete()
 
     return
 
@@ -71,21 +77,37 @@ def process_invoke_action_message(message_body):
         # Enhancement: Make this take arguments to a particular model (idf/osm)
         # Consider some global information to keep track of any simulation that is running
         time_step = 15  # Simulation time step
-        sp.step_time = time_step*3600/message_body['time_scale']
-        sp.start_date = message_body['start_date']
-        sp.end_date = message_body['end_date']
-        sp.start_hour = message_body['start_hour']
-        sp.end_hour = message_body['end_hour']
-        sp.accept_timeout = message_body['accept_timeout']*1000
-        sp.idf = message_body['arguments']['idf']
-        sp.weather = message_body['arguments']['weather']
-        sp.mapping = message_body['mapping']
+        sp = SimProcess()
+        if 'time_scale' in message_body:
+            sp.step_time = time_step*3600/int(message_body['time_scale'])
+        if 'start_date' in message_body:
+            sp.start_date = message_body['start_date']
+        if 'end_date' in message_body:
+            sp.end_date = message_body['end_date']
+        if 'start_hour' in message_body:
+            sp.start_hour = message_body['start_hour']
+        if 'end_hour' in message_body:
+            sp.end_hour = message_body['end_hour']
+        if 'accept_timeout' in message_body:
+            sp.accept_timeout = message_body['accept_timeout']*1000
+        if 'idf' in message_body:
+            sp.idf = message_body['idf']
+        if 'weather' in message_body:
+            sp.weather = message_body['weather']
+        if 'mapping' in message_body:
+            sp.mapping = message_body['mapping']
+        if 'id' in message_body:
+            sp.site_ref = message_body['id']
 
-        print('Starting Simulation')
+        print(sp.site_ref)
+
         if not ep.is_running:
+            print('Starting Simulation')
             start_simulation()
             sp.start_time = time.time()
-        return True
+            return True
+
+        return False
     # Pause
     elif action == 'pause_simulation':
         # Enhancement: Make this take arguments to a particular model (idf/osm)
@@ -106,11 +128,79 @@ def process_invoke_action_message(message_body):
         print('Stopping Simulation...')
         sp.sim_status = 3
         return True
+    # Add Site
+    elif action == 'add_site':
+        if not ep.is_running:
+            print('Adding New Site...')
+            add_new_site(message_body['site_name'])
+            return True
+
+        return False
     # Unknown
     else:
         # Do nothing
         return False
 
+# Download an osm file and use OpenStudio Haystack measure to 
+# add a new haystack site
+# site_name is currently the name of the file that was uploaded.
+# need a better way of keeping unique site ids
+def add_new_site(site_name):
+    print(site_name)
+    if not local_flag:
+        key = "uploads/%s" % (site_name)
+        basename = os.path.splitext(site_name)[0]
+        directory = os.path.join('/parse',basename)
+        seedpath = os.path.join(directory,'seed.osm')
+        workflowpath = os.path.join(directory,'workflow/workflow.osw')
+        jsonpath = os.path.join(directory,'workflow/reports/haystack_report_haystack.json');
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        tar = tarfile.open("workflow.tar.gz")
+        tar.extractall(directory)
+        tar.close()
+
+        time.sleep(5)
+
+        bucket = s3.Bucket('alfalfa')
+        bucket.download_file(key, seedpath)
+
+        call(['openstudio', 'run', '-m', '-w', workflowpath])
+
+        site_ref = False
+        with open(jsonpath) as json_file:    
+            data = json.load(json_file)
+            for entity in data:
+                if 'site' in entity:
+                    if entity['site'] == 'm:':
+                        site_ref = entity['id'].replace('r:','')
+                        break;
+
+        if site_ref:
+
+            # This adds a new haystack site to the database
+            call(['npm', 'run', 'start', jsonpath])
+
+            # Open the json file and get a site reference
+            # Store the results by site ref
+            def reset(tarinfo):
+                tarinfo.uid = tarinfo.gid = 0
+                tarinfo.uname = tarinfo.gname = "root"
+                return tarinfo
+
+            tarname = "%s.tar.gz" % (site_ref)
+            tar = tarfile.open(tarname, "w:gz")
+            tar.add(directory, filter=reset, arcname=site_ref)
+            tar.close()
+
+            bucket.upload_file(tarname, "parsed/%s" % (tarname) )
+            os.remove(tarname)
+
+        shutil.rmtree(directory)
+
+    return
 
 # Return true if the message was handled, otherwise false
 def process_write_point_message(message_body):
@@ -138,51 +228,83 @@ def start_simulation():
     global ep
     print('Starting EnergyPlus Simulation')
 
-    # Arguments
-    ep.accept_timeout = sp.accept_timeout
-    ep.mapping = sp.mapping
-    ep.flag = 0
+    try:
+        if not local_flag and sp.site_ref:
+            sim_path = '/simulate'
+            directory = os.path.join(sim_path,sp.site_ref)
+            tarname = "%s.tar.gz" % (sp.site_ref)
+            key = "parsed/%s" % (tarname)
+            tarpath = os.path.join(directory,tarname)
+            osmpath = os.path.join(directory,'workflow/run/in.osm')
+            sp.idf = os.path.join(directory,"workflow/run/%s" % sp.site_ref)
+            sp.weather = os.path.join(directory,'workflow/files/weather.epw')
+            sp.mapping = os.path.join(directory,'workflow/reports/haystack_report_mapping.json')
+            variables_path = os.path.join(directory,'workflow/reports/export_bcvtb_report_variables.cfg')
+            variables_new_path = os.path.join(directory,'workflow/run/variables.cfg')
 
-    # Parse directory
-    idf_file_details = os.path.split(sp.idf)
-    ep.workDir = idf_file_details[0]
-    ep.arguments = (sp.idf, sp.weather)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
-    # Get Mapping
-    [ep.outputs_list, ep.inputs_list] = mlep.mlep_parse_json(ep.mapping)
-    # Initialize input tuplet
-    ep.inputs = [0] * (len(ep.inputs_list)+1)
+            bucket = s3.Bucket('alfalfa')
+            bucket.download_file(key, tarpath)
 
-    # Start EnergyPlus co-simulation
-    (ep.status, ep.msg) = ep.start()
+            tar = tarfile.open(tarpath)
+            tar.extractall(sim_path)
+            tar.close()
 
-    # Check E+
-    if ep.status != 0:
-        print('Could not start EnergyPlus: %s.' % ep.msg)
-        ep.flag = 1
+            call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
+            copyfile(variables_path,variables_new_path)
 
-    # Accept Socket
-    [ep.status, ep.msg] = ep.accept_socket()
+        # Arguments
+        ep.accept_timeout = sp.accept_timeout
+        ep.mapping = sp.mapping
+        ep.flag = 0
 
-    if ep.status != 0:
-        print('Could not connect EnergyPlus: %s.' % ep.msg)
-        ep.flag = 1
+        # Parse directory
+        idf_file_details = os.path.split(sp.idf)
+        ep.workDir = idf_file_details[0]
+        ep.arguments = (sp.idf, sp.weather)
 
-    # The main simulation loop
-    ep.deltaT = 15 * 60  # time step = 15 minutes
-    ep.kStep = 1  # current simulation step
-    ep.MAX_STEPS = 1 * 24 * 4 + 1  # max simulation time = 4 days
+        # Get Mapping
+        [ep.outputs_list, ep.inputs_list] = mlep.mlep_parse_json(ep.mapping)
+        # Initialize input tuplet
+        ep.inputs = [0] * (len(ep.inputs_list)+1)
 
-    # Simulation Status
-    if ep.is_running:
-        sp.sim_status = 1
+        # Start EnergyPlus co-simulation
+        (ep.status, ep.msg) = ep.start()
 
-    return
+        # Check E+
+        if ep.status != 0:
+            print('Could not start EnergyPlus: %s.' % ep.msg)
+            ep.flag = 1
+        else:
+            print('EnergyPlus Started')
+
+        # Accept Socket
+        [ep.status, ep.msg] = ep.accept_socket()
+
+        if ep.status != 0:
+            print('Could not connect EnergyPlus: %s.' % ep.msg)
+            ep.flag = 1
+
+        # The main simulation loop
+        ep.deltaT = 15 * 60  # time step = 15 minutes
+        ep.kStep = 1  # current simulation step
+        ep.MAX_STEPS = 1 * 24 * 4 + 1  # max simulation time = 4 days
+
+        # Simulation Status
+        if ep.is_running:
+            sp.sim_status = 1
+    except Exception as e:
+        print('MLEP failed to start due to an Exception: {0}'.format(e))
+        return
 
 # ======================================================= MAIN ========================================================
 if __name__ == '__main__':
     # Initialized process
     ep = mlep.MlepProcess()
+    ep.bcvtbDir = '/root/bcvtb/'
+    ep.env = {'BCVTB_HOME': '/root/bcvtb'}
     sp = SimProcess()
     if 'JOB_QUEUE_URL' in os.environ:
         local_flag = False
@@ -199,6 +321,7 @@ if __name__ == '__main__':
         # Define a remote queue
         sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
         queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
+        s3 = boto3.resource('s3', region_name='us-west-1')
 
     # ============= Messages Available =============
     # response = queue.send_message(MessageBody='{"op":"InvokeAction",\
@@ -244,6 +367,11 @@ if __name__ == '__main__':
 
             if ep.flag != 0:
                 break
+
+            for item in ep.inputs_list:
+                write_array = mongo.getWriteArray(item)
+                value = write_array.getCurrentWinningValue
+                ep.inputs[ep.inputs.index(id)] = value
 
             # Inputs
             inputs = tuple(ep.inputs)
