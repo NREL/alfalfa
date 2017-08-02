@@ -23,7 +23,7 @@ from shutil import copyfile
 class SimProcess:
     def __init__(self):
         self.sim_status = 0             # 0=init, 1=running, 2=pause, 3=stop
-        self.step_time = 0              # Real-time step
+        self.step_time = 20              # Real-time step
         self.start_time = 0             # Real-time step
         self.next_time = 0              # Real-time step
         self.start_date = '01/01'       # Start date for simulation (01/01)
@@ -79,7 +79,7 @@ def process_invoke_action_message(message_body):
         time_step = 15  # Simulation time step
         sp = SimProcess()
         if 'time_scale' in message_body:
-            sp.step_time = time_step*3600/message_body['time_scale']
+            sp.step_time = time_step*3600/int(message_body['time_scale'])
         if 'start_date' in message_body:
             sp.start_date = message_body['start_date']
         if 'end_date' in message_body:
@@ -367,6 +367,11 @@ if __name__ == '__main__':
 
             if ep.flag != 0:
                 break
+
+            for item in ep.inputs_list:
+                write_array = mongo.getWriteArray(item)
+                value = write_array.getCurrentWinningValue
+                ep.inputs[ep.inputs.index(id)] = value
 
             # Inputs
             inputs = tuple(ep.inputs)

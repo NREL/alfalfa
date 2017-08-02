@@ -325,6 +325,7 @@ class AlfalfaServer extends HServer {
       } else {
         let array = new WriteArray();
         array._id = rec.id().val;
+        array.siteRef = rec.get('siteRef',false);
         this.writearrays.insertOne(array).then(() => {
           const b = this.writeArrayToGrid(array);
           callback(null, b.toGrid());
@@ -355,6 +356,10 @@ class AlfalfaServer extends HServer {
       } else {
         let array = new WriteArray();
         array._id = rec.id().val;
+        let siteRef = rec.get('siteRef',false);
+        if( siteRef ) {
+          array.siteRef = siteRef.val;
+        }
         array.val[level - 1] = val.val;
         array.who[level - 1] = who;
         this.writearrays.insertOne(array).then(() => {
@@ -422,10 +427,15 @@ class AlfalfaServer extends HServer {
   onInvokeAction(rec, action, args, callback) {
     console.log("-- invokeAction \"" + rec.dis() + "." + action + "\" " + args);
 
-    var params = {
-     MessageBody: `{"id": "${rec.id()}", "op": "InvokeAction", "action": "${action}"}`,
-     QueueUrl: process.env.JOB_QUEUE_URL
-    };
+    //console.log('args: ',JSON.parse(args.toString()));
+     let body = {"id": rec.id().val, "op": "InvokeAction", "action": action, "time_scale": args.getStr('time_scale')};
+
+     console.log('body: ',body);
+     
+     var params = {
+      MessageBody: JSON.stringify(body),
+      QueueUrl: process.env.JOB_QUEUE_URL
+     };
 
     sqs.sendMessage(params, function(err, data) {
       if (err) {

@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "connect-history-api-fallback": "^1.3.0"
+    "connect-history-api-fallback": "^1.3.0",
+    "react-dom": "^15.6.1"
   },
   "devDependencies": {
     "apollo-client": "^1.7.0",
