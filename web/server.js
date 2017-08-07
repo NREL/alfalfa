@@ -15,8 +15,10 @@ var app = express();
 
 app.use(bodyParser.text({ type: 'text/*' }));
 app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
-app.use(historyApiFallback());
-app.use('/', express.static(path.join(__dirname, './build')));
+app.use(historyApiFallback({
+  index: '/app/index.html'
+}));
+app.use('/app', express.static(path.join(__dirname, './build')));
 
 app.use('/graphql', graphQLHTTP({
   graphiql: true,
@@ -26,12 +28,6 @@ app.use('/graphql', graphQLHTTP({
 
 app.all('*', function(req, res) {
   var path = url.parse(req.url).pathname;
-
-  //// if root, then redirect to {haystack}/about
-  //if (typeof(path) === 'undefined' || path === null || path.length === 0 || path === "/") {
-  //  res.redirect("/about");
-  //  return;
-  //}
 
   // parse URI path into "/{opName}/...."
   var slash = path.indexOf('/', 1);
