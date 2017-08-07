@@ -11,6 +11,10 @@
               "name": "JOB_QUEUE_URL",
               "value": "https://sqs.us-west-1.amazonaws.com/431265468707/alfalfa"
           }
+          {
+            "name": "MONGO_URL",
+            "value": "<%= @MONGO_URL %>"
+          }
       ]
     }
   ],
