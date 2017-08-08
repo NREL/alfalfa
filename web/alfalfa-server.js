@@ -325,7 +325,10 @@ class AlfalfaServer extends HServer {
       } else {
         let array = new WriteArray();
         array._id = rec.id().val;
-        array.siteRef = rec.get('siteRef',false);
+        let siteRef = rec.get('siteRef',false);
+        if( siteRef ) {
+          array.siteRef = siteRef.val;
+        }
         this.writearrays.insertOne(array).then(() => {
           const b = this.writeArrayToGrid(array);
           callback(null, b.toGrid());
