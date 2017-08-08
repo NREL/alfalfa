@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby -w
 
 require 'json'
+require 'erb'
 
 SERVICES = Dir.glob("#{File.dirname(__FILE__)}/*.json").map { |f| File.basename(f, '.json') }
 
@@ -95,6 +96,8 @@ global.order!
 command = ARGV.shift
 subcommands[command].order!
 
+@MONGO_URL = ENV['MONGO_URL']
+
 case command
 
 when 'up'
@@ -102,10 +105,21 @@ when 'up'
 
 when 'create'
   if create[:service]
-    puts %x(aws ecs register-task-definition --cli-input-json "file://#{File.dirname(__FILE__)}/#{create[:service]}.json")
+    json_template = ''
+    File.open("#{File.dirname(__FILE__)}/#{create[:service]}.json") do |f|
+      json_template = f.read
+    end
+    json = ERB.new(json_template).result
+    puts %x(aws ecs register-task-definition --cli-input-json '#{json}')
   else
     SERVICES.each do |t|
-      puts %x(aws ecs register-task-definition --cli-input-json "file://#{File.dirname(__FILE__)}/#{t}.json")
+      json_template = ''
+      File.open("#{File.dirname(__FILE__)}/#{t}.json") do |f|
+        json_template = f.read
+      end
+      json = ERB.new(json_template).result
+      puts json
+      puts %x(aws ecs register-task-definition --cli-input-json '#{json}')
     end
   end
 

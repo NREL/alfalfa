@@ -57,6 +57,8 @@ WORKDIR /root
 COPY requirements.txt /root/
 RUN pip install -r requirements.txt
 
+RUN apt-get update
+RUN apt-get install --fix-missing
 RUN apt-get -y install default-jre
 RUN curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz
 RUN tar -xzf bcvtb-linux.tar.gz

@@ -5,6 +5,13 @@ This is a Haystack implementation backed by a virtual building. Virtual building
 ## Getting Started
 
 1. Install [Docker](https://www.docker.com) for your platform.
+1. The application depends on Amazon s3 to move simulation files around,
+therefore aws credentials must be in the environment. Set the following aws
+environment variables:
+```
+export AWS_ACCESS_KEY_ID=foo
+export AWS_SECRET_ACCESS_KEY=bar
+```
 1. From a command prompt ```docker-compose up```.
 1. Navigate to http://localhost:3000/nav to verify that the Haystack implementation is running.
 1. Use ```Ctrl-C``` to stop the services.
@@ -32,3 +39,17 @@ Development of this project is setup to happen in a handful of docker containers
 ## Design
 
 https://docs.google.com/presentation/d/1fYtwXvS4jlrhTdHJxPUPpbZZ8PwIM8sGCdLsG_6hwwo/edit#slide=id.p
+
+## Deployment
+
+1. Export the mongo url, including username and password:
+```
+export MONGO_URL=mongodb://user:pass@ds129043.mlab.com:29043/alfalfa
+```
+1. Use ```aws ecr get-login``` to produce a docker login command. Copy and paste the output into a terminal to login.
+1. Build current containers with, ```docker-compose build```.
+1. Use ```docker-compose push``` to push new images to the aws container registry.
+1. ```./deploy/deploy up -c 2```
+1. ```./deploy/deploy create```
+1. ```./deploy/deploy start```
+

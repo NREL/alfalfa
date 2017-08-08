@@ -17,6 +17,7 @@ import tarfile
 import shutil
 from subprocess import call
 from shutil import copyfile
+from pymongo import MongoClient
 
 
 # Simulation Process Class
@@ -35,6 +36,7 @@ class SimProcess:
         self.mapping = None
         self.weather = None             # Weather file path (/path/to/weather/file)
         self.site_ref = None
+        self.workflow_directory = None
 
 
 # Process Message
@@ -239,6 +241,7 @@ def start_simulation():
             sp.idf = os.path.join(directory,"workflow/run/%s" % sp.site_ref)
             sp.weather = os.path.join(directory,'workflow/files/weather.epw')
             sp.mapping = os.path.join(directory,'workflow/reports/haystack_report_mapping.json')
+            sp.workflow_directory = directory
             variables_path = os.path.join(directory,'workflow/reports/export_bcvtb_report_variables.cfg')
             variables_new_path = os.path.join(directory,'workflow/run/variables.cfg')
 
@@ -322,6 +325,8 @@ if __name__ == '__main__':
         sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
         queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
         s3 = boto3.resource('s3', region_name='us-west-1')
+        mongo_client = MongoClient(os.environ['MONGO_URL'])
+        mongodb = mongo_client.admin
 
     # ============= Messages Available =============
     # response = queue.send_message(MessageBody='{"op":"InvokeAction",\
@@ -368,28 +373,47 @@ if __name__ == '__main__':
             if ep.flag != 0:
                 break
 
-            for item in ep.inputs_list:
-                write_array = mongo.getWriteArray(item)
-                value = write_array.getCurrentWinningValue
-                ep.inputs[ep.inputs.index(id)] = value
+            #for item in ep.inputs_list:
+            #    write_array = mongo.getWriteArray(item)
+            #    value = write_array.getCurrentWinningValue
+            #    ep.inputs[ep.inputs.index(id)] = value
+            if not local_flag:
+                write_arrays = mongodb.writearrays
+                for array in write_arrays.find({"siteRef": sp.site_ref}):
+                    for val in array.get('val'):
+                       if val: 
+                            ep.inputs[ep.inputs_list.index(array.get('_id'))] = val
+                            break;
 
-            # Inputs
-            inputs = tuple(ep.inputs)
+                inputs = tuple(ep.inputs)
 
-            # Write to inputs of E+
-            ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
+                # Write to inputs of E+
+                ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
+                
+                # Push latest point values to database
+                #values_to_insert = []
+                cur_values = mongodb.curvalues
+                for output in ep.outputs_list:
+                    output_index = ep.outputs_list.index(output)
+                    output_value = ep.outputs[output_index]
+                    output_doc = {"_id": output, "curVal": output_value}
+                    # TODO: Make this better with a bulk update
+                    cur_values.update({"_id": output},output_doc,True)
+                    #values_to_insert.append(output_doc)
+                
+                #cur_values.update_many({'_id': {'$in': values_to_insert}}, {'$set': {'$in': values_to_insert}})
 
             # Advance time
             ep.kStep = ep.kStep + 1
-
-            # Push latest point values to database
-            # Need to do
 
         # Check Stop
         if (ep.is_running and (ep.kStep >= ep.MAX_STEPS)) or (sp.sim_status == 3 and ep.is_running):
             ep.stop(True)
             ep.is_running = 0
             sp.sim_status = 0
+            # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
+            time.sleep(5)
+            shutil.rmtree(sp.workflow_directory)
             print('Simulation Terminated')
 
         # Done with simulation step

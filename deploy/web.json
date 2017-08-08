@@ -14,6 +14,10 @@
           {
               "name": "NODE_ENV",
               "value": "production"
+          },
+          {
+            "name": "MONGO_URL",
+            "value": "<%= @MONGO_URL %>"
           }
       ],
       "portMappings": [

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Component } from 'react';
 import styles from './App.scss';
-import { Link, Route } from 'react-router-dom';
+import { Link, Route, Switch } from 'react-router-dom';
 import IconButton from 'material-ui/IconButton';
 import FileCloudQueue from 'material-ui/svg-icons/file/cloud-queue';
 import FileCloudDone from 'material-ui/svg-icons/file/cloud-done';
@@ -39,15 +39,17 @@ class App extends React.Component {
           <Toolbar style={{height: '80px', alignItems: 'center'}} >
             <ToolbarTitle text="Alfalfa" onClick={this.onToolbarClick}/>
             <ToolbarGroup lastChild={true}>
-              <Link to={'/queue'}>
+              <Link to={'queue'}>
                 <IconButton onClick={this.onQueueClick}>
                   <FileCloudQueue />
                 </IconButton>
               </Link>
             </ToolbarGroup>
           </Toolbar>
-          <Route exact path="/" component={Upload}/>
-          <Route path='/queue' component={Queue} />
+          <Switch>
+            <Route path="/app/queue" component={Queue} />
+            <Route component={Upload}/>
+          </Switch>
         </div>
       </MuiThemeProvider>
     );
