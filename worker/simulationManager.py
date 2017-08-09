@@ -392,13 +392,14 @@ if __name__ == '__main__':
                 
                 # Push latest point values to database
                 #values_to_insert = []
-                cur_values = mongodb.curvalues
+                recs = mongodb.recs
                 for output in ep.outputs_list:
                     output_index = ep.outputs_list.index(output)
                     output_value = ep.outputs[output_index]
                     output_doc = {"_id": output, "curVal": output_value}
                     # TODO: Make this better with a bulk update
-                    cur_values.update({"_id": output},output_doc,True)
+                    # Also at some point consider removing curVal and related fields after sim ends
+                    recs.update_one({"_id": output},{"$set": { "rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m" } },False)
                     #values_to_insert.append(output_doc)
                 
                 #cur_values.update_many({'_id': {'$in': values_to_insert}}, {'$set': {'$in': values_to_insert}})
