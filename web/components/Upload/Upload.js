@@ -4,6 +4,7 @@ import FileUpload from 'material-ui/svg-icons/file/file-upload';
 import TextField from 'material-ui/TextField';
 import FlatButton from 'material-ui/FlatButton';
 import RaisedButton from 'material-ui/RaisedButton';
+import LinearProgress from 'material-ui/LinearProgress';
 import 'normalize.css/normalize.css';
 import styles from './Upload.scss';
 import Paper from 'material-ui/Paper';
@@ -52,10 +53,12 @@ class Upload extends React.Component {
     this.onWeatherFileChange = this.onWeatherFileChange.bind(this);
     this.onClick = this.onClick.bind(this);
     this.uploadComplete = this.uploadComplete.bind(this);
+    this.uploadProgress = this.uploadProgress.bind(this);
 
     this.state = {
       modelFile: null,
       weatherFile: null,
+      completed: 0
     };
   };
 
@@ -69,12 +72,12 @@ class Upload extends React.Component {
   };
 
   onModelFileChange(file) {
-    this.setState({modelFile: file});
+    this.setState({modelFile: file, completed: 0});
     console.log(file.name);
   }
 
   onWeatherFileChange(file) {
-    this.setState({weatherFile: file});
+    this.setState({weatherFile: file, completed: 0});
     console.log(file.name);
   }
 
@@ -82,6 +85,11 @@ class Upload extends React.Component {
     if (evt.lengthComputable) {
       var percentComplete = Math.round(evt.loaded * 100 / evt.total);
       console.log('percent: ' + percentComplete.toString() + '%');
+      if (percentComplete > 100) {
+        this.setState({completed: 100});
+      } else {
+        this.setState({completed: percentComplete});
+      }
     }
     else {
       console.log('percent: unable to compute');
@@ -157,9 +165,12 @@ class Upload extends React.Component {
 
     return (
       <div className={styles.root}>
+      <LinearProgress mode="determinate" value={this.state.completed} />
+      <div className={styles.center}>
         <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
         <FileInput hint={this.weatherFileHint()} onFileChange={this.onWeatherFileChange}/>
         <RaisedButton label="Upload New Building Model!" primary={true} fullWidth={true} onClick={this.onClick}/>
+      </div>
       </div>
     );
   }
