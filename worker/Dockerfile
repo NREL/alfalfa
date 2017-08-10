@@ -29,42 +29,30 @@ ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_F
 # that are not needed in the container
 
 RUN apt-get update && apt-get install -y ca-certificates curl \
+    libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python python-pip \
     && rm -rf /var/lib/apt/lists/* \
     && curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
     && chmod +x $ENERGYPLUS_DOWNLOAD_FILENAME \
     && echo "y\r" | ./$ENERGYPLUS_DOWNLOAD_FILENAME \
     && rm $ENERGYPLUS_DOWNLOAD_FILENAME
 
-#RUN apt-get update &&  apt-get install -y software-properties-common 
-#RUN add-apt-repository main
-#RUN add-apt-repository universe
-#RUN add-apt-repository restricted
-#RUN add-apt-repository multiverse
-
-#RUN apt-get update
-#RUN apt-get -y install ca-certificates curl
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN apt-get update && apt-get -y install libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python python-pip
-RUN pip install --upgrade pip
-
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN apt-get -y install nodejs
-RUN npm update
-
 RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL
 RUN gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME
 RUN rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
 RUN cd /root
-
 WORKDIR /root
 
 COPY requirements.txt /root/
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-RUN apt-get update
-RUN apt-get install --fix-missing
-RUN apt-get -y install default-jre
+COPY package.json /root/
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
+    && apt-get update && apt-get install -y nodejs \
+    && npm update
+
+RUN apt-get update && apt-get install --fix-missing && apt-get -y install default-jre
 RUN curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz
 RUN tar -xzf bcvtb-linux.tar.gz
 
