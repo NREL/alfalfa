@@ -399,7 +399,7 @@ if __name__ == '__main__':
                     output_doc = {"_id": output, "curVal": output_value}
                     # TODO: Make this better with a bulk update
                     # Also at some point consider removing curVal and related fields after sim ends
-                    recs.update_one({"_id": output},{"$set": { "rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m" } },False)
+                    recs.update_one({"_id": output},{"$set": { "rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:" } },False)
                     #values_to_insert.append(output_doc)
                 
                 #cur_values.update_many({'_id': {'$in': values_to_insert}}, {'$set': {'$in': values_to_insert}})
