@@ -10,6 +10,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import Badge from 'material-ui/Badge';
 import Upload from '../Upload/Upload.js';
+import Sites from '../Sites/Sites.js';
 //import TextField from 'material-ui/TextField';
 //import RaisedButton from 'material-ui/RaisedButton';
 //import IconMenu from 'material-ui/IconMenu';
@@ -18,11 +19,11 @@ import Upload from '../Upload/Upload.js';
 //import { graphql } from 'react-apollo';
 
 
-const Queue = () => (
-  <div>
-    <h2>Queue</h2>
-  </div>
-);
+//const Queue = () => (
+//  <div>
+//    <h2>Queue</h2>
+//  </div>
+//);
 
 const Home = () => (
   <div>
@@ -37,9 +38,9 @@ class App extends React.Component {
       <MuiThemeProvider>
         <div className={styles.root} >
           <Toolbar style={{height: '80px', alignItems: 'center'}} >
-            <ToolbarTitle text="Alfalfa" onClick={this.onToolbarClick}/>
+            <Link to={'/'} style={{ color: 'black', textDecoration: 'none' }}> <ToolbarTitle text="Alfalfa" onClick={this.onToolbarClick}/> </Link>
             <ToolbarGroup lastChild={true}>
-              <Link to={'queue'}>
+              <Link to={'/queue'}>
                 <IconButton onClick={this.onQueueClick}>
                   <FileCloudQueue />
                 </IconButton>
@@ -47,7 +48,7 @@ class App extends React.Component {
             </ToolbarGroup>
           </Toolbar>
           <Switch>
-            <Route path="/app/queue" component={Queue} />
+            <Route path="/queue" component={Sites}/>
             <Route component={Upload}/>
           </Switch>
         </div>

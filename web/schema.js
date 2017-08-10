@@ -30,6 +30,14 @@ var userType = new GraphQLObjectType({
       type: GraphQLString,
       description: 'The username of a person', 
     },
+    sites: {
+      type: new GraphQLList(GraphQLString),
+      description: 'The Haystack sites', 
+      resolve: (user,args,request) => {
+        //return ['site a', 'site b', 'site c']},
+        return resolvers.sitesResolver(user);
+      }
+    }
   }),
 });
 
@@ -64,6 +72,17 @@ const mutationType = new GraphQLObjectType({
       resolve: (_,args,request) => {
         console.log("AddJob", args)
         resolvers.addJobResolver(args.fileName);
+      },
+    },
+    startSimulation: {
+      name: 'StartSimulation',
+      type: GraphQLString,
+      args: {
+        siteRef : { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (_,args,request) => {
+        console.log("StartSimulation schema")
+        resolvers.startSimulationResolver(args.siteRef);
       },
     }
   })

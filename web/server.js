@@ -15,10 +15,6 @@ var app = express();
 
 app.use(bodyParser.text({ type: 'text/*' }));
 app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
-app.use(historyApiFallback({
-  index: '/app/index.html'
-}));
-app.use('/app', express.static(path.join(__dirname, './build')));
 
 app.use('/graphql', graphQLHTTP({
   graphiql: true,
@@ -26,8 +22,9 @@ app.use('/graphql', graphQLHTTP({
   schema: Schema,
 }));
 
-app.all('*', function(req, res) {
+app.all('/api/*', function(req, res) {
   var path = url.parse(req.url).pathname;
+  path = path.replace('/api','');
 
   // parse URI path into "/{opName}/...."
   var slash = path.indexOf('/', 1);
@@ -56,9 +53,12 @@ app.all('*', function(req, res) {
   });
 });
 
+app.use(historyApiFallback());
+app.use('/', express.static(path.join(__dirname, './build')));
+
 MongoClient.connect(process.env.MONGO_URL).then((db) => {
   app.locals.alfalfaServer = new alfalfaServer(db);
-  let server = app.listen(3000, () => {
+  let server = app.listen(80, () => {
   
     var host = server.address().address;
     var port = server.address().port;
