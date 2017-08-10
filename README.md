@@ -13,7 +13,8 @@ export AWS_ACCESS_KEY_ID=foo
 export AWS_SECRET_ACCESS_KEY=bar
 ```
 1. From a command prompt ```docker-compose up```.
-1. Navigate to http://localhost:3000/nav to verify that the Haystack implementation is running.
+1. Navigate to http://localhost/api/nav to verify that the Haystack implementation is running.
+1. Navigate to http://localhost to view web application.
 1. Use ```Ctrl-C``` to stop the services.
 
 ## Running Tests
