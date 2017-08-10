@@ -27,6 +27,7 @@ ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_F
 # Collapse the update of packages, download and installation into one command
 # to make the container smaller & remove a bunch of the auxiliary apps/files
 # that are not needed in the container
+
 RUN apt-get update && apt-get install -y ca-certificates curl \
     && rm -rf /var/lib/apt/lists/* \
     && curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
@@ -34,13 +35,16 @@ RUN apt-get update && apt-get install -y ca-certificates curl \
     && echo "y\r" | ./$ENERGYPLUS_DOWNLOAD_FILENAME \
     && rm $ENERGYPLUS_DOWNLOAD_FILENAME
 
+#RUN apt-get update &&  apt-get install -y software-properties-common 
+#RUN add-apt-repository main
+#RUN add-apt-repository universe
+#RUN add-apt-repository restricted
+#RUN add-apt-repository multiverse
+
 #RUN apt-get update
 #RUN apt-get -y install ca-certificates curl
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN apt-get -y install libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 
-RUN apt-get -y install gdebi-core
-RUN apt-get -y install python
-RUN apt-get -y install python-pip
+RUN apt-get update && apt-get -y install libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python python-pip
 RUN pip install --upgrade pip
 
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
