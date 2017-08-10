@@ -45,6 +45,7 @@ RUN pip install --upgrade pip
 
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get -y install nodejs
+RUN npm update
 
 RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL
 RUN gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME
