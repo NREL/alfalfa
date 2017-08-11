@@ -47,7 +47,7 @@ https://docs.google.com/presentation/d/1fYtwXvS4jlrhTdHJxPUPpbZZ8PwIM8sGCdLsG_6h
 ```
 export MONGO_URL=mongodb://user:pass@ds129043.mlab.com:29043/alfalfa
 ```
-1. Use ```aws ecr get-login``` to produce a docker login command. Copy and paste the output into a terminal to login.
+1. Use ```aws ecr get-login | bash -``` to login to docker.
 1. Build current containers with, ```docker-compose build```.
 1. Use ```docker-compose push``` to push new images to the aws container registry.
 1. ```./deploy/deploy up -c 2```

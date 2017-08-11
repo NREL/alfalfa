@@ -10,80 +10,62 @@ import Paper from 'material-ui/Paper';
 import {cyan500, red500, greenA200} from 'material-ui/styles/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn} from 'material-ui/Table';
-
-
-class SiteComponent extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.onStartSimClick = this.onStartSimClick.bind(this);
-  }
-
-  static propTypes = {
-    siteRef: PropTypes.string,
-  };
-
-  render() {
-    return(
-      <TableRow key={this.props.siteRef}>
-        <TableRowColumn>{this.props.siteRef}</TableRowColumn>
-        <TableRowColumn><RaisedButton label='Start Simulation' onClick={this.onStartSimClick}></RaisedButton></TableRowColumn>
-      </TableRow>
-    )
-  }
-
-  onStartSimClick() {
-    this.props.startSimProp(this.props.siteRef);
-  }
-}
-
-const startSimQL = gql`
-  mutation startSimulationMutation($siteRef: String!) {
-    startSimulation(siteRef: $siteRef)
-  }
-`;
-
-let Site = graphql(startSimQL, {
-  props: ({ mutate }) => ({
-    startSimProp: (siteRef) => mutate({ variables: { siteRef } }),
-  }),
-})(SiteComponent);
+import {Table, TableBody, TableHeader, TableFooter, TableHeaderColumn, TableRow, TableRowColumn} from 'material-ui/Table';
 
 class Sites extends React.Component {
 
-  constructor(props) {
-    super(props);
-
-    //this.props.sites = ['site 1','site 2','site 3'];
-
-    this.state = {
-      //modelFile: null,
-      //weatherFile: null,
-    };
+  state = {
+    selected: [],
+    startDisabled: true,
   };
 
-  static propTypes = {
-    //className: PropTypes.string,
+  isSelected = (index) => {
+    return this.state.selected.indexOf(index) !== -1;
   };
 
-  //static contextTypes = {
-  //  authenticated: React.PropTypes.bool,
-  //  user: React.PropTypes.object
-  //};
+  handleRowSelection = (selectedRows) => {
+    this.setState({
+      selected: selectedRows,
+      startDisabled: (selectedRows.length == 0)
+    });
+  };
+
+  onStartSimClick = () => {
+    if (this.state.selected.length > 0) {
+      this.props.startSimProp(this.props.data.viewer.sites[this.state.selected[0]]);
+    }
+  }
 
   render() {
     if( ! this.props.data.loading ) {
       return (
         <div className={styles.root}>
-          <Table selectable={false}>
-            <TableBody displayRowCheckbox={false}>
-              {this.props.data.viewer.sites.map((site) => {
+          <Table onRowSelection={this.handleRowSelection}>
+            <TableHeader>
+              <TableRow>
+                <TableHeaderColumn>Name</TableHeaderColumn>
+                <TableHeaderColumn>Site Reference</TableHeaderColumn>
+                <TableHeaderColumn>Status</TableHeaderColumn>
+              </TableRow>
+            </TableHeader>
+            <TableBody deselectOnClickaway={false}>
+              {this.props.data.viewer.sites.map((site, i) => {
                  return (
-                   <Site key={site} siteRef={site}></Site>
+                  <TableRow key={site} selected={this.isSelected(i)}>
+                    <TableRowColumn>{site}</TableRowColumn>
+                    <TableRowColumn>{site}</TableRowColumn>
+                    <TableRowColumn>Status</TableRowColumn>
+                  </TableRow>
                  );
               })}
             </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableRowColumn>
+                  <RaisedButton disabled={this.state.startDisabled} label='Start Simulation' onClick={this.onStartSimClick}></RaisedButton>
+                </TableRowColumn>
+              </TableRow>
+            </TableFooter>
           </Table>
         </div>
       );
@@ -102,5 +84,15 @@ const sitesQL = gql`
   }
 `;
 
-export default graphql(sitesQL, {options: { pollInterval: 1000 },})(Sites);
+const startSimQL = gql`
+  mutation startSimulationMutation($siteRef: String!) {
+    startSimulation(siteRef: $siteRef)
+  }
+`;
+
+export default graphql(startSimQL, {
+  props: ({ mutate }) => ({
+    startSimProp: (siteRef) => mutate({ variables: { siteRef } }),
+  })
+})(graphql(sitesQL, {options: { pollInterval: 1000 },})(Sites));
 
