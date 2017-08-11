@@ -21,6 +21,10 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return "This measure loops through the existing airloops, looking for loops that have outdoor airsystems with economizers"
   end
   
+  def create_uuid(dummyinput)
+    return "r:#{OpenStudio.removeBraces(OpenStudio.createUUID)}"
+  end
+  
   def create_ref(id)
     #return string formatted for Ref (ie, "r:xxxxx") with no spaces or '-'
     return "r:#{id.gsub(/[\s-]/,'_')}"
@@ -43,7 +47,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   
   def create_point(type, id, siteRef, equipRef, where,what,measurement,kind,unit)
     point_json = Hash.new
-    point_json[:id] = create_ref(id)
+    point_json[:id] = create_uuid(id)
     point_json[:dis] = create_str(id)
     point_json[:siteRef] = create_ref(siteRef)
     point_json[:equipRef] = create_ref(equipRef)
@@ -59,7 +63,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   
   def create_point2(type, type2, id, siteRef, equipRef, where,what,measurement,kind,unit)
     point_json = Hash.new
-    point_json[:id] = create_ref(id)
+    point_json[:id] = create_uuid(id)
     point_json[:dis] = create_str(id)
     point_json[:siteRef] = create_ref(siteRef)
     point_json[:equipRef] = create_ref(equipRef)
@@ -76,7 +80,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   
   def create_fan(id, siteRef, equipRef, variable)
     point_json = Hash.new
-    point_json[:id] = create_ref(id)
+    point_json[:id] = create_uuid(id)
     point_json[:dis] = create_str(id)
     point_json[:siteRef] = create_ref(siteRef)
     point_json[:equipRef] = create_ref(equipRef)
@@ -93,7 +97,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
 
   def create_ahu(id, siteRef)
     ahu_json = Hash.new
-    ahu_json[:id] = create_ref(id)
+    ahu_json[:id] = create_uuid(id)
     ahu_json[:dis] = create_str(id)
     ahu_json[:ahu] = "m:"
     ahu_json[:hvac] = "m:"
@@ -104,7 +108,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   
   def create_vav(id, siteRef, equipRef)
     vav_json = Hash.new
-    vav_json[:id] = create_ref(id)
+    vav_json[:id] = create_uuid(id)
     vav_json[:dis] = create_str(id)
     vav_json[:hvac] = "m:"
     vav_json[:vav] = "m:"
@@ -117,7 +121,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   
   def create_mapping_output(emsName)
     json = Hash.new
-    json[:id] = create_ref(emsName)
+    json[:id] = create_uuid(emsName)
     json[:source] = "Ptolemy" 
     json[:name] = ""
     json[:type] = ""
@@ -137,7 +141,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     sensor.setName(create_ems_str(emsName))
     
     json = Hash.new
-    json[:id] = create_ref(emsName)
+    json[:id] = create_uuid(emsName)
     json[:source] = "EnergyPlus" 
     json[:name] = outVarName
     json[:type] = key.name.to_s
@@ -223,7 +227,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       wf = model.weatherFile.get
       building = model.getBuilding
       
-      site_json[:id] = create_ref(building.name.to_s)
+      site_json[:id] = create_uuid(building.name.to_s)
       site_json[:dis] = create_str(building.name.to_s)
       site_json[:site] = "m:"
       site_json[:area] = create_num(building.floorArea)
@@ -235,7 +239,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       site_json[:geoCoord] = "c:#{wf.latitude},#{wf.longitude}"
       haystack_json << site_json
             
-      weather_json[:id] = create_ref(wf.city)
+      weather_json[:id] = create_uuid(wf.city)
       weather_json[:dis] = create_str(wf.city)
       weather_json[:weather] = "m:"
       weather_json[:tz] = create_num(wf.timeZone)
