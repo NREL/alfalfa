@@ -32,7 +32,7 @@ class Sites extends React.Component {
 
   onStartSimClick = () => {
     if (this.state.selected.length > 0) {
-      this.props.startSimProp(this.props.data.viewer.sites[this.state.selected[0]]);
+      this.props.startSimProp(this.props.data.viewer.sites[this.state.selected[0]].siteRef);
     }
   }
 
@@ -51,10 +51,10 @@ class Sites extends React.Component {
             <TableBody deselectOnClickaway={false}>
               {this.props.data.viewer.sites.map((site, i) => {
                  return (
-                  <TableRow key={site} selected={this.isSelected(i)}>
-                    <TableRowColumn>{site}</TableRowColumn>
-                    <TableRowColumn>{site}</TableRowColumn>
-                    <TableRowColumn>Status</TableRowColumn>
+                  <TableRow key={site.siteRef} selected={this.isSelected(i)}>
+                    <TableRowColumn>{site.name}</TableRowColumn>
+                    <TableRowColumn>{site.siteRef}</TableRowColumn>
+                    <TableRowColumn>{site.simStatus}</TableRowColumn>
                   </TableRow>
                  );
               })}
@@ -79,7 +79,11 @@ const sitesQL = gql`
   query QueueQuery {
     viewer {
       username,
-      sites
+      sites {
+        name,
+        siteRef,
+        simStatus
+      }
     }
   }
 `;

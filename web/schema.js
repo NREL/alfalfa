@@ -21,6 +21,25 @@ import {
 
 import resolvers from './resolvers';
 
+var siteType = new GraphQLObjectType({
+  name: 'Site',
+  description: 'A site corresponding to an osm file upload',
+  fields: () => ({
+    name: {
+      type: GraphQLString,
+      description: 'The name of the site, corresponding to the haystack siteRef display name'
+    },
+    siteRef: {
+      type: GraphQLString,
+      description: 'A unique identifier, corresponding to the haystack siteRef value'
+    },
+    simStatus: {
+      type: GraphQLString,
+      description: 'The status of the site simulation'
+    }
+  }),
+});
+
 var userType = new GraphQLObjectType({
   name: 'User',
   description: 'A person who uses our app',
@@ -31,7 +50,7 @@ var userType = new GraphQLObjectType({
       description: 'The username of a person', 
     },
     sites: {
-      type: new GraphQLList(GraphQLString),
+      type: new GraphQLList(siteType),
       description: 'The Haystack sites', 
       resolve: (user,args,request) => {
         //return ['site a', 'site b', 'site c']},

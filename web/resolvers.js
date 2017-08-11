@@ -28,12 +28,30 @@ function  sitesResolver(user) {
         reject(err);
       } else {
         res.body.rows.map( (row) => {
-          sites.push(row.id.replace(/[a-z]\:/,''));
+          let site = {
+            name: row.dis.replace(/[a-z]\:/,''),
+            siteRef: row.id.replace(/[a-z]\:/,''),
+            simStatus: 'Stopped',
+          };
+          sites.push(site);
         });
         resolve(sites);
       }
     })
   });
+
+    //name: {
+    //  type: GraphQLString,
+    //  description: 'The name of the site, corresponding to the haystack siteRef display name'
+    //},
+    //siteRef: {
+    //  type: GraphQLString,
+    //  description: 'A unique identifier, corresponding to the haystack siteRef value'
+    //},
+    //simStatus: {
+    //  type: GraphQLString,
+    //  description: 'The status of the site simulation'
+    //}
 }
 
 function startSimulationResolver(siteRef) {
