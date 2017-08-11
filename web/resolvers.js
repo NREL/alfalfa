@@ -4,9 +4,9 @@ import request from 'superagent';
 AWS.config.update({region: 'us-west-1'});
 var sqs = new AWS.SQS();
 
-function addJobResolver(fileName) {
+function addJobResolver(osmName, uploadID) {
   var params = {
-   MessageBody: `{"op": "InvokeAction", "action": "add_site", "site_name": "${fileName}"}`,
+   MessageBody: `{"op": "InvokeAction", "action": "add_site", "osm_name": "${osmName}", "upload_id": "${uploadID}"}`,
    QueueUrl: process.env.JOB_QUEUE_URL
   };
   

@@ -11,6 +11,7 @@ import Paper from 'material-ui/Paper';
 import {cyan500, red500, greenA200} from 'material-ui/styles/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
+import uuid from 'uuid/v1';
 
 class FileInput extends React.Component {
 
@@ -58,6 +59,7 @@ class Upload extends React.Component {
     this.state = {
       modelFile: null,
       weatherFile: null,
+      uploadID: null,
       completed: 0
     };
   };
@@ -72,7 +74,7 @@ class Upload extends React.Component {
   };
 
   onModelFileChange(file) {
-    this.setState({modelFile: file, completed: 0});
+    this.setState({modelFile: file, completed: 0, uploadID: uuid()});
     console.log(file.name);
   }
 
@@ -100,7 +102,7 @@ class Upload extends React.Component {
     /* This event is raised when the server send back a response */
     console.log("Done - " + evt.target.responseText );
 
-    this.props.addJobProp(this.state.modelFile.name);
+    this.props.addJobProp(this.state.modelFile.name, this.state.uploadID);
 
     //var xhr = new XMLHttpRequest();
 
@@ -121,7 +123,7 @@ class Upload extends React.Component {
     if( this.state.modelFile ) {
 
       var formData = new FormData();
-      formData.append('key', 'uploads/' + this.state.modelFile.name);
+      formData.append('key', `uploads/${this.state.uploadID}/${this.state.modelFile.name}`);
       formData.append('acl', 'private');
       formData.append('policy', 'eyJleHBpcmF0aW9uIjoiMjA1MC0wMS0wMVQxMjowMDowMC4wMDBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiYWxmYWxmYSJ9LHsiYWNsIjoicHJpdmF0ZSJ9LHsieC1hbXotY3JlZGVudGlhbCI6IkFLSUFKUUxZUUo1SVNKVlBVN0lRLzIwNTAwMTAxL3VzLXdlc3QtMS9zMy9hd3M0X3JlcXVlc3QifSx7IngtYW16LWFsZ29yaXRobSI6IkFXUzQtSE1BQy1TSEEyNTYifSx7IngtYW16LWRhdGUiOiIyMDUwMDEwMVQwMDAwMDBaIn0sWyJzdGFydHMtd2l0aCIsIiRrZXkiLCJ1cGxvYWRzIl0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMCwxMDQ4NTc2MF1dfQ==');
       formData.append('x-amz-algorithm', 'AWS4-HMAC-SHA256');
@@ -177,14 +179,14 @@ class Upload extends React.Component {
 }
 
 const addJobQL = gql`
-  mutation addJobMutation($fileName: String!) {
-    addJob(fileName: $fileName)
+  mutation addJobMutation($osmName: String!, $uploadID: String!) {
+    addJob(osmName: $osmName, uploadID: $uploadID)
   }
 `;
 
 export default graphql(addJobQL, {
   props: ({ mutate }) => ({
-    addJobProp: (fileName) => mutate({ variables: { fileName } }),
+    addJobProp: (osmName, uploadID) => mutate({ variables: { osmName, uploadID } }),
   }),
 })(Upload);
 

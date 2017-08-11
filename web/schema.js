@@ -86,11 +86,12 @@ const mutationType = new GraphQLObjectType({
       name: 'AddJob',
       type: GraphQLString,
       args: {
-        fileName : { type: new GraphQLNonNull(GraphQLString) },
+        osmName : { type: new GraphQLNonNull(GraphQLString) },
+        uploadID : { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: (_,args,request) => {
         console.log("AddJob", args)
-        resolvers.addJobResolver(args.fileName);
+        resolvers.addJobResolver(args.osmName,args.uploadID);
       },
     },
     startSimulation: {

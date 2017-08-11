@@ -134,7 +134,7 @@ def process_invoke_action_message(message_body):
     elif action == 'add_site':
         if not ep.is_running:
             print('Adding New Site...')
-            add_new_site(message_body['site_name'])
+            add_new_site(message_body['osm_name'], message_body['upload_id'])
             return True
 
         return False
@@ -145,14 +145,12 @@ def process_invoke_action_message(message_body):
 
 # Download an osm file and use OpenStudio Haystack measure to 
 # add a new haystack site
-# site_name is currently the name of the file that was uploaded.
-# need a better way of keeping unique site ids
-def add_new_site(site_name):
-    print(site_name)
+def add_new_site(osm_name, upload_id):
+    print(osm_name)
     if not local_flag:
-        key = "uploads/%s" % (site_name)
-        basename = os.path.splitext(site_name)[0]
-        directory = os.path.join('/parse',basename)
+        key = "uploads/%s/%s" % (upload_id, osm_name)
+        basename = os.path.splitext(osm_name)[0]
+        directory = os.path.join('/parse',upload_id)
         seedpath = os.path.join(directory,'seed.osm')
         workflowpath = os.path.join(directory,'workflow/workflow.osw')
         jsonpath = os.path.join(directory,'workflow/reports/haystack_report_haystack.json');
