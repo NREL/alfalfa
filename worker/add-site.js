@@ -29,7 +29,7 @@ console.log('Add site from: ', process.argv[2]);
 let db = null;
 let mrecs = null;
 
-function addFile(json_file) {
+function addFile(json_file, site_ref) {
   fs.readFile(json_file, 'utf8', (err, data) => {
       if (err) {
         console.log('Error parsing json points file: ',err); 
@@ -41,6 +41,7 @@ function addFile(json_file) {
             let id = reader.readScalar().val;
             return {
               _id: id,
+              site_ref: site_ref,
               rec: rec
             };
           });
@@ -61,7 +62,7 @@ function addFile(json_file) {
 MongoClient.connect(process.env.MONGO_URL).then((_db) => {
   db = _db;
   mrecs = db.collection('recs');
-  addFile(process.argv[2]);
+  addFile(process.argv[2],process.argv[3]);
 }).catch((err) => {
   console.log(err);
   process.exit(1);

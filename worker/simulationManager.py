@@ -181,7 +181,7 @@ def add_new_site(osm_name, upload_id):
         if site_ref:
 
             # This adds a new haystack site to the database
-            call(['npm', 'run', 'start', jsonpath])
+            call(['npm', 'run', 'start', jsonpath, site_ref])
 
             # Open the json file and get a site reference
             # Store the results by site ref
