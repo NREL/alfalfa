@@ -21,6 +21,32 @@ import {
 
 import resolvers from './resolvers';
 
+var tagType = new GraphQLObjectType({
+  name: 'Tag',
+  description: 'A Haystack tag',
+  fields: () => ({
+    key: {
+      type: GraphQLString,
+      description: 'The key associated with a Haystack tag'
+    },
+    value: {
+      type: GraphQLString,
+      description: 'The value if any associated with a Haystack tag'
+    }
+  })
+});
+
+var pointType = new GraphQLObjectType({
+  name: 'Point',
+  description: 'A Haystack point',
+  fields: () => ({
+    tags: {
+      type: new GraphQLList(tagType),
+      description: 'A list of the Haystack tags associated with the point'
+    }
+  })
+});
+
 var siteType = new GraphQLObjectType({
   name: 'Site',
   description: 'A site corresponding to an osm file upload',
@@ -36,8 +62,15 @@ var siteType = new GraphQLObjectType({
     simStatus: {
       type: GraphQLString,
       description: 'The status of the site simulation'
+    },
+    points: {
+      type: new GraphQLList(pointType),
+      description: 'A list of the Haystack points associated with the site',
+      resolve: (site,args,request) => {
+        return resolvers.sitePointResolver(site.siteRef);
+      }
     }
-  }),
+  })
 });
 
 var userType = new GraphQLObjectType({
@@ -52,9 +85,12 @@ var userType = new GraphQLObjectType({
     sites: {
       type: new GraphQLList(siteType),
       description: 'The Haystack sites', 
-      resolve: (user,args,request) => {
+      args: {
+        siteRef: { type: GraphQLString }
+      },
+      resolve: (user,{siteRef},request) => {
         //return ['site a', 'site b', 'site c']},
-        return resolvers.sitesResolver(user);
+        return resolvers.sitesResolver(user,siteRef);
       }
     }
   }),

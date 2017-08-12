@@ -17,12 +17,31 @@ function addJobResolver(osmName, uploadID) {
   });
 }
 
-function  sitesResolver(user) {
+function  sitesResolver(user,siteRef) {
+  let filter = "s:site";
+  if( siteRef ) {
+    filter = `${filter} and id==@${siteRef}`;
+  }
   return new Promise( (resolve,reject) => {
     let sites = [];
     request
-    .get('/api/nav')
+    .post('/api/read')
     .set('Accept', 'application/json')
+    .send({
+      "meta": {
+        "ver": "2.0"
+      },
+      "cols": [
+        {
+          "name": "filter"
+        }
+      ],
+      "rows": [
+        {
+          "filter": filter,
+        }
+      ]
+    })
     .end((err, res) => {
       if( err ) {
         reject(err);
@@ -52,6 +71,56 @@ function  sitesResolver(user) {
     //  type: GraphQLString,
     //  description: 'The status of the site simulation'
     //}
+}
+
+function sitePointResolver(siteRef) {
+  return new Promise( (resolve,reject) => {
+    request
+    .post('/api/read')
+    .set('Accept', 'application/json')
+    .send({
+      "meta": {
+        "ver": "2.0"
+      },
+      "cols": [
+        {
+          "name": "filter"
+        }
+      ],
+      "rows": [
+        {
+          "filter": "s:point",
+        }
+      ]
+    })
+    .end((err, res) => {
+      if( err ) {
+        reject(err);
+      } else {
+        let points = [];
+        res.body.rows.map( (row) => {
+          let tags = [];
+          Object.keys(row).map((key) => {
+            let tag = {
+              key: key,
+              value: row[key]
+            };
+            tags.push(tag);
+          });
+          //let site = {
+          //  name: row.dis.replace(/[a-z]\:/,''),
+          //  siteRef: row.id.replace(/[a-z]\:/,''),
+          //  simStatus: 'Stopped',
+          //};
+          let point = {
+            tags: tags
+          };
+          points.push(point);
+        });
+        resolve(points);
+      }
+    })
+  });
 }
 
 function startSimulationResolver(siteRef) {
@@ -91,5 +160,5 @@ function startSimulationResolver(siteRef) {
   });
 }
 
-module.exports = { addJobResolver, sitesResolver, startSimulationResolver };
+module.exports = { addJobResolver, sitesResolver, startSimulationResolver, sitePointResolver };
 
