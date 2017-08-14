@@ -29,7 +29,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     #return string formatted for Ref (ie, "r:xxxxx") with uuid of object
     #return "r:#{id.gsub(/[\s-]/,'_')}"
     return "r:#{OpenStudio.removeBraces(id)}"
-  end
+  end 
   
   def create_ref_name(id)
     #return string formatted for Ref (ie, "r:xxxxx") with uuid of object
@@ -53,7 +53,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   
   def create_point(type, id, siteRef, equipRef, where,what,measurement,kind,unit)
     point_json = Hash.new
-    point_json[:id] = create_uuid(id)
+    uuid = create_uuid(id)
+    point_json[:id] = uuid
     point_json[:dis] = create_str(id)
     point_json[:siteRef] = create_ref(siteRef)
     point_json[:equipRef] = create_ref(equipRef)
@@ -65,6 +66,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     point_json[:kind] = create_str(kind) 
     point_json[:unit] = create_str(unit) 
     return point_json
+  end
+  
+  def create_point_uuid(type, id, siteRef, equipRef, where,what,measurement,kind,unit)
+    point_json = Hash.new
+    uuid = create_uuid(id)
+    point_json[:id] = uuid
+    point_json[:dis] = create_str(id)
+    point_json[:siteRef] = create_ref(siteRef)
+    point_json[:equipRef] = create_ref(equipRef)
+    point_json[:point] = "m:"
+    point_json["#{type}"] = "m:"
+    point_json["#{measurement}"] = "m:"   
+    point_json["#{where}"] = "m:" 
+    point_json["#{what}"] = "m:" 
+    point_json[:kind] = create_str(kind) 
+    point_json[:unit] = create_str(unit) 
+    return point_json, uuid
   end
   
   def create_point2(type, type2, id, siteRef, equipRef, where,what,measurement,kind,unit)
@@ -148,6 +166,26 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     
     json = Hash.new
     json[:id] = create_ref_name(emsName)  #TODO is this now a UUID??
+    json[:source] = "EnergyPlus" 
+    json[:name] = outVarName
+    json[:type] = key.name.to_s
+    json[:variable] = ""
+    return sensor, json
+  end
+  
+  def create_EMS_sensor_bcvtb2(outVarName, key, emsName, uuid, report_freq, model)
+    outputVariable = OpenStudio::Model::OutputVariable.new(outVarName,model)
+    outputVariable.setKeyValue("#{key.name.to_s}")
+    outputVariable.setReportingFrequency(report_freq) 
+    outputVariable.setName(outVarName)
+    outputVariable.setExportToBCVTB(true)
+    
+    sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, outputVariable)
+    sensor.setKeyName(key.handle.to_s)
+    sensor.setName(create_ems_str(emsName))
+    
+    json = Hash.new
+    json[:id] = uuid  #TODO is this now a UUID??
     json[:source] = "EnergyPlus" 
     json[:name] = outVarName
     json[:type] = key.name.to_s
@@ -282,19 +320,21 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       #discharge air node
       discharge_air_node = airloop.supplyOutletNode
       #create sensor points
-      haystack_json << create_point("sensor", "#{airloop.name.to_s} Discharge Air Temp Sensor", building.handle, airloop.handle, "discharge", "air", "temp", "Number", "C")            
+      haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Discharge Air Temp Sensor", building.handle, airloop.handle, "discharge", "air", "temp", "Number", "C")            
+      haystack_json << haystack_temp_json
       haystack_json << create_point("sensor", "#{airloop.name.to_s} Discharge Air Pressure Sensor", building.handle, airloop.handle, "discharge", "air", "pressure", "Number", "Pa")            
-      haystack_json << create_point("sensor", "#{airloop.name.to_s} Discharge Air Humidity Sensor", building.handle, airloop.handle, "discharge", "air", "humidity", "Number", "%")            
-      haystack_json << create_point("sensor", "#{airloop.name.to_s} Discharge Air Flow Sensor", building.handle, airloop.handle, "discharge", "air", "flow", "Number", "Kg/s")            
+      haystack_json << create_point("sensor", "#{airloop.name.to_s} Discharge Air Humidity Sensor", building.handle, airloop.handle, "discharge", "air", "humidity", "Number", "%")                      
       #Temp Sensor
-      discharge_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Temperature", discharge_air_node, "#{airloop.name.to_s} Discharge Air Temp Sensor", report_freq, model)
+      discharge_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Temperature", discharge_air_node, "#{airloop.name.to_s} Discharge Air Temp Sensor", temp_uuid, report_freq, model)
       mapping_json << temp_json
       #Pressure Sensor
       discharge_air_pressure_sensor = create_EMS_sensor("System Node Pressure", discharge_air_node, "#{airloop.name.to_s} Discharge Air Pressure Sensor", report_freq, model)
       #Humidity Sensor
       discharge_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", discharge_air_node, "#{airloop.name.to_s} Discharge Air Humidity Sensor", report_freq, model)
       #Flow Sensor
-      discharge_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Mass Flow Rate", discharge_air_node, "#{airloop.name.to_s} Discharge Air Flow Sensor", report_freq, model)
+      haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Discharge Air Flow Sensor", building.handle, airloop.handle, "discharge", "air", "flow", "Number", "Kg/s")  
+      haystack_json << haystack_temp_json
+      discharge_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Mass Flow Rate", discharge_air_node, "#{airloop.name.to_s} Discharge Air Flow Sensor", temp_uuid, report_freq, model)
       mapping_json << temp_json
 
       supply_components = airloop.supplyComponents
