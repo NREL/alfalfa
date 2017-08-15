@@ -89,7 +89,7 @@ function sitePointResolver(siteRef) {
       ],
       "rows": [
         {
-          "filter": "s:point",
+          "filter": `s:point and siteRef==@${siteRef}`,
         }
       ]
     })

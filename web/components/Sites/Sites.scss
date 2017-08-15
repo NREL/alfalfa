@@ -9,6 +9,12 @@
   //justify-content: center;
 }
 
+.centerLoading {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
 .pointsRoot {
   display: flex;
   flex-direction: column;

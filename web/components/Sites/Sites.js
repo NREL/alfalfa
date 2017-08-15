@@ -12,6 +12,8 @@ import {cyan500, red500, greenA200} from 'material-ui/styles/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import {Table, TableBody, TableHeader, TableFooter, TableHeaderColumn, TableRow, TableRowColumn} from 'material-ui/Table';
+import MoreHorizIcon from 'material-ui/svg-icons/navigation/more-horiz';
+import CircularProgress from 'material-ui/CircularProgress';
 
 class Point extends React.Component {
 
@@ -57,6 +59,23 @@ class PointDialogComponent extends React.Component {
     this.props.onClosePointsClick();
   }
 
+  table = () => {
+    if( ! this.props.data.loading ) {
+      let points = this.props.data.viewer.sites[0].points;
+      return(
+      <div className={styles.pointsRoot}>
+        {
+          points.map((point,i) => {
+            return (<Point key={i} name={i} point={point}/>);
+          })
+        }
+      </div>
+      );
+    } else {
+      return (<div className={styles.centerLoading}><CircularProgress/></div>);
+    }
+  }
+
   render = () => {
     const actions = [
       <FlatButton
@@ -66,10 +85,6 @@ class PointDialogComponent extends React.Component {
       />,
     ];
 
-    let points = [];
-    if( ! this.props.data.loading ) {
-      points = this.props.data.viewer.sites[0].points;
-    }
 
     return(
       <Dialog
@@ -79,13 +94,7 @@ class PointDialogComponent extends React.Component {
         open={this.props.open}
         onRequestClose={this.handleClose}
       >
-        <div className={styles.pointsRoot}>
-          {
-            points.map((point,i) => {
-              return (<Point key={i} name={i} point={point}/>);
-            })
-          }
-        </div>
+      {this.table()}
       </Dialog>
     )
   }
@@ -120,9 +129,8 @@ class Sites extends React.Component {
 
   state = {
     selected: [],
-    showPoints: false,
     disabled: true,
-    showPointsSiteRef: null
+    showPointsSiteRef: null,
   };
 
   isSelected = (index) => {
@@ -142,17 +150,17 @@ class Sites extends React.Component {
     }
   }
 
-  onShowPointsClick = () => {
-    this.setState({showPoints: true, showPointsSiteRef: this.props.data.viewer.sites[this.state.selected[0]].siteRef});
+  onShowPointsClick = (siteRef) => {
+    this.setState({showPointsSiteRef: siteRef});
   }
 
   onClosePointsClick = () => {
-    this.setState({showPoints: false, showPointsSiteRef: null});
+    this.setState({showPointsSiteRef: null});
   }
 
   conditionalDialog = () => {
-    if( this.state.showPoints ) {
-      return (<PointDialog open={this.state.showPoints} onClosePointsClick={this.onClosePointsClick} siteRef={this.state.showPointsSiteRef}></PointDialog>);
+    if( this.state.showPointsSiteRef != null ) {
+      return (<PointDialog open={true} onClosePointsClick={this.onClosePointsClick} siteRef={this.state.showPointsSiteRef}></PointDialog>);
     } else {
       return null;
     }
@@ -168,6 +176,7 @@ class Sites extends React.Component {
                 <TableHeaderColumn>Name</TableHeaderColumn>
                 <TableHeaderColumn>Site Reference</TableHeaderColumn>
                 <TableHeaderColumn>Status</TableHeaderColumn>
+                <TableHeaderColumn></TableHeaderColumn>
               </TableRow>
             </TableHeader>
             <TableBody deselectOnClickaway={false}>
@@ -177,6 +186,7 @@ class Sites extends React.Component {
                     <TableRowColumn>{site.name}</TableRowColumn>
                     <TableRowColumn>{site.siteRef}</TableRowColumn>
                     <TableRowColumn>{site.simStatus}</TableRowColumn>
+                    <TableRowColumn><IconButton onTouchTap={() => { this.onShowPointsClick(site.siteRef) }}><MoreHorizIcon></MoreHorizIcon></IconButton></TableRowColumn>
                   </TableRow>
                  );
               })}
@@ -185,7 +195,6 @@ class Sites extends React.Component {
               <TableRow>
                 <TableRowColumn>
                   <RaisedButton disabled={this.state.disabled} label='Start Simulation' onTouchTap={this.onStartSimClick}></RaisedButton>
-                  <RaisedButton disabled={this.state.disabled} label='Show Points' onTouchTap={this.onShowPointsClick}></RaisedButton>
                 </TableRowColumn>
               </TableRow>
             </TableFooter>
