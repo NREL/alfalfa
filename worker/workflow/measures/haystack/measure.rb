@@ -502,11 +502,11 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             if fan.get.to_FanVariableVolume.is_initialized
               runner.registerInfo("found VAV #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
               ahu_json[:variableVolume] = "m:"
-              haystack_json << create_fan(fan.handle, "#{fan.get.name.to_s}", building.handle, airloop.handle, true)
+              haystack_json << create_fan(fan.get.handle, "#{fan.get.name.to_s}", building.handle, airloop.handle, true)
             else
               runner.registerInfo("found CAV #{fan.get.name.to_s} on airloop #{airloop.name.to_s}")
               ahu_json[:constantVolume] = "m:"
-              haystack_json << create_fan(fan.handle, "#{fan.get.name.to_s}", building.handle, airloop.handle, false)
+              haystack_json << create_fan(fan.get.handle, "#{fan.get.name.to_s}", building.handle, airloop.handle, false)
             end
           end
           cc = sc.coolingCoil
