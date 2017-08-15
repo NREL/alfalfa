@@ -98,9 +98,16 @@ function sitePointResolver(siteRef) {
         reject(err);
       } else {
         let points = [];
+        let dis = 'Haystack Point';
         res.body.rows.map( (row) => {
           let tags = [];
           Object.keys(row).map((key) => {
+            if( key == 'dis' ) {
+              dis = row[key];
+              if( dis ) {
+                dis = dis.replace(/[a-z]\:/,'');
+              }
+            }
             let tag = {
               key: key,
               value: row[key]
@@ -113,6 +120,7 @@ function sitePointResolver(siteRef) {
           //  simStatus: 'Stopped',
           //};
           let point = {
+            dis: dis,
             tags: tags
           };
           points.push(point);

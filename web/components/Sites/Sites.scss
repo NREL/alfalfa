@@ -9,6 +9,17 @@
   //justify-content: center;
 }
 
+.pointsRoot {
+  display: flex;
+  flex-direction: column;
+  overflow:scroll; 
+  height:400px;
+}
+
+.pointRoot {
+  padding: 5px;
+}
+
 .row {
   display: flex;
   flex-direction: row;

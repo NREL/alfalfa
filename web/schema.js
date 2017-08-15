@@ -40,6 +40,10 @@ var pointType = new GraphQLObjectType({
   name: 'Point',
   description: 'A Haystack point',
   fields: () => ({
+    dis: {
+      type: GraphQLString,
+      description: 'The value of the haystack dis tag'
+    },
     tags: {
       type: new GraphQLList(tagType),
       description: 'A list of the Haystack tags associated with the point'
