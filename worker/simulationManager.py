@@ -9,7 +9,6 @@
 """
 import mlep
 import os
-import ast
 import boto3
 import json
 import time
@@ -18,23 +17,24 @@ import shutil
 from subprocess import call
 from shutil import copyfile
 from pymongo import MongoClient
+import pprint
 
 
 # Simulation Process Class
 class SimProcess:
     def __init__(self):
-        self.sim_status = 0             # 0=init, 1=running, 2=pause, 3=stop
-        self.step_time = 20              # Real-time step
-        self.start_time = 0             # Real-time step
-        self.next_time = 0              # Real-time step
-        self.start_date = '01/01'       # Start date for simulation (01/01)
-        self.end_date = '12/31'         # End date for simulation (12/31)
-        self.start_hour = 1             # Start hour for simulation (1-23)
-        self.end_hour = 23              # End hour for simulation (1-23)
-        self.accept_timeout = 10000     # Accept timeout for simulation (ms)
-        self.idf = None                 # EnergyPlus file path (/path/to/energyplus/file)
+        self.sim_status = 0  # 0=init, 1=running, 2=pause, 3=stop
+        self.step_time = 20  # Real-time step
+        self.start_time = 0  # Real-time step
+        self.next_time = 0  # Real-time step
+        self.start_date = '01/01'  # Start date for simulation (01/01)
+        self.end_date = '12/31'  # End date for simulation (12/31)
+        self.start_hour = 1  # Start hour for simulation (1-23)
+        self.end_hour = 23  # End hour for simulation (1-23)
+        self.accept_timeout = 10000  # Accept timeout for simulation (ms)
+        self.idf = None  # EnergyPlus file path (/path/to/energyplus/file)
         self.mapping = None
-        self.weather = None             # Weather file path (/path/to/weather/file)
+        self.weather = None  # Weather file path (/path/to/weather/file)
         self.site_ref = None
         self.workflow_directory = None
 
@@ -81,7 +81,7 @@ def process_invoke_action_message(message_body):
         time_step = 15  # Simulation time step
         sp = SimProcess()
         if 'time_scale' in message_body:
-            sp.step_time = time_step*3600/int(message_body['time_scale'])
+            sp.step_time = time_step * 3600 / int(message_body['time_scale'])
         if 'start_date' in message_body:
             sp.start_date = message_body['start_date']
         if 'end_date' in message_body:
@@ -91,7 +91,7 @@ def process_invoke_action_message(message_body):
         if 'end_hour' in message_body:
             sp.end_hour = message_body['end_hour']
         if 'accept_timeout' in message_body:
-            sp.accept_timeout = message_body['accept_timeout']*1000
+            sp.accept_timeout = message_body['accept_timeout'] * 1000
         if 'idf' in message_body:
             sp.idf = message_body['idf']
         if 'weather' in message_body:
@@ -143,17 +143,18 @@ def process_invoke_action_message(message_body):
         # Do nothing
         return False
 
-# Download an osm file and use OpenStudio Haystack measure to 
+
+# Download an osm file and use OpenStudio Haystack measure to
 # add a new haystack site
 def add_new_site(osm_name, upload_id):
     print(osm_name)
     if not local_flag:
         key = "uploads/%s/%s" % (upload_id, osm_name)
-        basename = os.path.splitext(osm_name)[0]
-        directory = os.path.join('/parse',upload_id)
-        seedpath = os.path.join(directory,'seed.osm')
-        workflowpath = os.path.join(directory,'workflow/workflow.osw')
-        jsonpath = os.path.join(directory,'workflow/reports/haystack_report_haystack.json');
+        # basename = os.path.splitext(osm_name)[0]
+        directory = os.path.join('/parse', upload_id)
+        seedpath = os.path.join(directory, 'seed.osm')
+        workflowpath = os.path.join(directory, 'workflow/workflow.osw')
+        jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
 
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -170,16 +171,15 @@ def add_new_site(osm_name, upload_id):
         call(['openstudio', 'run', '-m', '-w', workflowpath])
 
         site_ref = False
-        with open(jsonpath) as json_file:    
+        with open(jsonpath) as json_file:
             data = json.load(json_file)
             for entity in data:
                 if 'site' in entity:
                     if entity['site'] == 'm:':
-                        site_ref = entity['id'].replace('r:','')
-                        break;
+                        site_ref = entity['id'].replace('r:', '')
+                        break
 
         if site_ref:
-
             # This adds a new haystack site to the database
             call(['npm', 'run', 'start', jsonpath, site_ref])
 
@@ -190,17 +190,20 @@ def add_new_site(osm_name, upload_id):
                 tarinfo.uname = tarinfo.gname = "root"
                 return tarinfo
 
-            tarname = "%s.tar.gz" % (site_ref)
+            tarname = "%s.tar.gz" % site_ref
             tar = tarfile.open(tarname, "w:gz")
             tar.add(directory, filter=reset, arcname=site_ref)
             tar.close()
 
-            bucket.upload_file(tarname, "parsed/%s" % (tarname) )
+            bucket.upload_file(tarname, "parsed/%s" % tarname)
             os.remove(tarname)
 
         shutil.rmtree(directory)
-
+    else:
+        # Local
+        print("Indent Local")
     return
+
 
 # Return true if the message was handled, otherwise false
 def process_write_point_message(message_body):
@@ -208,13 +211,13 @@ def process_write_point_message(message_body):
 
     try:
         haystack_id = message_body['haystack_id']
-        val = message_body['val']
-        print("process_write_point_message: id = {haystack_id}, val = {val}".format(**locals()))
+        value = message_body['val']
+        print("process_write_point_message: id = {haystack_id}, val = {value}".format(**locals()))
         # Get index
         index = ep.inputs_list.index(haystack_id)
         # Update Inputs list
         ep.inputs[index] = 1
-        ep.inputs[index+1] = val
+        ep.inputs[index + 1] = value
     except:
         flag = False
     else:
@@ -231,17 +234,17 @@ def start_simulation():
     try:
         if not local_flag and sp.site_ref:
             sim_path = '/simulate'
-            directory = os.path.join(sim_path,sp.site_ref)
-            tarname = "%s.tar.gz" % (sp.site_ref)
-            key = "parsed/%s" % (tarname)
-            tarpath = os.path.join(directory,tarname)
-            osmpath = os.path.join(directory,'workflow/run/in.osm')
-            sp.idf = os.path.join(directory,"workflow/run/%s" % sp.site_ref)
-            sp.weather = os.path.join(directory,'workflow/files/weather.epw')
-            sp.mapping = os.path.join(directory,'workflow/reports/haystack_report_mapping.json')
+            directory = os.path.join(sim_path, sp.site_ref)
+            tarname = "%s.tar.gz" % sp.site_ref
+            key = "parsed/%s" % tarname
+            tarpath = os.path.join(directory, tarname)
+            osmpath = os.path.join(directory, 'workflow/run/in.osm')
+            sp.idf = os.path.join(directory, "workflow/run/%s" % sp.site_ref)
+            sp.weather = os.path.join(directory, 'workflow/files/weather.epw')
+            sp.mapping = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
             sp.workflow_directory = directory
-            variables_path = os.path.join(directory,'workflow/reports/export_bcvtb_report_variables.cfg')
-            variables_new_path = os.path.join(directory,'workflow/run/variables.cfg')
+            variables_path = os.path.join(directory, 'workflow/reports/export_bcvtb_report_variables.cfg')
+            variables_new_path = os.path.join(directory, 'workflow/run/variables.cfg')
 
             if not os.path.exists(directory):
                 os.makedirs(directory)
@@ -254,7 +257,7 @@ def start_simulation():
             tar.close()
 
             call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
-            copyfile(variables_path,variables_new_path)
+            copyfile(variables_path, variables_new_path)
 
         # Arguments
         ep.accept_timeout = sp.accept_timeout
@@ -269,7 +272,7 @@ def start_simulation():
         # Get Mapping
         [ep.outputs_list, ep.inputs_list] = mlep.mlep_parse_json(ep.mapping)
         # Initialize input tuplet
-        ep.inputs = [0] * (len(ep.inputs_list)+1)
+        ep.inputs = [0] * (len(ep.inputs_list) + 1)
 
         # Start EnergyPlus co-simulation
         (ep.status, ep.msg) = ep.start()
@@ -300,12 +303,11 @@ def start_simulation():
         print('MLEP failed to start due to an Exception: {0}'.format(e))
         return
 
+
 # ======================================================= MAIN ========================================================
 if __name__ == '__main__':
     # Initialized process
     ep = mlep.MlepProcess()
-    ep.bcvtbDir = '/root/bcvtb/'
-    ep.env = {'BCVTB_HOME': '/root/bcvtb'}
     sp = SimProcess()
     if 'JOB_QUEUE_URL' in os.environ:
         local_flag = False
@@ -314,27 +316,47 @@ if __name__ == '__main__':
 
     # ============= SQS Queue =============
     if local_flag:
+        # Define local bcvtb directory
+        ep.bcvtbDir = '/Users/wbernalh/Documents/git/mlep/mlep/bcvtb'
+        ep.env = {'BCVTB_HOME': ep.bcvtbDir}
         # Get the service resource
         sqs = boto3.resource('sqs')
         # Create the queue. This returns an SQS.Queue instance
         queue = sqs.create_queue(QueueName='test1', Attributes={'DelaySeconds': '0'})
+        # Client for Mongo Database
+        uri = "mongodb://alfalfa:haystack@ds129043.mlab.com:29043/alfalfa?authSource=alfalfa"
+        local_client = MongoClient(uri)
+        # Database
+        local_db = local_client['alfalfa']
+        # Collections
+        col_names = local_db.collection_names(include_system_collections=True)
+        # Specific Collection
+        local_posts = local_db['writearrays']
+
+        # Show all posts
+        for post in local_posts.find():
+            pprint.pprint(post)
+
     else:
+        # BCTVB directory
+        ep.bcvtbDir = '/root/bcvtb/'
+        ep.env = {'BCVTB_HOME': '/root/bcvtb'}
         # Define a remote queue
         sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
         queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
         s3 = boto3.resource('s3', region_name='us-west-1')
+        # Mongo Database
         mongo_client = MongoClient(os.environ['MONGO_URL'])
         mongodb = mongo_client.admin
 
     # ============= Messages Available =============
     # response = queue.send_message(MessageBody='{"op":"InvokeAction",\
     # "action":"start_simulation", \
-    # "arguments":{"idf": "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf",\
-    # "weather": "USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw"},\
+    # "idf": "/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/cosim.idf",\
+    # "weather": "USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw",\
     # "mapping":"/Users/wbernalh/Documents/git/alfalfa/resources/CoSim/haystack_report_mapping.json",\
     # "time_step":6, "time_scale": 54000, "start_hour": "12:00",\
-    # "start_date": "01/22", "end_hour": "12:00", "end_date": "01/26",\
-    # "accept_timeout": 20}')
+    # "start_date": "01/22", "end_hour": "12:00", "end_date": "01/26","accept_timeout": 20,"id": "Site_Reference"}')
     # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"pause_simulation"}')
     # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"resume_simulation"}')
     # response = queue.send_message(MessageBody='{"op":"InvokeAction","action":"stop_simulation"}')
@@ -355,8 +377,8 @@ if __name__ == '__main__':
         # Step simulation in time
         # Adjust next real-time simulation step
         sp.next_time = time.time()
-        if ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and \
-                (sp.next_time - sp.start_time >= sp.step_time):
+        if ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and (
+                sp.next_time - sp.start_time >= sp.step_time):
             sp.start_time = time.time()
             packet = ep.read()
             if packet == '':
@@ -371,7 +393,7 @@ if __name__ == '__main__':
             if ep.flag != 0:
                 break
 
-            #for item in ep.inputs_list:
+            # for item in ep.inputs_list:
             #    write_array = mongo.getWriteArray(item)
             #    value = write_array.getCurrentWinningValue
             #    ep.inputs[ep.inputs.index(id)] = value
@@ -379,28 +401,46 @@ if __name__ == '__main__':
                 write_arrays = mongodb.writearrays
                 for array in write_arrays.find({"siteRef": sp.site_ref}):
                     for val in array.get('val'):
-                       if val: 
+                        if val:
                             ep.inputs[ep.inputs_list.index(array.get('_id'))] = val
-                            break;
+                            break
+            else:
+                # Local Flag
+                write_arrays = local_db.writearrays
+                for array in write_arrays.find({"siteRef": sp.site_ref}):
+                    for val in array.get('val'):
+                        if val:
+                            ind = ep.inputs_list.index(array.get('_id'))
+                            ep.inputs[0] = 1
+                            ep.inputs[round((ind+1)/2)] = val
+                            ep.inputs[round((ind+1)/2)-1] = 1
+                            break
+                # ep.inputs = [0, 0, 0]
 
-                inputs = tuple(ep.inputs)
+            # Convert to tuple
+            inputs = tuple(ep.inputs)
 
-                # Write to inputs of E+
-                ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
-                
+            # Write to inputs of E+
+            ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
+
+            if not local_flag:
                 # Push latest point values to database
-                #values_to_insert = []
+                # values_to_insert = []
                 recs = mongodb.recs
                 for output in ep.outputs_list:
                     output_index = ep.outputs_list.index(output)
                     output_value = ep.outputs[output_index]
                     output_doc = {"_id": output, "curVal": output_value}
-                    # TODO: Make this better with a bulk update
+                    # TO DO: Make this better with a bulk update
                     # Also at some point consider removing curVal and related fields after sim ends
-                    recs.update_one({"_id": output},{"$set": { "rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:" } },False)
-                    #values_to_insert.append(output_doc)
-                
-                #cur_values.update_many({'_id': {'$in': values_to_insert}}, {'$set': {'$in': values_to_insert}})
+                    recs.update_one({"_id": output}, {
+                        "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
+                    # values_to_insert.append(output_doc)
+
+                    # cur_values.update_many({'_id': {'$in': values_to_insert}}, {'$set': {'$in': values_to_insert}})
+            else:
+                # Push to local DB
+                print("TO DO: push to local DB")
 
             # Advance time
             ep.kStep = ep.kStep + 1
@@ -410,10 +450,10 @@ if __name__ == '__main__':
             ep.stop(True)
             ep.is_running = 0
             sp.sim_status = 0
-            # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
+            # TO DO: Need to wait for a signal of some sort that E+ is done, before removing stuff
             time.sleep(5)
             shutil.rmtree(sp.workflow_directory)
             print('Simulation Terminated')
 
-        # Done with simulation step
-        #print('ping')
+            # Done with simulation step
+            # print('ping')
