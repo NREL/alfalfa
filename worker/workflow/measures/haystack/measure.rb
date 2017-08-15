@@ -102,6 +102,41 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     return point_json
   end
   
+  def create_point2_uuid(type, type2, id, siteRef, equipRef, where,what,measurement,kind,unit)
+    point_json = Hash.new
+    uuid = create_uuid(id)
+    point_json[:id] = uuid
+    point_json[:dis] = create_str(id)
+    point_json[:siteRef] = create_ref(siteRef)
+    point_json[:equipRef] = create_ref(equipRef)
+    point_json[:point] = "m:"
+    point_json["#{type}"] = "m:"
+    point_json["#{type2}"] = "m:"
+    point_json["#{measurement}"] = "m:"   
+    point_json["#{where}"] = "m:" 
+    point_json["#{what}"] = "m:" 
+    point_json[:kind] = create_str(kind) 
+    point_json[:unit] = create_str(unit) 
+    return point_json, uuid
+  end
+  
+  def create_controlpoint2(type, type2, id, uuid, siteRef, equipRef, where,what,measurement,kind,unit)
+    point_json = Hash.new
+    point_json[:id] = create_ref(uuid)
+    point_json[:dis] = create_str(id)
+    point_json[:siteRef] = create_ref(siteRef)
+    point_json[:equipRef] = create_ref(equipRef)
+    point_json[:point] = "m:"
+    point_json["#{type}"] = "m:"
+    point_json["#{type2}"] = "m:"
+    point_json["#{measurement}"] = "m:"   
+    point_json["#{where}"] = "m:" 
+    point_json["#{what}"] = "m:" 
+    point_json[:kind] = create_str(kind) 
+    point_json[:unit] = create_str(unit) 
+    return point_json
+  end
+  
   def create_fan(id, name, siteRef, equipRef, variable)
     point_json = Hash.new
     point_json[:id] = create_ref(id)
@@ -146,6 +181,16 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
   def create_mapping_output(emsName)
     json = Hash.new
     json[:id] = create_ref_name(emsName) #TODO is this now a UUID??
+    json[:source] = "Ptolemy" 
+    json[:name] = ""
+    json[:type] = ""
+    json[:variable] = emsName
+    return json
+  end
+  
+  def create_mapping_output_uuid(emsName, uuid)
+    json = Hash.new
+    json[:id] = create_ref(uuid)
     json[:source] = "Ptolemy" 
     json[:name] = ""
     json[:type] = ""
@@ -319,17 +364,18 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       #AHU discharge sensors
       #discharge air node
       discharge_air_node = airloop.supplyOutletNode
-      #create sensor points
+      #Temp Sensor
       haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Discharge Air Temp Sensor", building.handle, airloop.handle, "discharge", "air", "temp", "Number", "C")            
       haystack_json << haystack_temp_json
-      haystack_json << create_point("sensor", "#{airloop.name.to_s} Discharge Air Pressure Sensor", building.handle, airloop.handle, "discharge", "air", "pressure", "Number", "Pa")            
-      haystack_json << create_point("sensor", "#{airloop.name.to_s} Discharge Air Humidity Sensor", building.handle, airloop.handle, "discharge", "air", "humidity", "Number", "%")                      
-      #Temp Sensor
       discharge_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Temperature", discharge_air_node, "#{airloop.name.to_s} Discharge Air Temp Sensor", temp_uuid, report_freq, model)
       mapping_json << temp_json
       #Pressure Sensor
+      haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Discharge Air Pressure Sensor", building.handle, airloop.handle, "discharge", "air", "pressure", "Number", "Pa")    
+      haystack_json << haystack_temp_json      
       discharge_air_pressure_sensor = create_EMS_sensor("System Node Pressure", discharge_air_node, "#{airloop.name.to_s} Discharge Air Pressure Sensor", report_freq, model)
       #Humidity Sensor
+      haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Discharge Air Humidity Sensor", building.handle, airloop.handle, "discharge", "air", "humidity", "Number", "%")                      
+      haystack_json << haystack_temp_json
       discharge_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", discharge_air_node, "#{airloop.name.to_s} Discharge Air Humidity Sensor", report_freq, model)
       #Flow Sensor
       haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Discharge Air Flow Sensor", building.handle, airloop.handle, "discharge", "air", "flow", "Number", "Kg/s")  
@@ -350,14 +396,12 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           damper_command = create_ems_str("#{airloop.name.to_s} Outside Air Damper CMD")
           damper_command_enable = create_ems_str("#{airloop.name.to_s} Outside Air Damper CMD Enable")
           damper_position = create_ems_str("#{airloop.name.to_s} Outside Air Damper Sensor position")
-          haystack_json << create_point2("sensor", "position", damper_position, building.handle, airloop.handle, "outside", "air", "damper", "Number", "%")            
-          haystack_json << create_point2("cmd", "writable", damper_command, building.handle, airloop.handle, "outside", "air", "damper", "Number", "%")            
-          #remove enable from haystack json but keep for external interface variable
-          #haystack_json << create_point2("cmd", "enable", damper_command_enable, "#{building.name.to_s}", "#{airloop.name.to_s}", "outside", "air", "damper", "Bool", "")            
-
           #Damper Sensor
-          outside_air_damper_sensor, temp_json = create_EMS_sensor_bcvtb("Air System Outdoor Air Flow Fraction", airloop, "#{airloop.name.to_s} Outside Air Damper Sensor", report_freq, model)         
-          mapping_json << temp_json
+          haystack_temp_json, temp_uuid = create_point2_uuid("sensor", "position", damper_position, building.handle, airloop.handle, "outside", "air", "damper", "Number", "%")    
+          haystack_json << haystack_temp_json          
+          outside_air_damper_sensor, temp_json = create_EMS_sensor_bcvtb2("Air System Outdoor Air Flow Fraction", airloop, "#{airloop.name.to_s} Outside Air Damper Sensor", temp_uuid, report_freq, model)         
+          mapping_json << temp_json         
+
           #add EMS Actuator for Damper
           damper_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(controller_oa,"Outdoor Air Controller","Air Mass Flow Rate") 
           damper_actuator.setName(create_ems_str("#{airloop.name.to_s} Outside Air Mass Flow Rate"))
@@ -365,15 +409,21 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           if local_test == false
             #ExternalInterfaceVariables
             damper_variable_enable = OpenStudio::Model::ExternalInterfaceVariable.new(model, damper_command_enable, 1)
-            mapping_json << create_mapping_output(damper_command_enable)
+            mapping_json << create_mapping_output_uuid(damper_command_enable, damper_variable_enable.handle)
             damper_variable = OpenStudio::Model::ExternalInterfaceVariable.new(model, damper_command, 0.5)
-            mapping_json << create_mapping_output(damper_command)
+            mapping_json << create_mapping_output_uuid(damper_command, damper_variable.handle)
+            #Damper CMD
+            haystack_temp_json = create_controlpoint2("cmd", "writable", damper_command, damper_variable.handle, building.handle, airloop.handle, "outside", "air", "damper", "Number", "%")     
+            haystack_json << haystack_temp_json 
           else
             #EnergyManagementSystemVariables
             damper_variable_enable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{damper_command_enable}")
-            mapping_json << create_mapping_output(damper_command_enable)
+            mapping_json << create_mapping_output_uuid(damper_command_enable, damper_variable_enable.handle)
             damper_variable = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{damper_command}")
-            mapping_json << create_mapping_output(damper_command)
+            mapping_json << create_mapping_output_uuid(damper_command, damper_variable.handle) 
+            #Damper CMD
+            haystack_temp_json = create_controlpoint2("cmd", "writable", damper_command, damper_variable.handle, building.handle, airloop.handle, "outside", "air", "damper", "Number", "%")     
+            haystack_json << haystack_temp_json 
             #initialization program
             program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
             program.setName("#{damper_command}_Prgm_init")   
@@ -392,20 +442,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             #mixed air node
             mix_air_node = sc.mixedAirModelObject.get.to_Node.get
             runner.registerInfo("found mixed air node #{mix_air_node.name.to_s} on airloop #{airloop.name.to_s}")
-            #create sensor points
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Mixed Air Temp Sensor", building.handle, airloop.handle, "mixed", "air", "temp", "Number", "C")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Mixed Air Pressure Sensor", building.handle, airloop.handle, "mixed", "air", "pressure", "Number", "Pa")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Mixed Air Humidity Sensor", building.handle, airloop.handle, "mixed", "air", "humidity", "Number", "%")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Mixed Air Flow Sensor", building.handle, airloop.handle, "mixed", "air", "flow", "Number", "Kg/s")            
             #Temp Sensor
-            mixed_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Temperature", mix_air_node, "#{airloop.name.to_s} Mixed Air Temp Sensor", report_freq, model)
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Mixed Air Temp Sensor", building.handle, airloop.handle, "mixed", "air", "temp", "Number", "C")   
+            haystack_json << haystack_temp_json             
+            mixed_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Temperature", mix_air_node, "#{airloop.name.to_s} Mixed Air Temp Sensor", temp_uuid, report_freq, model)
             mapping_json << temp_json
             #Pressure Sensor
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Mixed Air Pressure Sensor", building.handle, airloop.handle, "mixed", "air", "pressure", "Number", "Pa")       
+            haystack_json << haystack_temp_json             
             mixed_air_pressure_sensor = create_EMS_sensor("System Node Pressure", mix_air_node, "#{airloop.name.to_s} Mixed Air Pressure Sensor", report_freq, model)
             #Humidity Sensor
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Mixed Air Humidity Sensor", building.handle, airloop.handle, "mixed", "air", "humidity", "Number", "%")    
+            haystack_json << haystack_temp_json             
             mixed_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", mix_air_node, "#{airloop.name.to_s} Mixed Air Humidity Sensor", report_freq, model)
             #Flow Sensor
-            mixed_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Mass Flow Rate", mix_air_node, "#{airloop.name.to_s} Mixed Air Flow Sensor", report_freq, model)
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Mixed Air Flow Sensor", building.handle, airloop.handle, "mixed", "air", "flow", "Number", "Kg/s") 
+            haystack_json << haystack_temp_json 
+            mixed_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Mass Flow Rate", mix_air_node, "#{airloop.name.to_s} Mixed Air Flow Sensor", temp_uuid, report_freq, model)
             mapping_json << temp_json
           end          
           #outdoor air node
@@ -414,20 +467,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             #outdoor air node
             outdoor_air_node = sc.outdoorAirModelObject.get.to_Node.get
             runner.registerInfo("found outdoor air node #{outdoor_air_node.name.to_s} on airloop #{airloop.name.to_s}")
-            #create sensor points
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Outside Air Temp Sensor", building.handle, airloop.handle, "outside", "air", "temp", "Number", "C")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Outside Air Pressure Sensor", building.handle, airloop.handle, "outside", "air", "pressure", "Number", "Pa")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Outside Air Humidity Sensor", building.handle, airloop.handle, "outside", "air", "humidity", "Number", "%")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Outside Air Flow Sensor", building.handle, airloop.handle, "outside", "air", "flow", "Number", "Kg/s")            
             #Temp Sensor
-            outside_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Temperature", outdoor_air_node, "#{airloop.name.to_s} Outside Air Temp Sensor", report_freq, model)
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Outside Air Temp Sensor", building.handle, airloop.handle, "outside", "air", "temp", "Number", "C")                    
+            haystack_json << haystack_temp_json 
+            outside_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Temperature", outdoor_air_node, "#{airloop.name.to_s} Outside Air Temp Sensor", temp_uuid, report_freq, model)
             mapping_json << temp_json
             #Pressure Sensor
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Outside Air Pressure Sensor", building.handle, airloop.handle, "outside", "air", "pressure", "Number", "Pa")               
+            haystack_json << haystack_temp_json 
             outside_air_pressure_sensor = create_EMS_sensor("System Node Pressure", outdoor_air_node, "#{airloop.name.to_s} Outside Air Pressure Sensor", report_freq, model)
             #Humidity Sensor
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Outside Air Humidity Sensor", building.handle, airloop.handle, "outside", "air", "humidity", "Number", "%")            
+            haystack_json << haystack_temp_json 
             outside_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", outdoor_air_node, "#{airloop.name.to_s} Outside Air Humidity Sensor", report_freq, model)
             #Flow Sensor
-            outside_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Mass Flow Rate", outdoor_air_node, "#{airloop.name.to_s} Outside Air Flow Sensor", report_freq, model)            
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Outside Air Flow Sensor", building.handle, airloop.handle, "outside", "air", "flow", "Number", "Kg/s") 
+            haystack_json << haystack_temp_json 
+            outside_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Mass Flow Rate", outdoor_air_node, "#{airloop.name.to_s} Outside Air Flow Sensor", temp_uuid, report_freq, model)            
             mapping_json << temp_json
           end         
           #return air node
@@ -436,20 +492,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             #return air node
             return_air_node = sc.returnAirModelObject.get.to_Node.get
             runner.registerInfo("found return air node #{return_air_node.name.to_s} on airloop #{airloop.name.to_s}")
-            #create sensor points
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Return Air Temp Sensor", building.handle, airloop.handle, "return", "air", "temp", "Number", "C")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Return Air Pressure Sensor", building.handle, airloop.handle, "return", "air", "pressure", "Number", "Pa")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Return Air Humidity Sensor", building.handle, airloop.handle, "return", "air", "humidity", "Number", "%")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Return Air Flow Sensor", building.handle, airloop.handle, "return", "air", "flow", "Number", "Kg/s")            
             #Temp Sensor
-            return_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Temperature", return_air_node, "#{airloop.name.to_s} Return Air Temp Sensor", report_freq, model)
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Return Air Temp Sensor", building.handle, airloop.handle, "return", "air", "temp", "Number", "C")                   
+            haystack_json << haystack_temp_json
+            return_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Temperature", return_air_node, "#{airloop.name.to_s} Return Air Temp Sensor", temp_uuid, report_freq, model)
             mapping_json << temp_json
             #Pressure Sensor
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Return Air Pressure Sensor", building.handle, airloop.handle, "return", "air", "pressure", "Number", "Pa")            
+            haystack_json << haystack_temp_json
             return_air_pressure_sensor = create_EMS_sensor("System Node Pressure", return_air_node, "#{airloop.name.to_s} Return Air Pressure Sensor", report_freq, model)
             #Humidity Sensor
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Return Air Humidity Sensor", building.handle, airloop.handle, "return", "air", "humidity", "Number", "%")              
+            haystack_json << haystack_temp_json
             return_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", return_air_node, "#{airloop.name.to_s} Return Air Humidity Sensor", report_freq, model)
             #Flow Sensor
-            return_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Mass Flow Rate", return_air_node, "#{airloop.name.to_s} Return Air Flow Sensor", report_freq, model)          
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Return Air Flow Sensor", building.handle, airloop.handle, "return", "air", "flow", "Number", "Kg/s")   
+            haystack_json << haystack_temp_json
+            return_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Mass Flow Rate", return_air_node, "#{airloop.name.to_s} Return Air Flow Sensor", temp_uuid, report_freq, model)          
             mapping_json << temp_json
           end        
           #relief air node
@@ -458,20 +517,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             #exhaust air node
             exhaust_air_node = sc.reliefAirModelObject.get.to_Node.get
             runner.registerInfo("found relief air node #{exhaust_air_node.name.to_s} on airloop #{airloop.name.to_s}")
-            #create sensor points
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Exhaust Air Temp Sensor", building.handle, airloop.handle, "exhaust", "air", "temp", "Number", "C")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Exhaust Air Pressure Sensor", building.handle, airloop.handle, "exhaust", "air", "pressure", "Number", "Pa")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Exhaust Air Humidity Sensor", building.handle, airloop.handle, "exhaust", "air", "humidity", "Number", "%")            
-            haystack_json << create_point("sensor", "#{airloop.name.to_s} Exhaust Air Flow Sensor", building.handle, airloop.handle, "exhaust", "air", "flow", "Number", "Kg/s")            
             #Temp Sensor
-            exhaust_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Temperature", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Temp Sensor", report_freq, model)
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Exhaust Air Temp Sensor", building.handle, airloop.handle, "exhaust", "air", "temp", "Number", "C")                      
+            haystack_json << haystack_temp_json
+            exhaust_air_temp_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Temperature", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Temp Sensor", temp_uuid, report_freq, model)
             mapping_json << temp_json
             #Pressure Sensor
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Exhaust Air Pressure Sensor", building.handle, airloop.handle, "exhaust", "air", "pressure", "Number", "Pa")            
+            haystack_json << haystack_temp_json
             exhaust_air_pressure_sensor = create_EMS_sensor("System Node Pressure", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Pressure Sensor", report_freq, model)
             #Humidity Sensor
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Exhaust Air Humidity Sensor", building.handle, airloop.handle, "exhaust", "air", "humidity", "Number", "%")            
+            haystack_json << haystack_temp_json
             exhaust_air_humidity_sensor = create_EMS_sensor("System Node Relative Humidity", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Humidity Sensor", report_freq, model)
             #Flow Sensor
-            exhaust_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb("System Node Mass Flow Rate", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Flow Sensor", report_freq, model)        
+            haystack_temp_json, temp_uuid = create_point_uuid("sensor", "#{airloop.name.to_s} Exhaust Air Flow Sensor", building.handle, airloop.handle, "exhaust", "air", "flow", "Number", "Kg/s")  
+            haystack_json << haystack_temp_json
+            exhaust_air_flow_sensor, temp_json = create_EMS_sensor_bcvtb2("System Node Mass Flow Rate", exhaust_air_node, "#{airloop.name.to_s} Exhaust Air Flow Sensor", temp_uuid, report_freq, model)        
             mapping_json << temp_json
           end           
           
