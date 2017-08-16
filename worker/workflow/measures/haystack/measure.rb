@@ -168,8 +168,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     json = Hash.new
     json[:id] = uuid 
     json[:source] = "EnergyPlus" 
-    json[:name] = outVarName
-    json[:type] = key.name.to_s
+    json[:type] = outVarName
+    json[:name] = key.name.to_s
     json[:variable] = ""
     return sensor, json
   end
