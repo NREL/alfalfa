@@ -172,7 +172,7 @@ class MlepProcess:
     def read(self):
         # Read Packet
         if self.is_running:
-            packet = self.comm_socket.recv(1000)
+            packet = self.comm_socket.recv(5000)
         else:
             packet = ''
             print('Co-simulation is not running.')
