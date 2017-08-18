@@ -12,3 +12,8 @@ iovars = Variables(variables_xml_path, mapping_json_path)
 
 print(iovars.outputIndex("7fd5d8f3-1993-4f81-9b5a-e73921d63c08")) # return 6
 print(iovars.outputIndex("wrong")) # return -1
+print(iovars.outputIds())
+print(iovars.inputIds())
+
+for outputid in iovars.outputIds():
+    print(outputid)
