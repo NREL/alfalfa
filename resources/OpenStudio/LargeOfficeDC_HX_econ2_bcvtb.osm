@@ -20111,7 +20111,7 @@ OS:Daylighting:Control,
 
 OS:Timestep,
   {b5fe2c9e-c32c-4973-ac5f-db7be7bb940f}, !- Handle
-  6;                                      !- Number of Timesteps per Hour
+  4;                                      !- Number of Timesteps per Hour
 
 OS:ShadowCalculation,
   {1b6fda22-0e00-4d48-8487-c88e9a803969}, !- Handle
