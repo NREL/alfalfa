@@ -18,6 +18,8 @@ from subprocess import call
 from shutil import copyfile
 from pymongo import MongoClient
 import pprint
+from parsevariables import Variables
+import sys
 
 
 # Simulation Process Class
@@ -37,6 +39,7 @@ class SimProcess:
         self.weather = None  # Weather file path (/path/to/weather/file)
         self.site_ref = None
         self.workflow_directory = None
+        self.variables = None
 
 
 # Process Message
@@ -50,14 +53,12 @@ def process_message(message):
         message.delete()
     else:
         op = message_body['op']
-        # Message needs to be deleted, otherwise it will show back up in the queue for processing
         if op == 'InvokeAction':
             processed = process_invoke_action_message(message_body)
-        elif op == 'PointWrite':
-            processed = process_write_point_message(message_body)
 
         if processed:
             print('Message processed successfully:\n{}'.format(message_body))
+            # Message needs to be deleted, otherwise it will show back up in the queue for processing
             # Only delete if we successfully handled it
             # Otherwise wait for worker to try again
             message.delete()
@@ -110,26 +111,6 @@ def process_invoke_action_message(message_body):
             return True
 
         return False
-    # Pause
-    elif action == 'pause_simulation':
-        # Enhancement: Make this take arguments to a particular model (idf/osm)
-        # Consider some global information to keep track of any simulation that is running
-        print('Pausing Simulation...')
-        sp.sim_status = 2
-        return True
-    elif action == 'resume_simulation':
-        # Enhancement: Make this take arguments to a particular model (idf/osm)
-        # Consider some global information to keep track of any simulation that is running
-        print('Resuming Simulation...')
-        sp.sim_status = 1
-        return True
-    # Stop
-    elif action == 'stop_simulation':
-        # Enhancement: Make this take arguments to a particular model (idf/osm)
-        # Consider some global information to keep track of any simulation that is running
-        print('Stopping Simulation...')
-        sp.sim_status = 3
-        return True
     # Add Site
     elif action == 'add_site':
         if not ep.is_running:
@@ -204,27 +185,6 @@ def add_new_site(osm_name, upload_id):
         print("Indent Local")
     return
 
-
-# Return true if the message was handled, otherwise false
-def process_write_point_message(message_body):
-    global ep
-
-    try:
-        haystack_id = message_body['haystack_id']
-        value = message_body['val']
-        print("process_write_point_message: id = {haystack_id}, val = {value}".format(**locals()))
-        # Get index
-        index = ep.inputs_list.index(haystack_id)
-        # Update Inputs list
-        ep.inputs[index] = 1
-        ep.inputs[index + 1] = value
-    except:
-        flag = False
-    else:
-        flag = True
-    return flag
-
-
 # Start Simulation
 def start_simulation():
     global sp
@@ -256,6 +216,8 @@ def start_simulation():
             tar.extractall(sim_path)
             tar.close()
 
+            sp.variables = Variables(variables_path,sp.mapping)
+
             call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
             copyfile(variables_path, variables_new_path)
 
@@ -272,7 +234,7 @@ def start_simulation():
         # Get Mapping
         [ep.outputs_list, ep.inputs_list] = mlep.mlep_parse_json(ep.mapping)
         # Initialize input tuplet
-        ep.inputs = [0] * (len(ep.inputs_list) + 1)
+        ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)
 
         # Start EnergyPlus co-simulation
         (ep.status, ep.msg) = ep.start()
@@ -379,81 +341,89 @@ if __name__ == '__main__':
         sp.next_time = time.time()
         if ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and (
                 sp.next_time - sp.start_time >= sp.step_time):
-            sp.start_time = time.time()
-            packet = ep.read()
-            if packet == '':
-                raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
+            try:
+                print('step: %s' % ep.kStep)
+                sp.start_time = time.time()
+                packet = ep.read()
+                if packet == '':
+                    raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
 
-            # Parse it to obtain building outputs
-            [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
-            # Log Output Data
-            ep.outputs = outputs
-            print(ep.kStep)
+                # Parse it to obtain building outputs
+                [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
+                # Log Output Data
+                ep.outputs = outputs
 
-            if ep.flag != 0:
-                break
+                if ep.flag != 0:
+                    break
 
-            # for item in ep.inputs_list:
-            #    write_array = mongo.getWriteArray(item)
-            #    value = write_array.getCurrentWinningValue
-            #    ep.inputs[ep.inputs.index(id)] = value
-            if not local_flag:
-                write_arrays = mongodb.writearrays
-                for array in write_arrays.find({"siteRef": sp.site_ref}):
-                    for val in array.get('val'):
-                        if val:
-                            ep.inputs[ep.inputs_list.index(array.get('_id'))] = val
-                            break
-            else:
-                # Local Flag
-                write_arrays = local_db.writearrays
-                for array in write_arrays.find({"siteRef": sp.site_ref}):
-                    for val in array.get('val'):
-                        if val:
-                            ind = ep.inputs_list.index(array.get('_id'))
-                            ep.inputs[0] = 1
-                            ep.inputs[round((ind+1)/2)] = val
-                            ep.inputs[round((ind+1)/2)-1] = 1
-                            break
-                # ep.inputs = [0, 0, 0]
+                if not local_flag:
+                    write_arrays = mongodb.writearrays
+                    for array in write_arrays.find({"siteRef": sp.site_ref}):
+                        for val in array.get('val'):
+                            if val:
+                                index = sp.variables.inputIndex(array.get('_id'))
+                                if index == -1:
+                                    print('bad input index for: %s' % array.get('_id'))
+                                else:
+                                    ep.inputs[index] = val
+                                    ep.inputs[index + 1] = 1
+                                    break
+                else:
+                    # Local Flag
+                    write_arrays = local_db.writearrays
+                    for array in write_arrays.find({"siteRef": sp.site_ref}):
+                        for val in array.get('val'):
+                            if val:
+                                ind = ep.inputs_list.index(array.get('_id'))
+                                ep.inputs[0] = 1
+                                ep.inputs[round((ind+1)/2)] = val
+                                ep.inputs[round((ind+1)/2)-1] = 1
+                                break
+                    # ep.inputs = [0, 0, 0]
 
-            # Convert to tuple
-            inputs = tuple(ep.inputs)
+                # Convert to tuple
+                inputs = tuple(ep.inputs)
 
-            # Write to inputs of E+
-            ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
+                # Write to inputs of E+
+                ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
 
-            if not local_flag:
-                # Push latest point values to database
-                # values_to_insert = []
-                recs = mongodb.recs
-                for output in ep.outputs_list:
-                    output_index = ep.outputs_list.index(output)
-                    output_value = ep.outputs[output_index]
-                    output_doc = {"_id": output, "curVal": output_value}
-                    # TO DO: Make this better with a bulk update
-                    # Also at some point consider removing curVal and related fields after sim ends
-                    recs.update_one({"_id": output}, {
-                        "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
-                    # values_to_insert.append(output_doc)
+                if not local_flag:
+                    recs = mongodb.recs
+                    for outputid in sp.variables.outputIds():
+                        output_index = sp.variables.outputIndex(outputid)
+                        if output_index == -1:
+                            print('bad output index for: %s' % outputid)
+                        else:
+                            output_value = ep.outputs[output_index]
+                            # TO DO: Make this better with a bulk update
+                            # Also at some point consider removing curVal and related fields after sim ends
+                            recs.update_one({"_id": outputid}, {
+                                "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
+                else:
+                    # Push to local DB
+                    print("TO DO: push to local DB")
 
-                    # cur_values.update_many({'_id': {'$in': values_to_insert}}, {'$set': {'$in': values_to_insert}})
-            else:
-                # Push to local DB
-                print("TO DO: push to local DB")
-
-            # Advance time
-            ep.kStep = ep.kStep + 1
+                # Advance time
+                ep.kStep = ep.kStep + 1
+            except mlep.mlep_error.InputError as e:
+                print(e.expression)
+                print(e.message)
+            except:
+                print("Error while advancing simulation:", sys.exc_info()[0])
+                # TODO: Cleanup simulation, and reset everything
 
         # Check Stop
         if (ep.is_running and (ep.kStep >= ep.MAX_STEPS)) or (sp.sim_status == 3 and ep.is_running):
-            ep.stop(True)
-            ep.is_running = 0
-            sp.sim_status = 0
-            # TO DO: Need to wait for a signal of some sort that E+ is done, before removing stuff
-            time.sleep(5)
-            shutil.rmtree(sp.workflow_directory)
-            print('Simulation Terminated')
+            try:
+                ep.stop(True)
+                ep.is_running = 0
+                sp.sim_status = 0
+                # TO DO: Need to wait for a signal of some sort that E+ is done, before removing stuff
+                time.sleep(5)
+                shutil.rmtree(sp.workflow_directory)
+                print('Simulation Terminated')
+            except:
+                print("Error while attempting to stop / cleanup simulation")
 
             # Done with simulation step
             # print('ping')
