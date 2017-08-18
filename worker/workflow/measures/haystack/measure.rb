@@ -212,7 +212,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     runner.registerInfo("local_test = #{local_test}")
     
     #Global Vars
-    report_freq = "hourly"
+    report_freq = "timestep"
     
     #initialize variables
     haystack_json = []
