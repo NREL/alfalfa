@@ -44,28 +44,32 @@ class SimProcess:
 
 # Process Message
 def process_message(message):
-    print('got a message')
     try:
         processed = False
         message_body = json.loads(message.body)
     except Exception as e:
         print('Exception: {0}'.format(e))
-        message.delete()
     else:
-        op = message_body['op']
+        op = message_body.get('op')
         if op == 'InvokeAction':
-            processed = process_invoke_action_message(message_body)
+            action = message_body.get('action')
+            if action == 'start_simulation':
+                site_ref = message_body.get('site_ref')
+                time_scale = message_body.get('time_scale')
+                start_date = message_body.get('start_date')
+                end_date = message_body.get('end_date')
+                start_hour = message_body.get('start_hour')
+                end_hour = message_body.get('end_hour')
+                call(['python', 'startSimulation.py', site_ref, time_scale, start_date, end_date, start_hour, end_hour])
+            elif action == 'add_site':
+                osm_name = message_body.get('osm_name')
+                upload_id = message_body.get('upload_id')
+                if local_flag:
+                    print('addSite is not supported for local flag')
+                else:
+                    call(['python', 'addSite.py', osm_name, upload_id])
 
-        if processed:
-            print('Message processed successfully:\n{}'.format(message_body))
-            # Message needs to be deleted, otherwise it will show back up in the queue for processing
-            # Only delete if we successfully handled it
-            # Otherwise wait for worker to try again
-            message.delete()
-        else:
-            print('Message could not be processed:\n{}'.format(message_body))
-
-    return
+    message.delete()
 
 
 # Process Invoke Action Message
