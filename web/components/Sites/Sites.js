@@ -118,7 +118,7 @@ const pointsQL = gql`
 
 const PointDialog = graphql(pointsQL, {
   options: (props) => ({
-    pollInterval: 3000,
+    pollInterval: 1000,
     variables: {
       siteRef: props.siteRef
     }
