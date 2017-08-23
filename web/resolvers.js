@@ -50,7 +50,7 @@ function  sitesResolver(user,siteRef) {
           let site = {
             name: row.dis.replace(/[a-z]\:/,''),
             siteRef: row.id.replace(/[a-z]\:/,''),
-            simStatus: 'Stopped',
+            simStatus: row.simStatus.replace(/[a-z]\:/,''),
           };
           sites.push(site);
         });

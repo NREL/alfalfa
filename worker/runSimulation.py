@@ -78,7 +78,7 @@ def reset(tarinfo):
     tarinfo.uname = tarinfo.gname = "root"
     return tarinfo
 
-def finalizeSimulation(sp):
+def finalizeSimulation(sp, recs):
     tarname = "%s.tar.gz" % sp.site_ref
     tar = tarfile.open(tarname, "w:gz")
     tar.add(sp.workflow_directory, filter=reset, arcname=site_ref)
@@ -87,6 +87,8 @@ def finalizeSimulation(sp):
     bucket.upload_file(tarname, "simulated/%s" % tarname)
     os.remove(tarname)
     shutil.rmtree(sp.workflow_directory)
+
+    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
 
 #    tar = tarfile.open(tarname, "w:gz")
 #    tar.add(directory, filter=reset, arcname=site_ref)
@@ -103,6 +105,7 @@ s3 = boto3.resource('s3', region_name='us-west-1')
 mongo_client = MongoClient(os.environ['MONGO_URL'])
 logger.info('MONGO_URL: %s' % os.environ['MONGO_URL'])
 mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+recs = mongodb.recs
 
 time_step = 15  # Simulation time step
 sp = SimProcess()
@@ -191,6 +194,8 @@ if ep.is_running:
 
 sp.start_time = time.time()
 
+recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
+
 # probably need some kind of fail safe/timeout to ensure
 # that this is not an infinite loop
 # or maybe a timeout in the python call to this script
@@ -231,7 +236,6 @@ while True:
             # Write to inputs of E+
             ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
     
-            recs = mongodb.recs
             for outputid in sp.variables.outputIds():
                 output_index = sp.variables.outputIndex(outputid)
                 if output_index == -1:
@@ -247,7 +251,7 @@ while True:
             ep.kStep = ep.kStep + 1
         except:
             logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
-            finalizeSimulation(sp)
+            finalizeSimulation(sp,recs)
             break
             # TODO: Cleanup simulation, and reset everything
     
@@ -259,12 +263,12 @@ while True:
             sp.sim_status = 0
             # TO DO: Need to wait for a signal of some sort that E+ is done, before removing stuff
             time.sleep(5)
-            finalizeSimulation(sp)
+            finalizeSimulation(sp,recs)
             logger.info('Simulation Terminated')
             break
         except:
             logger.error("Error while attempting to stop / cleanup simulation")
-            finalizeSimulation(sp)
+            finalizeSimulation(sp,recs)
             break
     
         # Done with simulation step
