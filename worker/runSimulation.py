@@ -97,10 +97,12 @@ def finalizeSimulation(sp):
 
 sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
+logger.info('JOB_QUEUE_URL: %s' % os.environ['JOB_QUEUE_URL'])
 s3 = boto3.resource('s3', region_name='us-west-1')
 # Mongo Database
 mongo_client = MongoClient(os.environ['MONGO_URL'])
-mongodb = mongo_client.admin
+logger.info('MONGO_URL: %s' % os.environ['MONGO_URL'])
+mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
 
 time_step = 15  # Simulation time step
 sp = SimProcess()
