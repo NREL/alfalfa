@@ -10,8 +10,11 @@ import {MongoClient} from 'mongodb';
 import graphQLHTTP from 'express-graphql';
 import {Schema} from './schema';
 import historyApiFallback from 'connect-history-api-fallback';
+import morgan from 'morgan';
 
 var app = express();
+
+app.use(morgan('combined'))
 
 app.use(bodyParser.text({ type: 'text/*' }));
 app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
@@ -23,6 +26,9 @@ app.use('/graphql', graphQLHTTP({
 }));
 
 app.all('/api/*', function(req, res) {
+  // Remove this in production
+  console.log('body: ', req.body);
+
   var path = url.parse(req.url).pathname;
   path = path.replace('/api','');
 
@@ -47,7 +53,6 @@ app.all('/api/*', function(req, res) {
         console.log(err.stack);
         throw err;
       }
-
       res.end();
     });
   });

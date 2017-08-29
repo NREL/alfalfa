@@ -19,7 +19,14 @@
             "name": "MONGO_DB_NAME",
             "value": "alfalfa"
           }
-      ]
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "awslogs-worker",
+          "awslogs-region": "us-west-1"
+        }
+      }
     }
   ],
   "family": "worker",
