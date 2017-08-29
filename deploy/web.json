@@ -26,7 +26,14 @@
           "containerPort": 80,
           "protocol": "tcp"
         }
-      ]
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "awslogs-web",
+          "awslogs-region": "us-west-1"
+        }
+      }
     }
   ],
   "family": "web",

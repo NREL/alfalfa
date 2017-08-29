@@ -16,6 +16,7 @@ Commonly used command are:
    start
    stop
    down
+   create-log-groups
 See 'deploy COMMAND --help' for more information on a specific command.
 HELP
 
@@ -89,6 +90,15 @@ subcommands = {
         puts opts
         exit
       end
+   end,
+
+   'create-log-groups' => OptionParser.new do |opts|
+      opts.banner = "Usage: create-log-groups"
+      opts.on_tail("-h", "--help", "Show help") do
+        puts 'Create aws Cloud Watch log groups'
+        puts opts
+        exit
+      end
    end
 }
 
@@ -148,6 +158,9 @@ when 'down'
     puts %x(aws ec2 terminate-instances --instance-ids #{inst['InstanceId']})
   end
 
+when 'create-log-groups'
+  puts %x(aws logs create-log-group --log-group-name awslogs-web)
+  puts %x(aws logs create-log-group --log-group-name awslogs-worker)
 end
 
 
