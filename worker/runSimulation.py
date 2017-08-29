@@ -1,13 +1,10 @@
 from __future__ import print_function
-import sys
 import os
 import boto3
-import json
 import tarfile
 import shutil
 import time
 from pymongo import MongoClient
-import pprint
 from parsevariables import Variables
 import sys
 import mlep
@@ -43,7 +40,7 @@ logger = logging.getLogger('simulation')
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-log_file = os.path.join(directory,'simulation.log')
+log_file = os.path.join(directory, 'simulation.log')
 fh = logging.FileHandler(log_file)
 fh.setLevel(logging.INFO)
 fh.setFormatter(formatter)
@@ -53,6 +50,7 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+
 
 # Simulation Process Class
 class SimProcess:
@@ -73,29 +71,31 @@ class SimProcess:
         self.workflow_directory = None
         self.variables = None
 
+
 def reset(tarinfo):
     tarinfo.uid = tarinfo.gid = 0
     tarinfo.uname = tarinfo.gname = "root"
     return tarinfo
 
-def finalizeSimulation(sp, recs):
-    tarname = "%s.tar.gz" % sp.site_ref
-    tar = tarfile.open(tarname, "w:gz")
-    tar.add(sp.workflow_directory, filter=reset, arcname=site_ref)
+
+def finalize_simulation(sp, recs):
+    tar_name = "%s.tar.gz" % sp.site_ref
+    tar = tarfile.open(tar_name, "w:gz")
+    tar.add(sp.workflow_directory, filter=reset, arc_name=site_ref)
     tar.close()
 
-    bucket.upload_file(tarname, "simulated/%s" % tarname)
-    os.remove(tarname)
+    bucket.upload_file(tar_name, "simulated/%s" % tar_name)
+    os.remove(tar_name)
     shutil.rmtree(sp.workflow_directory)
 
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
 
-#    tar = tarfile.open(tarname, "w:gz")
-#    tar.add(directory, filter=reset, arcname=site_ref)
+#    tar = tarfile.open(tar_name, "w:gz")
+#    tar.add(directory, filter=reset, arc_name=site_ref)
 #    tar.close()
 #
-#    bucket.upload_file(tarname, "parsed/%s" % tarname)
-#    os.remove(tarname)
+#    bucket.upload_file(tar_name, "parsed/%s" % tar_name)
+#    os.remove(tar_name)
 
 sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
@@ -130,9 +130,9 @@ if end_hour != 'None':
 if 'site_ref' != 'None':
     sp.site_ref = site_ref
 
-tarname = "%s.tar.gz" % sp.site_ref
-key = "parsed/%s" % tarname
-tarpath = os.path.join(directory, tarname)
+tar_name = "%s.tar.gz" % sp.site_ref
+key = "parsed/%s" % tar_name
+tarpath = os.path.join(directory, tar_name)
 osmpath = os.path.join(directory, 'workflow/run/in.osm')
 sp.idf = os.path.join(directory, "workflow/run/%s" % sp.site_ref)
 sp.weather = os.path.join(directory, 'workflow/files/weather.epw')
@@ -148,7 +148,7 @@ tar = tarfile.open(tarpath)
 tar.extractall(sim_path)
 tar.close()
 
-sp.variables = Variables(variables_path,sp.mapping)
+sp.variables = Variables(variables_path, sp.mapping)
 
 subprocess.call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
 shutil.copyfile(variables_path, variables_new_path)
@@ -251,7 +251,7 @@ while True:
             ep.kStep = ep.kStep + 1
         except:
             logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
-            finalizeSimulation(sp,recs)
+            finalize_simulation(sp, recs)
             break
             # TODO: Cleanup simulation, and reset everything
     
@@ -263,12 +263,12 @@ while True:
             sp.sim_status = 0
             # TO DO: Need to wait for a signal of some sort that E+ is done, before removing stuff
             time.sleep(5)
-            finalizeSimulation(sp,recs)
+            finalize_simulation(sp, recs)
             logger.info('Simulation Terminated')
             break
         except:
             logger.error("Error while attempting to stop / cleanup simulation")
-            finalizeSimulation(sp,recs)
+            finalize_simulation(sp, recs)
             break
     
         # Done with simulation step
