@@ -81,7 +81,7 @@ def reset(tarinfo):
 def finalize_simulation(sp, recs):
     tar_name = "%s.tar.gz" % sp.site_ref
     tar = tarfile.open(tar_name, "w:gz")
-    tar.add(sp.workflow_directory, filter=reset, arc_name=site_ref)
+    tar.add(sp.workflow_directory, filter=reset, arcname=site_ref)
     tar.close()
 
     bucket.upload_file(tar_name, "simulated/%s" % tar_name)
@@ -91,7 +91,7 @@ def finalize_simulation(sp, recs):
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
 
 #    tar = tarfile.open(tar_name, "w:gz")
-#    tar.add(directory, filter=reset, arc_name=site_ref)
+#    tar.add(directory, filter=reset, arcname=site_ref)
 #    tar.close()
 #
 #    bucket.upload_file(tar_name, "parsed/%s" % tar_name)
@@ -242,7 +242,7 @@ while True:
                     logger.error('bad output index for: %s' % outputid)
                 else:
                     output_value = ep.outputs[output_index]
-                    # TO DO: Make this better with a bulk update
+                    # TODO: Make this better with a bulk update
                     # Also at some point consider removing curVal and related fields after sim ends
                     recs.update_one({"_id": outputid}, {
                         "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
@@ -261,7 +261,7 @@ while True:
             ep.stop(True)
             ep.is_running = 0
             sp.sim_status = 0
-            # TO DO: Need to wait for a signal of some sort that E+ is done, before removing stuff
+            # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
             time.sleep(5)
             finalize_simulation(sp, recs)
             logger.info('Simulation Terminated')
