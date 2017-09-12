@@ -74,7 +74,7 @@ def replace_date(idf_file, pattern, start_date, end_date):
         f.truncate()
         for line in lines:
             if pattern in line:
-                count = 6
+                count = 5
             elif count > 4:
                 # Do nothing
                 count = count - 1
