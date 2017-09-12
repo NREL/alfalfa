@@ -10,6 +10,7 @@ import sys
 import mlep
 import subprocess
 import logging
+import re
 
 if len(sys.argv) == 7:
     site_ref = sys.argv[1]
