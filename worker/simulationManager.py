@@ -11,10 +11,10 @@ from __future__ import print_function
 import os
 import boto3
 import json
-import shutil
 import subprocess
 import sys
 import logging
+
 
 # Process Message
 def process_message(message):
@@ -25,14 +25,15 @@ def process_message(message):
         if op == 'InvokeAction':
             action = message_body.get('action')
             if action == 'start_simulation':
-                site_ref = message_body.get('id','None')
-                time_scale = message_body.get('time_scale','None')
-                start_date = message_body.get('start_date','None')
-                end_date = message_body.get('end_date','None')
-                start_hour = message_body.get('start_hour','None')
-                end_hour = message_body.get('end_hour','None')
+                site_ref = message_body.get('id', 'None')
+                time_scale = message_body.get('time_scale', 'None')
+                start_date = message_body.get('start_date', 'None')
+                end_date = message_body.get('end_date', 'None')
+                start_hour = message_body.get('start_hour', 'None')
+                end_hour = message_body.get('end_hour', 'None')
                 logger.info('Start simulation for site_ref: %s' % site_ref)
-                subprocess.call(['python', 'runSimulation.py', site_ref, time_scale, start_date, end_date, start_hour, end_hour])
+                subprocess.call(['python', 'runSimulation.py', site_ref, time_scale, start_date, end_date, start_hour,
+                                 end_hour])
             elif action == 'add_site':
                 osm_name = message_body.get('osm_name')
                 upload_id = message_body.get('upload_id')
@@ -40,6 +41,7 @@ def process_message(message):
                 subprocess.call(['python', 'addSite.py', osm_name, upload_id])
     except:
         print('Exception while processing message', file=sys.stderr)
+
 # ======================================================= MAIN ========================================================
 if __name__ == '__main__':
     try:
@@ -73,4 +75,3 @@ if __name__ == '__main__':
             logger.info('Message Received with payload: %s' % msg.body)
             # Process Message
             process_message(msg)
-
