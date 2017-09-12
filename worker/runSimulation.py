@@ -205,7 +205,8 @@ shutil.copyfile(variables_path, variables_new_path)
 # Set date
 sp.start_date = '01/01'
 sp.end_date = '01/05'
-replace_date(sp.idf, 'RunPeriod,', sp.start_date, sp.end_date)
+logger.info(sp.idf)
+replace_date(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date)
 
 # Arguments
 ep.accept_timeout = sp.accept_timeout
