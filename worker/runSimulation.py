@@ -11,6 +11,7 @@ import mlep
 import subprocess
 import logging
 import re
+from datetime import date, datetime
 
 if len(sys.argv) == 7:
     site_ref = sys.argv[1]
@@ -54,12 +55,13 @@ logger.addHandler(ch)
 
 
 # Replace Date
-def replace_date(idf_file, pattern, start_date, end_date):
+def replace_date(idf_file, pattern, date_start, date_end):
     # Parse Date
-    begin_month = [int(s) for s in re.findall(r'\d+', start_date)][0]
-    begin_day = [int(s) for s in re.findall(r'\d+', start_date)][1]
-    end_month = [int(s) for s in re.findall(r'\d+', end_date)][0]
-    end_day = [int(s) for s in re.findall(r'\d+', end_date)][1]
+    begin_month = [int(s) for s in re.findall(r'\d+', date_start)][0]
+    begin_day = [int(s) for s in re.findall(r'\d+', date_start)][1]
+    end_month = [int(s) for s in re.findall(r'\d+', date_end)][0]
+    end_day = [int(s) for s in re.findall(r'\d+', date_end)][1]
+    dates = (begin_month, begin_day, end_month, end_day)
 
     # Generate Lines
     begin_month_line = '  {},                                      !- Begin Month\n'.format(begin_month)
@@ -97,23 +99,26 @@ def replace_date(idf_file, pattern, start_date, end_date):
                 count = count - 1
             # Write Every line
             f.write(line)
+    return dates
 
 
 # Simulation Process Class
 class SimProcess:
     def __init__(self):
-        self.sim_status = 0  # 0=init, 1=running, 2=pause, 3=stop
-        self.step_time = 20  # Real-time step
-        self.start_time = 0  # Real-time step
-        self.next_time = 0  # Real-time step
-        self.start_date = '01/01'  # Start date for simulation (01/01)
-        self.end_date = '12/31'  # End date for simulation (12/31)
-        self.start_hour = 1  # Start hour for simulation (1-23)
-        self.end_hour = 23  # End hour for simulation (1-23)
-        self.accept_timeout = 10000  # Accept timeout for simulation (ms)
-        self.idf = None  # EnergyPlus file path (/path/to/energyplus/file)
+        self.sim_status = 0             # 0=init, 1=running, 2=pause, 3=stop
+        self.rt_step_time = 20          # Real-time step - seconds
+        self.sim_step_per_hour = 4      # Simulation steps per hour
+        self.sim_step_time = 60/self.sim_step_per_hour*60   # Simulation time step - seconds
+        self.start_time = 0             # Real-time step
+        self.next_time = 0              # Real-time step
+        self.start_date = '01/01'       # Start date for simulation (01/01)
+        self.end_date = '12/31'         # End date for simulation (12/31)
+        self.start_hour = 0            # Start hour for simulation (1-23)
+        self.end_hour = 23              # End hour for simulation (1-23)
+        self.accept_timeout = 10000     # Accept timeout for simulation (ms)
+        self.idf = None                 # EnergyPlus file path (/path/to/energyplus/file)
         self.mapping = None
-        self.weather = None  # Weather file path (/path/to/weather/file)
+        self.weather = None             # Weather file path (/path/to/weather/file)
         self.site_ref = None
         self.workflow_directory = None
         self.variables = None
@@ -144,6 +149,7 @@ def finalize_simulation():
 #    bucket.upload_file(tar_name, "parsed/%s" % tar_name)
 #    os.remove(tar_name)
 
+
 sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
 logger.info('JOB_QUEUE_URL: %s' % os.environ['JOB_QUEUE_URL'])
@@ -164,9 +170,9 @@ ep.bcvtbDir = '/root/bcvtb/'
 ep.env = {'BCVTB_HOME': '/root/bcvtb'}
 
 try:
-    sp.step_time = time_step * 3600 / int(time_scale)
+    sp.rt_step_time = time_step * 3600 / int(time_scale)
 except:
-    sp.step_time = 20
+    sp.rt_step_time = 20
     
 if start_date != 'None':
     sp.start_date = start_date
@@ -203,10 +209,13 @@ subprocess.call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
 shutil.copyfile(variables_path, variables_new_path)
 
 # Set date
-sp.start_date = '01/01'
-sp.end_date = '01/05'
-logger.info(sp.idf)
-replace_date(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date)
+sp.start_date = '02/01'
+sp.end_date = '02/02'
+sp.start_hour = 15
+sp.end_hour = 18
+bypass_flag = True
+real_time_flag = False
+sim_date = replace_date(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date)
 
 # Arguments
 ep.accept_timeout = sp.accept_timeout
@@ -239,9 +248,19 @@ if ep.status != 0:
     ep.flag = 1
 
 # The main simulation loop
-ep.deltaT = 15 * 60  # time step conversion min -> sec
-ep.kStep = 1  # current simulation step
-ep.MAX_STEPS = 1 * 24 * 4 + 1  # max simulation time = 4 days
+# TODO: Get the time step from the idf file
+ep.deltaT = sp.sim_step_time    # time step - sec
+ep.kStep = 1                    # current simulation step
+# Days
+d0 = date(2017, sim_date[0], sim_date[1])
+d1 = date(2017, sim_date[2], sim_date[3])
+delta = d1 - d0
+ep.MAX_STEPS = (24 * delta.days + sp.end_hour - 1) * sp.sim_step_per_hour + 1  # Max. Number of Steps
+logger.info('############# MAX STEPS:  {0} #############'.format(ep.MAX_STEPS))
+logger.info('############# Days:       {0} #############'.format(delta.days))
+logger.info('############# End Hour :  {0} #############'.format(sp.end_hour))
+logger.info('############# Step/Hour:  {0} #############'.format(sp.sim_step_per_hour))
+logger.info('############# Start Hour: {0} #############'.format(sp.start_hour))
 
 # Simulation Status
 if ep.is_running:
@@ -256,12 +275,28 @@ recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, 
 # or maybe a timeout in the python call to this script
 while True:
     sp.next_time = time.time()
-    if ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and (
-            sp.next_time - sp.start_time >= sp.step_time):
+    if (ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and
+            (sp.next_time - sp.start_time >= sp.rt_step_time)) or \
+            (ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and bypass_flag):
         try:
+            # Check BYPASS
+            if bypass_flag:
+                if real_time_flag:
+                    rt_hour = datetime.datetime.now().time().hour
+                    rt_minute = datetime.datetime.now().time().minute
+                    if rt_hour * 3600 + rt_minute * 60 <= (ep.kStep - 1) * ep.deltaT:
+                        bypass_flag = False  # Stop bypass
+                        logger.info('########### STOP BYPASS: RT ###########')
+                else:
+                    if sp.start_hour*3600 <= (ep.kStep-1)*ep.deltaT:
+                        bypass_flag = False     # Stop bypass
+                        logger.info('########### STOP BYPASS: Dates ###########')
+
+            # Read packet
             logger.info('step: %s' % ep.kStep)
             sp.start_time = time.time()
             packet = ep.read()
+            logger.info('Packet: {0}'.format(packet))
             if packet == '':
                 raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
     
@@ -272,22 +307,29 @@ while True:
     
             if ep.flag != 0:
                 break
-    
-            write_arrays = mongodb.writearrays
-            for array in write_arrays.find({"siteRef": sp.site_ref}):
-                for val in array.get('val'):
-                    if val:
-                        index = sp.variables.inputIndex(array.get('_id'))
-                        if index == -1:
-                            logger.error('bad input index for: %s' % array.get('_id'))
-                        else:
-                            ep.inputs[index] = val
-                            ep.inputs[index + 1] = 1
-                            break
-    
+
+            if bypass_flag:
+                ep.inputs[0] = 0
+            else:
+                ep.inputs[0] = 0
+                write_arrays = mongodb.writearrays
+                for array in write_arrays.find({"siteRef": sp.site_ref}):
+                    for val in array.get('val'):
+                        if val:
+                            index = sp.variables.inputIndex(array.get('_id'))
+                            if index == -1:
+                                logger.error('bad input index for: %s' % array.get('_id'))
+                            else:
+                                ep.inputs[index] = val
+                                ep.inputs[index + 1] = 1
+                                break
+
             # Convert to tuple
             inputs = tuple(ep.inputs)
-    
+
+            # Print
+            logger.info('Time: {0}'.format((ep.kStep - 1) * ep.deltaT))
+
             # Write to inputs of E+
             ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
     
@@ -304,6 +346,7 @@ while True:
     
             # Advance time
             ep.kStep = ep.kStep + 1
+
         except:
             logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
             finalize_simulation()
@@ -319,7 +362,8 @@ while True:
             # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
             time.sleep(5)
             finalize_simulation()
-            logger.info('Simulation Terminated')
+            logger.info('Simulation Terminated: Status: {0}, Step: {1}/{2}'.
+                        format(sp.sim_status, ep.kStep, ep.MAX_STEPS))
             break
         except:
             logger.error("Error while attempting to stop / cleanup simulation")
