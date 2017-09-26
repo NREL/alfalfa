@@ -55,7 +55,7 @@ logger.addHandler(ch)
 
 
 # Replace Date
-def replace_date(idf_file, pattern, date_start, date_end):
+def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
     # Parse Date
     begin_month = [int(s) for s in re.findall(r'\d+', date_start)][0]
     begin_day = [int(s) for s in re.findall(r'\d+', date_start)][1]
@@ -68,9 +68,11 @@ def replace_date(idf_file, pattern, date_start, date_end):
     begin_day_line = '  {},                                      !- Begin Day of Month\n'.format(begin_day)
     end_month_line = '  {},                                      !- End Month\n'.format(end_month)
     end_day_line = '  {},                                      !- End Day of Month\n'.format(end_day)
+    time_step_line = '  {};                                      !- Number of Timesteps per Hour\n'.format(time_step)
 
     # Overwrite File
     count = 0
+    count_ts = 0
     with open(idf_file, 'r+') as f:
         lines = f.readlines()
         f.seek(0)
@@ -97,6 +99,13 @@ def replace_date(idf_file, pattern, date_start, date_end):
                 # End day
                 line = end_day_line
                 count = count - 1
+            elif 'Timestep,' in line:
+                # Time step
+                count_ts = 1
+            elif count_ts == 1:
+                # Replace
+                line = time_step_line
+                count_ts = 0
             # Write Every line
             f.write(line)
     return dates
@@ -162,18 +171,12 @@ logger.info(os.environ['MONGO_DB_NAME'])
 mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
 recs = mongodb.recs
 
-time_step = 15  # Simulation time step
 sp = SimProcess()
 ep = mlep.MlepProcess()
 
 ep.bcvtbDir = '/root/bcvtb/'
 ep.env = {'BCVTB_HOME': '/root/bcvtb'}
 
-try:
-    sp.rt_step_time = time_step * 3600 / int(time_scale)
-except:
-    sp.rt_step_time = 20
-    
 if start_date != 'None':
     sp.start_date = start_date
 if end_date != 'None':
@@ -208,14 +211,22 @@ sp.variables = Variables(variables_path, sp.mapping)
 subprocess.call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
 shutil.copyfile(variables_path, variables_new_path)
 
-# Set date
+# TODO: Kyle to pass this arguments
 sp.start_date = '02/01'
 sp.end_date = '02/02'
 sp.start_hour = 15
 sp.end_hour = 18
-bypass_flag = True
+sp.sim_step_per_hour = 4
 real_time_flag = False
-sim_date = replace_date(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date)
+
+# Simulation Parameters
+sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
+bypass_flag = True
+sim_date = replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour)
+try:
+    sp.rt_step_time = sp.sim_step_time * 60 / int(time_scale)
+except:
+    sp.rt_step_time = 20
 
 # Arguments
 ep.accept_timeout = sp.accept_timeout
@@ -248,7 +259,6 @@ if ep.status != 0:
     ep.flag = 1
 
 # The main simulation loop
-# TODO: Get the time step from the idf file
 ep.deltaT = sp.sim_step_time    # time step - sec
 ep.kStep = 1                    # current simulation step
 # Days
@@ -293,10 +303,9 @@ while True:
                         logger.info('########### STOP BYPASS: Dates ###########')
 
             # Read packet
-            logger.info('step: %s' % ep.kStep)
             sp.start_time = time.time()
             packet = ep.read()
-            logger.info('Packet: {0}'.format(packet))
+            # logger.info('Packet: {0}'.format(packet))
             if packet == '':
                 raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
     
@@ -343,7 +352,10 @@ while True:
                     # Also at some point consider removing curVal and related fields after sim ends
                     recs.update_one({"_id": output_id}, {
                         "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
-    
+
+            # Step
+            logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
+
             # Advance time
             ep.kStep = ep.kStep + 1
 
