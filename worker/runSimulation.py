@@ -11,7 +11,9 @@ import mlep
 import subprocess
 import logging
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+import pytz
+import calendar
 
 if len(sys.argv) == 7:
     site_ref = sys.argv[1]
@@ -52,6 +54,15 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+
+
+# Time Zone
+def utc_to_local(utc_dt):
+    # get integer timestamp to avoid precision lost
+    timestamp = calendar.timegm(utc_dt.timetuple())
+    local_dt = datetime.fromtimestamp(timestamp)
+    assert utc_dt.resolution >= timedelta(microseconds=1)
+    return local_dt.replace(microsecond=utc_dt.microsecond)
 
 
 # Replace Date
@@ -124,7 +135,7 @@ class SimProcess:
         self.end_date = '12/31'         # End date for simulation (12/31)
         self.start_hour = 0            # Start hour for simulation (1-23)
         self.end_hour = 23              # End hour for simulation (1-23)
-        self.accept_timeout = 10000     # Accept timeout for simulation (ms)
+        self.accept_timeout = 30000     # Accept timeout for simulation (ms)
         self.idf = None                 # EnergyPlus file path (/path/to/energyplus/file)
         self.mapping = None
         self.weather = None             # Weather file path (/path/to/weather/file)
@@ -216,8 +227,15 @@ sp.start_date = '02/01'
 sp.end_date = '02/02'
 sp.start_hour = 15
 sp.end_hour = 18
-sp.sim_step_per_hour = 4
-real_time_flag = False
+sp.sim_step_per_hour = 60
+real_time_flag = True
+time_zone = 'America/Denver'
+if real_time_flag:
+    # Set Time Scale
+    time_scale = 1
+else:
+    time_scale = 20
+
 
 # Simulation Parameters
 sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
@@ -237,6 +255,7 @@ ep.flag = 0
 idf_file_details = os.path.split(sp.idf)
 ep.workDir = idf_file_details[0]
 ep.arguments = (sp.idf, sp.weather)
+logger.info('Path to IDF: {0}'.format(sp.idf))
 
 # Initialize input tuplet
 ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)
@@ -285,6 +304,7 @@ recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, 
 # or maybe a timeout in the python call to this script
 while True:
     sp.next_time = time.time()
+    logger.info('Is running: {0}, Sim Status: {1}, ep.kStep: {2}, elapsep step time: {3}, rt Step Time: {4}'.format(ep.is_running,sp.sim_status, ep.kStep, sp.next_time - sp.start_time,sp.rt_step_time))
     if (ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and
             (sp.next_time - sp.start_time >= sp.rt_step_time)) or \
             (ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and bypass_flag):
@@ -292,9 +312,13 @@ while True:
             # Check BYPASS
             if bypass_flag:
                 if real_time_flag:
-                    rt_hour = datetime.datetime.now().time().hour
-                    rt_minute = datetime.datetime.now().time().minute
-                    if rt_hour * 3600 + rt_minute * 60 <= (ep.kStep - 1) * ep.deltaT:
+                    utc_time = datetime.now(tz=pytz.UTC)
+                    logger.info('########### RT CHECK ###########')
+                    logger.info('{0}'.format(utc_time))
+                    rt_hour = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).hour
+                    rt_minute = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).minute
+                    logger.info('RT HOUR: {0}, RT MINUTE: {1}'.format(rt_hour, rt_minute))
+                    if rt_hour * 3600 + rt_minute * 60 <= (ep.kStep) * ep.deltaT:
                         bypass_flag = False  # Stop bypass
                         logger.info('########### STOP BYPASS: RT ###########')
                 else:
@@ -359,7 +383,7 @@ while True:
             # Advance time
             ep.kStep = ep.kStep + 1
 
-        except:
+        except Exception as error:
             logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
             finalize_simulation()
             break
