@@ -14,12 +14,14 @@ import fs from 'fs';
 import hs from 'nodehaystack';
 import HDict from 'nodehaystack/HDict';
 import {MongoClient} from 'mongodb';
+import uuid from 'uuid/v1';
 
 var HBool = hs.HBool,
     HDateTime = hs.HDateTime,
     HDictBuilder = hs.HDictBuilder,
     //HDict = hs.HDict,
     HGrid = hs.HGrid,
+    HWatch = hs.HWatch,
     HHisItem = hs.HHisItem,
     HMarker = hs.HMarker,
     HNum = hs.HNum,
@@ -43,6 +45,76 @@ class WriteArray {
       this.val[i] = null;
       this.who[i] = null;
     }
+  }
+};
+
+class AlfalfaWatch extends HWatch {
+  constructor(db, id, dis, lease) {
+    super();
+
+    this._db = db;
+    this._dis = null;
+    this._lease = null;
+
+    this.watches = this._db.db.collection('watches');
+
+    if( id ) {
+      this._id = id;
+    } else {
+      this._id = uuid();
+      this._dis = dis;
+      this._lease = lease;
+    }
+  }
+
+  id() {
+    return this._id;
+  }
+
+  dis() {
+    return this._dis;
+  }
+
+  lease() {
+    return HNum.make(this._lease);
+  }
+
+  sub(ids,callback) {
+    const subReadByIds = (recs,ids,callback) => {
+      if (recs.length>=ids.length) {
+        let b = new HGridBuilder();
+        let meta = new HDictBuilder();
+        meta.add('watchId',this._id);
+        meta.add('lease',null);
+        callback(null, HGridBuilder.dictsToGrid(recs,meta.toDict()));
+      } else {
+        this._db.readById(ids[recs.length], false, function(err, rec) {
+          recs[recs.length] = rec;
+          subReadByIds(recs, ids, callback);
+        })
+      }
+    };
+
+    this.watches.findOne({ "_id": this._id }).then((watch) => {
+      if (watch) {
+        this.watches.updateOne(
+          { "_id": this._id },
+          { $addToSet: {"subs": ids} }
+        ).then(() => {
+            subReadByIds([],ids,callback);
+          });
+      } else {
+        const _watch = {
+          "_id": this._id,
+          "lease": this._lease,
+          "dis": this._dis,
+          "subs": ids
+        };
+        this.watches.insertOne(_watch).then(() => {
+          subReadByIds([],ids,callback);
+        });
+      }
+    })
   }
 };
 
@@ -91,7 +163,10 @@ class AlfalfaServer extends HServer {
       HStdOps.nav,
       HStdOps.pointWrite,
       HStdOps.hisRead,
-      HStdOps.invokeAction
+      HStdOps.invokeAction,
+      HStdOps.watchSub,
+      HStdOps.watchUnsub,
+      HStdOps.watchPoll
     ]);
   };
   
@@ -282,16 +357,19 @@ class AlfalfaServer extends HServer {
   //Watches
   //////////////////////////////////////////////////////////////////////////
   
-  onWatchOpen(dis, lease, callback) {
-    callback(new Error("Unsupported Operation"));
+  onWatchOpen(dis, lease) {
+    let w = new AlfalfaWatch(this,null,dis,lease);
+    return w;
   };
   
-  onWatches(callback) {
-    callback(new Error("Unsupported Operation"));
+  onWatches() {
+    //console.log('onWatches');
+    //callback(new Error("Unsupported Operation"));
   };
   
-  onWatch(id, callback) {
-    callback(new Error("Unsupported Operation"));
+  onWatch(id) {
+    let w = new AlfalfaWatch(this,id,null,null);
+    return w;
   };
   
   //////////////////////////////////////////////////////////////////////////
