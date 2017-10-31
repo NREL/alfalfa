@@ -50,6 +50,7 @@ class WriteArray {
 
 class AlfalfaWatch extends HWatch {
   constructor(db, id, dis, lease) {
+    console.log('create watch');
     super();
 
     this._db = db;
@@ -79,29 +80,31 @@ class AlfalfaWatch extends HWatch {
     return HNum.make(this._lease);
   }
 
-  sub(ids,callback) {
-    const subReadByIds = (recs,ids,callback) => {
-      if (recs.length>=ids.length) {
-        let b = new HGridBuilder();
-        let meta = new HDictBuilder();
-        meta.add('watchId',this._id);
-        meta.add('lease',null);
-        callback(null, HGridBuilder.dictsToGrid(recs,meta.toDict()));
-      } else {
-        this._db.readById(ids[recs.length], false, function(err, rec) {
-          recs[recs.length] = rec;
-          subReadByIds(recs, ids, callback);
-        })
-      }
-    };
+  watchReadByIds(recs,ids,callback) {
+    if (recs.length>=ids.length) {
+      let b = new HGridBuilder();
+      let meta = new HDictBuilder();
+      meta.add('watchId',this._id);
+      meta.add('lease',null);
+      callback(null, HGridBuilder.dictsToGrid(recs,meta.toDict()));
+    } else {
+      this._db.readById(ids[recs.length], false, (err, rec) => {
+        recs[recs.length] = rec;
+        this.watchReadByIds(recs, ids, callback);
+      })
+    }
+  }
 
+  sub(ids,callback) {
     this.watches.findOne({ "_id": this._id }).then((watch) => {
       if (watch) {
+        this._dis = watch.dis;
+        this._lease = watch.lease;
         this.watches.updateOne(
           { "_id": this._id },
           { $addToSet: {"subs": ids} }
         ).then(() => {
-            subReadByIds([],ids,callback);
+            this.watchReadByIds([],ids,callback);
           });
       } else {
         const _watch = {
@@ -111,10 +114,34 @@ class AlfalfaWatch extends HWatch {
           "subs": ids
         };
         this.watches.insertOne(_watch).then(() => {
-          subReadByIds([],ids,callback);
+          this.watchReadByIds([],ids,callback);
         });
       }
     })
+  }
+
+  pollChanges(callback) {
+    this.watches.findOne({ "_id": this._id }).then((watch) => {
+      if (watch) {
+        this.watchReadByIds([],watch.subs,callback);
+      } else {
+        callback(null,HGrid.EMPTY);
+      }
+    }).catch((err) => {
+      callback(err);
+    });
+  }
+
+  pollRefresh(callback) {
+    this.watches.findOne({ "_id": this._id }).then((watch) => {
+      if (watch) {
+        this.watchReadByIds([],watch.subs,callback);
+      } else {
+        callback(null,HGrid.EMPTY);
+      }
+    }).catch((err) => {
+      callback(err);
+    });
   }
 };
 
@@ -362,8 +389,8 @@ class AlfalfaServer extends HServer {
     return w;
   };
   
-  onWatches() {
-    //console.log('onWatches');
+  onWatches(callback) {
+    console.log('onWatches');
     //callback(new Error("Unsupported Operation"));
   };
   
