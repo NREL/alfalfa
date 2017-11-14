@@ -15,6 +15,14 @@ from datetime import date, datetime, timedelta
 import pytz
 import calendar
 
+# Simulation Status
+# sim_status = 0,1,2,3
+# 0 - Initialized
+# 1 - Running
+# 2 - Pause
+# 3 - Stopped
+
+# TODO: Kyle to pass this arguments. Uncomment once included.
 if len(sys.argv) == 7:
     site_ref = sys.argv[1]
     time_scale = sys.argv[2]
@@ -22,6 +30,9 @@ if len(sys.argv) == 7:
     end_date = sys.argv[4]
     start_hour = sys.argv[5]
     end_hour = sys.argv[6]
+    # real_time_flag = sys.argv[7]
+    # time_zone = sys.argv[8]
+    # sim_step_per_hour = sys.argv[9]
 else:
     print('runSimulation called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
     sys.exit(1)
@@ -127,13 +138,13 @@ class SimProcess:
     def __init__(self):
         self.sim_status = 0             # 0=init, 1=running, 2=pause, 3=stop
         self.rt_step_time = 20          # Real-time step - seconds
-        self.sim_step_per_hour = 4      # Simulation steps per hour
+        self.sim_step_per_hour = 60     # Simulation steps per hour
         self.sim_step_time = 60/self.sim_step_per_hour*60   # Simulation time step - seconds
         self.start_time = 0             # Real-time step
         self.next_time = 0              # Real-time step
         self.start_date = '01/01'       # Start date for simulation (01/01)
         self.end_date = '12/31'         # End date for simulation (12/31)
-        self.start_hour = 0            # Start hour for simulation (1-23)
+        self.start_hour = 0             # Start hour for simulation (1-23)
         self.end_hour = 23              # End hour for simulation (1-23)
         self.accept_timeout = 30000     # Accept timeout for simulation (ms)
         self.idf = None                 # EnergyPlus file path (/path/to/energyplus/file)
@@ -198,6 +209,22 @@ if end_hour != 'None':
     sp.end_hour = end_hour
 if 'site_ref' != 'None':
     sp.site_ref = site_ref
+if time.strptime(sp.end_date, "%m/%d") < time.strptime(sp.start_date, "%m/%d"):
+    print('End Date must be after Start Date: {0} - {1}'.format(sp.start_date, sp.end_date), file=sys.stderr)
+    sys.exit(1)
+if (time.strptime(sp.end_date, "%m/%d") == time.strptime(sp.start_date, "%m/%d")) and (sp.end_hour <= sp.start_hour):
+    print('End Hour must be after Start Hour: {0} - {1}'.format(sp.start_date, sp.end_date), file=sys.stderr)
+    sys.exit(1)
+
+# TODO: Kyle to pass this arguments. Delete this once done.
+sp.start_date = '11/13'
+sp.end_date = '11/13'
+sp.start_hour = 15
+sp.end_hour = 18
+real_time_flag = True
+time_zone = 'America/Denver'
+time_scale = 120
+
 
 tar_name = "%s.tar.gz" % sp.site_ref
 key = "parsed/%s" % tar_name
@@ -222,19 +249,11 @@ sp.variables = Variables(variables_path, sp.mapping)
 subprocess.call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
 shutil.copyfile(variables_path, variables_new_path)
 
-# TODO: Kyle to pass this arguments
-sp.start_date = '02/01'
-sp.end_date = '02/02'
-sp.start_hour = 15
-sp.end_hour = 18
-sp.sim_step_per_hour = 60
-real_time_flag = True
-time_zone = 'America/Denver'
 if real_time_flag:
     # Set Time Scale
     time_scale = 1
-else:
-    time_scale = 20
+elif time_scale > 120:
+    time_scale = 120
 
 
 # Simulation Parameters
@@ -242,9 +261,9 @@ sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seco
 bypass_flag = True
 sim_date = replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour)
 try:
-    sp.rt_step_time = sp.sim_step_time * 60 / int(time_scale)
+    sp.rt_step_time = sp.sim_step_time / float(time_scale)    # Seconds
 except:
-    sp.rt_step_time = 20
+    sp.rt_step_time = 10                                    # Seconds
 
 # Arguments
 ep.accept_timeout = sp.accept_timeout
@@ -284,7 +303,7 @@ ep.kStep = 1                    # current simulation step
 d0 = date(2017, sim_date[0], sim_date[1])
 d1 = date(2017, sim_date[2], sim_date[3])
 delta = d1 - d0
-ep.MAX_STEPS = (24 * delta.days + sp.end_hour - 1) * sp.sim_step_per_hour + 1  # Max. Number of Steps
+ep.MAX_STEPS = (24 * delta.days + sp.end_hour) * sp.sim_step_per_hour  # Max. Number of Steps
 logger.info('############# MAX STEPS:  {0} #############'.format(ep.MAX_STEPS))
 logger.info('############# Days:       {0} #############'.format(delta.days))
 logger.info('############# End Hour :  {0} #############'.format(sp.end_hour))
@@ -295,7 +314,10 @@ logger.info('############# Start Hour: {0} #############'.format(sp.start_hour))
 if ep.is_running:
     sp.sim_status = 1
 
-sp.start_time = time.time()
+# Set next step
+utc_time = datetime.now(tz=pytz.UTC)
+t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone))
+next_t = t
 
 recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
 
@@ -304,10 +326,16 @@ recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, 
 # or maybe a timeout in the python call to this script
 while True:
     sp.next_time = time.time()
-    logger.info('Is running: {0}, Sim Status: {1}, ep.kStep: {2}, elapsep step time: {3}, rt Step Time: {4}'.format(ep.is_running,sp.sim_status, ep.kStep, sp.next_time - sp.start_time,sp.rt_step_time))
-    if (ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and
-            (sp.next_time - sp.start_time >= sp.rt_step_time)) or \
-            (ep.is_running and (sp.sim_status == 1) and (ep.kStep < ep.MAX_STEPS) and bypass_flag):
+    utc_time = datetime.now(tz=pytz.UTC)
+    t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone))
+
+    # Iterating over timesteps
+    #    if (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and (sp.next_time - sp.start_time >= sp.rt_step_time)) or\
+    if (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and t >= next_t) or\
+            (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and bypass_flag):  # Bypass Time
+        logger.info('E+ Running: {0}, Sim Status: {1}, E+ Step: {2}, Elapsed step time: {3}, RT Step Time: {4}'.format(
+            ep.is_running, sp.sim_status, ep.kStep, sp.next_time - sp.start_time, sp.rt_step_time))
+
         try:
             # Check BYPASS
             if bypass_flag:
@@ -318,16 +346,25 @@ while True:
                     rt_hour = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).hour
                     rt_minute = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).minute
                     logger.info('RT HOUR: {0}, RT MINUTE: {1}'.format(rt_hour, rt_minute))
-                    if rt_hour * 3600 + rt_minute * 60 <= (ep.kStep) * ep.deltaT:
+                    logger.info('Actual Time: {0}, Simulation Time: {1}'.format(rt_hour * 3600 + rt_minute * 60, ep.kStep * ep.deltaT))
+                    if rt_hour * 3600 + rt_minute * 60 <= ep.kStep * ep.deltaT:
                         bypass_flag = False  # Stop bypass
                         logger.info('########### STOP BYPASS: RT ###########')
+                    else:
+                        logger.info('################# RT-BYPASS #################')
                 else:
                     if sp.start_hour*3600 <= (ep.kStep-1)*ep.deltaT:
                         bypass_flag = False     # Stop bypass
-                        logger.info('########### STOP BYPASS: Dates ###########')
+                        logger.info('########### STOP BYPASS: Hours ########')
+                    else:
+                        logger.info('################# BYPASS #################')
+
 
             # Read packet
-            sp.start_time = time.time()
+            # Get current time
+            utc_time = datetime.now(tz=pytz.UTC)
+            next_t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)) + \
+                     timedelta(seconds=sp.rt_step_time)
             packet = ep.read()
             # logger.info('Packet: {0}'.format(packet))
             if packet == '':
