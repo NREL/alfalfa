@@ -4,7 +4,7 @@
       "name": "web",
       "image": "431265468707.dkr.ecr.us-west-1.amazonaws.com/alfalfa_web:latest",
       "cpu": 0,
-      "memory": 512,
+      "memory": 400,
       "essential": true,
       "environment": [
           {
