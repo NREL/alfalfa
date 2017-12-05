@@ -12,6 +12,8 @@ import {cyan500, red500, greenA200} from 'material-ui/styles/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import {Table, TableBody, TableHeader, TableFooter, TableHeaderColumn, TableRow, TableRowColumn} from 'material-ui/Table';
+import DatePicker from 'material-ui/DatePicker';
+import TimePicker from 'material-ui/TimePicker';
 import MoreHorizIcon from 'material-ui/svg-icons/navigation/more-horiz';
 import CircularProgress from 'material-ui/CircularProgress';
 
@@ -51,6 +53,51 @@ class Point extends React.Component {
     );
   }
 }
+
+class StartDialog extends React.Component {
+  state = {
+    open: false,
+  }
+
+  onShowDialogClick = () => {
+    this.setState({open: true});
+  }
+
+  onCancel = () => {
+    this.setState({open: false});
+  }
+
+  onBegin = () => {
+    this.setState({open: false});
+  }
+
+  render = () => {
+    const actions = [
+      <FlatButton
+        label="Cancel"
+        primary={false}
+        onClick={this.onCancel}
+      />,
+      <FlatButton
+        label="Start"
+        primary={true}
+        onClick={this.onBegin}
+      />,
+    ];
+
+    return (
+      <div>
+        <RaisedButton disabled={this.props.disabled} label='Start Simulation' onTouchTap={this.onShowDialogClick}></RaisedButton>
+        <Dialog open={this.state.open} actions={actions} >
+          <DatePicker hintText="Select Start Date" container="inline" mode="landscape" />
+          <TimePicker hintText="Select Start Time" />
+          <DatePicker hintText="Select End Date" container="inline" mode="landscape" />
+          <TimePicker hintText="Select End Time" />
+        </Dialog>
+      </div>
+    );
+  }
+};
 
 
 class PointDialogComponent extends React.Component {
@@ -158,7 +205,7 @@ class Sites extends React.Component {
     this.setState({showPointsSiteRef: null});
   }
 
-  conditionalDialog = () => {
+  conditionalPointDialog = () => {
     if( this.state.showPointsSiteRef != null ) {
       return (<PointDialog open={true} onClosePointsClick={this.onClosePointsClick} siteRef={this.state.showPointsSiteRef}></PointDialog>);
     } else {
@@ -194,12 +241,12 @@ class Sites extends React.Component {
             <TableFooter>
               <TableRow>
                 <TableRowColumn>
-                  <RaisedButton disabled={this.state.disabled} label='Start Simulation' onTouchTap={this.onStartSimClick}></RaisedButton>
+                  <StartDialog disabled={this.state.disabled} label='Start Simulation'></StartDialog>
                 </TableRowColumn>
               </TableRow>
             </TableFooter>
           </Table>
-          {this.conditionalDialog()} 
+          {this.conditionalPointDialog()} 
         </div>
       );
     } else {
