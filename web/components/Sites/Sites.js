@@ -1,148 +1,101 @@
 import React, { PropTypes } from 'react';
-import IconButton from 'material-ui/IconButton';
-import FileUpload from 'material-ui/svg-icons/file/file-upload';
+import {FileUpload, MoreVert, ExpandLess, ExpandMore} from 'material-ui-icons';
 import TextField from 'material-ui/TextField';
-import FlatButton from 'material-ui/FlatButton';
-import RaisedButton from 'material-ui/RaisedButton';
-import Dialog from 'material-ui/Dialog';
-import 'normalize.css/normalize.css';
-import styles from './Sites.scss';
-import {Card, CardActions, CardHeader, CardText} from 'material-ui/Card';
-import {cyan500, red500, greenA200} from 'material-ui/styles/colors';
+import Button from 'material-ui/Button';
+import IconButton from 'material-ui/IconButton';
+import Typography from 'material-ui/Typography';
+import Dialog, {
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from 'material-ui/Dialog';
+import ExpansionPanel, {
+  ExpansionPanelDetails,
+  ExpansionPanelSummary,
+} from 'material-ui/ExpansionPanel';
+import Card, {CardActions, CardHeader, CardText} from 'material-ui/Card';
+import List, { ListItem, ListItemIcon, ListItemText } from 'material-ui/List';
+import {cyan500, red500, greenA200} from 'material-ui/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import {Table, TableBody, TableHeader, TableFooter, TableHeaderColumn, TableRow, TableRowColumn} from 'material-ui/Table';
-import DatePicker from 'material-ui/DatePicker';
-import TimePicker from 'material-ui/TimePicker';
-import MoreHorizIcon from 'material-ui/svg-icons/navigation/more-horiz';
-import CircularProgress from 'material-ui/CircularProgress';
-
-class Point extends React.Component {
-
-  render = () => {
-    return(
-      <div className={styles.pointRoot}>
-        <Card >
-          <CardHeader
-            title={"Point " + this.props.point.dis}
-            actAsExpander={true}
-            showExpandableButton={true}
-          />
-          <CardText expandable={true}>
-            <Table selectable={false}>
-              <TableHeader displaySelectAll={false}>
-                <TableRow selectable={false}>
-                  <TableHeaderColumn>Key</TableHeaderColumn>
-                  <TableHeaderColumn>Value</TableHeaderColumn>
-                </TableRow>
-              </TableHeader>
-              <TableBody displayRowCheckbox={false}>
-                  {this.props.point.tags.map((tag) => {
-                     return (
-                      <TableRow key={tag.key}>
-                        <TableRowColumn>{tag.key}</TableRowColumn>
-                        <TableRowColumn>{tag.value}</TableRowColumn>
-                      </TableRow>
-                     );
-                  })}
-              </TableBody>
-            </Table>
-          </CardText>
-        </Card>
-      </div>
-    );
-  }
-}
-
-class StartDialog extends React.Component {
-  state = {
-    open: false,
-  }
-
-  onShowDialogClick = () => {
-    this.setState({open: true});
-  }
-
-  onCancel = () => {
-    this.setState({open: false});
-  }
-
-  onBegin = () => {
-    this.setState({open: false});
-  }
-
-  render = () => {
-    const actions = [
-      <FlatButton
-        label="Cancel"
-        primary={false}
-        onClick={this.onCancel}
-      />,
-      <FlatButton
-        label="Start"
-        primary={true}
-        onClick={this.onBegin}
-      />,
-    ];
-
-    return (
-      <div>
-        <RaisedButton disabled={this.props.disabled} label='Start Simulation' onTouchTap={this.onShowDialogClick}></RaisedButton>
-        <Dialog open={this.state.open} actions={actions} >
-          <DatePicker hintText="Select Start Date" container="inline" mode="landscape" />
-          <TimePicker hintText="Select Start Time" />
-          <DatePicker hintText="Select End Date" container="inline" mode="landscape" />
-          <TimePicker hintText="Select End Time" />
-        </Dialog>
-      </div>
-    );
-  }
-};
-
+import Table, {TableBody, TableHead, TableFooter, TableCell, TableRow} from 'material-ui/Table';
+import {CircularProgress} from 'material-ui/Progress';
+import Checkbox from 'material-ui/Checkbox';
+import Collapse from 'material-ui/transitions/Collapse';
+import { withStyles } from 'material-ui/styles';
+import StartDialog from '../StartDialog/StartDialog.js';
 
 class PointDialogComponent extends React.Component {
 
-  handleClose = () => {
+  handleRequestClose = () => {
     this.props.onClosePointsClick();
   }
 
+  state = {
+    expanded: null,
+  };
+
+  handleChange = pointId => (event, expanded) => {
+    this.setState({
+      expanded: expanded ? pointId : false,
+    });
+  };
+
   table = () => {
-    if( ! this.props.data.loading ) {
-      let points = this.props.data.viewer.sites[0].points;
+    if( this.props.data.loading ) {
+      return (<div><CircularProgress/></div>);
+    } else {
+      const points = this.props.data.viewer.sites[0].points;
+      const { expanded } = this.state;
       return(
-      <div className={styles.pointsRoot}>
+      <div>
         {
           points.map((point,i) => {
-            return (<Point key={i} name={i} point={point}/>);
+            return (
+              <ExpansionPanel key={i} expanded={expanded === i} onChange={this.handleChange(i)}>
+                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
+                  <Typography>{point.dis}</Typography>
+                </ExpansionPanelSummary>
+                <ExpansionPanelDetails>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Key</TableCell>
+                        <TableCell>Value</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {point.tags.map((tag) => {
+                           return (
+                            <TableRow key={tag.key}>
+                              <TableCell>{tag.key}</TableCell>
+                              <TableCell>{tag.value}</TableCell>
+                            </TableRow>
+                           );
+                        })}
+                    </TableBody>
+                  </Table>
+                </ExpansionPanelDetails>
+              </ExpansionPanel>
+            )
           })
         }
       </div>
       );
-    } else {
-      return (<div className={styles.centerLoading}><CircularProgress/></div>);
     }
   }
 
   render = () => {
-    const actions = [
-      <FlatButton
-        label="Close"
-        primary={true}
-        onTouchTap={this.handleClose}
-      />,
-    ];
-
-
     return(
-      <Dialog
-        title="Haystack Points"
-        modal={true}
-        actions={actions}
-        open={this.props.open}
-        onRequestClose={this.handleClose}
-      >
-      {this.table()}
-      </Dialog>
+      <div>
+        <Dialog open={true} onRequestClose={this.handleRequestClose}>
+          <DialogTitle>{this.props.site.name + ' Points'}</DialogTitle>
+          <DialogContent>
+            {this.table()}
+          </DialogContent>
+        </Dialog>
+      </div>
     )
   }
 }
@@ -167,7 +120,7 @@ const PointDialog = graphql(pointsQL, {
   options: (props) => ({
     pollInterval: 1000,
     variables: {
-      siteRef: props.siteRef
+      siteRef: props.site.siteRef
     }
   })
 })(PointDialogComponent);
@@ -180,73 +133,125 @@ class Sites extends React.Component {
     showPointsSiteRef: null,
   };
 
-  isSelected = (index) => {
-    return this.state.selected.indexOf(index) !== -1;
+  isSelected = (siteRef) => {
+    return this.state.selected.indexOf(siteRef) !== -1;
   };
 
-  handleRowSelection = (selectedRows) => {
-    this.setState({
-      selected: selectedRows,
-      disabled: (selectedRows.length == 0)
-    });
+  handleRowClick = (event, siteRef) => {
+    const { selected } = this.state;
+    const selectedIndex = selected.indexOf(siteRef);
+    let newSelected = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, siteRef);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selected.slice(0, selectedIndex),
+        selected.slice(selectedIndex + 1),
+      );
+    }
+
+    this.setState({ selected: newSelected });
   };
 
-  onStartSimClick = () => {
+  handleStartSimulation = () => {
     if (this.state.selected.length > 0) {
-      this.props.startSimProp(this.props.data.viewer.sites[this.state.selected[0]].siteRef);
+      this.props.startSimProp(this.state.selected[0]);
     }
   }
 
-  onShowPointsClick = (siteRef) => {
-    this.setState({showPointsSiteRef: siteRef});
+  handleRequestShowPoints = (e, site) => {
+    this.setState({ showSite: site });
+    e.stopPropagation();
   }
 
-  onClosePointsClick = () => {
-    this.setState({showPointsSiteRef: null});
+  handleRequestClosePoints = () => {
+    this.setState({ showSite: null });
   }
 
   conditionalPointDialog = () => {
-    if( this.state.showPointsSiteRef != null ) {
-      return (<PointDialog open={true} onClosePointsClick={this.onClosePointsClick} siteRef={this.state.showPointsSiteRef}></PointDialog>);
+    if( this.state.showSite != null ) {
+      return (<PointDialog onClosePointsClick={this.handleRequestClosePoints} site={this.state.showSite}></PointDialog>);
     } else {
       return null;
     }
   }
 
+  formatTime = (isotime) => {
+    let result = "-";
+
+    if( isotime ) {
+      // Haystack has an extra string representation of the timezone
+      // tacked onto the end of the iso time string (after a single space)
+      // Here we remove that extra timezone designation
+      const _isotime = isotime.replace(/\s[\w]*/,'');
+      // Use these options do show year and day of week
+      //const options = {  
+      //    weekday: "long", year: "numeric", month: "short",  
+      //    day: "numeric", hour: "2-digit", minute: "2-digit"  
+      //};  
+      // For now keep it simple
+      const options = {  
+          month: "short",  
+          day: "numeric", hour: "2-digit", minute: "2-digit"  
+      };  
+      const datetime = new Date(_isotime);
+      result = datetime.toLocaleTimeString("en-us", options);
+    }
+
+    return result;
+  }
+
   render = () => {
     if( ! this.props.data.loading ) {
       return (
-        <div className={styles.root}>
-          <Table onRowSelection={this.handleRowSelection}>
-            <TableHeader>
+        <div>
+          {this.conditionalPointDialog()}
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableHeaderColumn>Name</TableHeaderColumn>
-                <TableHeaderColumn>Site Reference</TableHeaderColumn>
-                <TableHeaderColumn>Status</TableHeaderColumn>
-                <TableHeaderColumn></TableHeaderColumn>
+                <TableCell padding="checkbox"></TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Site Reference</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell></TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody deselectOnClickaway={false}>
+            </TableHead>
+            <TableBody>
               {this.props.data.viewer.sites.map((site, i) => {
+                 const isSelected = this.isSelected(site.siteRef);
                  return (
-                  <TableRow key={site.siteRef} selected={this.isSelected(i)}>
-                    <TableRowColumn>{site.name}</TableRowColumn>
-                    <TableRowColumn>{site.siteRef}</TableRowColumn>
-                    <TableRowColumn>{site.simStatus}</TableRowColumn>
-                    <TableRowColumn><IconButton onTouchTap={() => { this.onShowPointsClick(site.siteRef) }}><MoreHorizIcon></MoreHorizIcon></IconButton></TableRowColumn>
+                  <TableRow key={site.siteRef} 
+                    selected={this.isSelected(i)}
+                    onClick={event => this.handleRowClick(event, site.siteRef)} 
+                  >
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={isSelected}
+                      />
+                    </TableCell>
+                    <TableCell padding="none">{site.name}</TableCell>
+                    <TableCell>{site.siteRef}</TableCell>
+                    <TableCell>{site.simStatus}</TableCell>
+                    <TableCell>{this.formatTime(site.datetime)}</TableCell>
+                    <TableCell><IconButton onClick={event => this.handleRequestShowPoints(event, site)}><MoreVert/></IconButton></TableCell>
                   </TableRow>
                  );
               })}
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableRowColumn>
-                  <StartDialog disabled={this.state.disabled} label='Start Simulation'></StartDialog>
-                </TableRowColumn>
+                <TableCell>
+                  <StartDialog disabled={this.state.selected.length == 0} onStartSimulation={this.handleStartSimulation}></StartDialog>
+                </TableCell>
               </TableRow>
             </TableFooter>
           </Table>
-          {this.conditionalPointDialog()} 
         </div>
       );
     } else {
@@ -261,6 +266,7 @@ const sitesQL = gql`
       username,
       sites {
         name,
+        datetime,
         siteRef,
         simStatus
       }

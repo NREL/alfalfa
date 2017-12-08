@@ -8,6 +8,7 @@ import { ApolloProvider } from 'react-apollo';
 //import Cookies from 'js-cookie';
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 import App from './components/App/App.js';
+import 'typeface-roboto';
 
 const networkInterface = createNetworkInterface({
    uri: '/graphql',

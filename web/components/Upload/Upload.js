@@ -1,14 +1,12 @@
 import React, { PropTypes } from 'react';
 import IconButton from 'material-ui/IconButton';
-import FileUpload from 'material-ui/svg-icons/file/file-upload';
+import {FileUpload} from 'material-ui-icons';
 import TextField from 'material-ui/TextField';
-import FlatButton from 'material-ui/FlatButton';
-import RaisedButton from 'material-ui/RaisedButton';
-import LinearProgress from 'material-ui/LinearProgress';
+import Button from 'material-ui/Button';
+import {LinearProgress} from 'material-ui/Progress';
 import 'normalize.css/normalize.css';
 import styles from './Upload.scss';
-import Paper from 'material-ui/Paper';
-import {cyan500, red500, greenA200} from 'material-ui/styles/colors';
+import {cyan500, red500, greenA200} from 'material-ui/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import uuid from 'uuid/v1';
@@ -167,12 +165,14 @@ class Upload extends React.Component {
 
     return (
       <div className={styles.root}>
-      <LinearProgress mode="determinate" value={this.state.completed} />
-      <div className={styles.center}>
-        <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
-        <FileInput hint={this.weatherFileHint()} onFileChange={this.onWeatherFileChange}/>
-        <RaisedButton label="Upload New Building Model!" primary={true} fullWidth={true} onClick={this.onClick}/>
-      </div>
+        <LinearProgress mode="determinate" value={this.state.completed} />
+        <div className={styles.center}>
+          <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
+          <FileInput hint={this.weatherFileHint()} onFileChange={this.onWeatherFileChange}/>
+          <Button raised color="primary" onClick={this.onClick}>
+            Upload New Building Model!
+          </Button>
+        </div>
       </div>
     );
   }

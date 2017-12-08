@@ -67,6 +67,10 @@ var siteType = new GraphQLObjectType({
       type: GraphQLString,
       description: 'The status of the site simulation'
     },
+    datetime: {
+      type: GraphQLString,
+      description: 'The current simulation time'
+    },
     points: {
       type: new GraphQLList(pointType),
       description: 'A list of the Haystack points associated with the site',

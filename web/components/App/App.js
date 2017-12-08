@@ -1,61 +1,55 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Component } from 'react';
-import styles from './App.scss';
 import { Link, Route, Switch } from 'react-router-dom';
 import IconButton from 'material-ui/IconButton';
-import FileCloudQueue from 'material-ui/svg-icons/file/cloud-queue';
-import FileCloudDone from 'material-ui/svg-icons/file/cloud-done';
-import ActionAccountCircle from 'material-ui/svg-icons/action/account-circle';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
+import {FileCloudQueue, FileCloudDone, ActionAccountCircle} from 'material-ui-icons';
+//import {MuiThemeProvider} from 'material-ui/styles';
+import Toolbar from 'material-ui/Toolbar';
+import AppBar from 'material-ui/AppBar';
 import Badge from 'material-ui/Badge';
 import Upload from '../Upload/Upload.js';
 import Sites from '../Sites/Sites.js';
-//import TextField from 'material-ui/TextField';
-//import RaisedButton from 'material-ui/RaisedButton';
-//import IconMenu from 'material-ui/IconMenu';
-//import MenuItem from 'material-ui/MenuItem';
-//import gql from 'graphql-tag';
-//import { graphql } from 'react-apollo';
+import Typography from 'material-ui/Typography';
+import { withStyles } from 'material-ui/styles';
 
-
-//const Queue = () => (
-//  <div>
-//    <h2>Queue</h2>
-//  </div>
-//);
-
-const Home = () => (
-  <div>
-    <h2>Home</h2>
-  </div>
-);
+const styles = {
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh',
+  },
+  title: {
+    flex: 1,
+  },
+};
 
 class App extends React.Component {
-
-  render() {
+  render = () => {
     return (
-      <MuiThemeProvider>
-        <div className={styles.root} >
-          <Toolbar style={{height: '80px', alignItems: 'center'}} >
-            <Link to={'/'} style={{ color: 'black', textDecoration: 'none' }}> <ToolbarTitle text="Alfalfa" onClick={this.onToolbarClick}/> </Link>
-            <ToolbarGroup lastChild={true}>
-              <Link to={'/queue'}>
-                <IconButton onClick={this.onQueueClick}>
-                  <FileCloudQueue />
-                </IconButton>
+        <div className={this.props.classes.root}>
+          <AppBar position="static">
+            <Toolbar>
+              <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}> 
+                <Typography type="title" color="inherit">Alfalfa</Typography>
               </Link>
-            </ToolbarGroup>
-          </Toolbar>
+              <Link to={'/queue'} style={{ textDecoration: 'none', color: 'unset' }}>
+                <Typography type="title" color="inherit">Queue</Typography>
+              </Link>
+            </Toolbar>
+          </AppBar>
           <Switch>
             <Route path="/queue" component={Sites}/>
             <Route component={Upload}/>
           </Switch>
         </div>
-      </MuiThemeProvider>
     );
   }
-}
+};
 
-export default App;
+App.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
+
+export default withStyles(styles)(App);
 

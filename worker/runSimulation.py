@@ -403,16 +403,24 @@ while True:
             # Write to inputs of E+
             ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
     
-            for output_id in sp.variables.outputIds():
-                output_index = sp.variables.outputIndex(output_id)
-                if output_index == -1:
-                    logger.error('bad output index for: %s' % output_id)
-                else:
-                    output_value = ep.outputs[output_index]
-                    # TODO: Make this better with a bulk update
-                    # Also at some point consider removing curVal and related fields after sim ends
-                    recs.update_one({"_id": output_id}, {
-                        "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
+            if not bypass_flag:
+                for output_id in sp.variables.outputIds():
+                    output_index = sp.variables.outputIndex(output_id)
+                    if output_index == -1:
+                        logger.error('bad output index for: %s' % output_id)
+                    else:
+                        output_value = ep.outputs[output_index]
+                        # TODO: Make this better with a bulk update
+                        # Also at some point consider removing curVal and related fields after sim ends
+                        recs.update_one({"_id": output_id}, {
+                            "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
+
+                # time computed for ouput purpuses
+                output_time = datetime.strptime(sp.start_date, "%m/%d") + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
+                output_time = output_time.replace(tzinfo=pytz.utc)
+                # Haystack uses ISO 8601 format like this "t:2015-06-08T15:47:41-04:00 New_York"
+                output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
+                recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string}}, False)
 
             # Step
             logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))

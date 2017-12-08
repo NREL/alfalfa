@@ -52,6 +52,11 @@ function  sitesResolver(user,siteRef) {
             siteRef: row.id.replace(/[a-z]\:/,''),
             simStatus: row.simStatus.replace(/[a-z]\:/,''),
           };
+          let datetime = row['datetime'];
+          if( datetime ) {
+            datetime = datetime.replace(/[a-z]\:/,'');
+            site.datetime = datetime;
+          }
           sites.push(site);
         });
         resolve(sites);
