@@ -172,6 +172,7 @@ def finalize_simulation():
     shutil.rmtree(sp.workflow_directory)
 
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
+    recs.update_one({"_id": sp.site_ref}, {"$unset": {"rec.datetime": ""}}, False)
 
 #    tar = tarfile.open(tar_name, "w:gz")
 #    tar.add(directory, filter=reset, arcname=site_ref)
@@ -221,7 +222,7 @@ sp.start_date = '11/13'
 sp.end_date = '11/13'
 sp.start_hour = 15
 sp.end_hour = 18
-real_time_flag = True
+real_time_flag = False
 time_zone = 'America/Denver'
 time_scale = 120
 
@@ -319,7 +320,7 @@ utc_time = datetime.now(tz=pytz.UTC)
 t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone))
 next_t = t
 
-recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
+recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Starting"}}, False)
 
 # probably need some kind of fail safe/timeout to ensure
 # that this is not an infinite loop
@@ -415,12 +416,12 @@ while True:
                         recs.update_one({"_id": output_id}, {
                             "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
 
-                # time computed for ouput purpuses
+                # time computed for ouput purposes
                 output_time = datetime.strptime(sp.start_date, "%m/%d") + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
                 output_time = output_time.replace(tzinfo=pytz.utc)
                 # Haystack uses ISO 8601 format like this "t:2015-06-08T15:47:41-04:00 New_York"
                 output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
-                recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string}}, False)
+                recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}}, False)
 
             # Step
             logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
