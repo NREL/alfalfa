@@ -136,7 +136,14 @@ function sitePointResolver(siteRef) {
   });
 }
 
-function startSimulationResolver(siteRef) {
+function startSimulationResolver(args) {
+      //args: {
+      //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
+      //  startDatetime : { type: GraphQLString },
+      //  endDatetime : { type: GraphQLString },
+      //  timescale : { type: GraphQLFloat },
+      //  realtime : { type: GraphQLBoolean },
+      //},
   return new Promise( (resolve,reject) => {
     request
     .post('/api/invokeAction')
@@ -145,21 +152,29 @@ function startSimulationResolver(siteRef) {
     .send({
       "meta": {
         "ver": "2.0",
-        "id": `r:${siteRef}`,
+        "id": `r:${args.siteRef}`,
         "action": "s:start_simulation"
       },
       "cols": [
         {
-          "name": "foo"
+          "name": "timescale"
         },
         {
-          "name": "time_scale"
-        }
+          "name": "startDatetime"
+        },
+        {
+          "name": "endDatetime"
+        },
+        {
+          "name": "realtime"
+        },
       ],
       "rows": [
         {
-          "foo": "s:bar",
-          "time_scale": "s:50000"
+          "timescale": `n:${args.timescale}`,
+          "startDatetime": `s:${args.startDatetime}`,
+          "endDatetime": `s:${args.endDatetime}`,
+          "realtime": `s:${args.realtime}`,
         }
       ]
     })

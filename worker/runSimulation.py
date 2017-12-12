@@ -14,6 +14,7 @@ import re
 from datetime import date, datetime, timedelta
 import pytz
 import calendar
+from dateutil.parser import parse
 
 # Simulation Status
 # sim_status = 0,1,2,3
@@ -22,16 +23,26 @@ import calendar
 # 2 - Pause
 # 3 - Stopped
 
+startDatetime = datetime.today()
+
 # TODO: Kyle to pass this arguments. Uncomment once included.
-if len(sys.argv) == 7:
+if len(sys.argv) == 6:
+
+    print('runSimulation called with arguments: %s.' % sys.argv, file=sys.stderr)
     site_ref = sys.argv[1]
-    time_scale = sys.argv[2]
-    start_date = sys.argv[3]
-    end_date = sys.argv[4]
-    start_hour = sys.argv[5]
-    end_hour = sys.argv[6]
-    # real_time_flag = sys.argv[7]
+    real_time_flag = sys.argv[2]
+    time_scale = sys.argv[3]
+
+    startDatetime = parse(sys.argv[4])
+    start_date = "%02d/%02d" % (startDatetime.month,startDatetime.day)
+    start_hour = startDatetime.hour
+
+    endDatetime = parse(sys.argv[5])
+    end_date = "%02d/%02d" % (endDatetime.month,endDatetime.day)
+    end_hour = endDatetime.hour
+
     # time_zone = sys.argv[8]
+    time_zone = 'America/Denver'
     # sim_step_per_hour = sys.argv[9]
 else:
     print('runSimulation called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
@@ -217,14 +228,13 @@ if (time.strptime(sp.end_date, "%m/%d") == time.strptime(sp.start_date, "%m/%d")
     print('End Hour must be after Start Hour: {0} - {1}'.format(sp.start_date, sp.end_date), file=sys.stderr)
     sys.exit(1)
 
-# TODO: Kyle to pass this arguments. Delete this once done.
-sp.start_date = '11/13'
-sp.end_date = '11/13'
-sp.start_hour = 15
-sp.end_hour = 18
-real_time_flag = False
-time_zone = 'America/Denver'
-time_scale = 120
+## TODO: Kyle to pass this arguments. Delete this once done.
+#sp.start_date = '11/13'
+#sp.end_date = '11/13'
+#sp.start_hour = 15
+#sp.end_hour = 18
+#real_time_flag = False
+#time_scale = 120
 
 
 tar_name = "%s.tar.gz" % sp.site_ref
@@ -417,7 +427,7 @@ while True:
                             "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
 
                 # time computed for ouput purposes
-                output_time = datetime.strptime(sp.start_date, "%m/%d") + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
+                output_time = datetime.strptime(sp.start_date, "%m/%d").replace(year=startDatetime.year) + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
                 output_time = output_time.replace(tzinfo=pytz.utc)
                 # Haystack uses ISO 8601 format like this "t:2015-06-08T15:47:41-04:00 New_York"
                 output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())

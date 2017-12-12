@@ -25,10 +25,15 @@ class StartDialog extends React.Component {
     selectedStartDateTime: new Date(),
     selectedEndDateTime: new Date(),
     realtime: false,
+    timescale: 120,
   }
 
   handleStartDateTimeChange = dateTime => {
     this.setState({ selectedStartDateTime: dateTime })
+  }
+
+  handleTimescaleChange = scale => {
+    this.setState({ timescale: scale })
   }
 
   handleEndDateTimeChange = dateTime => {
@@ -43,13 +48,14 @@ class StartDialog extends React.Component {
     this.setState({open: false});
   }
 
+  //startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
   handleRequestStart = () => {
-    this.props.onStartSimulation();
+    this.props.onStartSimulation(this.state.selectedStartDateTime,this.state.selectedEndDateTime,this.state.timescale,this.state.realtime);
     this.setState({open: false});
   }
 
   render = () => {
-    const { selectedStartDateTime, selectedEndDateTime } = this.state
+    const { selectedStartDateTime, selectedEndDateTime, realtime, timescale } = this.state
 
     return (
       <div>
@@ -76,8 +82,9 @@ class StartDialog extends React.Component {
               </Grid>
               <Grid item xs={6}>
                 <TextField 
-                  label="Time Multiplier"
-                  defaultValue="1"
+                  label="Timescale"
+                  value={timescale}
+                  onChange={this.handleTimescaleChange}
                   InputLabelProps={{shrink: true, className: this.props.classes.label}}
                   disabled={this.state.realtime}
                   inputProps={{type: 'number', min: 1, max: 200}}
@@ -87,7 +94,7 @@ class StartDialog extends React.Component {
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={this.state.realtime}
+                      checked={realtime}
                       onChange={(event, checked) => this.setState({ realtime: checked })}
                     />
                   }

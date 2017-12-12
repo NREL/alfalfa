@@ -143,10 +143,14 @@ const mutationType = new GraphQLObjectType({
       type: GraphQLString,
       args: {
         siteRef : { type: new GraphQLNonNull(GraphQLString) },
+        startDatetime : { type: GraphQLString },
+        endDatetime : { type: GraphQLString },
+        timescale : { type: GraphQLFloat },
+        realtime : { type: GraphQLString },
       },
       resolve: (_,args,request) => {
         console.log("StartSimulation schema")
-        resolvers.startSimulationResolver(args.siteRef);
+        resolvers.startSimulationResolver(args);
       },
     }
   })

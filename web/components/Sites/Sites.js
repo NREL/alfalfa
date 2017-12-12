@@ -158,9 +158,9 @@ class Sites extends React.Component {
     this.setState({ selected: newSelected });
   };
 
-  handleStartSimulation = () => {
+  handleStartSimulation = (startDatetime,endDatetime,timescale,realtime) => {
     if (this.state.selected.length > 0) {
-      this.props.startSimProp(this.state.selected[0]);
+      this.props.startSimProp(this.state.selected[0],startDatetime,endDatetime,timescale,realtime);
     }
   }
 
@@ -274,15 +274,16 @@ const sitesQL = gql`
   }
 `;
 
+// TODO: make an input type
 const startSimQL = gql`
-  mutation startSimulationMutation($siteRef: String!) {
-    startSimulation(siteRef: $siteRef)
+  mutation startSimulationMutation($siteRef: String!, $startDatetime: String, $endDatetime: String, $timescale: Float, $realtime: String ) {
+    startSimulation(siteRef: $siteRef, startDatetime: $startDatetime, endDatetime: $endDatetime, timescale: $timescale, realtime: $realtime)
   }
 `;
 
 export default graphql(startSimQL, {
   props: ({ mutate }) => ({
-    startSimProp: (siteRef) => mutate({ variables: { siteRef } }),
+    startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
   })
 })(graphql(sitesQL, {options: { pollInterval: 1000 },})(Sites));
 

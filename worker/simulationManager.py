@@ -25,22 +25,21 @@ def process_message(message):
         if op == 'InvokeAction':
             action = message_body.get('action')
             if action == 'start_simulation':
-                site_ref = message_body.get('id', 'None')
-                time_scale = message_body.get('time_scale', 'None')
-                start_date = message_body.get('start_date', 'None')
-                end_date = message_body.get('end_date', 'None')
-                start_hour = message_body.get('start_hour', 'None')
-                end_hour = message_body.get('end_hour', 'None')
-                logger.info('Start simulation for site_ref: %s' % site_ref)
-                subprocess.call(['python', 'runSimulation.py', site_ref, time_scale, start_date, end_date, start_hour,
-                                 end_hour])
+                siteRef = message_body.get('id', 'None')
+                startDatetime = message_body.get('startDatetime', 'None')
+                endDatetime = message_body.get('endDatetime', 'None')
+                realtime = message_body.get('realtime', 'None')
+                timescale = str(message_body.get('timescale', 'None'))
+
+                logger.info('Start simulation for site_ref: %s' % siteRef)
+                subprocess.call(['python', 'runSimulation.py', siteRef, realtime, timescale, startDatetime, endDatetime])
             elif action == 'add_site':
                 osm_name = message_body.get('osm_name')
                 upload_id = message_body.get('upload_id')
                 logger.info('Add site for osm_name: %s, and upload_id: %s' % (osm_name, upload_id))
                 subprocess.call(['python', 'addSite.py', osm_name, upload_id])
-    except:
-        print('Exception while processing message', file=sys.stderr)
+    except Exception as e:
+        print('Exception while processing message: %s' % e, file=sys.stderr)
 
 # ======================================================= MAIN ========================================================
 if __name__ == '__main__':

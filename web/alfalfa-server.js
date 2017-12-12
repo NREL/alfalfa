@@ -55,7 +55,7 @@ class AlfalfaWatch extends HWatch {
 
     this._db = db;
     this._dis = null;
-    this._lease = null;
+    this._lease = HNum.make(60,'min');
 
     this.watches = this._db.db.collection('watches');
 
@@ -77,15 +77,18 @@ class AlfalfaWatch extends HWatch {
   }
 
   lease() {
-    return HNum.make(this._lease);
+    return this._lease;
   }
 
   watchReadByIds(recs,ids,callback) {
+    console.log('watchReadByIds');
     if (recs.length>=ids.length) {
       let b = new HGridBuilder();
       let meta = new HDictBuilder();
+      console.log('create grid for id: ', this._id);
+      console.log('create grid for lease: ', this._lease);
       meta.add('watchId',this._id);
-      meta.add('lease',null);
+      meta.add('lease',this._lease.val, this._lease.unit);
       callback(null, HGridBuilder.dictsToGrid(recs,meta.toDict()));
     } else {
       this._db.readById(ids[recs.length], false, (err, rec) => {
@@ -96,6 +99,7 @@ class AlfalfaWatch extends HWatch {
   }
 
   sub(ids,callback) {
+    console.log('sub');
     this.watches.findOne({ "_id": this._id }).then((watch) => {
       if (watch) {
         this._dis = watch.dis;
@@ -121,8 +125,11 @@ class AlfalfaWatch extends HWatch {
   }
 
   pollChanges(callback) {
+    console.log('pollChanges');
     this.watches.findOne({ "_id": this._id }).then((watch) => {
       if (watch) {
+        this._dis = watch.dis;
+        this._lease = watch.lease;
         this.watchReadByIds([],watch.subs,callback);
       } else {
         callback(null,HGrid.EMPTY);
@@ -133,8 +140,11 @@ class AlfalfaWatch extends HWatch {
   }
 
   pollRefresh(callback) {
+    console.log('pollRefresh');
     this.watches.findOne({ "_id": this._id }).then((watch) => {
       if (watch) {
+        this._dis = watch.dis;
+        this._lease = watch.lease;
         this.watchReadByIds([],watch.subs,callback);
       } else {
         callback(null,HGrid.EMPTY);
@@ -385,6 +395,7 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onWatchOpen(dis, lease) {
+    console.log('onWatchOpen');
     let w = new AlfalfaWatch(this,null,dis,lease);
     return w;
   };
@@ -395,6 +406,7 @@ class AlfalfaServer extends HServer {
   };
   
   onWatch(id) {
+    console.log('onWatch');
     let w = new AlfalfaWatch(this,id,null,null);
     return w;
   };
@@ -533,12 +545,16 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onInvokeAction(rec, action, args, callback) {
-    console.log("-- invokeAction \"" + rec.dis() + "." + action + "\" " + args);
+    console.log("-- invokeAction \"" + rec.id().val + "." + action + "\" " + args);
 
-    //console.log('args: ',JSON.parse(args.toString()));
-     let body = {"id": rec.id().val, "op": "InvokeAction", "action": action, "time_scale": args.getStr('time_scale')};
+     let body = {"id": rec.id().val, "op": "InvokeAction", "action": action};
 
-     console.log('body: ',body);
+     for (var it = args.iterator(); it.hasNext();) {
+       var entry = it.next();
+       var name = entry.getKey();
+       var val = entry.getValue();
+         body[name] = val.val;
+     }
      
      var params = {
       MessageBody: JSON.stringify(body),
