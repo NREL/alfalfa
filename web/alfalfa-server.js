@@ -55,7 +55,7 @@ class AlfalfaWatch extends HWatch {
 
     this._db = db;
     this._dis = null;
-    this._lease = HNum.make(60,'min');
+    this._lease = null;
 
     this.watches = this._db.db.collection('watches');
 
@@ -423,12 +423,21 @@ class AlfalfaServer extends HServer {
     b.addCol("who");
     
     for (var i = 0; i < array.val.length; ++i) {
-      b.addRow([
-        HNum.make(i + 1),
-        HStr.make("" + (i + 1)),
-        HNum.make(array.val[i]),
-        HStr.make(array.who[i]),
-      ]);
+      if( array.val[i] ) {
+        b.addRow([
+          HNum.make(i + 1),
+          HStr.make("" + (i + 1)),
+          HNum.make(array.val[i]),
+          HStr.make(array.who[i]),
+        ]);
+      } else {
+        b.addRow([
+          HNum.make(i + 1),
+          HStr.make("" + (i + 1)),
+          null,
+          HStr.make(array.who[i]),
+        ]);
+      }
     }
 
     return b;
@@ -463,8 +472,13 @@ class AlfalfaServer extends HServer {
 
     this.writearrays.findOne({_id: rec.id().val}).then((array) => {
       if( array ) {
-        array.val[level - 1] = val.val;
-        array.who[level - 1] = who;
+        if( val ) {
+          array.val[level - 1] = val.val;
+          array.who[level - 1] = who;
+        } else {
+          array.val[level - 1] = null;
+          array.who[level - 1] = who;
+        }
         this.writearrays.updateOne(
           { "_id": array._id },
           { $set: { "val": array.val, "who": array.who } 
@@ -480,8 +494,13 @@ class AlfalfaServer extends HServer {
         if( siteRef ) {
           array.siteRef = siteRef.val;
         }
-        array.val[level - 1] = val.val;
-        array.who[level - 1] = who;
+        if( val ) {
+          array.val[level - 1] = val.val;
+          array.who[level - 1] = who;
+        } else {
+          array.val[level - 1] = null;
+          array.who[level - 1] = who;
+        }
         this.writearrays.insertOne(array).then(() => {
           writeArray = array;
         }).catch((err) => {

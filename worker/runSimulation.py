@@ -14,6 +14,7 @@ import re
 from datetime import date, datetime, timedelta
 import pytz
 import calendar
+import traceback
 from dateutil.parser import parse
 
 # Simulation Status
@@ -395,8 +396,10 @@ while True:
                 ep.inputs[0] = 0
                 write_arrays = mongodb.writearrays
                 for array in write_arrays.find({"siteRef": sp.site_ref}):
+                    logger.info("write array: %s" % array)
                     for val in array.get('val'):
                         if val:
+                            logger.info("val: %s" % val)
                             index = sp.variables.inputIndex(array.get('_id'))
                             if index == -1:
                                 logger.error('bad input index for: %s' % array.get('_id'))
@@ -441,6 +444,7 @@ while True:
 
         except Exception as error:
             logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
+            traceback.print_exc()
             finalize_simulation()
             break
             # TODO: Cleanup simulation, and reset everything

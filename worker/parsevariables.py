@@ -18,6 +18,8 @@ class Variables:
 
         root = self.xml.getroot()
 
+        inputIndex = 0
+        outputIndex = 0
         for index, child in enumerate(root):
             eptag = child.find('EnergyPlus')
 
@@ -25,14 +27,16 @@ class Variables:
                 name = eptag.attrib['name']
                 variabletype = eptag.attrib['type']
 
-                outputitem = {'name': name, 'type': variabletype, 'index': index}
+                outputitem = {'name': name, 'type': variabletype, 'index': outputIndex}
                 self.outputs_list.append(outputitem)
+                outputIndex += 1
 
             if child.attrib['source'] == 'Ptolemy':
                 variable = eptag.attrib['variable']
 
-                inputitem = {'variable': variable, 'index': index}
+                inputitem = {'variable': variable, 'index': inputIndex}
                 self.inputs_list.append(inputitem)
+                inputIndex += 1
 
 
         fid = open(jsonfilepath, "r")
@@ -84,7 +88,7 @@ class Variables:
         return -1;
 
     def inputIndexFromVariableName(self,variable):
-        for inputitem in self.outputs_list:
+        for inputitem in self.inputs_list:
             if inputitem['variable'] == variable:
                 return inputitem['index']
                 
