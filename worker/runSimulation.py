@@ -390,10 +390,11 @@ while True:
             if ep.flag != 0:
                 break
 
+            master_index = sp.variables.inputIndexFromVariableName("MasterEnable")
             if bypass_flag:
-                ep.inputs[0] = 0
+                ep.inputs[master_index] = 0
             else:
-                ep.inputs[0] = 0
+                ep.inputs[master_index] = 1
                 write_arrays = mongodb.writearrays
                 for array in write_arrays.find({"siteRef": sp.site_ref}):
                     logger.info("write array: %s" % array)
