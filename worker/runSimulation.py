@@ -337,6 +337,8 @@ recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Starting"}},
 # that this is not an infinite loop
 # or maybe a timeout in the python call to this script
 while True:
+    stop = False;
+
     sp.next_time = time.time()
     utc_time = datetime.now(tz=pytz.UTC)
     t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone))
@@ -349,99 +351,107 @@ while True:
             ep.is_running, sp.sim_status, ep.kStep, sp.next_time - sp.start_time, sp.rt_step_time))
 
         try:
-            # Check BYPASS
-            if bypass_flag:
-                if real_time_flag:
-                    utc_time = datetime.now(tz=pytz.UTC)
-                    logger.info('########### RT CHECK ###########')
-                    logger.info('{0}'.format(utc_time))
-                    rt_hour = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).hour
-                    rt_minute = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).minute
-                    logger.info('RT HOUR: {0}, RT MINUTE: {1}'.format(rt_hour, rt_minute))
-                    logger.info('Actual Time: {0}, Simulation Time: {1}'.format(rt_hour * 3600 + rt_minute * 60, ep.kStep * ep.deltaT))
-                    if rt_hour * 3600 + rt_minute * 60 <= ep.kStep * ep.deltaT:
-                        bypass_flag = False  # Stop bypass
-                        logger.info('########### STOP BYPASS: RT ###########')
+            # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
+            # Instead we only check the database for stopping at each simulation step
+            rec = recs.find_one({"_id": sp.site_ref})
+            if rec and (rec.get("rec",{}).get("simStatus") == "s:Stopping") :
+                logger.info("Stopping")
+                stop = True;
+
+            if not stop:
+                # Check BYPASS
+                if bypass_flag:
+                    if real_time_flag:
+                        utc_time = datetime.now(tz=pytz.UTC)
+                        logger.info('########### RT CHECK ###########')
+                        logger.info('{0}'.format(utc_time))
+                        rt_hour = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).hour
+                        rt_minute = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).minute
+                        logger.info('RT HOUR: {0}, RT MINUTE: {1}'.format(rt_hour, rt_minute))
+                        logger.info('Actual Time: {0}, Simulation Time: {1}'.format(rt_hour * 3600 + rt_minute * 60, ep.kStep * ep.deltaT))
+                        if rt_hour * 3600 + rt_minute * 60 <= ep.kStep * ep.deltaT:
+                            bypass_flag = False  # Stop bypass
+                            logger.info('########### STOP BYPASS: RT ###########')
+                        else:
+                            logger.info('################# RT-BYPASS #################')
                     else:
-                        logger.info('################# RT-BYPASS #################')
+                        if sp.start_hour*3600 <= (ep.kStep-1)*ep.deltaT:
+                            bypass_flag = False     # Stop bypass
+                            logger.info('########### STOP BYPASS: Hours ########')
+                        else:
+                            logger.info('################# BYPASS #################')
+
+
+                # Read packet
+                # Get current time
+                utc_time = datetime.now(tz=pytz.UTC)
+                next_t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)) + \
+                         timedelta(seconds=sp.rt_step_time)
+                packet = ep.read()
+                # logger.info('Packet: {0}'.format(packet))
+                if packet == '':
+                    raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
+    
+                # Parse it to obtain building outputs
+                [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
+                # Log Output Data
+                ep.outputs = outputs
+    
+                if ep.flag != 0:
+                    break
+
+                master_index = sp.variables.inputIndexFromVariableName("MasterEnable")
+                if bypass_flag:
+                    ep.inputs[master_index] = 0
                 else:
-                    if sp.start_hour*3600 <= (ep.kStep-1)*ep.deltaT:
-                        bypass_flag = False     # Stop bypass
-                        logger.info('########### STOP BYPASS: Hours ########')
-                    else:
-                        logger.info('################# BYPASS #################')
+                    ep.inputs[master_index] = 1
+                    write_arrays = mongodb.writearrays
+                    for array in write_arrays.find({"siteRef": sp.site_ref}):
+                        logger.info("write array: %s" % array)
+                        for val in array.get('val'):
+                            if val:
+                                logger.info("val: %s" % val)
+                                index = sp.variables.inputIndex(array.get('_id'))
+                                if index == -1:
+                                    logger.error('bad input index for: %s' % array.get('_id'))
+                                else:
+                                    ep.inputs[index] = val
+                                    ep.inputs[index + 1] = 1
+                                    break
 
+                # Convert to tuple
+                inputs = tuple(ep.inputs)
 
-            # Read packet
-            # Get current time
-            utc_time = datetime.now(tz=pytz.UTC)
-            next_t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)) + \
-                     timedelta(seconds=sp.rt_step_time)
-            packet = ep.read()
-            # logger.info('Packet: {0}'.format(packet))
-            if packet == '':
-                raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
+                # Print
+                logger.info('Time: {0}'.format((ep.kStep - 1) * ep.deltaT))
+
+                # Write to inputs of E+
+                ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
     
-            # Parse it to obtain building outputs
-            [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
-            # Log Output Data
-            ep.outputs = outputs
-    
-            if ep.flag != 0:
-                break
+                if not bypass_flag:
+                    for output_id in sp.variables.outputIds():
+                        output_index = sp.variables.outputIndex(output_id)
+                        if output_index == -1:
+                            logger.error('bad output index for: %s' % output_id)
+                        else:
+                            output_value = ep.outputs[output_index]
+                            # TODO: Make this better with a bulk update
+                            # Also at some point consider removing curVal and related fields after sim ends
+                            recs.update_one({"_id": output_id}, {
+                                "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
 
-            master_index = sp.variables.inputIndexFromVariableName("MasterEnable")
-            if bypass_flag:
-                ep.inputs[master_index] = 0
-            else:
-                ep.inputs[master_index] = 1
-                write_arrays = mongodb.writearrays
-                for array in write_arrays.find({"siteRef": sp.site_ref}):
-                    logger.info("write array: %s" % array)
-                    for val in array.get('val'):
-                        if val:
-                            logger.info("val: %s" % val)
-                            index = sp.variables.inputIndex(array.get('_id'))
-                            if index == -1:
-                                logger.error('bad input index for: %s' % array.get('_id'))
-                            else:
-                                ep.inputs[index] = val
-                                ep.inputs[index + 1] = 1
-                                break
+                    # time computed for ouput purposes
+                    output_time = datetime.strptime(sp.start_date, "%m/%d").replace(year=startDatetime.year) + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
+                    output_time = output_time.replace(tzinfo=pytz.utc)
+                    # Haystack uses ISO 8601 format like this "t:2015-06-08T15:47:41-04:00 New_York"
+                    output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
+                    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}}, False)
 
-            # Convert to tuple
-            inputs = tuple(ep.inputs)
+                # Step
+                logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
 
-            # Print
-            logger.info('Time: {0}'.format((ep.kStep - 1) * ep.deltaT))
-
-            # Write to inputs of E+
-            ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
-    
-            if not bypass_flag:
-                for output_id in sp.variables.outputIds():
-                    output_index = sp.variables.outputIndex(output_id)
-                    if output_index == -1:
-                        logger.error('bad output index for: %s' % output_id)
-                    else:
-                        output_value = ep.outputs[output_index]
-                        # TODO: Make this better with a bulk update
-                        # Also at some point consider removing curVal and related fields after sim ends
-                        recs.update_one({"_id": output_id}, {
-                            "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
-
-                # time computed for ouput purposes
-                output_time = datetime.strptime(sp.start_date, "%m/%d").replace(year=startDatetime.year) + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
-                output_time = output_time.replace(tzinfo=pytz.utc)
-                # Haystack uses ISO 8601 format like this "t:2015-06-08T15:47:41-04:00 New_York"
-                output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
-                recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}}, False)
-
-            # Step
-            logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
-
-            # Advance time
-            ep.kStep = ep.kStep + 1
+                # Advance time
+                ep.kStep = ep.kStep + 1
 
         except Exception as error:
             logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
@@ -451,7 +461,12 @@ while True:
             # TODO: Cleanup simulation, and reset everything
     
     # Check Stop
-    if (ep.is_running and (ep.kStep >= ep.MAX_STEPS)) or (sp.sim_status == 3 and ep.is_running):
+    if ( ep.is_running and (ep.kStep >= ep.MAX_STEPS) ) :
+        stop = True;
+    elif ( sp.sim_status == 3 and ep.is_running ) :
+        stop = True;
+
+    if stop :
         try:
             ep.stop(True)
             ep.is_running = 0

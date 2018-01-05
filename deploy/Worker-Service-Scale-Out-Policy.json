@@ -1,0 +1,17 @@
+{
+    "PolicyName": "worker-service-out-policy",
+    "ServiceNamespace": "ecs",
+    "ResourceId": "service/worker_ecs_cluster/worker-service",
+    "ScalableDimension": "ecs:service:DesiredCount",
+    "PolicyType": "StepScaling",
+    "StepScalingPolicyConfiguration": {
+        "AdjustmentType": "PercentChangeInCapacity",
+        "StepAdjustments": [
+            {
+                              "MetricIntervalLowerBound": 0,
+                              "ScalingAdjustment": 100
+            }
+        ],
+        "Cooldown": 60
+    }
+}
