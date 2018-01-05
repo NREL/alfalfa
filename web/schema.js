@@ -152,6 +152,17 @@ const mutationType = new GraphQLObjectType({
         console.log("StartSimulation schema")
         resolvers.startSimulationResolver(args);
       },
+    },
+    stopSimulation: {
+      name: 'StopSimulation',
+      type: GraphQLString,
+      args: {
+        siteRef : { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (_,args,request) => {
+        console.log("StopSimulation schema")
+        resolvers.stopSimulationResolver(args);
+      },
     }
   })
 });

@@ -1,19 +1,26 @@
 {
+  "networkMode": "awsvpc",
+  "cpu": "1024",
+  "memory": "2GB",
+  "requiresCompatibilities": [
+      "FARGATE"
+  ], 
+  "family": "worker",
+  "taskRoleArn": "<%= @WORKER_ROLE_ARN%>",
+  "executionRoleArn": "<%= @EXECUTION_ROLE_ARN%>",
   "containerDefinitions": [
     {
       "name": "worker",
-      "image": "431265468707.dkr.ecr.us-west-1.amazonaws.com/alfalfa_worker:latest",
-      "cpu": 0,
-      "memory": 400,
+      "image": "<%=@WORKER_REGISTRY_URI%>:latest",
       "essential": true,
       "environment": [
           {
               "name": "JOB_QUEUE_URL",
-              "value": "https://sqs.us-west-1.amazonaws.com/431265468707/alfalfa"
+              "value": "<%= @JOB_QUEUE_URL%>"
           },
           {
             "name": "MONGO_URL",
-            "value": "<%= @MONGO_URL %>"
+            "value": "<%= @MONGO_URL%>"
           },
           {
             "name": "MONGO_DB_NAME",
@@ -24,12 +31,11 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "awslogs-worker",
-          "awslogs-region": "us-west-1"
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "alfalfa"
         }
       }
     }
-  ],
-  "family": "worker",
-  "taskRoleArn": "arn:aws:iam::431265468707:role/ecsRole"
+  ]
 }
 

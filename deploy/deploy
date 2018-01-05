@@ -2,6 +2,7 @@
 
 require 'json'
 require 'erb'
+require 'open3'
 
 SERVICES = Dir.glob("#{File.dirname(__FILE__)}/*.json").map { |f| File.basename(f, '.json') }
 
@@ -11,11 +12,7 @@ require 'optparse'
 
 subtext = <<HELP
 Commonly used command are:
-   up
    create
-   start
-   stop
-   down
    create-log-groups
 See 'deploy COMMAND --help' for more information on a specific command.
 HELP
@@ -29,27 +26,9 @@ global = OptionParser.new do |opts|
 end
 #end.parse!
 
-up = {
-  :count => 3
-}
-
 create = {}
 
-start = {}
-
 subcommands = { 
-  'up' => OptionParser.new do |opts|
-      opts.banner = "Usage: up [OPTIONS]"
-      opts.on("-c", "--count [COUNT]", "Number of instances") do |count|
-        up[:count] = count
-      end
-      opts.on_tail("-h", "--help", "Show help") do
-        puts 'Creates the ECS cluster (if it does not already exist) and the AWS resources required to set up the cluster'
-        puts opts
-        exit
-      end
-   end,
-
    'create' => OptionParser.new do |opts|
       opts.banner = "Usage: create [OPTIONS]"
       opts.on("-s", "--service [SERVICE]") do |service|
@@ -57,36 +36,6 @@ subcommands = {
       end
       opts.on_tail("-h", "--help", "Show help") do
         puts 'Create task definitions'
-        puts opts
-        exit
-      end
-   end,
-
-   'start' => OptionParser.new do |opts|
-      opts.banner = "Usage: start [SERVICE]"
-      opts.on("-s", "--service [SERVICE]") do |service|
-        start[:service] = service
-      end
-      opts.on_tail("-h", "--help", "Show help") do
-        puts 'Start a task from the task definition'
-        puts opts
-        exit
-      end
-   end,
-
-   'stop' => OptionParser.new do |opts|
-      opts.banner = "Usage: stop"
-      opts.on_tail("-h", "--help", "Show help") do
-        puts 'Stop all running tasks'
-        puts opts
-        exit
-      end
-   end,
-
-   'down' => OptionParser.new do |opts|
-      opts.banner = "Usage: down"
-      opts.on_tail("-h", "--help", "Show help") do
-        puts 'Stop all running EC2 instances'
         puts opts
         exit
       end
@@ -106,12 +55,15 @@ global.order!
 command = ARGV.shift
 subcommands[command].order!
 
+@JOB_QUEUE_URL = ENV['JOB_QUEUE_URL']
 @MONGO_URL = ENV['MONGO_URL']
+@MONGO_DB_NAME = ENV['MONGO_DB_NAME']
+@WORKER_ROLE_ARN = ENV['WORKER_ROLE_ARN']
+@EXECUTION_ROLE_ARN = ENV['EXECUTION_ROLE_ARN']
+@WORKER_REGISTRY_URI = ENV['WORKER_REGISTRY_URI']
+@WEB_REGISTRY_URI = ENV['WEB_REGISTRY_URI']
 
 case command
-
-when 'up'
-  puts %x(aws ec2 run-instances --image-id ami-689bc208 --count #{up[:count]} --instance-type t2.micro --key-name alfalfakey  --iam-instance-profile Name="ecsInstanceRole")
 
 when 'create'
   if create[:service]
@@ -128,34 +80,21 @@ when 'create'
         json_template = f.read
       end
       json = ERB.new(json_template).result
-      puts json
-      puts %x(aws ecs register-task-definition --cli-input-json '#{json}')
+      json = JSON::fast_generate(JSON::parse(json))
+
+      command = ['aws', '--profile', 'batman', 'ecs', 'register-task-definition', '--cli-input-json', json]
+
+      Open3.popen3(*command) do |stdin, stdout, stderr, wait_thr|
+        # calling wait_thr.value blocks until command is complete
+        if wait_thr.value.success?
+          puts "Command completed successfully"
+        else
+          puts "Error running command: '#{command.join(' ')}'"
+          puts "stdout: #{stdout.read}"
+          puts "stderr: #{stderr.read}"
+        end
+      end
     end
-  end
-
-when 'start'
-  if start[:service]
-    puts %x(aws ecs run-task --task-definition #{start[:service]})
-  else
-    SERVICES.each do |t|
-      puts %x(aws ecs run-task --task-definition #{t})
-    end
-  end
-
-when 'stop'
-  result = JSON.parse(%x(aws ecs list-tasks))
-
-  result['taskArns'].each do |arn|
-    puts %x(aws ecs stop-task --task #{arn})
-  end
-
-when 'down'
-
-  result = JSON.parse(%x(aws ec2 describe-instances))
-
-  result['Reservations'].first['Instances'].each do |inst|
-    puts inst['InstanceId']
-    puts %x(aws ec2 terminate-instances --instance-ids #{inst['InstanceId']})
   end
 
 when 'create-log-groups'

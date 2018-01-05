@@ -14,6 +14,7 @@ import ExpansionPanel, {
   ExpansionPanelDetails,
   ExpansionPanelSummary,
 } from 'material-ui/ExpansionPanel';
+import Grid from 'material-ui/Grid';
 import Card, {CardActions, CardHeader, CardText} from 'material-ui/Card';
 import List, { ListItem, ListItemIcon, ListItemText } from 'material-ui/List';
 import {cyan500, red500, greenA200} from 'material-ui/colors';
@@ -158,9 +159,24 @@ class Sites extends React.Component {
     this.setState({ selected: newSelected });
   };
 
+  //isStartButtonEnabled = () => {
+  //  let enabled = false;
+
+  //  this.props.data.viewer.sites.map((site, i) => {
+  //  }
+
+  //  return enabled;
+  //}
+
   handleStartSimulation = (startDatetime,endDatetime,timescale,realtime) => {
     if (this.state.selected.length > 0) {
       this.props.startSimProp(this.state.selected[0],startDatetime,endDatetime,timescale,realtime);
+    }
+  }
+
+  handleStopSimulation = () => {
+    if (this.state.selected.length > 0) {
+      this.props.stopSimProp(this.state.selected[0]);
     }
   }
 
@@ -206,59 +222,72 @@ class Sites extends React.Component {
     return result;
   }
 
-  render = () => {
+  render = (props) => {
+    const { classes } = this.props;
+
     if( ! this.props.data.loading ) {
       return (
-        <div>
+        <Grid container direction="column">
           {this.conditionalPointDialog()}
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox"></TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Site Reference</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Time</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {this.props.data.viewer.sites.map((site, i) => {
-                 const isSelected = this.isSelected(site.siteRef);
-                 return (
-                  <TableRow key={site.siteRef} 
-                    selected={this.isSelected(i)}
-                    onClick={event => this.handleRowClick(event, site.siteRef)} 
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={isSelected}
-                      />
-                    </TableCell>
-                    <TableCell padding="none">{site.name}</TableCell>
-                    <TableCell>{site.siteRef}</TableCell>
-                    <TableCell>{site.simStatus}</TableCell>
-                    <TableCell>{this.formatTime(site.datetime)}</TableCell>
-                    <TableCell><IconButton onClick={event => this.handleRequestShowPoints(event, site)}><MoreVert/></IconButton></TableCell>
-                  </TableRow>
-                 );
-              })}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell>
-                  <StartDialog disabled={this.state.selected.length == 0} onStartSimulation={this.handleStartSimulation}></StartDialog>
-                </TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </div>
+          <Grid item>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox"></TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Site Reference</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Time</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {this.props.data.viewer.sites.map((site, i) => {
+                   const isSelected = this.isSelected(site.siteRef);
+                   return (
+                    <TableRow key={site.siteRef} 
+                      selected={this.isSelected(i)}
+                      onClick={event => this.handleRowClick(event, site.siteRef)} 
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={isSelected}
+                        />
+                      </TableCell>
+                      <TableCell padding="none">{site.name}</TableCell>
+                      <TableCell>{site.siteRef}</TableCell>
+                      <TableCell>{site.simStatus}</TableCell>
+                      <TableCell>{this.formatTime(site.datetime)}</TableCell>
+                      <TableCell><IconButton onClick={event => this.handleRequestShowPoints(event, site)}><MoreVert/></IconButton></TableCell>
+                    </TableRow>
+                   );
+                })}
+              </TableBody>
+            </Table>
+          </Grid>
+          <Grid item>
+            <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
+              <Grid item>
+                <StartDialog disabled={this.state.selected.length == 0} onStartSimulation={this.handleStartSimulation}></StartDialog>
+              </Grid>
+              <Grid item>
+                <Button raised disabled={this.state.selected.length == 0} onTouchTap={this.handleStopSimulation}>Stop Simulation</Button>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
       );
     } else {
       return null;
     }
   }
 }
+
+const styles = theme => ({
+  controls: {
+    marginLeft: 16,
+  },
+});
 
 const sitesQL = gql`
   query QueueQuery {
@@ -281,9 +310,35 @@ const startSimQL = gql`
   }
 `;
 
-export default graphql(startSimQL, {
+const stopSimQL = gql`
+  mutation stopSimulationMutation($siteRef: String!) {
+    stopSimulation(siteRef: $siteRef)
+  }
+`;
+
+export default 
+graphql(startSimQL, {
   props: ({ mutate }) => ({
     startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
   })
-})(graphql(sitesQL, {options: { pollInterval: 1000 },})(Sites));
+})
+(
+  graphql(stopSimQL, 
+  {
+    props: ({ mutate }) => ({
+      stopSimProp: (siteRef) => mutate({ variables: { siteRef } }),
+    })
+  })
+  (
+    graphql(sitesQL, 
+    {
+      options: { 
+        pollInterval: 1000,
+      },
+    }) 
+    (
+      withStyles(styles)(Sites)
+    )
+  )
+);
 

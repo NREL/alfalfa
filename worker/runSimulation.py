@@ -194,10 +194,10 @@ def finalize_simulation():
 #    os.remove(tar_name)
 
 
-sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
+sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
 logger.info('JOB_QUEUE_URL: %s' % os.environ['JOB_QUEUE_URL'])
-s3 = boto3.resource('s3', region_name='us-west-1')
+s3 = boto3.resource('s3', region_name='us-east-1')
 # Mongo Database
 mongo_client = MongoClient(os.environ['MONGO_URL'])
 logger.info('MONGO_URL: %s' % os.environ['MONGO_URL'])

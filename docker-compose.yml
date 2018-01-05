@@ -3,7 +3,7 @@ version: '2'
 services:
   web: # main haystack application
     build: web
-    image: 431265468707.dkr.ecr.us-west-1.amazonaws.com/alfalfa_web:latest
+    image: ${WEB_REGISTRY_URI}:latest
     ports:
      - "80:80"
      - "29043:29043"
@@ -23,7 +23,7 @@ services:
 
   worker:
     build: worker
-    image: 431265468707.dkr.ecr.us-west-1.amazonaws.com/alfalfa_worker:latest
+    image: ${WORKER_REGISTRY_URI}:latest
     environment:
      - AWS_ACCESS_KEY_ID
      - AWS_SECRET_ACCESS_KEY

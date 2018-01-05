@@ -44,9 +44,9 @@ def process_message(message):
 # ======================================================= MAIN ========================================================
 if __name__ == '__main__':
     try:
-        sqs = boto3.resource('sqs', region_name='us-west-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
+        sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
         queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-        s3 = boto3.resource('s3', region_name='us-west-1')
+        s3 = boto3.resource('s3', region_name='us-east-1')
 
         logger = logging.getLogger('worker')
         logger.setLevel(logging.INFO)
