@@ -600,6 +600,11 @@ class AlfalfaServer extends HServer {
         { _id: rec.id().val },
         { $set: { "rec.simStatus": "s:Stopping" } }
       )
+      callback(null,HGrid.EMPTY);
+    } else if ( action == "remove_site" ) {
+      this.mrecs.deleteMany({site_ref: rec.id().val});
+      this.writearrays.deleteMany({siteRef: rec.id().val});
+      callback(null,HGrid.EMPTY);
     }
   };
 }

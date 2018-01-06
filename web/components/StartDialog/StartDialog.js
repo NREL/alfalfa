@@ -95,6 +95,7 @@ class StartDialog extends React.Component {
                   control={
                     <Switch
                       checked={realtime}
+                      disabled={true}
                       onChange={(event, checked) => this.setState({ realtime: checked })}
                     />
                   }

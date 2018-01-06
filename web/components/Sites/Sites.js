@@ -159,25 +159,54 @@ class Sites extends React.Component {
     this.setState({ selected: newSelected });
   };
 
-  //isStartButtonEnabled = () => {
-  //  let enabled = false;
+  isStartButtonDisabled = () => {
+    const stoppedItem = this.selectedSites().some((item) => {
+      return (item.simStatus === "Stopped");
+    });
 
-  //  this.props.data.viewer.sites.map((site, i) => {
-  //  }
+    return (! stoppedItem)
+  }
 
-  //  return enabled;
-  //}
+  isStopButtonDisabled = () => {
+    const runningItem = this.selectedSites().some((item) => {
+      return (item.simStatus === "Running");
+    });
+
+    return (! runningItem);
+  }
+
+  isRemoveButtonDisabled = () => {
+    const stoppedItem = this.selectedSites().some((item) => {
+      return (item.simStatus === "Stopped");
+    });
+
+    return (! stoppedItem);
+  }
 
   handleStartSimulation = (startDatetime,endDatetime,timescale,realtime) => {
-    if (this.state.selected.length > 0) {
-      this.props.startSimProp(this.state.selected[0],startDatetime,endDatetime,timescale,realtime);
-    }
+    this.selectedSites().map((item) => {
+      this.props.startSimProp(item.siteRef,startDatetime,endDatetime,timescale,realtime);
+    })
   }
 
   handleStopSimulation = () => {
-    if (this.state.selected.length > 0) {
-      this.props.stopSimProp(this.state.selected[0]);
-    }
+    this.selectedSites().map((item) => {
+      this.props.stopSimProp(item.siteRef);
+    })
+  }
+
+  handleRemoveSite = () => {
+    this.selectedSites().map((item) => {
+      this.props.removeSiteProp(item.siteRef);
+    })
+  }
+
+  selectedSites = () => {
+    return this.props.data.viewer.sites.filter((site) => {
+      return this.state.selected.some((siteRef) => {
+        return (siteRef === site.siteRef);
+      })
+    });
   }
 
   handleRequestShowPoints = (e, site) => {
@@ -246,7 +275,7 @@ class Sites extends React.Component {
                    const isSelected = this.isSelected(site.siteRef);
                    return (
                     <TableRow key={site.siteRef} 
-                      selected={this.isSelected(i)}
+                      selected={false}
                       onClick={event => this.handleRowClick(event, site.siteRef)} 
                     >
                       <TableCell padding="checkbox">
@@ -268,10 +297,13 @@ class Sites extends React.Component {
           <Grid item>
             <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
               <Grid item>
-                <StartDialog disabled={this.state.selected.length == 0} onStartSimulation={this.handleStartSimulation}></StartDialog>
+                <StartDialog disabled={this.isStartButtonDisabled()} onStartSimulation={this.handleStartSimulation}></StartDialog>
               </Grid>
               <Grid item>
-                <Button raised disabled={this.state.selected.length == 0} onTouchTap={this.handleStopSimulation}>Stop Simulation</Button>
+                <Button raised disabled={this.isStopButtonDisabled()} onTouchTap={this.handleStopSimulation}>Stop Simulation</Button>
+              </Grid>
+              <Grid item>
+                <Button raised disabled={this.isRemoveButtonDisabled()} onTouchTap={this.handleRemoveSite}>Remove Site</Button>
               </Grid>
             </Grid>
           </Grid>
@@ -316,29 +348,37 @@ const stopSimQL = gql`
   }
 `;
 
-export default 
-graphql(startSimQL, {
+const removeSiteQL = gql`
+  mutation removeSiteMutation($siteRef: String!) {
+    removeSite(siteRef: $siteRef)
+  }
+`;
+
+const withStyle = withStyles(styles)(Sites);
+
+const withStart = graphql(startSimQL, {
   props: ({ mutate }) => ({
     startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
   })
-})
-(
-  graphql(stopSimQL, 
-  {
-    props: ({ mutate }) => ({
-      stopSimProp: (siteRef) => mutate({ variables: { siteRef } }),
-    })
+})(withStyle);
+
+const withStop = graphql(stopSimQL, {
+  props: ({ mutate }) => ({
+    stopSimProp: (siteRef) => mutate({ variables: { siteRef } }),
   })
-  (
-    graphql(sitesQL, 
-    {
-      options: { 
-        pollInterval: 1000,
-      },
-    }) 
-    (
-      withStyles(styles)(Sites)
-    )
-  )
-);
+})(withStart);
+
+const withRemove = graphql(removeSiteQL, {
+  props: ({ mutate }) => ({
+    removeSiteProp: (siteRef) => mutate({ variables: { siteRef } }),
+  })
+})(withStop);
+
+const withSites = graphql(sitesQL, {
+  options: { 
+    pollInterval: 1000,
+  },
+})(withRemove) 
+
+export default withSites;
 

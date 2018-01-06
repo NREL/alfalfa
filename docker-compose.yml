@@ -2,7 +2,10 @@ version: '2'
 
 services:
   web: # main haystack application
-    build: web
+    build: 
+      context: web
+      args:
+        - NODE_ENV=${NODE_ENV}
     image: ${WEB_REGISTRY_URI}:latest
     ports:
      - "80:80"
@@ -12,6 +15,7 @@ services:
      - AWS_SECRET_ACCESS_KEY
      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
      - MONGO_URL=mongodb://mongo:27017/
+     - NODE_ENV=${NODE_ENV}
     links:
       - goaws
       #- mongo

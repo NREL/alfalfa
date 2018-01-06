@@ -14,7 +14,13 @@ let devtool = '';
 let plugins = [];
 
 if (process.env.NODE_ENV === 'production') {
+  const CompressionPlugin = require('compression-webpack-plugin');
+
   plugins = [
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+    }),
+    new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin({
       compress: {
         warnings: false,
@@ -23,9 +29,17 @@ if (process.env.NODE_ENV === 'production') {
         comments: false,
       },
     }),
+    new webpack.optimize.AggressiveMergingPlugin(),
     new HtmlWebpackPlugin({
       title: title,
       template: template
+    }),
+    new CompressionPlugin({
+      asset: "[path].gz[query]",
+      algorithm: "gzip",
+      test: /\.js$|\.css$|\.html$/,
+      threshold: 10240,
+      minRatio: 0.8
     })
   ];
 

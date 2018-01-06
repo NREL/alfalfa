@@ -149,7 +149,6 @@ const mutationType = new GraphQLObjectType({
         realtime : { type: GraphQLString },
       },
       resolve: (_,args,request) => {
-        console.log("StartSimulation schema")
         resolvers.startSimulationResolver(args);
       },
     },
@@ -160,8 +159,17 @@ const mutationType = new GraphQLObjectType({
         siteRef : { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: (_,args,request) => {
-        console.log("StopSimulation schema")
         resolvers.stopSimulationResolver(args);
+      },
+    },
+    removeSite: {
+      name: 'removeSite',
+      type: GraphQLString,
+      args: {
+        siteRef : { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (_,args,request) => {
+        resolvers.removeSiteResolver(args);
       },
     }
   })

@@ -14,6 +14,12 @@ import morgan from 'morgan';
 
 var app = express();
 
+app.get('*.js', function (req, res, next) {
+  req.url = req.url + '.gz';
+  res.set('Content-Encoding', 'gzip');
+  next();
+});
+
 app.use(morgan('combined'))
 
 app.use(bodyParser.text({ type: 'text/*' }));

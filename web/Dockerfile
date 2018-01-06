@@ -16,6 +16,7 @@ RUN npm update
 #COPY ./haystack_report_haystack.json  /root
 COPY . /root
 
+ARG NODE_ENV
 RUN npm run build
 
 CMD [ "npm", "start" ]
