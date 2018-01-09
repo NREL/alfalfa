@@ -2,7 +2,7 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, HomeRoute, Redirect, Switch } from 'react-router-dom';
-import injectTapEventPlugin from 'react-tap-event-plugin';
+//import injectTapEventPlugin from 'react-tap-event-plugin';
 import ApolloClient, { createNetworkInterface, addTypename } from 'apollo-client';
 import { ApolloProvider } from 'react-apollo';
 //import Cookies from 'js-cookie';
@@ -32,7 +32,7 @@ const store = createStore(
   )
 );
 
-injectTapEventPlugin();
+//injectTapEventPlugin();
 
 ReactDOM.render(
   <ApolloProvider store={store} client={client}>

@@ -5,7 +5,7 @@ import Dialog, {
   DialogContentText,
   DialogTitle,
 } from 'material-ui/Dialog';
-import { DateTimePicker } from 'material-ui-pickers'
+import { DateTimePicker } from 'material-ui-pickers';
 import { withStyles } from 'material-ui/styles';
 import Button from 'material-ui/Button';
 import Grid from 'material-ui/Grid';
@@ -59,7 +59,7 @@ class StartDialog extends React.Component {
 
     return (
       <div>
-        <Button raised disabled={this.props.disabled} onTouchTap={this.handleShowDialogClick}>Start Simulation</Button>
+        <Button raised disabled={this.props.disabled} onClick={this.handleShowDialogClick}>Start Simulation</Button>
         <Dialog fullWidth={true} open={this.state.open}>
           <DialogTitle>Simulation Parameters</DialogTitle>
           <DialogContent>
@@ -116,7 +116,7 @@ class StartDialog extends React.Component {
       </div>
     );
   }
-};
+}
 
 export default withStyles(styles)(StartDialog);
 

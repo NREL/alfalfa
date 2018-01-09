@@ -29,9 +29,9 @@ import StartDialog from '../StartDialog/StartDialog.js';
 
 class PointDialogComponent extends React.Component {
 
-  handleRequestClose = () => {
-    this.props.onClosePointsClick();
-  }
+  //handleRequestClose = () => {
+  //  this.props.onClosePointsClick();
+  //}
 
   state = {
     expanded: null,
@@ -45,7 +45,11 @@ class PointDialogComponent extends React.Component {
 
   table = () => {
     if( this.props.data.loading ) {
-      return (<div><CircularProgress/></div>);
+      return (
+        <Grid container justify="center" alignItems="center">
+          <Grid item><CircularProgress/></Grid>
+        </Grid>
+      );
     } else {
       const points = this.props.data.viewer.sites[0].points;
       const { expanded } = this.state;
@@ -88,16 +92,20 @@ class PointDialogComponent extends React.Component {
   }
 
   render = () => {
-    return(
-      <div>
-        <Dialog open={true} onRequestClose={this.handleRequestClose}>
-          <DialogTitle>{this.props.site.name + ' Points'}</DialogTitle>
-          <DialogContent>
-            {this.table()}
-          </DialogContent>
-        </Dialog>
-      </div>
-    )
+    if( this.props.site ) {
+      return(
+        <div>
+          <Dialog open={true} onBackdropClick={this.props.onBackdropClick}>
+            <DialogTitle>{this.props.site.name + ' Points'}</DialogTitle>
+            <DialogContent>
+              {this.table()}
+            </DialogContent>
+          </Dialog>
+        </div>
+      )
+    } else {
+      return null;
+    }
   }
 }
 
@@ -118,12 +126,18 @@ const pointsQL = gql`
 `;
 
 const PointDialog = graphql(pointsQL, {
-  options: (props) => ({
-    pollInterval: 1000,
-    variables: {
-      siteRef: props.site.siteRef
+  options: (props) => {
+    let siteRef = "";
+    if( props.site ) {
+      siteRef = props.site.siteRef;
     }
-  })
+    return ({
+      pollInterval: 1000,
+      variables: {
+        siteRef
+      }
+    })
+  }
 })(PointDialogComponent);
 
 class Sites extends React.Component {
@@ -218,14 +232,6 @@ class Sites extends React.Component {
     this.setState({ showSite: null });
   }
 
-  conditionalPointDialog = () => {
-    if( this.state.showSite != null ) {
-      return (<PointDialog onClosePointsClick={this.handleRequestClosePoints} site={this.state.showSite}></PointDialog>);
-    } else {
-      return null;
-    }
-  }
-
   formatTime = (isotime) => {
     let result = "-";
 
@@ -251,13 +257,25 @@ class Sites extends React.Component {
     return result;
   }
 
+  showSiteRef = () => {
+    if( this.state.showSite ) {
+      return this.state.showSite.siteRef;
+    } else {
+      return "";
+    }
+  }
+
   render = (props) => {
     const { classes } = this.props;
 
     if( ! this.props.data.loading ) {
+      const isStartDisabled = this.isStartButtonDisabled();
+      const isStopDisabled = this.isStopButtonDisabled();
+      const isRemoveDisabled = this.isRemoveButtonDisabled();
+
       return (
         <Grid container direction="column">
-          {this.conditionalPointDialog()}
+          <PointDialog site={this.state.showSite} onBackdropClick={this.handleRequestClosePoints} />
           <Grid item>
             <Table>
               <TableHead>
@@ -297,13 +315,13 @@ class Sites extends React.Component {
           <Grid item>
             <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
               <Grid item>
-                <StartDialog disabled={this.isStartButtonDisabled()} onStartSimulation={this.handleStartSimulation}></StartDialog>
+                <StartDialog disabled={isStartDisabled} onStartSimulation={this.handleStartSimulation}></StartDialog>
               </Grid>
               <Grid item>
-                <Button raised disabled={this.isStopButtonDisabled()} onTouchTap={this.handleStopSimulation}>Stop Simulation</Button>
+                <Button raised disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Simulation</Button>
               </Grid>
               <Grid item>
-                <Button raised disabled={this.isRemoveButtonDisabled()} onTouchTap={this.handleRemoveSite}>Remove Site</Button>
+                <Button raised disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Site</Button>
               </Grid>
             </Grid>
           </Grid>

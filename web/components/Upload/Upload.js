@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import IconButton from 'material-ui/IconButton';
 import {FileUpload} from 'material-ui-icons';
 import TextField from 'material-ui/TextField';
@@ -67,8 +68,8 @@ class Upload extends React.Component {
   };
 
   static contextTypes = {
-    authenticated: React.PropTypes.bool,
-    user: React.PropTypes.object
+    authenticated: PropTypes.bool,
+    user: PropTypes.object
   };
 
   onModelFileChange(file) {
