@@ -234,7 +234,7 @@ if (time.strptime(sp.end_date, "%m/%d") == time.strptime(sp.start_date, "%m/%d")
 #sp.end_date = '11/13'
 #sp.start_hour = 15
 #sp.end_hour = 18
-#real_time_flag = False
+real_time_flag = 'true'
 #time_scale = 120
 
 
@@ -261,9 +261,11 @@ sp.variables = Variables(variables_path, sp.mapping)
 subprocess.call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
 shutil.copyfile(variables_path, variables_new_path)
 
-if real_time_flag:
+if real_time_flag == 'true':
     # Set Time Scale
     time_scale = 1
+    logger.info('realtime sim')
+
 elif time_scale > 120:
     time_scale = 120
 
@@ -361,7 +363,7 @@ while True:
             if not stop:
                 # Check BYPASS
                 if bypass_flag:
-                    if real_time_flag:
+                    if real_time_flag == 'true':
                         utc_time = datetime.now(tz=pytz.UTC)
                         logger.info('########### RT CHECK ###########')
                         logger.info('{0}'.format(utc_time))

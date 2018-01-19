@@ -28,8 +28,6 @@ class FileInput extends React.Component {
     const file = event.target.files[0];
     this.props.onFileChange(file);
     this.setState({label: file.name});
-    
-    console.log(file);
   }
 
   render() {
@@ -74,18 +72,15 @@ class Upload extends React.Component {
 
   onModelFileChange(file) {
     this.setState({modelFile: file, completed: 0, uploadID: uuid()});
-    console.log(file.name);
   }
 
   onWeatherFileChange(file) {
     this.setState({weatherFile: file, completed: 0});
-    console.log(file.name);
   }
 
   uploadProgress(evt) {
     if (evt.lengthComputable) {
       var percentComplete = Math.round(evt.loaded * 100 / evt.total);
-      console.log('percent: ' + percentComplete.toString() + '%');
       if (percentComplete > 100) {
         this.setState({completed: 100});
       } else {
@@ -99,8 +94,6 @@ class Upload extends React.Component {
 
   uploadComplete(evt) {
     /* This event is raised when the server send back a response */
-    console.log("Done - " + evt.target.responseText );
-
     this.props.addJobProp(this.state.modelFile.name, this.state.uploadID);
 
     //var xhr = new XMLHttpRequest();

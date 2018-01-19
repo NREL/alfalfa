@@ -134,7 +134,6 @@ const mutationType = new GraphQLObjectType({
         uploadID : { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: (_,args,request) => {
-        console.log("AddJob", args)
         resolvers.addJobResolver(args.osmName,args.uploadID);
       },
     },

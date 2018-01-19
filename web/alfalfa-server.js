@@ -50,7 +50,6 @@ class WriteArray {
 
 class AlfalfaWatch extends HWatch {
   constructor(db, id, dis, lease) {
-    console.log('create watch');
     super();
 
     this._db = db;
@@ -81,14 +80,12 @@ class AlfalfaWatch extends HWatch {
   }
 
   watchReadByIds(recs,ids,callback) {
-    console.log('watchReadByIds');
     if (recs.length>=ids.length) {
       let b = new HGridBuilder();
       let meta = new HDictBuilder();
-      console.log('create grid for id: ', this._id);
-      console.log('create grid for lease: ', this._lease);
       meta.add('watchId',this._id);
       meta.add('lease',this._lease.val, this._lease.unit);
+      console.log('watch recs: ', HGridBuilder.dictsToGrid(recs,meta.toDict()));
       callback(null, HGridBuilder.dictsToGrid(recs,meta.toDict()));
     } else {
       this._db.readById(ids[recs.length], false, (err, rec) => {
@@ -99,7 +96,6 @@ class AlfalfaWatch extends HWatch {
   }
 
   sub(ids,callback) {
-    console.log('sub');
     this.watches.findOne({ "_id": this._id }).then((watch) => {
       if (watch) {
         this._dis = watch.dis;
@@ -124,8 +120,26 @@ class AlfalfaWatch extends HWatch {
     })
   }
 
+  unsub(ids, callback) {
+    this.watches.updateOne(
+      { "_id": this._id },
+      { $pull: { subs: { $in: ids } }
+    ).then(() => {
+      callback(null,HGrid.EMPTY);
+    }).catch( (err) => {
+      callback(err);
+    });
+  }
+
+  close(callback) {
+    this.watches.deleteOne({ "_id": this._id }).then( () => {
+      callback(null,HGrid.EMPTY);
+    }).catch( (err) => {
+      callback(err);
+    });
+  };
+
   pollChanges(callback) {
-    console.log('pollChanges');
     this.watches.findOne({ "_id": this._id }).then((watch) => {
       if (watch) {
         this._dis = watch.dis;
@@ -140,7 +154,6 @@ class AlfalfaWatch extends HWatch {
   }
 
   pollRefresh(callback) {
-    console.log('pollRefresh');
     this.watches.findOne({ "_id": this._id }).then((watch) => {
       if (watch) {
         this._dis = watch.dis;
@@ -202,7 +215,7 @@ class AlfalfaServer extends HServer {
       HStdOps.hisRead,
       HStdOps.invokeAction,
       HStdOps.watchSub,
-      HStdOps.watchUnsub,
+      HStdOps.watchunsub,
       HStdOps.watchPoll
     ]);
   };
@@ -386,7 +399,6 @@ class AlfalfaServer extends HServer {
   };
 
   onNavReadByUri(uri, callback) {
-    console.log("onNavReadByUri: " + uri);
     // return null;
   };
   
@@ -395,18 +407,15 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onWatchOpen(dis, lease) {
-    console.log('onWatchOpen');
     let w = new AlfalfaWatch(this,null,dis,lease);
     return w;
   };
   
   onWatches(callback) {
-    console.log('onWatches');
     //callback(new Error("Unsupported Operation"));
   };
   
   onWatch(id) {
-    console.log('onWatch');
     let w = new AlfalfaWatch(this,id,null,null);
     return w;
   };
@@ -521,7 +530,6 @@ class AlfalfaServer extends HServer {
         if (err) {
           callback(err);
         } else {
-          console.log(data);           // successful response
           const b = this.writeArrayToGrid(writeArray);
           callback(null, b.toGrid());
         }
@@ -564,8 +572,6 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onInvokeAction(rec, action, args, callback) {
-    console.log("-- invokeAction \"" + rec.id().val + "." + action + "\" " + args);
-
     if ( action == "start_simulation" ) {
       this.mrecs.updateOne(
         { _id: rec.id().val },
@@ -590,7 +596,6 @@ class AlfalfaServer extends HServer {
             console.log(err, err.stack); // an error occurred
             callback(null, HGridBuilder.dictsToGrid([]));
           } else {
-            console.log(data);           // successful response
             callback(null, HGridBuilder.dictsToGrid([]));
           }
         });

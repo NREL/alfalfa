@@ -68,9 +68,10 @@ if __name__ == '__main__':
     while True:
         # WaitTimeSeconds triggers long polling that will wait for events to enter queue
         # Receive Message
-        messages = queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=0)
+        messages = queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20)
         if len(messages) > 0:
             msg = messages[0]
             logger.info('Message Received with payload: %s' % msg.body)
             # Process Message
             process_message(msg)
+
