@@ -123,7 +123,7 @@ class AlfalfaWatch extends HWatch {
   unsub(ids, callback) {
     this.watches.updateOne(
       { "_id": this._id },
-      { $pull: { subs: { $in: ids } }
+      { $pull: { subs: { $in: ids } } }
     ).then(() => {
       callback(null,HGrid.EMPTY);
     }).catch( (err) => {
@@ -215,7 +215,7 @@ class AlfalfaServer extends HServer {
       HStdOps.hisRead,
       HStdOps.invokeAction,
       HStdOps.watchSub,
-      HStdOps.watchunsub,
+      HStdOps.watchUnsub,
       HStdOps.watchPoll
     ]);
   };

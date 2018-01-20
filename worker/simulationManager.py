@@ -15,7 +15,6 @@ import subprocess
 import sys
 import logging
 
-
 # Process Message
 def process_message(message):
     try:
@@ -30,11 +29,6 @@ def process_message(message):
                 endDatetime = message_body.get('endDatetime', 'None')
                 realtime = message_body.get('realtime', 'None')
                 timescale = str(message_body.get('timescale', 'None'))
-                if realtime == False:
-                    if startDatetime > endDatetime:
-                        print('End time occurs before start time', file=sys.stderr)
-                        sys.exit(1)
-
 
                 logger.info('Start simulation for site_ref: %s' % siteRef)
                 subprocess.call(['python', 'runSimulation.py', siteRef, realtime, timescale, startDatetime, endDatetime])

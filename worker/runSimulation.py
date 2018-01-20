@@ -138,7 +138,11 @@ def finalize_simulation():
 
 startDatetime = datetime.today()
 
-# TODO: Kyle to pass this arguments. Uncomment once included.
+# Mongo Database
+mongo_client = MongoClient(os.environ['MONGO_URL'])
+mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+recs = mongodb.recs
+
 if len(sys.argv) == 6:
 
     print('runSimulation called with arguments: %s.' % sys.argv, file=sys.stderr)
@@ -160,6 +164,13 @@ if len(sys.argv) == 6:
     # time_zone = sys.argv[8]
     time_zone = 'America/Denver'
     # sim_step_per_hour = sys.argv[9]
+
+    if real_time_flag == 'false':
+        if startDatetime >= endDatetime:
+            print('End time occurs on or before start time', file=sys.stderr)
+            recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
+            sys.exit(1)
+
 else:
     print('runSimulation called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
     sys.exit(1)
@@ -197,10 +208,6 @@ logger.addHandler(ch)
 sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
 s3 = boto3.resource('s3', region_name='us-east-1')
-# Mongo Database
-mongo_client = MongoClient(os.environ['MONGO_URL'])
-mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
-recs = mongodb.recs
 
 sp = SimProcess()
 ep = mlep.MlepProcess()
