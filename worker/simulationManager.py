@@ -47,17 +47,15 @@ if __name__ == '__main__':
         queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
         s3 = boto3.resource('s3', region_name='us-east-1')
 
+        logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         logger = logging.getLogger('worker')
-        logger.setLevel(logging.INFO)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         fh = logging.FileHandler('worker.log')
-        fh.setLevel(logging.INFO)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
 
         ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
         ch.setFormatter(formatter)
         logger.addHandler(ch)
     except:

@@ -144,8 +144,6 @@ mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
 recs = mongodb.recs
 
 if len(sys.argv) == 6:
-
-    print('runSimulation called with arguments: %s.' % sys.argv, file=sys.stderr)
     site_ref = sys.argv[1]
     real_time_flag = sys.argv[2]
     time_scale = sys.argv[3]
@@ -189,18 +187,16 @@ except:
     print('error making simulation directory for site_ref: %s' % site_ref, file=sys.stderr)
     sys.exit(1)
 
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 logger = logging.getLogger('simulation')
-logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 log_file = os.path.join(directory, 'simulation.log')
 fh = logging.FileHandler(log_file)
-fh.setLevel(logging.INFO)
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 

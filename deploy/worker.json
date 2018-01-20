@@ -25,6 +25,10 @@
           {
             "name": "MONGO_DB_NAME",
             "value": "alfalfa"
+          },
+          {
+            "name": "LOGLEVEL",
+            "value": "ERROR"
           }
       ],
       "logConfiguration": {
