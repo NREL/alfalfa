@@ -17,68 +17,6 @@ import calendar
 import traceback
 from dateutil.parser import parse
 
-# Simulation Status
-# sim_status = 0,1,2,3
-# 0 - Initialized
-# 1 - Running
-# 2 - Pause
-# 3 - Stopped
-
-startDatetime = datetime.today()
-
-# TODO: Kyle to pass this arguments. Uncomment once included.
-if len(sys.argv) == 6:
-
-    print('runSimulation called with arguments: %s.' % sys.argv, file=sys.stderr)
-    site_ref = sys.argv[1]
-    real_time_flag = sys.argv[2]
-    time_scale = sys.argv[3]
-
-    startDatetime = parse(sys.argv[4])
-    start_date = "%02d/%02d" % (startDatetime.month,startDatetime.day)
-    start_hour = startDatetime.hour
-
-    endDatetime = parse(sys.argv[5])
-    end_date = "%02d/%02d" % (endDatetime.month,endDatetime.day)
-    end_hour = endDatetime.hour
-
-    # time_zone = sys.argv[8]
-    time_zone = 'America/Denver'
-    # sim_step_per_hour = sys.argv[9]
-else:
-    print('runSimulation called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
-    sys.exit(1)
-
-if not site_ref:
-    print('site_ref is empty', file=sys.stderr)
-    sys.exit(1)
-
-sim_path = '/simulate'
-directory = os.path.join(sim_path, site_ref)
-
-try:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-except:
-    print('error making simulation directory for site_ref: %s' % site_ref, file=sys.stderr)
-    sys.exit(1)
-
-logger = logging.getLogger('simulation')
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-log_file = os.path.join(directory, 'simulation.log')
-fh = logging.FileHandler(log_file)
-fh.setLevel(logging.INFO)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
-
 # Time Zone
 def utc_to_local(utc_dt):
     # get integer timestamp to avoid precision lost
@@ -147,6 +85,13 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
 
 # Simulation Process Class
 class SimProcess:
+    # Simulation Status
+    # sim_status = 0,1,2,3
+    # 0 - Initialized
+    # 1 - Running
+    # 2 - Pause
+    # 3 - Stopped
+
     def __init__(self):
         self.sim_status = 0             # 0=init, 1=running, 2=pause, 3=stop
         self.rt_step_time = 20          # Real-time step - seconds
@@ -158,6 +103,8 @@ class SimProcess:
         self.end_date = '12/31'         # End date for simulation (12/31)
         self.start_hour = 0             # Start hour for simulation (1-23)
         self.end_hour = 23              # End hour for simulation (1-23)
+        self.start_minute = 0           # Start minute for simulation (0-59)
+        self.end_minute = 0             # End minute for simulation (0-59)
         self.accept_timeout = 30000     # Accept timeout for simulation (ms)
         self.idf = None                 # EnergyPlus file path (/path/to/energyplus/file)
         self.mapping = None
@@ -165,6 +112,8 @@ class SimProcess:
         self.site_ref = None
         self.workflow_directory = None
         self.variables = None
+        self.time_scale = 1
+        self.real_time_flag = True
 
 
 def reset(tarinfo):
@@ -186,23 +135,70 @@ def finalize_simulation():
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
     recs.update_one({"_id": sp.site_ref}, {"$unset": {"rec.datetime": ""}}, False)
 
-#    tar = tarfile.open(tar_name, "w:gz")
-#    tar.add(directory, filter=reset, arcname=site_ref)
-#    tar.close()
-#
-#    bucket.upload_file(tar_name, "parsed/%s" % tar_name)
-#    os.remove(tar_name)
+
+startDatetime = datetime.today()
+
+# TODO: Kyle to pass this arguments. Uncomment once included.
+if len(sys.argv) == 6:
+
+    print('runSimulation called with arguments: %s.' % sys.argv, file=sys.stderr)
+    site_ref = sys.argv[1]
+    real_time_flag = sys.argv[2]
+    time_scale = sys.argv[3]
+
+    startDatetime = parse(sys.argv[4])
+    endDatetime = parse(sys.argv[5])
+
+    start_date = "%02d/%02d" % (startDatetime.month,startDatetime.day)
+    start_hour = startDatetime.hour
+    start_minute = startDatetime.minute
+
+    end_date = "%02d/%02d" % (endDatetime.month,endDatetime.day)
+    end_hour = endDatetime.hour
+    end_minute = endDatetime.minute    
+
+    # time_zone = sys.argv[8]
+    time_zone = 'America/Denver'
+    # sim_step_per_hour = sys.argv[9]
+else:
+    print('runSimulation called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
+    sys.exit(1)
+
+if not site_ref:
+    print('site_ref is empty', file=sys.stderr)
+    sys.exit(1)
+
+sim_path = '/simulate'
+directory = os.path.join(sim_path, site_ref)
+
+try:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+except:
+    print('error making simulation directory for site_ref: %s' % site_ref, file=sys.stderr)
+    sys.exit(1)
+
+logger = logging.getLogger('simulation')
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+log_file = os.path.join(directory, 'simulation.log')
+fh = logging.FileHandler(log_file)
+fh.setLevel(logging.INFO)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 
 sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-logger.info('JOB_QUEUE_URL: %s' % os.environ['JOB_QUEUE_URL'])
 s3 = boto3.resource('s3', region_name='us-east-1')
 # Mongo Database
 mongo_client = MongoClient(os.environ['MONGO_URL'])
-logger.info('MONGO_URL: %s' % os.environ['MONGO_URL'])
-logger.info('########################################################################')
-logger.info(os.environ['MONGO_DB_NAME'])
 mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
 recs = mongodb.recs
 
@@ -212,31 +208,17 @@ ep = mlep.MlepProcess()
 ep.bcvtbDir = '/root/bcvtb/'
 ep.env = {'BCVTB_HOME': '/root/bcvtb'}
 
-if start_date != 'None':
-    sp.start_date = start_date
-if end_date != 'None':
-    sp.end_date = end_date
-if start_hour != 'None':
-    sp.start_hour = start_hour
-if end_hour != 'None':
-    sp.end_hour = end_hour
-if 'site_ref' != 'None':
-    sp.site_ref = site_ref
-if time.strptime(sp.end_date, "%m/%d") < time.strptime(sp.start_date, "%m/%d"):
-    print('End Date must be after Start Date: {0} - {1}'.format(sp.start_date, sp.end_date), file=sys.stderr)
-    sys.exit(1)
-if (time.strptime(sp.end_date, "%m/%d") == time.strptime(sp.start_date, "%m/%d")) and (sp.end_hour <= sp.start_hour):
-    print('End Hour must be after Start Hour: {0} - {1}'.format(sp.start_date, sp.end_date), file=sys.stderr)
-    sys.exit(1)
-
-## TODO: Kyle to pass this arguments. Delete this once done.
-#sp.start_date = '11/13'
-#sp.end_date = '11/13'
-#sp.start_hour = 15
-#sp.end_hour = 18
-real_time_flag = 'true'
-#time_scale = 120
-
+sp.start_date = start_date
+sp.end_date = end_date
+sp.start_hour = start_hour
+sp.end_hour = end_hour
+sp.start_minute = start_minute
+sp.end_minute = end_minute
+sp.site_ref = site_ref
+sp.startDatetime = startDatetime
+sp.endDatetime = endDatetime
+sp.time_scale = time_scale
+sp.real_time_flag = real_time_flag
 
 tar_name = "%s.tar.gz" % sp.site_ref
 key = "parsed/%s" % tar_name
@@ -261,14 +243,12 @@ sp.variables = Variables(variables_path, sp.mapping)
 subprocess.call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
 shutil.copyfile(variables_path, variables_new_path)
 
-if real_time_flag == 'true':
+if sp.real_time_flag == True:
     # Set Time Scale
-    time_scale = 1
-    logger.info('realtime sim')
-
-elif time_scale > 120:
-    time_scale = 120
-
+    sp.time_scale = 1
+else:
+    if sp.time_scale > 120:
+        sp.time_scale = 120
 
 # Simulation Parameters
 sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
@@ -279,6 +259,24 @@ try:
 except:
     sp.rt_step_time = 10                                    # Seconds
 
+logger.info('########################################################################')
+logger.info('######################## INPUT VARIABLES ###############################')
+logger.info('########################################################################')
+logger.info('sp.start_date: %s' % sp.start_date)
+logger.info('sp.end_date: %s' % sp.end_date)
+logger.info('sp.start_hour: %s' % sp.start_hour)
+logger.info('sp.end_hour: %s' % sp.end_hour)
+logger.info('sp.start_minute: %s' % sp.start_minute)
+logger.info('sp.end_minute: %s' % sp.end_minute)
+logger.info('sp.sim_step_time: %s' % sp.sim_step_time)
+logger.info('sp.rt_step_time: %s' % sp.rt_step_time)
+logger.info('sp.real_time_flag: %s' % sp.real_time_flag)
+logger.info('sp.time_scale: %s' % sp.time_scale)
+logger.info('sp.startDatetime: %s' % sp.startDatetime)
+logger.info('sp.endDatetime: %s' % sp.endDatetime)
+logger.info('sp.start_minute: %s' % sp.start_minute)
+logger.info('sp.end_minute: %s' % sp.end_minute)
+
 # Arguments
 ep.accept_timeout = sp.accept_timeout
 ep.mapping = sp.mapping
@@ -288,7 +286,6 @@ ep.flag = 0
 idf_file_details = os.path.split(sp.idf)
 ep.workDir = idf_file_details[0]
 ep.arguments = (sp.idf, sp.weather)
-logger.info('Path to IDF: {0}'.format(sp.idf))
 
 # Initialize input tuplet
 ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)
@@ -317,15 +314,16 @@ ep.kStep = 1                    # current simulation step
 d0 = date(2017, sim_date[0], sim_date[1])
 d1 = date(2017, sim_date[2], sim_date[3])
 delta = d1 - d0
-ep.MAX_STEPS = (24 * delta.days + sp.end_hour) * sp.sim_step_per_hour  # Max. Number of Steps
+ep.MAX_STEPS = (24 * delta.days + sp.end_hour) * sp.sim_step_per_hour + sp.end_minute + 1# Max. Number of Steps
 logger.info('############# MAX STEPS:  {0} #############'.format(ep.MAX_STEPS))
 logger.info('############# Days:       {0} #############'.format(delta.days))
 logger.info('############# End Hour :  {0} #############'.format(sp.end_hour))
+logger.info('############# End Minute: {0} #############'.format(sp.end_minute))
 logger.info('############# Step/Hour:  {0} #############'.format(sp.sim_step_per_hour))
 logger.info('############# Start Hour: {0} #############'.format(sp.start_hour))
 
 # Simulation Status
-if ep.is_running:
+if ep.is_running == True:
     sp.sim_status = 1
 
 # Set next step
@@ -351,7 +349,7 @@ while True:
             (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and bypass_flag):  # Bypass Time
         logger.info('E+ Running: {0}, Sim Status: {1}, E+ Step: {2}, Elapsed step time: {3}, RT Step Time: {4}'.format(
             ep.is_running, sp.sim_status, ep.kStep, sp.next_time - sp.start_time, sp.rt_step_time))
-
+        logger.info('###### t: {0}'.format(t))
         try:
             # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
             # Instead we only check the database for stopping at each simulation step
@@ -360,10 +358,10 @@ while True:
                 logger.info("Stopping")
                 stop = True;
 
-            if not stop:
+            if stop == False:
                 # Check BYPASS
-                if bypass_flag:
-                    if real_time_flag == 'true':
+                if bypass_flag == True:
+                    if real_time_flag == True:
                         utc_time = datetime.now(tz=pytz.UTC)
                         logger.info('########### RT CHECK ###########')
                         logger.info('{0}'.format(utc_time))
@@ -377,12 +375,14 @@ while True:
                         else:
                             logger.info('################# RT-BYPASS #################')
                     else:
-                        if sp.start_hour*3600 <= (ep.kStep-1)*ep.deltaT:
+                        if sp.start_hour*3600+sp.start_minute*60 <= (ep.kStep-1)*ep.deltaT:
                             bypass_flag = False     # Stop bypass
                             logger.info('########### STOP BYPASS: Hours ########')
                         else:
                             logger.info('################# BYPASS #################')
-
+                else:
+                    logger.info('############### SIMULATION ###############')
+                
 
                 # Read packet
                 # Get current time
@@ -430,7 +430,7 @@ while True:
                 # Write to inputs of E+
                 ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
     
-                if not bypass_flag:
+                if bypass_flag == False:
                     for output_id in sp.variables.outputIds():
                         output_index = sp.variables.outputIndex(output_id)
                         if output_index == -1:
@@ -463,9 +463,9 @@ while True:
             # TODO: Cleanup simulation, and reset everything
     
     # Check Stop
-    if ( ep.is_running and (ep.kStep >= ep.MAX_STEPS) ) :
+    if ( ep.is_running == True and (ep.kStep >= ep.MAX_STEPS) ) :
         stop = True;
-    elif ( sp.sim_status == 3 and ep.is_running ) :
+    elif ( sp.sim_status == 3 and ep.is_running == True ) :
         stop = True;
 
     if stop :
@@ -474,7 +474,6 @@ while True:
             ep.is_running = 0
             sp.sim_status = 0
             # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
-            time.sleep(5)
             finalize_simulation()
             logger.info('Simulation Terminated: Status: {0}, Step: {1}/{2}'.
                         format(sp.sim_status, ep.kStep, ep.MAX_STEPS))
