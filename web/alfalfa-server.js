@@ -85,7 +85,6 @@ class AlfalfaWatch extends HWatch {
       let meta = new HDictBuilder();
       meta.add('watchId',this._id);
       meta.add('lease',this._lease.val, this._lease.unit);
-      console.log('watch recs: ', HGridBuilder.dictsToGrid(recs,meta.toDict()));
       callback(null, HGridBuilder.dictsToGrid(recs,meta.toDict()));
     } else {
       this._db.readById(ids[recs.length], false, (err, rec) => {
@@ -102,7 +101,7 @@ class AlfalfaWatch extends HWatch {
         this._lease = watch.lease;
         this.watches.updateOne(
           { "_id": this._id },
-          { $addToSet: {"subs": ids} }
+          { $addToSet: {"subs": {$each: ids} } }
         ).then(() => {
             this.watchReadByIds([],ids,callback);
           });
@@ -123,7 +122,7 @@ class AlfalfaWatch extends HWatch {
   unsub(ids, callback) {
     this.watches.updateOne(
       { "_id": this._id },
-      { $pull: { subs: { $in: ids } } }
+      { "$pull": { "subs": { "$in": ids } } }
     ).then(() => {
       callback(null,HGrid.EMPTY);
     }).catch( (err) => {
@@ -137,7 +136,7 @@ class AlfalfaWatch extends HWatch {
     }).catch( (err) => {
       callback(err);
     });
-  };
+  }
 
   pollChanges(callback) {
     this.watches.findOne({ "_id": this._id }).then((watch) => {
@@ -412,7 +411,7 @@ class AlfalfaServer extends HServer {
   };
   
   onWatches(callback) {
-    //callback(new Error("Unsupported Operation"));
+    callback(new Error("Unsupported Operation"));
   };
   
   onWatch(id) {
@@ -424,6 +423,23 @@ class AlfalfaServer extends HServer {
   //Point Write
   //////////////////////////////////////////////////////////////////////////
   
+  // Return:
+  //{ val: ,
+  //  level: 
+  //}
+  currentWinningValue(array) {
+    for (var i = 0; i < array.val.length; ++i) {
+      if( array.val[i] ) {
+        return {
+          val: array.val[i],
+          level: i + 1
+        }
+      }
+    }
+
+    return null;
+  }
+
   writeArrayToGrid(array) {
     let b = new HGridBuilder();
     b.addCol("level");
@@ -464,10 +480,15 @@ class AlfalfaServer extends HServer {
         if( siteRef ) {
           array.siteRef = siteRef.val;
         }
-        this.writearrays.insertOne(array).then(() => {
+        this.writearrays.insertOne(array).then( () => {
+          return this.mrecs.updateOne(
+            { "_id": array._id },
+            { $set: { "rec.writeStatus": "s:ok" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
+          )
+        }).then( () => {
           const b = this.writeArrayToGrid(array);
           callback(null, b.toGrid());
-        }).catch((err) => {
+        }).catch( (err) => {
           callback(err);
         });
       }
@@ -481,7 +502,7 @@ class AlfalfaServer extends HServer {
 
     this.writearrays.findOne({_id: rec.id().val}).then((array) => {
       if( array ) {
-        if( val ) {
+        if( val && val.val ) {
           array.val[level - 1] = val.val;
           array.who[level - 1] = who;
         } else {
@@ -490,10 +511,24 @@ class AlfalfaServer extends HServer {
         }
         this.writearrays.updateOne(
           { "_id": array._id },
-          { $set: { "val": array.val, "who": array.who } 
-        }).then(() => {
-          writeArray = array;
-        }).catch((err) => {
+          { $set: { "val": array.val, "who": array.who } }
+        ).then( () => {
+          const current = this.currentWinningValue(array);
+          if( current ) {
+            return this.mrecs.updateOne(
+              { "_id": array._id },
+              { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
+            )
+          } else {
+            return this.mrecs.updateOne(
+              { "_id": array._id },
+              { $set: { "rec.writeStatus": "s:ok" }, $unset: { writeVal: "", writeLevel: "", writeErr: ""} }
+            )
+          }
+        }).then( () => {
+          const b = this.writeArrayToGrid(array);
+          callback(null, b.toGrid());
+        }).catch( (err) => {
           callback(err);
         });
       } else {
@@ -510,8 +545,22 @@ class AlfalfaServer extends HServer {
           array.val[level - 1] = null;
           array.who[level - 1] = who;
         }
-        this.writearrays.insertOne(array).then(() => {
-          writeArray = array;
+        this.writearrays.insertOne(array).then( () => {
+          const current = this.currentWinningValue(array);
+          if( current ) {
+            return this.mrecs.updateOne(
+              { "_id": array._id },
+              { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
+            )
+          } else {
+            return this.mrecs.updateOne(
+              { "_id": array._id },
+              { $set: { "rec.writeStatus": "s:ok" }, $unset: { writeVal: "", writeLevel: "", writeErr: ""} }
+            )
+          }
+        }).then(() => {
+          const b = this.writeArrayToGrid(array);
+          callback(null, b.toGrid());
         }).catch((err) => {
           callback(err);
         });
@@ -519,24 +568,6 @@ class AlfalfaServer extends HServer {
     }).catch((err) => {
       callback(err);
     });
-
-    if( writeArray ) {
-      var params = {
-       MessageBody: `{"id": "${rec.id()}", "op": "PointWrite", "level": "${level}", "val": "${val}"}`,
-       QueueUrl: process.env.JOB_QUEUE_URL
-      };
-
-      sqs.sendMessage(params, (err, data) => {
-        if (err) {
-          callback(err);
-        } else {
-          const b = this.writeArrayToGrid(writeArray);
-          callback(null, b.toGrid());
-        }
-      });
-    } else {
-      callback();
-    }
   };
   
   //////////////////////////////////////////////////////////////////////////

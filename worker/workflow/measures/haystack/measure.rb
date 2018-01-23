@@ -66,6 +66,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     point_json["#{what}"] = "m:" 
     point_json[:kind] = create_str(kind) 
     point_json[:unit] = create_str(unit) 
+    point_json[:cur] = "m:" 
+    point_json[:curStatus] = "s:disabled" 
     return point_json, uuid
   end
   
@@ -85,6 +87,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     point_json["#{what}"] = "m:" 
     point_json[:kind] = create_str(kind) 
     point_json[:unit] = create_str(unit) 
+    point_json[:cur] = "m:" 
+    point_json[:curStatus] = "s:disabled" 
     return point_json, uuid
   end
   
@@ -103,6 +107,9 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     point_json["#{what}"] = "m:" 
     point_json[:kind] = create_str(kind) 
     point_json[:unit] = create_str(unit) 
+    if type2 == "writable"
+      point_json[:writeStatus] = "s:ok" 
+    end
     return point_json
   end
   
@@ -491,6 +498,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
           #Program to set the Damper Position
           program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
           program.setName("#{damper_command}_Prgm")
+          program.addLine("SET #{damper_actuator.handle.to_s} = Null")
           program.addLine("IF #{master_enable.handle.to_s} == 1")
           program.addLine(" SET DampPos = #{damper_variable.handle.to_s}")
           program.addLine(" SET MixAir = #{mixed_air_flow_sensor.handle.to_s}")

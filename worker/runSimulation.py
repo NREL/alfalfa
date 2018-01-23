@@ -132,8 +132,8 @@ def finalize_simulation():
     os.remove(tar_name)
     shutil.rmtree(sp.workflow_directory)
 
-    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
-    recs.update_one({"_id": sp.site_ref}, {"$unset": {"rec.datetime": ""}}, False)
+    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
+    recs.update_many({"rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
 
 startDatetime = datetime.today()
@@ -409,6 +409,7 @@ while True:
                 if bypass_flag:
                     ep.inputs[master_index] = 0
                 else:
+                    ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)
                     ep.inputs[master_index] = 1
                     write_arrays = mongodb.writearrays
                     for array in write_arrays.find({"siteRef": sp.site_ref}):
