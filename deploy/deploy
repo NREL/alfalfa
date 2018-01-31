@@ -4,7 +4,7 @@ require 'json'
 require 'erb'
 require 'open3'
 
-SERVICES = Dir.glob("#{File.dirname(__FILE__)}/*.json").map { |f| File.basename(f, '.json') }
+SERVICES = ['web', 'worker']
 
 require 'optparse'
 
@@ -13,7 +13,6 @@ require 'optparse'
 subtext = <<HELP
 Commonly used command are:
    create
-   create-log-groups
 See 'deploy COMMAND --help' for more information on a specific command.
 HELP
 
@@ -39,15 +38,6 @@ subcommands = {
         puts opts
         exit
       end
-   end,
-
-   'create-log-groups' => OptionParser.new do |opts|
-      opts.banner = "Usage: create-log-groups"
-      opts.on_tail("-h", "--help", "Show help") do
-        puts 'Create aws Cloud Watch log groups'
-        puts opts
-        exit
-      end
    end
 }
 
@@ -63,43 +53,26 @@ subcommands[command].order!
 @WORKER_REGISTRY_URI = ENV['WORKER_REGISTRY_URI']
 @WEB_REGISTRY_URI = ENV['WEB_REGISTRY_URI']
 
-case command
-
-when 'create'
-  if create[:service]
+def create_service(service_name)
     json_template = ''
-    File.open("#{File.dirname(__FILE__)}/#{create[:service]}.json") do |f|
+    File.open("#{File.dirname(__FILE__)}/#{service_name}.json") do |f|
       json_template = f.read
     end
     json = ERB.new(json_template).result
     puts %x(aws ecs register-task-definition --cli-input-json '#{json}')
+    puts %x(aws ecs update-service --cluster worker_ecs_cluster --service #{service_name}-service --task-definition #{service_name})
+end
+
+case command
+
+when 'create'
+  if create[:service]
+    create_service(create[:service])
   else
     SERVICES.each do |t|
-      json_template = ''
-      File.open("#{File.dirname(__FILE__)}/#{t}.json") do |f|
-        json_template = f.read
-      end
-      json = ERB.new(json_template).result
-      json = JSON::fast_generate(JSON::parse(json))
-
-      command = ['aws', '--profile', 'batman', 'ecs', 'register-task-definition', '--cli-input-json', json]
-
-      Open3.popen3(*command) do |stdin, stdout, stderr, wait_thr|
-        # calling wait_thr.value blocks until command is complete
-        if wait_thr.value.success?
-          puts "Command completed successfully"
-        else
-          puts "Error running command: '#{command.join(' ')}'"
-          puts "stdout: #{stdout.read}"
-          puts "stderr: #{stderr.read}"
-        end
-      end
+      create_service(t)
     end
   end
-
-when 'create-log-groups'
-  puts %x(aws logs create-log-group --log-group-name awslogs-web)
-  puts %x(aws logs create-log-group --log-group-name awslogs-worker)
 end
 
 

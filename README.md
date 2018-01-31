@@ -233,7 +233,5 @@ aws cloudwatch put-metric-alarm --alarm-name WorkerServiceScaleOutAlarm --metric
 1. Use ```aws ecr get-login | bash -``` to login to docker.
 1. Build current containers with, ```docker-compose build```.
 1. Use ```docker-compose push``` to push new images to the aws container registry.
-1. ```./deploy/deploy create -s worker```
-1. The new task will start and then the old task will drop off```
-aws ecs update-service --cluster worker_ecs_cluster --service worker-service --task-definition worker```
+1. ```./deploy/deploy create```
 
