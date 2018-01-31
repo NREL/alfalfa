@@ -1,4 +1,4 @@
-FROM ubuntu:17.04
+FROM ubuntu:14.04
 
 RUN apt-get update
 RUN apt-get -y install ca-certificates curl
@@ -10,10 +10,9 @@ RUN cd /root
 
 WORKDIR /root
 
-COPY package.json /root/
-RUN npm update
+COPY package.json package-lock.json /root/
+RUN npm install
 
-#COPY ./haystack_report_haystack.json  /root
 COPY . /root
 
 ARG NODE_ENV

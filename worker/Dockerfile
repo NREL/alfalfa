@@ -48,8 +48,8 @@ COPY requirements.txt /root/
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-COPY package.json /root/
-RUN npm update 
+COPY package.json package-lock.json /root/
+RUN npm install 
 
 COPY . /root
 RUN tar -czf workflow.tar.gz workflow

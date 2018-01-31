@@ -35,6 +35,7 @@ services:
      - MONGO_URL=mongodb://mongo:27017/
      - MONGO_DB_NAME=admin
      - LOGLEVEL=INFO
+     - NODE_ENV=${NODE_ENV}
     links:
       - goaws
 
