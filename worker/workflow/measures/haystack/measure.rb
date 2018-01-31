@@ -309,14 +309,13 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
             runner.registerInfo("found economizer on airloop #{airloop.name.to_s}")
             #puts "found economizer on airloop #{airloop.name.to_s}"
             num_economizers += 1
-            airloops << airloop
           end         
         end
       end
     end  
 
     #loop through economizer loops and find fans and cooling coils    
-    airloops.each do |airloop|
+    model.getAirLoopHVACs.each do |airloop|
       ahu_json = create_ahu(airloop.handle,airloop.name.to_s, building.handle, simCon.handle)
 
       #AHU discharge sensors
