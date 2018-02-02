@@ -195,7 +195,8 @@ export WORKER_ROLE_ARN=arn:aws:iam::313781303390:role/Worker-Role```
 aws iam attach-role-policy --role-name Worker-Role --policy-arn arn:aws:iam::aws:policy/AmazonSQSFullAccess
 aws iam attach-role-policy --role-name Worker-Role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 aws iam attach-role-policy --role-name Worker-Role --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role```
-aws iam attach-role-policy --role-name Worker-Role --policy-arn arn:aws:iam::aws:policy/aws-service-role/AWSApplicationAutoscalingECSServicePolicy```
+aws iam create-policy --policy-name ServiceScaling --policy-document file:///Users/kbenne/Development/alfalfa/deploy/update-service-policy.json
+aws iam attach-role-policy --role-name Worker-Role --policy-arn <insert arn returned from previous command>```
 1. Create an IAM Role to execute the tasks ```
 aws iam create-role --role-name Execution-Role --assume-role-policy-document file:///<project-root>/deploy/Instance-Role-Trust-Policy.json```
 1. Record the arn that is returned, ie```

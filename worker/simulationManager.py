@@ -1,12 +1,6 @@
 # !/usr/bin/env python
 
 # -*- coding: utf-8 -*-
-
-"""
- This script is for testing purposes only.
-
- (C) 2017 by Willy Bernal (Willy.BernalHeredia@nrel.gov)
-"""
 from __future__ import print_function
 import os
 import boto3
@@ -71,4 +65,18 @@ if __name__ == '__main__':
             logger.info('Message Received with payload: %s' % msg.body)
             # Process Message
             process_message(msg)
+        else:
+            if "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" in os.environ:
+                ecsclient = boto3.client('ecs', region_name='us-east-1')
+                response = ecsclient.describe_services(cluster='worker_ecs_cluster',services=['worker-service'])['services'][0]
+                desiredCount = response['desiredCount']
+                runningCount = response['runningCount']
+                pendingCount = response['pendingCount']
+                minimumCount = 1
+
+                if ((runningCount > minimumCount) & (desiredCount > minimumCount)):
+                    ecsclient.update_service(cluster='worker_ecs_cluster',
+                        service='worker-service',
+                        desiredCount=(desiredCount - 1))
+                    sys.exit(0)
 
