@@ -191,7 +191,7 @@ class Upload extends React.Component {
 
 const addJobQL = gql`
   mutation addJobMutation($osmName: String!, $uploadID: String!) {
-    addJob(osmName: $osmName, uploadID: $uploadID)
+    addSite(osmName: $osmName, uploadID: $uploadID)
   }
 `;
 

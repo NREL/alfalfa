@@ -4,7 +4,7 @@ import request from 'superagent';
 AWS.config.update({region: 'us-east-1'});
 var sqs = new AWS.SQS();
 
-function addJobResolver(osmName, uploadID) {
+function addSiteResolver(osmName, uploadID) {
   var params = {
    MessageBody: `{"op": "InvokeAction", "action": "addSite", "osm_name": "${osmName}", "upload_id": "${uploadID}"}`,
    QueueUrl: process.env.JOB_QUEUE_URL
@@ -14,6 +14,130 @@ function addJobResolver(osmName, uploadID) {
     if (err) {
       callback(err);
     }
+  });
+}
+
+function runSiteResolver(args) {
+    //args: {
+    //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
+    //  startDatetime : { type: GraphQLString },
+    //  endDatetime : { type: GraphQLString },
+    //  timescale : { type: GraphQLFloat },
+    //  realtime : { type: GraphQLBoolean },
+    //},
+  return new Promise( (resolve,reject) => {
+    request
+    .post('/api/invokeAction')
+    .set('Accept', 'application/json')
+    .set('Content-Type', 'application/json')
+    .send({
+      "meta": {
+        "ver": "2.0",
+        "id": `r:${args.siteRef}`,
+        "action": "s:runSite"
+      },
+      "cols": [
+        {
+          "name": "timescale"
+        },
+        {
+          "name": "startDatetime"
+        },
+        {
+          "name": "endDatetime"
+        },
+        {
+          "name": "realtime"
+        },
+      ],
+      "rows": [
+        {
+          "timescale": `n:${args.timescale}`,
+          "startDatetime": `s:${args.startDatetime}`,
+          "endDatetime": `s:${args.endDatetime}`,
+          "realtime": `s:${args.realtime}`,
+        }
+      ]
+    })
+    .end((err, res) => {
+      if( err ) {
+        reject(err);
+      } else {
+        resolve(res.body);
+      }
+    })
+  });
+}
+
+function stopSiteResolver(args) {
+      //args: {
+      //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
+      //},
+  return new Promise( (resolve,reject) => {
+    request
+    .post('/api/invokeAction')
+    .set('Accept', 'application/json')
+    .set('Content-Type', 'application/json')
+    .send({
+      "meta": {
+        "ver": "2.0",
+        "id": `r:${args.siteRef}`,
+        "action": "s:stopSite"
+      },
+      "cols": [
+        {
+          "name": "foo" // because node Haystack craps out if there are no columns
+        },
+      ],
+      "rows": [
+        {
+          "foo": "s:bar",
+        }
+      ]
+    })
+    .end((err, res) => {
+      if( err ) {
+        reject(err);
+      } else {
+        resolve(res.body);
+      }
+    })
+  });
+}
+
+function removeSiteResolver(args) {
+      //args: {
+      //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
+      //},
+  return new Promise( (resolve,reject) => {
+    request
+    .post('/api/invokeAction')
+    .set('Accept', 'application/json')
+    .set('Content-Type', 'application/json')
+    .send({
+      "meta": {
+        "ver": "2.0",
+        "id": `r:${args.siteRef}`,
+        "action": "s:removeSite"
+      },
+      "cols": [
+        {
+          "name": "foo" // because node Haystack craps out if there are no columns
+        },
+      ],
+      "rows": [
+        {
+          "foo": "s:bar",
+        }
+      ]
+    })
+    .end((err, res) => {
+      if( err ) {
+        reject(err);
+      } else {
+        resolve(res.body);
+      }
+    })
   });
 }
 
@@ -136,129 +260,5 @@ function sitePointResolver(siteRef) {
   });
 }
 
-function startSimulationResolver(args) {
-      //args: {
-      //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
-      //  startDatetime : { type: GraphQLString },
-      //  endDatetime : { type: GraphQLString },
-      //  timescale : { type: GraphQLFloat },
-      //  realtime : { type: GraphQLBoolean },
-      //},
-  return new Promise( (resolve,reject) => {
-    request
-    .post('/api/invokeAction')
-    .set('Accept', 'application/json')
-    .set('Content-Type', 'application/json')
-    .send({
-      "meta": {
-        "ver": "2.0",
-        "id": `r:${args.siteRef}`,
-        "action": "s:runSite"
-      },
-      "cols": [
-        {
-          "name": "timescale"
-        },
-        {
-          "name": "startDatetime"
-        },
-        {
-          "name": "endDatetime"
-        },
-        {
-          "name": "realtime"
-        },
-      ],
-      "rows": [
-        {
-          "timescale": `n:${args.timescale}`,
-          "startDatetime": `s:${args.startDatetime}`,
-          "endDatetime": `s:${args.endDatetime}`,
-          "realtime": `s:${args.realtime}`,
-        }
-      ]
-    })
-    .end((err, res) => {
-      if( err ) {
-        reject(err);
-      } else {
-        resolve(res.body);
-      }
-    })
-  });
-}
-
-function stopSimulationResolver(args) {
-      //args: {
-      //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
-      //},
-  return new Promise( (resolve,reject) => {
-    request
-    .post('/api/invokeAction')
-    .set('Accept', 'application/json')
-    .set('Content-Type', 'application/json')
-    .send({
-      "meta": {
-        "ver": "2.0",
-        "id": `r:${args.siteRef}`,
-        "action": "s:stopSite"
-      },
-      "cols": [
-        {
-          "name": "foo" // because node Haystack craps out if there are no columns
-        },
-      ],
-      "rows": [
-        {
-          "foo": "s:bar",
-        }
-      ]
-    })
-    .end((err, res) => {
-      if( err ) {
-        reject(err);
-      } else {
-        resolve(res.body);
-      }
-    })
-  });
-}
-
-function removeSiteResolver(args) {
-      //args: {
-      //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
-      //},
-  return new Promise( (resolve,reject) => {
-    request
-    .post('/api/invokeAction')
-    .set('Accept', 'application/json')
-    .set('Content-Type', 'application/json')
-    .send({
-      "meta": {
-        "ver": "2.0",
-        "id": `r:${args.siteRef}`,
-        "action": "s:removeSite"
-      },
-      "cols": [
-        {
-          "name": "foo" // because node Haystack craps out if there are no columns
-        },
-      ],
-      "rows": [
-        {
-          "foo": "s:bar",
-        }
-      ]
-    })
-    .end((err, res) => {
-      if( err ) {
-        reject(err);
-      } else {
-        resolve(res.body);
-      }
-    })
-  });
-}
-
-module.exports = { addJobResolver, sitesResolver, startSimulationResolver, stopSimulationResolver, removeSiteResolver, sitePointResolver };
+module.exports = { addSiteResolver, sitesResolver, runSiteResolver, stopSiteResolver, removeSiteResolver, sitePointResolver };
 

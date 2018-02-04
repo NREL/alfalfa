@@ -114,31 +114,31 @@ var queryType = new GraphQLObjectType({
   }),
 });
 
-const addJobMutation = new GraphQLObjectType({
-  name: 'AddJob',
-  type: GraphQLString,
-  args: {
-    modelFile : { type: new GraphQLNonNull(GraphQLString) },
-  },
-  resolve: (_,args,request) => {},
-});
+//const addJobMutation = new GraphQLObjectType({
+//  name: 'AddJob',
+//  type: GraphQLString,
+//  args: {
+//    modelFile : { type: new GraphQLNonNull(GraphQLString) },
+//  },
+//  resolve: (_,args,request) => {},
+//});
 
 const mutationType = new GraphQLObjectType({
   name: 'Mutations',
   fields: () => ({
-    addJob: { 
-      name: 'AddJob',
+    addSite: { 
+      name: 'AddSite',
       type: GraphQLString,
       args: {
         osmName : { type: new GraphQLNonNull(GraphQLString) },
         uploadID : { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: (_,args,request) => {
-        resolvers.addJobResolver(args.osmName,args.uploadID);
+        resolvers.addSiteResolver(args.osmName,args.uploadID);
       },
     },
-    startSimulation: {
-      name: 'StartSimulation',
+    runSite: {
+      name: 'RunSite',
       type: GraphQLString,
       args: {
         siteRef : { type: new GraphQLNonNull(GraphQLString) },
@@ -148,17 +148,17 @@ const mutationType = new GraphQLObjectType({
         realtime : { type: GraphQLString },
       },
       resolve: (_,args,request) => {
-        resolvers.startSimulationResolver(args);
+        resolvers.runSiteResolver(args);
       },
     },
-    stopSimulation: {
-      name: 'StopSimulation',
+    stopSite: {
+      name: 'StopSite',
       type: GraphQLString,
       args: {
         siteRef : { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: (_,args,request) => {
-        resolvers.stopSimulationResolver(args);
+        resolvers.stopSiteResolver(args);
       },
     },
     removeSite: {

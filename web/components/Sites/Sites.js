@@ -354,15 +354,15 @@ const sitesQL = gql`
 `;
 
 // TODO: make an input type
-const startSimQL = gql`
-  mutation startSimulationMutation($siteRef: String!, $startDatetime: String, $endDatetime: String, $timescale: Float, $realtime: String ) {
-    startSimulation(siteRef: $siteRef, startDatetime: $startDatetime, endDatetime: $endDatetime, timescale: $timescale, realtime: $realtime)
+const runSiteQL = gql`
+  mutation runSiteMutation($siteRef: String!, $startDatetime: String, $endDatetime: String, $timescale: Float, $realtime: String ) {
+    runSite(siteRef: $siteRef, startDatetime: $startDatetime, endDatetime: $endDatetime, timescale: $timescale, realtime: $realtime)
   }
 `;
 
-const stopSimQL = gql`
-  mutation stopSimulationMutation($siteRef: String!) {
-    stopSimulation(siteRef: $siteRef)
+const stopSiteQL = gql`
+  mutation stopSiteMutation($siteRef: String!) {
+    stopSite(siteRef: $siteRef)
   }
 `;
 
@@ -374,13 +374,13 @@ const removeSiteQL = gql`
 
 const withStyle = withStyles(styles)(Sites);
 
-const withStart = graphql(startSimQL, {
+const withStart = graphql(runSiteQL, {
   props: ({ mutate }) => ({
     startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
   })
 })(withStyle);
 
-const withStop = graphql(stopSimQL, {
+const withStop = graphql(stopSiteQL, {
   props: ({ mutate }) => ({
     stopSimProp: (siteRef) => mutate({ variables: { siteRef } }),
   })
