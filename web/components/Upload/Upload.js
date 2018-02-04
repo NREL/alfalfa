@@ -2,8 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import IconButton from 'material-ui/IconButton';
 import {FileUpload} from 'material-ui-icons';
+import Grid from 'material-ui/Grid';
 import TextField from 'material-ui/TextField';
 import Button from 'material-ui/Button';
+import Input, { InputLabel, InputLabelProps } from 'material-ui/Input';
+import { FormControl, FormHelperText } from 'material-ui/Form';
 import {LinearProgress} from 'material-ui/Progress';
 import 'normalize.css/normalize.css';
 import styles from './Upload.scss';
@@ -34,10 +37,13 @@ class FileInput extends React.Component {
     return (
       <label className={styles.row}>
         <input id="foo" className={styles.hidden} type="file" onChange={this.onChange}/>
-        <FileUpload style={{width: '38px', height: '38px'}} className={styles.icon} color={cyan500} />
-        <div className={styles.fileinput} ref='label'>
-          {this.props.hint}
-        </div>
+        <TextField fullWidth={true} label='Select OpenStudio or EnergyPlus File' value={this.props.hint}
+          value={this.props.hint}
+          InputLabelProps={{
+            shrink: this.props.hint
+          }}
+        >
+        </TextField>
       </label>
     )
   }
@@ -140,10 +146,15 @@ class Upload extends React.Component {
   }
 
   modelFileHint() {
+    //if( this.state.modelFile ) {
+    //  return this.state.modelFile.name;
+    //} else {
+    //  return 'Select OpenStudio or EnergyPlus File';
+    //}
     if( this.state.modelFile ) {
       return this.state.modelFile.name;
     } else {
-      return 'Select Simulation File';
+      return null;
     }
   }
 
@@ -161,11 +172,17 @@ class Upload extends React.Component {
       <div className={styles.root}>
         <LinearProgress mode="determinate" value={this.state.completed} />
         <div className={styles.center}>
-          <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
-          <FileInput hint={this.weatherFileHint()} onFileChange={this.onWeatherFileChange}/>
-          <Button raised color="primary" onClick={this.onClick}>
-            Upload New Building Model!
-          </Button>
+          <Grid container>
+            <Grid item xs={12}>
+              <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
+            </Grid>
+            <Grid item xs>
+              <Button fullWidth={true} raised color="primary" onClick={this.onClick}>Add Site</Button>
+            </Grid>
+            <Grid item xs>
+              <Button fullWidth={true} raised color="primary" onClick={this.onClick}>Simulate</Button>
+            </Grid>
+          </Grid>
         </div>
       </div>
     );

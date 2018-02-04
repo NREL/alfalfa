@@ -17,7 +17,7 @@ def process_message(message):
         op = message_body.get('op')
         if op == 'InvokeAction':
             action = message_body.get('action')
-            if action == 'start_simulation':
+            if action == 'runSite':
                 siteRef = message_body.get('id', 'None')
                 startDatetime = message_body.get('startDatetime', 'None')
                 endDatetime = message_body.get('endDatetime', 'None')
@@ -25,8 +25,8 @@ def process_message(message):
                 timescale = str(message_body.get('timescale', 'None'))
 
                 logger.info('Start simulation for site_ref: %s' % siteRef)
-                subprocess.call(['python', 'runSimulation.py', siteRef, realtime, timescale, startDatetime, endDatetime])
-            elif action == 'add_site':
+                subprocess.call(['python', 'runSite.py', siteRef, realtime, timescale, startDatetime, endDatetime])
+            elif action == 'addSite':
                 osm_name = message_body.get('osm_name')
                 upload_id = message_body.get('upload_id')
                 logger.info('Add site for osm_name: %s, and upload_id: %s' % (osm_name, upload_id))

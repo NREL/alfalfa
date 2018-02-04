@@ -603,7 +603,7 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
   
   onInvokeAction(rec, action, args, callback) {
-    if ( action == "start_simulation" ) {
+    if ( action == "runSite" ) {
       this.mrecs.updateOne(
         { _id: rec.id().val },
         { $set: { "rec.simStatus": "s:Starting" } }
@@ -631,13 +631,13 @@ class AlfalfaServer extends HServer {
           }
         });
       })
-    } else if ( action == "stop_simulation" ) {
+    } else if ( action == "stopSite" ) {
       this.mrecs.updateOne(
         { _id: rec.id().val },
         { $set: { "rec.simStatus": "s:Stopping" } }
       )
       callback(null,HGrid.EMPTY);
-    } else if ( action == "remove_site" ) {
+    } else if ( action == "removeSite" ) {
       this.mrecs.deleteMany({site_ref: rec.id().val});
       this.writearrays.deleteMany({siteRef: rec.id().val});
       callback(null,HGrid.EMPTY);

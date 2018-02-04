@@ -55,5 +55,5 @@ COPY . /root
 RUN tar -czf workflow.tar.gz workflow
 RUN rm -rf workflow
 
-CMD [ "python", "-u", "simulationManager.py" ]
+CMD [ "python", "-u", "messageHandler.py" ]
 

@@ -12,6 +12,7 @@ import Upload from '../Upload/Upload.js';
 import Sites from '../Sites/Sites.js';
 import Typography from 'material-ui/Typography';
 import { withStyles } from 'material-ui/styles';
+import Grid from 'material-ui/Grid';
 
 const styles = {
   root: {
@@ -33,13 +34,22 @@ class App extends React.Component {
               <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}> 
                 <Typography type="title" color="inherit">Alfalfa</Typography>
               </Link>
-              <Link to={'/queue'} style={{ textDecoration: 'none', color: 'unset' }}>
-                <Typography type="title" color="inherit">Queue</Typography>
-              </Link>
+              <Grid container justify='flex-end'>
+                <Grid item>
+                  <Link to={'/sites'} style={{ textDecoration: 'none', color: 'unset' }}>
+                    <Typography type="button" color="inherit">Sites</Typography>
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <Link to={'/simulations'} style={{ textDecoration: 'none', color: 'unset' }}>
+                    <Typography type="button" color="inherit">Simulations</Typography>
+                  </Link>
+                </Grid>
+              </Grid>
             </Toolbar>
           </AppBar>
           <Switch>
-            <Route path="/queue" component={Sites}/>
+            <Route path="/sites" component={Sites}/>
             <Route component={Upload}/>
           </Switch>
         </div>
