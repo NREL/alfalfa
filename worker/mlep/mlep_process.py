@@ -159,8 +159,9 @@ class MlepProcess:
                 self.write(mlep.mlep_encode_real_data(2, 1, None, (1,)))
 
             # Close connection
-            self.comm_socket.shutdown(socket.SHUT_RDWR)
-            self.comm_socket.close()
+            if self.comm_socket:
+                self.comm_socket.stop()
+                self.comm_socket = None
 
         except Exception as e:
             print('Error {0}'.format(e))

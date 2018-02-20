@@ -463,16 +463,16 @@ while True:
             # TODO: Cleanup simulation, and reset everything
     
     # Check Stop
-    if ( ep.is_running == True and (ep.kStep >= ep.MAX_STEPS) ) :
+    if ( ep.is_running == True and (ep.kStep > ep.MAX_STEPS) ) :
         stop = True;
     elif ( sp.sim_status == 3 and ep.is_running == True ) :
         stop = True;
-
     if stop :
         try:
             ep.stop(True)
             ep.is_running = 0
             sp.sim_status = 0
+
             # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
             finalize_simulation()
             logger.info('Simulation Terminated: Status: {0}, Step: {1}/{2}'.
