@@ -195,6 +195,8 @@ export WORKER_ROLE_ARN=arn:aws:iam::313781303390:role/Worker-Role```
 aws iam attach-role-policy --role-name Worker-Role --policy-arn arn:aws:iam::aws:policy/AmazonSQSFullAccess
 aws iam attach-role-policy --role-name Worker-Role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 aws iam attach-role-policy --role-name Worker-Role --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role```
+aws iam create-policy --policy-name ServiceScaling --policy-document file:///Users/kbenne/Development/alfalfa/deploy/update-service-policy.json
+aws iam attach-role-policy --role-name Worker-Role --policy-arn <insert arn returned from previous command>```
 1. Create an IAM Role to execute the tasks ```
 aws iam create-role --role-name Execution-Role --assume-role-policy-document file:///<project-root>/deploy/Instance-Role-Trust-Policy.json```
 1. Record the arn that is returned, ie```
@@ -217,13 +219,20 @@ aws ecs create-service --service-name worker-service --launch-type "FARGATE" --n
 ./deploy/deploy create -s web```
 ```aws ecs create-service --service-name web-service --launch-type "FARGATE" --network-configuration "awsvpcConfiguration={subnets=[subnet-01acff4a,subnet-4b1a8f64], assignPublicIp=ENABLED, securityGroups=[sg-766ab202]}"  --task-definition web --cluster worker_ecs_cluster --desired-count 1```
 
+## Enable scaling for the worker service
+
+1. Make a scalable target```
+aws application-autoscaling  register-scalable-target --service-namespace ecs --resource-id service/worker_ecs_cluster/worker-service --scalable-dimension ecs:service:DesiredCount --min-capacity 1 --max-capacity 200```
+1. Make a scale out policy for the worker service, record the PolicyARN that is returned```
+aws application-autoscaling  put-scaling-policy --cli-input-json file:///<project-root>deploy/Worker-Service-Scale-Out-Policy.json```
+1. Create a scale out alarm for the worker service```
+aws cloudwatch put-metric-alarm --alarm-name WorkerServiceScaleOutAlarm --metric-name ApproximateNumberOfMessagesVisible --namespace AWS/SQS --statistic Average --unit Count --comparison-operator GreaterThanOrEqualToThreshold --threshold 1 --period 60 --evaluation-periods 1 --dimensions Name=QueueName,Value=pine   --alarm-actions <copy scaling policy arn>
+
 ## If you need to update the worker
 
 1. Install docker, https://www.docker.com/community-edition#/download
 1. Use ```aws ecr get-login | bash -``` to login to docker.
 1. Build current containers with, ```docker-compose build```.
 1. Use ```docker-compose push``` to push new images to the aws container registry.
-1. ```./deploy/deploy create -s worker```
-1. The new task will start and then the old task will drop off```
-aws ecs update-service --cluster worker_ecs_cluster --service worker-service --task-definition worker```
+1. ```./deploy/deploy create```
 

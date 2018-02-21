@@ -25,15 +25,15 @@ class StartDialog extends React.Component {
     selectedStartDateTime: new Date(),
     selectedEndDateTime: new Date(),
     realtime: false,
-    timescale: 120,
+    timescale: 5,
   }
 
   handleStartDateTimeChange = dateTime => {
     this.setState({ selectedStartDateTime: dateTime })
   }
 
-  handleTimescaleChange = scale => {
-    this.setState({ timescale: scale })
+  handleTimescaleChange = event => {
+    this.setState({ timescale: event.target.value })
   }
 
   handleEndDateTimeChange = dateTime => {
@@ -83,7 +83,7 @@ class StartDialog extends React.Component {
               <Grid item xs={6}>
                 <TextField 
                   label="Timescale"
-                  value={timescale}
+                  value={this.state.timescale}
                   onChange={this.handleTimescaleChange}
                   InputLabelProps={{shrink: true, className: this.props.classes.label}}
                   disabled={this.state.realtime}

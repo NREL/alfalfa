@@ -2,8 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import IconButton from 'material-ui/IconButton';
 import {FileUpload} from 'material-ui-icons';
+import Grid from 'material-ui/Grid';
 import TextField from 'material-ui/TextField';
 import Button from 'material-ui/Button';
+import Input, { InputLabel, InputLabelProps } from 'material-ui/Input';
+import { FormControl, FormHelperText } from 'material-ui/Form';
 import {LinearProgress} from 'material-ui/Progress';
 import 'normalize.css/normalize.css';
 import styles from './Upload.scss';
@@ -28,18 +31,19 @@ class FileInput extends React.Component {
     const file = event.target.files[0];
     this.props.onFileChange(file);
     this.setState({label: file.name});
-    
-    console.log(file);
   }
 
   render() {
     return (
       <label className={styles.row}>
         <input id="foo" className={styles.hidden} type="file" onChange={this.onChange}/>
-        <FileUpload style={{width: '38px', height: '38px'}} className={styles.icon} color={cyan500} />
-        <div className={styles.fileinput} ref='label'>
-          {this.props.hint}
-        </div>
+        <TextField fullWidth={true} label='Select OpenStudio or EnergyPlus File' value={this.props.hint}
+          value={this.props.hint}
+          InputLabelProps={{
+            shrink: this.props.hint
+          }}
+        >
+        </TextField>
       </label>
     )
   }
@@ -74,18 +78,15 @@ class Upload extends React.Component {
 
   onModelFileChange(file) {
     this.setState({modelFile: file, completed: 0, uploadID: uuid()});
-    console.log(file.name);
   }
 
   onWeatherFileChange(file) {
     this.setState({weatherFile: file, completed: 0});
-    console.log(file.name);
   }
 
   uploadProgress(evt) {
     if (evt.lengthComputable) {
       var percentComplete = Math.round(evt.loaded * 100 / evt.total);
-      console.log('percent: ' + percentComplete.toString() + '%');
       if (percentComplete > 100) {
         this.setState({completed: 100});
       } else {
@@ -99,8 +100,6 @@ class Upload extends React.Component {
 
   uploadComplete(evt) {
     /* This event is raised when the server send back a response */
-    console.log("Done - " + evt.target.responseText );
-
     this.props.addJobProp(this.state.modelFile.name, this.state.uploadID);
 
     //var xhr = new XMLHttpRequest();
@@ -147,10 +146,15 @@ class Upload extends React.Component {
   }
 
   modelFileHint() {
+    //if( this.state.modelFile ) {
+    //  return this.state.modelFile.name;
+    //} else {
+    //  return 'Select OpenStudio or EnergyPlus File';
+    //}
     if( this.state.modelFile ) {
       return this.state.modelFile.name;
     } else {
-      return 'Select Simulation File';
+      return null;
     }
   }
 
@@ -168,11 +172,17 @@ class Upload extends React.Component {
       <div className={styles.root}>
         <LinearProgress mode="determinate" value={this.state.completed} />
         <div className={styles.center}>
-          <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
-          <FileInput hint={this.weatherFileHint()} onFileChange={this.onWeatherFileChange}/>
-          <Button raised color="primary" onClick={this.onClick}>
-            Upload New Building Model!
-          </Button>
+          <Grid container>
+            <Grid item xs={12}>
+              <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
+            </Grid>
+            <Grid item xs>
+              <Button fullWidth={true} raised color="primary" onClick={this.onClick}>Add Site</Button>
+            </Grid>
+            <Grid item xs>
+              <Button fullWidth={true} raised color="primary" onClick={this.onClick}>Simulate</Button>
+            </Grid>
+          </Grid>
         </div>
       </div>
     );

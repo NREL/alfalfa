@@ -20,12 +20,9 @@ if( process.env.NODE_ENV == "production" ) {
     res.set('Content-Encoding', 'gzip');
     next();
   });
+} else {
+  app.use(morgan('combined'))
 }
-
-app.use(morgan('combined'))
-
-app.use(bodyParser.text({ type: 'text/*' }));
-app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
 
 app.use('/graphql', graphQLHTTP({
   graphiql: true,
@@ -33,10 +30,11 @@ app.use('/graphql', graphQLHTTP({
   schema: Schema,
 }));
 
+app.use(bodyParser.text({ type: 'text/*' }));
+app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
+
 app.all('/api/*', function(req, res) {
   // Remove this in production
-  console.log('body: ', req.body);
-
   var path = url.parse(req.url).pathname;
   path = path.replace('/api','');
 

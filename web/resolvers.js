@@ -6,7 +6,7 @@ var sqs = new AWS.SQS();
 
 function addJobResolver(osmName, uploadID) {
   var params = {
-   MessageBody: `{"op": "InvokeAction", "action": "add_site", "osm_name": "${osmName}", "upload_id": "${uploadID}"}`,
+   MessageBody: `{"op": "InvokeAction", "action": "addSite", "osm_name": "${osmName}", "upload_id": "${uploadID}"}`,
    QueueUrl: process.env.JOB_QUEUE_URL
   };
   
@@ -153,7 +153,7 @@ function startSimulationResolver(args) {
       "meta": {
         "ver": "2.0",
         "id": `r:${args.siteRef}`,
-        "action": "s:start_simulation"
+        "action": "s:runSite"
       },
       "cols": [
         {
@@ -201,7 +201,7 @@ function stopSimulationResolver(args) {
       "meta": {
         "ver": "2.0",
         "id": `r:${args.siteRef}`,
-        "action": "s:stop_simulation"
+        "action": "s:stopSite"
       },
       "cols": [
         {
@@ -237,7 +237,7 @@ function removeSiteResolver(args) {
       "meta": {
         "ver": "2.0",
         "id": `r:${args.siteRef}`,
-        "action": "s:remove_site"
+        "action": "s:removeSite"
       },
       "cols": [
         {
