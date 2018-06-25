@@ -148,11 +148,11 @@ class Upload extends React.Component {
       var formData = new FormData();
       formData.append('key', `uploads/${this.state.uploadID}/${this.state.modelFile.name}`);
       formData.append('acl', 'private');
-      formData.append('policy', 'eyJleHBpcmF0aW9uIjoiMjA1MC0wMS0wMVQxMjowMDowMC4wMDBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiYWxmYWxmYSJ9LHsiYWNsIjoicHJpdmF0ZSJ9LHsieC1hbXotY3JlZGVudGlhbCI6IkFLSUFKUUxZUUo1SVNKVlBVN0lRLzIwNTAwMTAxL3VzLXdlc3QtMS9zMy9hd3M0X3JlcXVlc3QifSx7IngtYW16LWFsZ29yaXRobSI6IkFXUzQtSE1BQy1TSEEyNTYifSx7IngtYW16LWRhdGUiOiIyMDUwMDEwMVQwMDAwMDBaIn0sWyJzdGFydHMtd2l0aCIsIiRrZXkiLCJ1cGxvYWRzIl0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMCwxMDQ4NTc2MF1dfQ==');
+      formData.append('policy', 'eyJleHBpcmF0aW9uIjoiMjA1MC0wMS0wMVQxMjowMDowMC4wMDBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiYWxmYWxmYSJ9LHsiYWNsIjoicHJpdmF0ZSJ9LHsieC1hbXotY3JlZGVudGlhbCI6IkFLSUFJSjNXUzNIWkRWUUc2NzZRLzIwNTAwMTAxL3VzLXdlc3QtMS9zMy9hd3M0X3JlcXVlc3QifSx7IngtYW16LWFsZ29yaXRobSI6IkFXUzQtSE1BQy1TSEEyNTYifSx7IngtYW16LWRhdGUiOiIyMDUwMDEwMVQwMDAwMDBaIn0sWyJzdGFydHMtd2l0aCIsIiRrZXkiLCJ1cGxvYWRzIl0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMCwxMDQ4NTc2MF1dfQ==');
       formData.append('x-amz-algorithm', 'AWS4-HMAC-SHA256');
-      formData.append('x-amz-credential', 'AKIAJQLYQJ5ISJVPU7IQ/20500101/us-west-1/s3/aws4_request');
+      formData.append('x-amz-credential', 'AKIAIJ3WS3HZDVQG676Q/20500101/us-west-1/s3/aws4_request');
       formData.append('x-amz-date', '20500101T000000Z');
-      formData.append('x-amz-signature', '642775cf022f034136fe8c23287e8a435fc11537f34f736249714f331a9f46c4');
+      formData.append('x-amz-signature', '57cf129426bbb95dab909a9696f208c5fb4d72d023a01ec0825e8c29faecf67c');
       formData.append('file', this.state.modelFile);
 
       var xhr = new XMLHttpRequest();
