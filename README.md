@@ -12,6 +12,16 @@ environment variables:
 export AWS_ACCESS_KEY_ID=foo
 export AWS_SECRET_ACCESS_KEY=bar
 ```
+1. Set environment variables, WEB_REGISTRY_URI, and WORKER_REGISTRY_URI.
+These variables are only used for cloud deployment, but docker-compose will require a value
+```
+export WEB_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web 
+export WORKER_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/worker
+```
+1. Export the NODE_ENV variable
+```
+export NODE_ENV="production"
+```
 1. From a command prompt ```docker-compose up```.
 1. Navigate to http://localhost/api/nav to verify that the Haystack implementation is running.
 1. Navigate to http://localhost to view web application.
