@@ -6,7 +6,6 @@ services:
       context: web
       args:
         - NODE_ENV=${NODE_ENV}
-    image: ${WEB_REGISTRY_URI}:latest
     ports:
      - "80:80"
      - "29043:29043"
@@ -27,7 +26,6 @@ services:
 
   worker:
     build: worker
-    image: ${WORKER_REGISTRY_URI}:latest
     environment:
      - AWS_ACCESS_KEY_ID
      - AWS_SECRET_ACCESS_KEY
