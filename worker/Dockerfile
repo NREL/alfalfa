@@ -1,13 +1,10 @@
-FROM ubuntu:14.04
+FROM ubuntu:trusty
 
 RUN cd /root
 WORKDIR /root
 
 RUN apt-get update -y && apt-get install -y \
-    ca-certificates curl libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python python-pip
-
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
-    && apt-get install -y nodejs
+    ca-certificates curl libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python3 python3-pip
 
 RUN apt-get update \
     && apt-get install -y software-properties-common \
@@ -17,7 +14,9 @@ RUN apt-get update \
     && update-alternatives --config java \ 
     && update-alternatives --config javac \ 
     && curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz \
-    && tar -xzf bcvtb-linux.tar.gz
+    && tar -xzf bcvtb-linux.tar.gz \
+    && curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
+    && apt-get install -y ca-certificates nodejs
 
 ENV OPENSTUDIO_VERSION 2.4.0
 ENV OPENSTUDIO_SHA f58a3e1808
@@ -45,15 +44,15 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
 COPY requirements.txt /root/
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 COPY package.json package-lock.json /root/
-RUN npm install 
+
+RUN npm install
 
 COPY . /root
 RUN tar -czf workflow.tar.gz workflow
 RUN rm -rf workflow
 
-CMD [ "python", "-u", "messageHandler.py" ]
+CMD [ "python3", "-u", "messageHandler.py" ]
 

@@ -171,7 +171,7 @@ recs = mongodb.recs
 if len(sys.argv) == 6:
     site_ref = sys.argv[1]
     real_time_flag = sys.argv[2]
-    time_scale = sys.argv[3]
+    time_scale = int(sys.argv[3])
 
     startDatetime = parse(sys.argv[4])
     endDatetime = parse(sys.argv[5])
