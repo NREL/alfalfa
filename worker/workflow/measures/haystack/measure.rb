@@ -72,6 +72,36 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     #return string formatted with no spaces or '-' (can be used as EMS var name)
     return "#{id.gsub(/[\s-]/,'_')}"
   end
+
+  def create_time_points(....)
+
+    # Insert your EnergyPlus and EMS output variable (the code you have already written)
+    outVarName = "Hour of simulation"
+    key = ""
+
+    # your code to create output variables with the above key and name
+    
+    # haystack entry
+    haystack_json_item = Hash.new
+    uuid = create_uuid(id)
+    haystack_json_item[:id] = uuid
+    haystack_json_item[:dis] = create_str(id)
+    haystack_json_item[:unit] = create_str(unit) 
+    haystack_json_item[:cur] = "m:" 
+    haystack_json_item[:curStatus] = "s:disabled" 
+    # .... maybe other tags
+
+
+    # mapping entry
+    json = Hash.new
+    json[:id] = uuid 
+    json[:source] = "EnergyPlus" 
+    json[:type] = outVarName
+    json[:name] = key
+    json[:variable] = ""
+
+    return map_json_item, haystack_json_item
+  end
   
   def create_point_uuid(type, id, siteRef, equipRef, floorRef, where,what,measurement,kind,unit)
     point_json = Hash.new
