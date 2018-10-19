@@ -116,6 +116,7 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     target.close
     
     #loop through EMSoutputVariables 
+    #my time variables will be written to cfg file here
     outputVariables = model.getEnergyManagementSystemOutputVariables 
     #alphabetize
     outputVariables = outputVariables.sort_by{ |m| m.name.to_s.downcase } 
