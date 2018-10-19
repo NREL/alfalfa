@@ -357,7 +357,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     output_vars_sorted = output_vars.sort_by{ |m| [ m.keyValue.to_s, m.name.to_s.downcase]}
     output_vars_sorted.each do |outvar|
       if (outvar.keyValue.to_s == "*")
-        print outvar
+        #print outvar
+        print "\n The haystack tag is beding added to time-variables!!!"
         haystack_temp_json, temp_uuid = create_point_timevars(outvar)
         haystack_json << haystack_temp_json
         temp_mapping = create_mapping_timevars(outvar,temp_uuid)

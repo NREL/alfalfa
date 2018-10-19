@@ -104,7 +104,7 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #print outvar
       target.write(outvar)
       if (outvar.keyValue.to_s =="*")
-        print " ****** You are good here ******"
+        print " \n ****** You are good here ******"
       end
       if (outvar.exportToBCVTB && (outvar.keyValue != "*"))
       #if (outvar.exportToBCVTB )
@@ -125,9 +125,9 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #print outvar.emsVariableName.to_s
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB)
-        print "\n Watchout Here!!!"
+        print "\n Watchout Here!!!  "
         print outvar.emsVariableName.to_s
-        bcvtb.add_element add_xml_output (outvar.emsVariableName, "EMS")
+        bcvtb.add_element add_xml_output(outvar.emsVariableName, "EMS")
         runner.registerInfo("Added #{outvar.emsVariableName.to_s} to BCVTB XML file.") 
         counter += 1
       end
