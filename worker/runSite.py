@@ -76,17 +76,19 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
         f.truncate()
         for line in lines:
             if pattern in line:
-                count = 5
-            elif count > 4:
+                count = 6
+            elif count > 6:
                 # Do nothing
                 count = count - 1
-            elif count == 4:
+            elif count == 5:
                 # Begin Month
                 line = begin_month_line
                 count = count - 1
-            elif count == 3:
+            elif count == 4:
                 # Begin Day
                 line = begin_day_line
+                count = count - 1
+            elif count == 3:
                 count = count - 1
             elif count == 2:
                 # End Month
@@ -154,8 +156,8 @@ def finalize_simulation():
     tar_file.close()
 
     bucket.upload_file(tar_name, "simulated/%s" % tar_name)
-    os.remove(tar_name)
-    shutil.rmtree(sp.workflow_directory)
+    #os.remove(tar_name)
+    #shutil.rmtree(sp.workflow_directory)
 
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
     recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
