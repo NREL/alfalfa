@@ -132,32 +132,32 @@ class ExposeTimeVariable240 < OpenStudio::Measure::ModelMeasure
         ems_output_variable_minute.setExportToBCVTB(true)
 	
 	#Add the EMS:Output variables to the Output:Variables to output
-	output_variable_month = OpenStudio::Model::OutputVariable.new("current_month",model)
-	output_variable_month.setVariableName("current_month")
-    output_variable_month.setKeyValue("*")
-    output_variable_month.setReportingFrequency("TimeStep") 
-	output_variable_month.setExportToBCVTB(true)
+	#output_variable_month = OpenStudio::Model::OutputVariable.new("current_month",model)
+	#output_variable_month.setVariableName("current_month")
+        #output_variable_month.setKeyValue("*")
+        #output_variable_month.setReportingFrequency("TimeStep") 
+	#output_variable_month.setExportToBCVTB(true)
 	
     
-	output_variable_day = OpenStudio::Model::OutputVariable.new("current_day",model)
-	output_variable_day.setVariableName("current_day")
-    output_variable_day.setKeyValue("*")
-    output_variable_day.setReportingFrequency("TimeStep")
-	output_variable_day.setExportToBCVTB(true)
+	#output_variable_day = OpenStudio::Model::OutputVariable.new("current_day",model)
+	#output_variable_day.setVariableName("current_day")
+        #output_variable_day.setKeyValue("*")
+        #output_variable_day.setReportingFrequency("TimeStep")
+	#output_variable_day.setExportToBCVTB(true)
 	
     
-	output_variable_hour = OpenStudio::Model::OutputVariable.new("current_hour",model)
-	output_variable_hour.setVariableName("current_hour")
-    output_variable_hour.setKeyValue("*")
-    output_variable_hour.setReportingFrequency("TimeStep")
-	output_variable_hour.setExportToBCVTB(true)
+	#output_variable_hour = OpenStudio::Model::OutputVariable.new("current_hour",model)
+	#output_variable_hour.setVariableName("current_hour")
+        #output_variable_hour.setKeyValue("*")
+        #output_variable_hour.setReportingFrequency("TimeStep")
+	#output_variable_hour.setExportToBCVTB(true)
 	
     
-	output_variable_minute = OpenStudio::Model::OutputVariable.new("current_minute",model)
-	output_variable_minute.setVariableName("current_minute")
-    output_variable_minute.setKeyValue("*")
-    output_variable_minute.setReportingFrequency("TimeStep") 
-	output_variable_minute.setExportToBCVTB(true) 
+	#output_variable_minute = OpenStudio::Model::OutputVariable.new("current_minute",model)
+	#output_variable_minute.setVariableName("current_minute")
+        #output_variable_minute.setKeyValue("*")
+        #output_variable_minute.setReportingFrequency("TimeStep") 
+	#output_variable_minute.setExportToBCVTB(true) 
 	
 
     return true

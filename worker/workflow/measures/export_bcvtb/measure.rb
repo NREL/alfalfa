@@ -127,8 +127,9 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       if (outvar.exportToBCVTB)
         print "\n Watchout Here!!!  "
         print outvar.emsVariableName.to_s
-        bcvtb.add_element add_xml_output(outvar.emsVariableName, "EMS")
-        runner.registerInfo("Added #{outvar.emsVariableName.to_s} to BCVTB XML file.") 
+        print outvar.nameString
+        bcvtb.add_element add_xml_output(outvar.nameString, "EMS")
+        runner.registerInfo("Added #{outvar.nameString} to BCVTB XML file.") 
         counter += 1
       end
     end  #end EMSoutputVariables
