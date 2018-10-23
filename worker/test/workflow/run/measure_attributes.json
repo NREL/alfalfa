@@ -1,9 +1,0 @@
-{
-  "Haystack": {
-    "local_test": false,
-    "applicable": true
-  },
-  "ExportBCVTB": {
-    "applicable": true
-  }
-}

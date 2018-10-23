@@ -269,7 +269,7 @@ try:
     
     sp.variables = Variables(variables_path, sp.mapping)
     
-    subprocess.call(['openstudio', 'translate_osm.rb', osmpath, sp.idf])
+    subprocess.call(['openstudio', 'runsite/translate_osm.rb', osmpath, sp.idf])
     shutil.copyfile(variables_path, variables_new_path)
     
     if sp.real_time_flag == True:

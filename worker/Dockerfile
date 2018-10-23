@@ -51,8 +51,7 @@ COPY package.json package-lock.json /root/
 RUN npm install
 
 COPY . /root
-RUN tar -czf workflow.tar.gz workflow
-RUN rm -rf workflow
+RUN cd addsite && tar -czf ../workflow.tar.gz workflow
 
 CMD [ "python3", "-u", "messageHandler.py" ]
 
