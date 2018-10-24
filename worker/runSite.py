@@ -59,7 +59,7 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
     end_month = [int(s) for s in re.findall(r'\d+', date_end)][0]
     end_day = [int(s) for s in re.findall(r'\d+', date_end)][1]
     dates = (begin_month, begin_day, end_month, end_day)
-
+    print("*** debugging the actual dates here: ***", dates)
     # Generate Lines
     begin_month_line = '  {},                                      !- Begin Month\n'.format(begin_month)
     begin_day_line = '  {},                                      !- Begin Day of Month\n'.format(begin_day)
@@ -67,46 +67,81 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
     end_day_line = '  {},                                      !- End Day of Month\n'.format(end_day)
     time_step_line = '  {};                                      !- Number of Timesteps per Hour\n'.format(time_step)
 
+    
     # Overwrite File
-    count = 0
+    count = -1
     count_ts = 0
     with open(idf_file, 'r+') as f:
         lines = f.readlines()
         f.seek(0)
         f.truncate()
+        #print("*** debugging: i am checking here!!! ")
         for line in lines:
+            count = count + 1             
             if pattern in line:
-                count = 6
+                line_runperiod = count
+                print("*** degugging for the runperiod *** ", line_runperiod)
+            if 'Timestep,' in line:
+                line_timestep = count+1 
+        
+        for i, line in enumerate(lines):
+            if (i<line_runperiod or i>line_runperiod+12) and (i != line_timestep) :
+                f.write(line)
+            elif i == line_timestep:
+                line= time_step_line
+                f.write(line)
+            else:
+               if i == line_runperiod + 2:
+                  line = begin_month_line
+               elif i == line_runperiod + 3:
+                  line = begin_day_line
+               elif i == line_runperiod + 5:
+                  line = end_month_line
+               elif i == line_runperiod + 6:
+                  line = end_day_line         
+               else:
+                  line = lines[i]
+               f.write(line)
+
+        '''       
+        for line in lines:
+            count_ts = count_ts + 1
+            if pattern in line:
+                count = 0
+                print("*** Hey Debugging RunPeriod Starting here***/n")
+                lines_runperiod=[]
+                while (count<=12):
+                    lines_runperiod.append(line)
+                    count = count + 1
+
             elif count > 6:
                 # Do nothing
                 count = count - 1
             elif count == 5:
                 # Begin Month
                 line = begin_month_line
+                print("*** Yanfei *** debugging begin month*** ", line)
                 count = count - 1
             elif count == 4:
                 # Begin Day
                 line = begin_day_line
+                print("*** Yanfei *** debugging begin day*** ", line)
                 count = count - 1
             elif count == 3:
                 count = count - 1
             elif count == 2:
                 # End Month
                 line = end_month_line
+                print("*** Yanfei *** debugging end month*** ", line)
                 count = count - 1
             elif count == 1:
                 # End day
                 line = end_day_line
-                count = count - 1
-            elif 'Timestep,' in line:
-                # Time step
-                count_ts = 1
-            elif count_ts == 1:
-                # Replace
-                line = time_step_line
-                count_ts = 0
+                print("*** Yanfei *** debugging end day*** ", line)
+           
             # Write Every line
             f.write(line)
+        '''
     return dates
 
 
@@ -150,12 +185,16 @@ def reset(tarinfo):
 
 
 def finalize_simulation():
+    subprocess.call(['ReadVarsESO'])
     # tar_name = "%s.tar.gz" % sp.site_ref
     tar_file = tarfile.open(tar_name, "w:gz")
     tar_file.add(sp.workflow_directory, filter=reset, arcname=site_ref)
     tar_file.close()
-
+    
+    #subprocess.call(['ReadVarsESO'])
+    
     bucket.upload_file(tar_name, "simulated/%s" % tar_name)
+    
     #os.remove(tar_name)
     #shutil.rmtree(sp.workflow_directory)
 
@@ -285,11 +324,13 @@ try:
     sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
     bypass_flag = True
     sim_date = replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour)
+    print("****** Yanfei:Actual Date: ******: ", sim_date)
+    
     try:
         sp.rt_step_time = sp.sim_step_time / float(time_scale)    # Seconds
     except:
         sp.rt_step_time = 10                                    # Seconds
-    
+    ''' 
     logger.info('########################################################################')
     logger.info('######################## INPUT VARIABLES ###############################')
     logger.info('########################################################################')
@@ -307,7 +348,7 @@ try:
     logger.info('sp.endDatetime: %s' % sp.endDatetime)
     logger.info('sp.start_minute: %s' % sp.start_minute)
     logger.info('sp.end_minute: %s' % sp.end_minute)
-    
+    '''
     # Arguments
     ep.accept_timeout = sp.accept_timeout
     ep.mapping = sp.mapping
@@ -346,13 +387,14 @@ try:
     d1 = date(2017, sim_date[2], sim_date[3])
     delta = d1 - d0
     ep.MAX_STEPS = (24 * delta.days + sp.end_hour) * sp.sim_step_per_hour + sp.end_minute + 1# Max. Number of Steps
+    '''
     logger.info('############# MAX STEPS:  {0} #############'.format(ep.MAX_STEPS))
     logger.info('############# Days:       {0} #############'.format(delta.days))
     logger.info('############# End Hour :  {0} #############'.format(sp.end_hour))
     logger.info('############# End Minute: {0} #############'.format(sp.end_minute))
     logger.info('############# Step/Hour:  {0} #############'.format(sp.sim_step_per_hour))
     logger.info('############# Start Hour: {0} #############'.format(sp.start_hour))
-    
+    '''
     # Simulation Status
     if ep.is_running == True:
         sp.sim_status = 1
@@ -378,9 +420,9 @@ try:
         #    if (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and (sp.next_time - sp.start_time >= sp.rt_step_time)) or\
         if (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and t >= next_t) or\
                 (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and bypass_flag):  # Bypass Time
-            logger.info('E+ Running: {0}, Sim Status: {1}, E+ Step: {2}, Elapsed step time: {3}, RT Step Time: {4}'.format(
-                ep.is_running, sp.sim_status, ep.kStep, sp.next_time - sp.start_time, sp.rt_step_time))
-            logger.info('###### t: {0}'.format(t))
+            #logger.info('E+ Running: {0}, Sim Status: {1}, E+ Step: {2}, Elapsed step time: {3}, RT Step Time: {4}'.format(
+            #    ep.is_running, sp.sim_status, ep.kStep, sp.next_time - sp.start_time, sp.rt_step_time))
+            #logger.info('###### t: {0}'.format(t))
             try:
                 # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
                 # Instead we only check the database for stopping at each simulation step
@@ -405,14 +447,17 @@ try:
                                 logger.info('########### STOP BYPASS: RT ###########')
                             else:
                                 logger.info('################# RT-BYPASS #################')
+                                #pass
                         else:
                             if sp.start_hour*3600+sp.start_minute*60 <= (ep.kStep-1)*ep.deltaT:
                                 bypass_flag = False     # Stop bypass
                                 logger.info('########### STOP BYPASS: Hours ########')
                             else:
                                 logger.info('################# BYPASS #################')
+                                #pass
                     else:
                         logger.info('############### SIMULATION ###############')
+                        #pass
                     
     
                     # Read packet
@@ -429,6 +474,12 @@ try:
                     [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
                     # Log Output Data
                     ep.outputs = outputs
+                    #print("***Yanfei Checking Outputs coming from EnergyPlus*** ", outputs)
+                    #passed_current_day=outputs[-4]
+                    #passed_current_hour=outputs[-3]
+                    #passed_current_minute=outputs[-2]
+                    #passed_current_month=outputs[-1]
+                    #print("***\n Yanfei Checking Outputs coming from EnergyPlus*** ", passed_current_day, passed_current_hour, passed_current_minute, passed_current_month)
         
                     if ep.flag != 0:
                         break
