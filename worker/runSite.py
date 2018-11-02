@@ -202,6 +202,50 @@ def finalize_simulation():
     recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
 
+def check_localtime(user_start_datetime, user_end_datetime, time_zone):
+    '''This function will check if the time-inputs-from-user are local or not;
+    This function will use UTC time as a reference. \
+    The idea is: different time zones will have differences in the hour value generally, \
+    and sometimes day value for corner cases'''
+    
+    #obtain the UTC time first
+    datetime_utcnow = datetime.utcnow()
+    print("****** Yanfei: datetime--utcnow: ", str(datetime_utcnow) )
+    
+    #check the UTC time zone
+    print("****** Yanfei: time zone: ", time.tzname) 
+    
+    #obtain the hour and minute from UTC time
+    utcnow_hour   = int(str(datetime_utcnow)[11:13])
+    utcnow_minute = int(str(datetime_utcnow)[14:16])
+    print("****** Yanfei: utcnow hour: ", utcnow_hour)
+    print("****** Yanfei: utcnow minute: ", utcnow_minute)
+
+    #obtain the hour and minute from user-inputs
+    start_datetime_str=str(user_start_datetime)
+    end_datetime_str=str(user_end_datetime)
+     
+    print("****** Yanfei: start datetime: ", start_datetime_str)
+    print("****** Yanfei: end datetime: ", end_datetime_str)
+    start_datetime_hour_user   = int(start_datetime_str[11:13])
+    start_datetime_minute_user = int(start_datetime_str[14:16])
+    print("****** Yanfei: start hour: ", start_datetime_hour_user)
+
+    #obtain the local timeie from user; here use Denver as a demo    
+    local_timezone = pytz.timezone('America/Denver')    
+    local_datetime=pytz.UTC.localize(datetime.utcnow()).astimezone(local_timezone)
+    
+    if (start_datetime_hour_user == utcnow_hour) or (start_datetime_hour_user != local_hour):
+        start_datetime = local_datetime
+        end_datetime   = user_end_datetime.astimezone(local_timezone)
+        print("starting/eding local time: ",(start_datetime, end_datetime))
+    else:  
+        start_datetime = user_start_datetime
+        end_datetime   = user_end_datetime
+        print("starting local time: ", (start_datetime, end_datetime))
+    
+    return (start_datetime, end_datetime)
+
 startDatetime = datetime.today()
 
 # Mongo Database
@@ -213,9 +257,14 @@ if len(sys.argv) == 6:
     site_ref = sys.argv[1]
     real_time_flag = sys.argv[2]
     time_scale = int(sys.argv[3])
+   
+    user_start_Datetime = parse(sys.argv[4])
+    user_end_Datetime = parse(sys.argv[5])
+ 
 
-    startDatetime = parse(sys.argv[4])
-    endDatetime = parse(sys.argv[5])
+    local_time_zone = 'America/Denver'
+
+    (startDatetime, endDatetime) = check_localtime(user_start_Datetime, user_end_Datetime, local_time_zone)
 
     start_date = "%02d/%02d" % (startDatetime.month,startDatetime.day)
     start_hour = startDatetime.hour
@@ -520,6 +569,7 @@ try:
                                 logger.error('bad output index for: %s' % output_id)
                             else:
                                 output_value = ep.outputs[output_index]
+                                # print("*** Yanfei: Checking output_id: ",output_id)
                                 # TODO: Make this better with a bulk update
                                 # Also at some point consider removing curVal and related fields after sim ends
                                 recs.update_one({"_id": output_id}, {
@@ -527,9 +577,23 @@ try:
     
                         # time computed for ouput purposes
                         output_time = datetime.strptime(sp.start_date, "%m/%d").replace(year=startDatetime.year) + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
-                        output_time = output_time.replace(tzinfo=pytz.utc)
+                        #output_time = output_time.replace(tzinfo=pytz.utc)
+                        #output_time = output_time.replace(tzinfo=pytz.timezone(time_zone))
+                        #print("\n********** Yanfei: outputtime to browser initial: ", output_time)
+                        output_time = (pytz.timezone(time_zone)).localize(output_time)
+                        print("\n********** Yanfei: outputtime to browser: ", output_time)
                         # Haystack uses ISO 8601 format like this "t:2015-06-08T15:47:41-04:00 New_York"
-                        output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
+                        # the database can only recgonize the time-zone with: UTC, Denver, ....
+                        # i will come back later with a function to parse the timezone 
+                        if 'Denver' in str(output_time.tzname()):
+                               output_time_string = 't:%s %s' % (output_time.isoformat(), 'Denver') 
+                        elif 'UTC' in str(output_time.tzname()):
+                               output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
+                        else:
+                               output_time_string = 't:%s %s' % (output_time.isoformat(), 'Denver')
+                        
+                        #output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
+                       
                         recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}}, False)
     
                     # Step
