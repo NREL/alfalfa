@@ -59,7 +59,7 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
     end_month = [int(s) for s in re.findall(r'\d+', date_end)][0]
     end_day = [int(s) for s in re.findall(r'\d+', date_end)][1]
     dates = (begin_month, begin_day, end_month, end_day)
-
+    print("*** debugging the actual dates here: ***", dates)
     # Generate Lines
     begin_month_line = '  {},                                      !- Begin Month\n'.format(begin_month)
     begin_day_line = '  {},                                      !- Begin Day of Month\n'.format(begin_day)
@@ -67,44 +67,81 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
     end_day_line = '  {},                                      !- End Day of Month\n'.format(end_day)
     time_step_line = '  {};                                      !- Number of Timesteps per Hour\n'.format(time_step)
 
+    
     # Overwrite File
-    count = 0
+    count = -1
     count_ts = 0
     with open(idf_file, 'r+') as f:
         lines = f.readlines()
         f.seek(0)
         f.truncate()
+        #print("*** debugging: i am checking here!!! ")
         for line in lines:
+            count = count + 1             
             if pattern in line:
-                count = 5
-            elif count > 4:
+                line_runperiod = count
+                print("*** degugging for the runperiod *** ", line_runperiod)
+            if 'Timestep,' in line:
+                line_timestep = count+1 
+        
+        for i, line in enumerate(lines):
+            if (i<line_runperiod or i>line_runperiod+12) and (i != line_timestep) :
+                f.write(line)
+            elif i == line_timestep:
+                line= time_step_line
+                f.write(line)
+            else:
+               if i == line_runperiod + 2:
+                  line = begin_month_line
+               elif i == line_runperiod + 3:
+                  line = begin_day_line
+               elif i == line_runperiod + 5:
+                  line = end_month_line
+               elif i == line_runperiod + 6:
+                  line = end_day_line         
+               else:
+                  line = lines[i]
+               f.write(line)
+
+        '''       
+        for line in lines:
+            count_ts = count_ts + 1
+            if pattern in line:
+                count = 0
+                print("*** Hey Debugging RunPeriod Starting here***/n")
+                lines_runperiod=[]
+                while (count<=12):
+                    lines_runperiod.append(line)
+                    count = count + 1
+
+            elif count > 6:
                 # Do nothing
                 count = count - 1
-            elif count == 4:
+            elif count == 5:
                 # Begin Month
                 line = begin_month_line
+                print("*** Yanfei *** debugging begin month*** ", line)
                 count = count - 1
-            elif count == 3:
+            elif count == 4:
                 # Begin Day
                 line = begin_day_line
+                print("*** Yanfei *** debugging begin day*** ", line)
+                count = count - 1
+            elif count == 3:
                 count = count - 1
             elif count == 2:
                 # End Month
                 line = end_month_line
+                print("*** Yanfei *** debugging end month*** ", line)
                 count = count - 1
             elif count == 1:
                 # End day
                 line = end_day_line
-                count = count - 1
-            elif 'Timestep,' in line:
-                # Time step
-                count_ts = 1
-            elif count_ts == 1:
-                # Replace
-                line = time_step_line
-                count_ts = 0
+                print("*** Yanfei *** debugging end day*** ", line)
+           
             # Write Every line
             f.write(line)
+        '''
     return dates
 
 
@@ -148,18 +185,67 @@ def reset(tarinfo):
 
 
 def finalize_simulation():
-    # tar_name = "%s.tar.gz" % sp.site_ref
+    # subprocess.call(['ReadVarsESO'])
+    tar_name = "%s.tar.gz" % sp.site_ref
+    
     tar_file = tarfile.open(tar_name, "w:gz")
     tar_file.add(sp.workflow_directory, filter=reset, arcname=site_ref)
     tar_file.close()
-
-    bucket.upload_file(tar_name, "simulated/%s" % tar_name)
-    os.remove(tar_name)
-    shutil.rmtree(sp.workflow_directory)
+    
+    #subprocess.call(['ReadVarsESO'])
+    
+    #bucket.upload_file(tar_name, "simulated/%s" % tar_name)
+    
+    #os.remove(tar_name)
+    #shutil.rmtree(sp.workflow_directory)
 
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
     recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
+
+def check_localtime(user_start_datetime, user_end_datetime, time_zone):
+    '''This function will check if the time-inputs-from-user are local or not;
+    This function will use UTC time as a reference. \
+    The idea is: different time zones will have differences in the hour value generally, \
+    and sometimes day value for corner cases'''
+    
+    #obtain the UTC time first
+    datetime_utcnow = datetime.utcnow()
+    print("****** Yanfei: datetime--utcnow: ", str(datetime_utcnow) )
+    
+    #check the UTC time zone
+    print("****** Yanfei: time zone: ", time.tzname) 
+    
+    #obtain the hour and minute from UTC time
+    utcnow_hour   = int(str(datetime_utcnow)[11:13])
+    utcnow_minute = int(str(datetime_utcnow)[14:16])
+    print("****** Yanfei: utcnow hour: ", utcnow_hour)
+    print("****** Yanfei: utcnow minute: ", utcnow_minute)
+
+    #obtain the hour and minute from user-inputs
+    start_datetime_str=str(user_start_datetime)
+    end_datetime_str=str(user_end_datetime)
+     
+    print("****** Yanfei: start datetime: ", start_datetime_str)
+    print("****** Yanfei: end datetime: ", end_datetime_str)
+    start_datetime_hour_user   = int(start_datetime_str[11:13])
+    start_datetime_minute_user = int(start_datetime_str[14:16])
+    print("****** Yanfei: start hour: ", start_datetime_hour_user)
+
+    #obtain the local timeie from user; here use Denver as a demo    
+    local_timezone = pytz.timezone('America/Denver')    
+    local_datetime=pytz.UTC.localize(datetime.utcnow()).astimezone(local_timezone)
+    
+    if (start_datetime_hour_user == utcnow_hour) or (start_datetime_hour_user != local_hour):
+        start_datetime = local_datetime
+        end_datetime   = user_end_datetime.astimezone(local_timezone)
+        print("starting/eding local time: ",(start_datetime, end_datetime))
+    else:  
+        start_datetime = user_start_datetime
+        end_datetime   = user_end_datetime
+        print("starting local time: ", (start_datetime, end_datetime))
+    
+    return (start_datetime, end_datetime)
 
 startDatetime = datetime.today()
 
@@ -172,9 +258,14 @@ if len(sys.argv) == 6:
     site_ref = sys.argv[1]
     real_time_flag = sys.argv[2]
     time_scale = int(sys.argv[3])
+   
+    user_start_Datetime = parse(sys.argv[4])
+    user_end_Datetime = parse(sys.argv[5])
+ 
 
-    startDatetime = parse(sys.argv[4])
-    endDatetime = parse(sys.argv[5])
+    local_time_zone = 'America/Denver'
+
+    (startDatetime, endDatetime) = check_localtime(user_start_Datetime, user_end_Datetime, local_time_zone)
 
     start_date = "%02d/%02d" % (startDatetime.month,startDatetime.day)
     start_hour = startDatetime.hour
@@ -283,11 +374,13 @@ try:
     sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
     bypass_flag = True
     sim_date = replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour)
+    print("****** Yanfei:Actual Date: ******: ", sim_date)
+    
     try:
         sp.rt_step_time = sp.sim_step_time / float(time_scale)    # Seconds
     except:
         sp.rt_step_time = 10                                    # Seconds
-    
+    ''' 
     logger.info('########################################################################')
     logger.info('######################## INPUT VARIABLES ###############################')
     logger.info('########################################################################')
@@ -305,7 +398,7 @@ try:
     logger.info('sp.endDatetime: %s' % sp.endDatetime)
     logger.info('sp.start_minute: %s' % sp.start_minute)
     logger.info('sp.end_minute: %s' % sp.end_minute)
-    
+    '''
     # Arguments
     ep.accept_timeout = sp.accept_timeout
     ep.mapping = sp.mapping
@@ -344,13 +437,14 @@ try:
     d1 = date(2017, sim_date[2], sim_date[3])
     delta = d1 - d0
     ep.MAX_STEPS = (24 * delta.days + sp.end_hour) * sp.sim_step_per_hour + sp.end_minute + 1# Max. Number of Steps
+    '''
     logger.info('############# MAX STEPS:  {0} #############'.format(ep.MAX_STEPS))
     logger.info('############# Days:       {0} #############'.format(delta.days))
     logger.info('############# End Hour :  {0} #############'.format(sp.end_hour))
     logger.info('############# End Minute: {0} #############'.format(sp.end_minute))
     logger.info('############# Step/Hour:  {0} #############'.format(sp.sim_step_per_hour))
     logger.info('############# Start Hour: {0} #############'.format(sp.start_hour))
-    
+    '''
     # Simulation Status
     if ep.is_running == True:
         sp.sim_status = 1
@@ -376,9 +470,9 @@ try:
         #    if (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and (sp.next_time - sp.start_time >= sp.rt_step_time)) or\
         if (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and t >= next_t) or\
                 (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and bypass_flag):  # Bypass Time
-            logger.info('E+ Running: {0}, Sim Status: {1}, E+ Step: {2}, Elapsed step time: {3}, RT Step Time: {4}'.format(
-                ep.is_running, sp.sim_status, ep.kStep, sp.next_time - sp.start_time, sp.rt_step_time))
-            logger.info('###### t: {0}'.format(t))
+            #logger.info('E+ Running: {0}, Sim Status: {1}, E+ Step: {2}, Elapsed step time: {3}, RT Step Time: {4}'.format(
+            #    ep.is_running, sp.sim_status, ep.kStep, sp.next_time - sp.start_time, sp.rt_step_time))
+            #logger.info('###### t: {0}'.format(t))
             try:
                 # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
                 # Instead we only check the database for stopping at each simulation step
@@ -403,14 +497,17 @@ try:
                                 logger.info('########### STOP BYPASS: RT ###########')
                             else:
                                 logger.info('################# RT-BYPASS #################')
+                                #pass
                         else:
                             if sp.start_hour*3600+sp.start_minute*60 <= (ep.kStep-1)*ep.deltaT:
                                 bypass_flag = False     # Stop bypass
                                 logger.info('########### STOP BYPASS: Hours ########')
                             else:
                                 logger.info('################# BYPASS #################')
+                                #pass
                     else:
                         logger.info('############### SIMULATION ###############')
+                        #pass
                     
     
                     # Read packet
@@ -427,6 +524,13 @@ try:
                     [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
                     # Log Output Data
                     ep.outputs = outputs
+                    #print("***Yanfei Checking Outputs coming from EnergyPlus*** ", outputs)
+                    passed_current_day=outputs[-4]
+                    passed_current_hour=outputs[-3]
+                    passed_current_minute=outputs[-2]
+                    passed_current_month=outputs[-1]
+                    if ep.kStep==ep.MAX_STEPS:
+                        print("***\n Yanfei Checking Outputs coming from EnergyPlus*** ", passed_current_day, passed_current_hour, passed_current_minute, passed_current_month)
         
                     if ep.flag != 0:
                         break
@@ -467,6 +571,7 @@ try:
                                 logger.error('bad output index for: %s' % output_id)
                             else:
                                 output_value = ep.outputs[output_index]
+                                # print("*** Yanfei: Checking output_id: ",output_id)
                                 # TODO: Make this better with a bulk update
                                 # Also at some point consider removing curVal and related fields after sim ends
                                 recs.update_one({"_id": output_id}, {
@@ -474,9 +579,23 @@ try:
     
                         # time computed for ouput purposes
                         output_time = datetime.strptime(sp.start_date, "%m/%d").replace(year=startDatetime.year) + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
-                        output_time = output_time.replace(tzinfo=pytz.utc)
+                        #output_time = output_time.replace(tzinfo=pytz.utc)
+                        #output_time = output_time.replace(tzinfo=pytz.timezone(time_zone))
+                        #print("\n********** Yanfei: outputtime to browser initial: ", output_time)
+                        output_time = (pytz.timezone(time_zone)).localize(output_time)
+                        print("\n********** Yanfei: outputtime to browser: ", output_time)
                         # Haystack uses ISO 8601 format like this "t:2015-06-08T15:47:41-04:00 New_York"
-                        output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
+                        # the database can only recgonize the time-zone with: UTC, Denver, ....
+                        # i will come back later with a function to parse the timezone 
+                        if 'Denver' in str(output_time.tzname()):
+                               output_time_string = 't:%s %s' % (output_time.isoformat(), 'Denver') 
+                        elif 'UTC' in str(output_time.tzname()):
+                               output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
+                        else:
+                               output_time_string = 't:%s %s' % (output_time.isoformat(), 'Denver')
+                        
+                        #output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
+                       
                         recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}}, False)
     
                     # Step
@@ -484,7 +603,9 @@ try:
     
                     # Advance time
                     ep.kStep = ep.kStep + 1
-    
+                    #print("\n***Yanfei kstep check-1: ", ep.kStep)
+                    #if ep.kStep==ep.MAX_STEPS+1:
+                    #    subprocess.call(['ReadVarsESO']) 
             except Exception as error:
                 logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
                 traceback.print_exc()
@@ -493,18 +614,30 @@ try:
                 # TODO: Cleanup simulation, and reset everything
         
         # Check Stop
-        if ( ep.is_running == True and (ep.kStep >= ep.MAX_STEPS) ) :
-            stop = True;
+        if ( ep.is_running == True and (ep.kStep > ep.MAX_STEPS) ) :
+            stop = True; 
+            print("*** Yanfei: i am in category-1")
         elif ( sp.sim_status == 3 and ep.is_running == True ) :
             stop = True;
+            print("*** Yanfei:: i am in category-2")
     
         if stop :
             try:
+                #subprocess.call(['ReadVarsESO'])
+                print("\n *** Yanfei kstep check-2: ", ep.kStep)
+                                 
+                finalize_simulation()
                 ep.stop(True)
+                #packet = ep.read()
+                #[ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
+                #print("*** Yanfei: ep-flag: ", ep.flag)
+                #print("***Yanfei: eptime: ", eptime)
+                #print("***Yanfei: outputs: ", outputs)       
+
                 ep.is_running = 0
                 sp.sim_status = 0
                 # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
-                finalize_simulation()
+                #finalize_simulation()
                 logger.info('Simulation Terminated: Status: {0}, Step: {1}/{2}'.
                             format(sp.sim_status, ep.kStep, ep.MAX_STEPS))
                 break
