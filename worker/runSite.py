@@ -185,15 +185,16 @@ def reset(tarinfo):
 
 
 def finalize_simulation():
-    subprocess.call(['ReadVarsESO'])
-    # tar_name = "%s.tar.gz" % sp.site_ref
+    # subprocess.call(['ReadVarsESO'])
+    tar_name = "%s.tar.gz" % sp.site_ref
+    
     tar_file = tarfile.open(tar_name, "w:gz")
     tar_file.add(sp.workflow_directory, filter=reset, arcname=site_ref)
     tar_file.close()
     
     #subprocess.call(['ReadVarsESO'])
     
-    bucket.upload_file(tar_name, "simulated/%s" % tar_name)
+    #bucket.upload_file(tar_name, "simulated/%s" % tar_name)
     
     #os.remove(tar_name)
     #shutil.rmtree(sp.workflow_directory)
@@ -524,11 +525,12 @@ try:
                     # Log Output Data
                     ep.outputs = outputs
                     #print("***Yanfei Checking Outputs coming from EnergyPlus*** ", outputs)
-                    #passed_current_day=outputs[-4]
-                    #passed_current_hour=outputs[-3]
-                    #passed_current_minute=outputs[-2]
-                    #passed_current_month=outputs[-1]
-                    #print("***\n Yanfei Checking Outputs coming from EnergyPlus*** ", passed_current_day, passed_current_hour, passed_current_minute, passed_current_month)
+                    passed_current_day=outputs[-4]
+                    passed_current_hour=outputs[-3]
+                    passed_current_minute=outputs[-2]
+                    passed_current_month=outputs[-1]
+                    if ep.kStep==ep.MAX_STEPS:
+                        print("***\n Yanfei Checking Outputs coming from EnergyPlus*** ", passed_current_day, passed_current_hour, passed_current_minute, passed_current_month)
         
                     if ep.flag != 0:
                         break
@@ -601,7 +603,9 @@ try:
     
                     # Advance time
                     ep.kStep = ep.kStep + 1
-    
+                    #print("\n***Yanfei kstep check-1: ", ep.kStep)
+                    #if ep.kStep==ep.MAX_STEPS+1:
+                    #    subprocess.call(['ReadVarsESO']) 
             except Exception as error:
                 logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
                 traceback.print_exc()
@@ -610,18 +614,30 @@ try:
                 # TODO: Cleanup simulation, and reset everything
         
         # Check Stop
-        if ( ep.is_running == True and (ep.kStep >= ep.MAX_STEPS) ) :
-            stop = True;
+        if ( ep.is_running == True and (ep.kStep > ep.MAX_STEPS) ) :
+            stop = True; 
+            print("*** Yanfei: i am in category-1")
         elif ( sp.sim_status == 3 and ep.is_running == True ) :
             stop = True;
+            print("*** Yanfei:: i am in category-2")
     
         if stop :
             try:
+                #subprocess.call(['ReadVarsESO'])
+                print("\n *** Yanfei kstep check-2: ", ep.kStep)
+                                 
+                finalize_simulation()
                 ep.stop(True)
+                #packet = ep.read()
+                #[ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
+                #print("*** Yanfei: ep-flag: ", ep.flag)
+                #print("***Yanfei: eptime: ", eptime)
+                #print("***Yanfei: outputs: ", outputs)       
+
                 ep.is_running = 0
                 sp.sim_status = 0
                 # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
-                finalize_simulation()
+                #finalize_simulation()
                 logger.info('Simulation Terminated: Status: {0}, Step: {1}/{2}'.
                             format(sp.sim_status, ep.kStep, ep.MAX_STEPS))
                 break
