@@ -15,8 +15,10 @@ services:
      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
      - MONGO_URL=mongodb://mongo:27017/
      - NODE_ENV=${NODE_ENV}
-    links:
+    depends_on:
+      - mongo
       - goaws
+      - worker
       #- mongo
 
   goaws:
@@ -34,10 +36,21 @@ services:
      - MONGO_DB_NAME=admin
      - LOGLEVEL=INFO
      - NODE_ENV=${NODE_ENV}
-    links:
+    depends_on:
+      - mongo
       - goaws
+
+  worker-test:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile-test
+    volumes:
+      - "./worker/test:/test"
+    depends_on:
+      - worker
 
   mongo:
     image: mongo
     ports:
       - "27017:27017"
+

@@ -22,18 +22,16 @@ export WORKER_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/wo
 ```
 export NODE_ENV="production"
 ```
-1. From a command prompt ```docker-compose up```.
+1. From a command prompt ```docker-compose up web```.
 1. Navigate to http://localhost/api/nav to verify that the Haystack implementation is running.
 1. Navigate to http://localhost to view web application.
 1. Use ```Ctrl-C``` to stop the services.
 
-## Running Tests
+## Running Worker Tests
 
-1. Install node LTS, https://nodejs.org/. 
-1. Follow the Getting Started directions to start the application server. 
-1. Navigate to the <project-root>/web directory from a command prompts (ie ```cd /home/harry/alfalfa/web```)
-1. Run npm to install dependencies ```npm update```.
-1. Run the following command to execute the tests ```./node_modules/.bin/mocha test/economizer.js```.
+1. Run ```docker-compose up worker-test``` 
+1. Test output should be located in worker/test/output. 
+1. See worker/test/test.py for an example. 
 
 ## Making changes
 

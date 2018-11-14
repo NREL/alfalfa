@@ -1,0 +1,3 @@
+FROM alfalfa_worker:latest
+
+CMD [ "python3", "-u", "/test/test.py" ]
