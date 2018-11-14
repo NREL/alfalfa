@@ -1,3 +1,5 @@
+#
+worker/test/output
 # E+
 *.audit
 *.bnd
