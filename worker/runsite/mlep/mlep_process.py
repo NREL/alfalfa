@@ -69,7 +69,7 @@ Note that if f is non-zero, other values after it will not be processed.
 
 import mlep
 import socket
-
+import time
 
 class MlepProcess:
     def __init__(self):
@@ -183,7 +183,10 @@ class MlepProcess:
 
             # Close connection
             if self.comm_socket:
-                self.comm_socket.stop()
+                #self.comm_socket.stop() #original way of terminating a socket connection
+                #time.sleep(10) # add some extra time for buffer to finish energyplus post-processing
+                #pass
+                self.comm_socket.close() #the correct way by Yanfei
                 self.comm_socket = None
 
         except Exception as e:

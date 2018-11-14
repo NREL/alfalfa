@@ -95,27 +95,41 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     
     #loop through outputVariables 
     outputVariables = model.getOutputVariables
+    target=open('checkvar.txt','w') 
     #alphabetize
     #outputVariables = outputVariables.sort_by{ |m| [ m.name.to_s.downcase, m.keyValue.to_s]}  
     outputVariables = outputVariables.sort_by{ |m| [ m.keyValue.to_s, m.name.to_s.downcase]}    
     outputVariables.each do |outvar|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
+      #print outvar
+      target.write(outvar)
+      if (outvar.keyValue.to_s =="*")
+        print " \n ****** You are good here ******"
+      end
       if (outvar.exportToBCVTB && (outvar.keyValue != "*"))
+      #if (outvar.exportToBCVTB )
         bcvtb.add_element add_xml_output(outvar.variableName, outvar.keyValue)
         runner.registerInfo("Added #{outvar.variableName.to_s} #{outvar.keyValue.to_s} to BCVTB XML file.") 
         counter += 1
       end
     end  #end outputVariables
+    target.close
     
     #loop through EMSoutputVariables 
+    #my time variables will be written to cfg file here
     outputVariables = model.getEnergyManagementSystemOutputVariables 
     #alphabetize
     outputVariables = outputVariables.sort_by{ |m| m.name.to_s.downcase } 
     outputVariables.each do |outvar|
+      #print "\n Watchout Here!!!"
+      #print outvar.emsVariableName.to_s
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml 
       if (outvar.exportToBCVTB)
-        bcvtb.add_element add_xml_output("EMS", outvar.emsVariableName)
-        runner.registerInfo("Added #{outvar.emsVariableName.to_s} to BCVTB XML file.") 
+        print "\n Watchout Here!!!  "
+        print outvar.emsVariableName.to_s
+        print outvar.nameString
+        bcvtb.add_element add_xml_output(outvar.nameString, "EMS")
+        runner.registerInfo("Added #{outvar.nameString} to BCVTB XML file.") 
         counter += 1
       end
     end  #end EMSoutputVariables

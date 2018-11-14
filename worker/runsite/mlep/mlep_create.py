@@ -234,7 +234,7 @@ def start_process(program_name, args, env, work_dir):
     cmd = [program_name]
     for kk in range(0, len(args)):
         cmd.append(args[kk])
-
+    #print ("\n*** Yanfei *** cmd: ", cmd)
     # Process and set env variables
     for kk in range(0, len(env)):
         os.environ[list(env.keys())[kk]] = env[list(env.keys())[kk]]

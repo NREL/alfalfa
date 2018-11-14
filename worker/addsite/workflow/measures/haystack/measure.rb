@@ -72,7 +72,45 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     #return string formatted with no spaces or '-' (can be used as EMS var name)
     return "#{id.gsub(/[\s-]/,'_')}"
   end
-  
+
+  def create_point_timevars(outvar_time, siteRef)
+    #this function will add haystack tag to the time-variables created by user. 
+    #the time-variables are also written to variables.cfg file to coupling energyplus
+    #the uuid is unique to be used for mapping purpose
+    #the point_json generated here caontains the tags for the tim-variables 
+    point_json = Hash.new
+    #id = outvar_time.keyValue.to_s + outvar_time.name.to_s
+    uuid = create_uuid("")
+    point_json[:id]=uuid
+    #point_json[:source] = create_str("EnergyPlus")
+    #point_json[:type] = "Output:Variable"
+    #point_json[:name] = create_str(outvar_time.name.to_s)
+    #point_json[:variable] = create_str(outvar_time.name)
+    point_json[:dis] = create_str(outvar_time.nameString)
+    point_json[:siteRef]=create_ref(siteRef)
+    point_json[:point]="m:"
+    point_json[:cur]="m:" 
+    point_json[:curStatus] = "s:disabled"    
+
+    return point_json, uuid
+  end # end of create_point_timevar
+
+  def create_mapping_timevars(outvar_time, uuid)
+    #this function will use the uuid generated from create_point_timevars(), to make a mapping. 
+    #the uuid is unique to be used for mapping purpose; uuid is the belt to connect point_json and mapping_json
+    #the mapping_json below contains all the necessary tags
+    mapping_json = Hash.new
+    mapping_json[:id] = uuid
+    mapping_json[:source] = "EnergyPlus"
+    mapping_json[:name] = "EMS"
+    mapping_json[:type] = outvar_time.nameString
+    mapping_json[:variable] = ""
+    
+
+    return mapping_json
+  end
+
+
   def create_point_uuid(type, id, siteRef, equipRef, floorRef, where,what,measurement,kind,unit)
     point_json = Hash.new
     uuid = create_uuid(id)
@@ -241,8 +279,8 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     # Use the built-in error checking 
     if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
-    end
-    
+    end   
+
     local_test = runner.getBoolArgumentValue("local_test",user_arguments) 
     runner.registerInfo("local_test = #{local_test}")
     
@@ -315,7 +353,23 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       floor_json[:floor] = "m:"   
       haystack_json << floor_json      
     end
-    
+
+    # Add tags to the time-variable outputs
+    #output_vars = model.getOutputVariables
+    output_vars = model.getEnergyManagementSystemOutputVariables
+    output_vars_sorted = output_vars.sort_by{ |m| [ m.nameString.downcase]}
+    output_vars_sorted.each do |outvar|
+      #if (outvar.keyValue.to_s == "*")
+        #print outvar
+        print "\n The haystack tag is beding added to time-variables!!!"
+        haystack_temp_json, temp_uuid = create_point_timevars(outvar, model.getBuilding.handle)
+        haystack_json << haystack_temp_json
+        temp_mapping = create_mapping_timevars(outvar,temp_uuid)
+        mapping_json << temp_mapping
+      #end
+     
+    end # end of do loop   
+
     #loop through air loops and find economizers
     model.getAirLoopHVACs.each do |airloop|
       supply_components = airloop.supplyComponents

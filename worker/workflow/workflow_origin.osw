@@ -3,13 +3,6 @@
    "seed_file" : "../seed.osm",
    "steps" : [
       {
-         "arguments" : {},
-         "description" : "This measure will output the built-in variables through EMS modules.",
-         "measure_dir_name" : "expose_time_variables",
-         "modeler_description" : "EMS:GlobalVariable; EMS:Subroutine; EMS:Program; EMS:ProgramCallingManager; EMS:OutputVariable; and Output:Variable",
-         "name" : "ExposeTimeVariable240"
-      },
-      {
          "arguments" : {
             "local_test" : false
          },
