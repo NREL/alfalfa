@@ -319,7 +319,8 @@ logger.addHandler(ch)
 
 sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-s3 = boto3.resource('s3', region_name='us-east-1')
+# TODO Configure this
+s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url='http://minio:9000')
 
 sp = SimProcess()
 ep = mlep.MlepProcess()

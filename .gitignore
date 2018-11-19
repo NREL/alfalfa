@@ -1,5 +1,6 @@
 #
-worker/test/output
+/worker/test/output
+/s3/*
 # E+
 *.audit
 *.bnd

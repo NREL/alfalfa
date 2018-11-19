@@ -162,7 +162,10 @@ class Upload extends React.Component {
       xhr.addEventListener("error", this.uploadFailed, false);
       xhr.addEventListener("abort", this.uploadCanceled, false);
 
-      xhr.open('POST', 'https://alfalfa.s3.amazonaws.com', true);
+      //xhr.open('POST', 'https://alfalfa.s3.amazonaws.com', true);
+      // TODO: Need to configure this on server side
+      const posturl = 'http://' + window.location.hostname + ':9000/alfalfa';
+      xhr.open('POST', posturl, true);
 
       xhr.send(formData);  // multipart/form-data
     } else {
