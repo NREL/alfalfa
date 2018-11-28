@@ -30,8 +30,10 @@ import tarfile
 import shutil
 import time
 from pymongo import MongoClient
-from parsevariables import Variables
+#from parsevariables import Variables
 import sys
+#sys.path.append('/home/mindcoder/alfalfa/worker/runsite/parsevariables')
+from parsevariables import Variables
 import mlep
 import subprocess
 import logging
@@ -41,6 +43,7 @@ import pytz
 import calendar
 import traceback
 from dateutil.parser import parse
+import tarfile
 
 # Time Zone
 def utc_to_local(utc_dt):
@@ -103,45 +106,7 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
                   line = lines[i]
                f.write(line)
 
-        '''       
-        for line in lines:
-            count_ts = count_ts + 1
-            if pattern in line:
-                count = 0
-                print("*** Hey Debugging RunPeriod Starting here***/n")
-                lines_runperiod=[]
-                while (count<=12):
-                    lines_runperiod.append(line)
-                    count = count + 1
-
-            elif count > 6:
-                # Do nothing
-                count = count - 1
-            elif count == 5:
-                # Begin Month
-                line = begin_month_line
-                print("*** Yanfei *** debugging begin month*** ", line)
-                count = count - 1
-            elif count == 4:
-                # Begin Day
-                line = begin_day_line
-                print("*** Yanfei *** debugging begin day*** ", line)
-                count = count - 1
-            elif count == 3:
-                count = count - 1
-            elif count == 2:
-                # End Month
-                line = end_month_line
-                print("*** Yanfei *** debugging end month*** ", line)
-                count = count - 1
-            elif count == 1:
-                # End day
-                line = end_day_line
-                print("*** Yanfei *** debugging end day*** ", line)
-           
-            # Write Every line
-            f.write(line)
-        '''
+    
     return dates
 
 
@@ -199,8 +164,8 @@ def finalize_simulation():
     #os.remove(tar_name)
     #shutil.rmtree(sp.workflow_directory)
 
-    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
-    recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
+    #recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
+    #recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
 
 def check_localtime(user_start_datetime, user_end_datetime, time_zone):
@@ -234,8 +199,9 @@ def check_localtime(user_start_datetime, user_end_datetime, time_zone):
 
     #obtain the local timeie from user; here use Denver as a demo    
     local_timezone = pytz.timezone('America/Denver')    
-    local_datetime=pytz.UTC.localize(datetime.utcnow()).astimezone(local_timezone)
-    
+    local_datetime = pytz.UTC.localize(datetime.utcnow()).astimezone(local_timezone)
+    local_hour     = local_datetime.strftime('%H') 
+
     if (start_datetime_hour_user == utcnow_hour) or (start_datetime_hour_user != local_hour):
         start_datetime = local_datetime
         end_datetime   = user_end_datetime.astimezone(local_timezone)
@@ -247,90 +213,78 @@ def check_localtime(user_start_datetime, user_end_datetime, time_zone):
     
     return (start_datetime, end_datetime)
 
-startDatetime = datetime.today()
+###############################################################################
+###############    Main Entry for runsite_local.py    #########################
+###############################################################################
+'''
+bashcommand="""head -1 /proc/self/cgroup|cut -d/ -f3"""
+x=subprocess.check_output(['bash','-c',bashcommand])
+print("*** Hey Yanfei ***: ", x)
+'''
 
-# Mongo Database
-mongo_client = MongoClient(os.environ['MONGO_URL'])
-mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
-recs = mongodb.recs
+yy=os.listdir("/test/parse_local/")
 
-if len(sys.argv) == 6:
-    site_ref = sys.argv[1]
-    real_time_flag = sys.argv[2]
-    time_scale = int(sys.argv[3])
-    
-    user_start_Datetime = parse(sys.argv[4])
-    user_end_Datetime = parse(sys.argv[5])
-    #print("*** user start datetime: ***", sys.argv[4]) 
-    #print("*** user start datetime: ***", sys.argv[5])
+#bashcommand2="""docker-compose ps -q"""
+#x2=subprocess.check_output(['bash','-c', bashcommand2])
+print("****** Hey Yanfei-2: ****** ", yy)
 
-    local_time_zone = 'America/Denver'
+#osm_path="/home/mindcoder/alfalfa/worker/test/parse_local/52e40666-a939-49ce-b403-ea08247b379d/workflow/run/"
+osm_path="/test/"
+print(os.listdir(osm_path))
 
-    (startDatetime, endDatetime) = check_localtime(user_start_Datetime, user_end_Datetime, local_time_zone)
+y5=subprocess.check_output(['find','/','-name','openstudio'])
+print(y5)
+ 
+y4=subprocess.call(['openstudio', osm_path+'translate_osm.rb', osm_path+'in.osm', 'yanfei_test.idf'])
+print("**** Yanfei-3: *** ", y4)      
+print("*** Yanfei Good!*** ")
 
-    start_date = "%02d/%02d" % (startDatetime.month,startDatetime.day)
-    start_hour = startDatetime.hour
-    start_minute = startDatetime.minute
+mytimezone = 'America/Denver'
 
-    end_date = "%02d/%02d" % (endDatetime.month,endDatetime.day)
-    end_hour = endDatetime.hour
-    end_minute = endDatetime.minute    
-    #print ("*** start date ***: ", start_date)
-    #print("*** start hour ***: ", start_hour)
-    #print("*** start minute ***: ", start_minute)
-    
-    # time_zone = sys.argv[8]
-    time_zone = 'America/Denver'
-    # sim_step_per_hour = sys.argv[9]
+local_timezone = pytz.timezone(mytimezone)
+start_datetime_local = pytz.UTC.localize(datetime.utcnow()).astimezone(local_timezone)
 
-    if real_time_flag == 'false':
-        if startDatetime >= endDatetime:
-            print('End time occurs on or before start time', file=sys.stderr)
-            recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
-            sys.exit(1)
+print(" *** starting datetime: worker-test ***: ", start_datetime_local)
 
-else:
-    print('runSimulation called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
-    sys.exit(1)
+str_start_datetime=start_datetime_local.strftime('%Y-%m-%d %H:%M:%S-%f')
+print(str_start_datetime)
 
-if not site_ref:
-    print('site_ref is empty', file=sys.stderr)
-    sys.exit(1)
+end_datetime_local = start_datetime_local + timedelta(days=1)
+print(" *** ending datetime: worker-test ***: ", end_datetime_local)
 
-sim_path = '/simulate'
-directory = os.path.join(sim_path, site_ref)
-
-try:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-except:
-    print('error making simulation directory for site_ref: %s' % site_ref, file=sys.stderr)
-    sys.exit(1)
-
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
-logger = logging.getLogger('simulation')
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-log_file = os.path.join(directory, 'simulation.log')
-fh = logging.FileHandler(log_file)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
-
-ch = logging.StreamHandler()
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+site_ref = 'yanfei_test'
+real_time_flag = False
+time_scale = 60  
 
 
-sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
-queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-s3 = boto3.resource('s3', region_name='us-east-1')
+(startDatetime, endDatetime) = check_localtime(start_datetime_local, end_datetime_local, mytimezone)
+
+#print (startDatetime, endDatetime)
+
+start_date = "%02d/%02d" % (startDatetime.month, startDatetime.day)
+start_hour = startDatetime.hour
+start_minute = startDatetime.minute
+end_date = "%02d/%02d" % (endDatetime.month, endDatetime.day)
+end_hour = endDatetime.hour
+end_minute = endDatetime.minute
+
+sim_path = 'test/simulate'
+folder_local_test = os.path.join(sim_path, site_ref)
+if not os.path.exists(folder_local_test):
+    os.makedirs(folder_local_test)
+    print("folder-local-test is not existed; however it is created now!")
+
+folder_tmp="/test/parse_local/52e40666-a939-49ce-b403-ea08247b379d/"
+
+#copy idf file to the running folder:
+idf_old_path = os.path.join('test/yanfei_test.idf')
+idf_new_path = os.path.join(folder_tmp, "workflow/run/yanfei_test.idf")
+print(idf_new_path)
+
+shutil.copyfile(idf_old_path, idf_new_path)
+
 
 sp = SimProcess()
-ep = mlep.MlepProcess()
-
-ep.bcvtbDir = '/root/bcvtb/'
-ep.env = {'BCVTB_HOME': '/root/bcvtb'}
-
 sp.start_date = start_date
 sp.end_date = end_date
 sp.start_hour = start_hour
@@ -342,114 +296,73 @@ sp.startDatetime = startDatetime
 sp.endDatetime = endDatetime
 sp.time_scale = time_scale
 sp.real_time_flag = real_time_flag
+sp.idf = os.path.join(folder_tmp, "workflow/run/%s" % sp.site_ref)
+sp.weather = os.path.join(folder_tmp, 'workflow/files/weather.epw')
+sp.mapping = os.path.join(folder_tmp, 'workflow/reports/haystack_report_mapping.json')
+sp.workflow_directory = folder_local_test
 
-tar_name = "%s.tar.gz" % sp.site_ref
-key = "parsed/%s" % tar_name
-tarpath = os.path.join(directory, tar_name)
-osmpath = os.path.join(directory, 'workflow/run/in.osm')
-sp.idf = os.path.join(directory, "workflow/run/%s" % sp.site_ref)
-sp.weather = os.path.join(directory, 'workflow/files/weather.epw')
-sp.mapping = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
-sp.workflow_directory = directory
-variables_path = os.path.join(directory, 'workflow/reports/export_bcvtb_report_variables.cfg')
-variables_new_path = os.path.join(directory, 'workflow/run/variables.cfg')
+#the variables.cfg file need to reside in the same folder of idf
+cfg_variables_old_path = os.path.join(folder_tmp, 'workflow/reports/export_bcvtb_report_variables.cfg')
+cfg_variables_new_path = os.path.join(folder_tmp, 'workflow/run/variables.cfg')
+shutil.copyfile(cfg_variables_old_path, cfg_variables_new_path)
+
+sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
+bypass_flag = True
+sim_date = replace_idf_settings( '/test/yanfei_test.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour)
+print("****** Yanfei:Actual Date: ******: ", sim_date)
+sp.rt_step_time = sp.sim_step_time / float(time_scale)
+
+
+ep = mlep.MlepProcess()
+ep.bcvtbDir = '/root/bcvtb/'
+ep.env = {'BCVTB_HOME': '/root/bcvtb'}
+ep.accept_timeout = sp.accept_timeout
+ep.mapping = sp.mapping
+ep.flag = 0
+
+ep.arguments = (sp.idf+'.idf', sp.weather)
+print("****** EP Arguments ******", ep.arguments)
+
+# Start EnergyPlus co-simulation
+(ep.status, ep.msg) = ep.start()
+
+# Check E+
+if ep.status != 0:
+    print('Could not start EnergyPlus: %s.' % ep.msg)
+    ep.flag = 1
+else:
+    print('****** EnergyPlus Started ******')
+
+# Accept Socket
+[ep.status, ep.msg] = ep.accept_socket()
+print("****** Socket Status/Msg: ****** ", (ep.status, ep.msg) )
+
+if ep.status != 0:
+    print('Could not connect EnergyPlus: %s.' % ep.msg)
+    ep.flag = 1
+
+# The main simulation loop
+ep.deltaT = sp.sim_step_time    # time step - sec
+ep.kStep = 1                    # current simulation step
+# Days
+d0 = date(2017, sim_date[0], sim_date[1])
+d1 = date(2017, sim_date[2], sim_date[3])
+delta = d1 - d0
+ep.MAX_STEPS = (24 * delta.days + sp.end_hour) * sp.sim_step_per_hour + sp.end_minute + 1# Max. Number of Steps
+
+# Simulation Status
+if ep.is_running == True:
+    sp.sim_status = 1
+    
+# Set next step
+utc_time = datetime.now(tz=pytz.UTC)
+t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone))
+next_t = t
+
+
 
 try:
-    bucket = s3.Bucket('alfalfa')
-    bucket.download_file(key, tarpath)
-    
-    tar = tarfile.open(tarpath)
-    tar.extractall(sim_path)
-    tar.close()
-    
-    sp.variables = Variables(variables_path, sp.mapping)
-    
-    subprocess.call(['openstudio', 'runsite/translate_osm.rb', osmpath, sp.idf])
-    shutil.copyfile(variables_path, variables_new_path)
-    
-    if sp.real_time_flag == True:
-        # Set Time Scale
-        sp.time_scale = 1
-    else:
-        if sp.time_scale > 120:
-            sp.time_scale = 120
-    
-    # Simulation Parameters
-    sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
-    bypass_flag = True
-    sim_date = replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour)
-    print("****** Yanfei:Actual Date: ******: ", sim_date)
-    
-    try:
-        sp.rt_step_time = sp.sim_step_time / float(time_scale)    # Seconds
-    except:
-        sp.rt_step_time = 10                                    # Seconds
-    ''' 
-    logger.info('########################################################################')
-    logger.info('######################## INPUT VARIABLES ###############################')
-    logger.info('########################################################################')
-    logger.info('sp.start_date: %s' % sp.start_date)
-    logger.info('sp.end_date: %s' % sp.end_date)
-    logger.info('sp.start_hour: %s' % sp.start_hour)
-    logger.info('sp.end_hour: %s' % sp.end_hour)
-    logger.info('sp.start_minute: %s' % sp.start_minute)
-    logger.info('sp.end_minute: %s' % sp.end_minute)
-    logger.info('sp.sim_step_time: %s' % sp.sim_step_time)
-    logger.info('sp.rt_step_time: %s' % sp.rt_step_time)
-    logger.info('sp.real_time_flag: %s' % sp.real_time_flag)
-    logger.info('sp.time_scale: %s' % sp.time_scale)
-    logger.info('sp.startDatetime: %s' % sp.startDatetime)
-    logger.info('sp.endDatetime: %s' % sp.endDatetime)
-    logger.info('sp.start_minute: %s' % sp.start_minute)
-    logger.info('sp.end_minute: %s' % sp.end_minute)
-    '''
-    # Arguments
-    ep.accept_timeout = sp.accept_timeout
-    ep.mapping = sp.mapping
-    ep.flag = 0
-    
-    # Parse directory
-    idf_file_details = os.path.split(sp.idf)
-    ep.workDir = idf_file_details[0]
-    print("*** ep.workDir***: ", ep.workDir)
-    ep.arguments = (sp.idf, sp.weather)
-    
-    # Initialize input tuplet
-    ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)
-    
-    # Start EnergyPlus co-simulation
-    (ep.status, ep.msg) = ep.start()
-    
-    # Check E+
-    if ep.status != 0:
-        logger.error('Could not start EnergyPlus: %s.' % ep.msg)
-        ep.flag = 1
-    else:
-        logger.info('EnergyPlus Started')
-    
-    # Accept Socket
-    [ep.status, ep.msg] = ep.accept_socket()
-    
-    if ep.status != 0:
-        logger.error('Could not connect EnergyPlus: %s.' % ep.msg)
-        ep.flag = 1
-    
-    # The main simulation loop
-    ep.deltaT = sp.sim_step_time    # time step - sec
-    ep.kStep = 1                    # current simulation step
-    # Days
-    d0 = date(2017, sim_date[0], sim_date[1])
-    d1 = date(2017, sim_date[2], sim_date[3])
-    delta = d1 - d0
-    ep.MAX_STEPS = (24 * delta.days + sp.end_hour) * sp.sim_step_per_hour + sp.end_minute + 1# Max. Number of Steps
-    '''
-    logger.info('############# MAX STEPS:  {0} #############'.format(ep.MAX_STEPS))
-    logger.info('############# Days:       {0} #############'.format(delta.days))
-    logger.info('############# End Hour :  {0} #############'.format(sp.end_hour))
-    logger.info('############# End Minute: {0} #############'.format(sp.end_minute))
-    logger.info('############# Step/Hour:  {0} #############'.format(sp.sim_step_per_hour))
-    logger.info('############# Start Hour: {0} #############'.format(sp.start_hour))
-    '''
+
     # Simulation Status
     if ep.is_running == True:
         sp.sim_status = 1
@@ -459,7 +372,7 @@ try:
     t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone))
     next_t = t
     
-    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Starting"}}, False)
+    #recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Starting"}}, False)
     
     # probably need some kind of fail safe/timeout to ensure
     # that this is not an infinite loop
@@ -481,38 +394,38 @@ try:
             try:
                 # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
                 # Instead we only check the database for stopping at each simulation step
-                rec = recs.find_one({"_id": sp.site_ref})
-                if rec and (rec.get("rec",{}).get("simStatus") == "s:Stopping") :
-                    logger.info("Stopping")
-                    stop = True;
+                #rec = recs.find_one({"_id": sp.site_ref})
+                #if rec and (rec.get("rec",{}).get("simStatus") == "s:Stopping") :
+                #    print("Stopping")
+                #    stop = True;
     
                 if stop == False:
                     # Check BYPASS
                     if bypass_flag == True:
                         if real_time_flag == True:
                             utc_time = datetime.now(tz=pytz.UTC)
-                            logger.info('########### RT CHECK ###########')
-                            logger.info('{0}'.format(utc_time))
+                            print('########### RT CHECK ###########')
+                            print('{0}'.format(utc_time))
                             rt_hour = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).hour
                             rt_minute = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)).minute
-                            logger.info('RT HOUR: {0}, RT MINUTE: {1}'.format(rt_hour, rt_minute))
-                            logger.info('Actual Time: {0}, Simulation Time: {1}'.format(rt_hour * 3600 + rt_minute * 60, ep.kStep * ep.deltaT))
+                            print('RT HOUR: {0}, RT MINUTE: {1}'.format(rt_hour, rt_minute))
+                            #logger.info('Actual Time: {0}, Simulation Time: {1}'.format(rt_hour * 3600 + rt_minute * 60, ep.kStep * ep.deltaT))
                             if rt_hour * 3600 + rt_minute * 60 <= ep.kStep * ep.deltaT:
                                 bypass_flag = False  # Stop bypass
-                                logger.info('########### STOP BYPASS: RT ###########')
+                                #logger.info('########### STOP BYPASS: RT ###########')
                             else:
-                                logger.info('################# RT-BYPASS #################')
-                                #pass
+                                #logger.info('################# RT-BYPASS #################')
+                                pass
                         else:
                             if sp.start_hour*3600+sp.start_minute*60 <= (ep.kStep-1)*ep.deltaT:
                                 bypass_flag = False     # Stop bypass
-                                logger.info('########### STOP BYPASS: Hours ########')
+                                #logger.info('########### STOP BYPASS: Hours ########')
                             else:
-                                logger.info('################# BYPASS #################')
-                                #pass
+                                #logger.info('################# BYPASS #################')
+                                pass
                     else:
-                        logger.info('############### SIMULATION ###############')
-                        #pass
+                        #logger.info('############### SIMULATION ###############')
+                        pass
                     
     
                     # Read packet
@@ -548,13 +461,13 @@ try:
                         ep.inputs[master_index] = 1
                         write_arrays = mongodb.writearrays
                         for array in write_arrays.find({"siteRef": sp.site_ref}):
-                            logger.info("write array: %s" % array)
+                            #logger.info("write array: %s" % array)
                             for val in array.get('val'):
                                 if val:
-                                    logger.info("val: %s" % val)
+                                    #logger.info("val: %s" % val)
                                     index = sp.variables.inputIndex(array.get('_id'))
                                     if index == -1:
-                                        logger.error('bad input index for: %s' % array.get('_id'))
+                                        print('bad input index for: %s' % array.get('_id'))
                                     else:
                                         ep.inputs[index] = val
                                         ep.inputs[index + 1] = 1
@@ -564,7 +477,7 @@ try:
                     inputs = tuple(ep.inputs)
     
                     # Print
-                    logger.info('Time: {0}'.format((ep.kStep - 1) * ep.deltaT))
+                    print('Time: {0}'.format((ep.kStep - 1) * ep.deltaT))
     
                     # Write to inputs of E+
                     ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
@@ -573,14 +486,14 @@ try:
                         for output_id in sp.variables.outputIds():
                             output_index = sp.variables.outputIndex(output_id)
                             if output_index == -1:
-                                logger.error('bad output index for: %s' % output_id)
+                                print('bad output index for: %s' % output_id)
                             else:
                                 output_value = ep.outputs[output_index]
                                 # print("*** Yanfei: Checking output_id: ",output_id)
                                 # TODO: Make this better with a bulk update
                                 # Also at some point consider removing curVal and related fields after sim ends
-                                recs.update_one({"_id": output_id}, {
-                                    "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
+                                #recs.update_one({"_id": output_id}, {
+                                #    "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
     
                         # time computed for ouput purposes
                         output_time = datetime.strptime(sp.start_date, "%m/%d").replace(year=startDatetime.year) + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
@@ -601,10 +514,10 @@ try:
                         
                         #output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
                        
-                        recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}}, False)
+                        #recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}}, False)
     
                     # Step
-                    logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
+                    print('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
     
                     # Advance time
                     ep.kStep = ep.kStep + 1
@@ -612,7 +525,7 @@ try:
                     #if ep.kStep==ep.MAX_STEPS+1:
                     #    subprocess.call(['ReadVarsESO']) 
             except Exception as error:
-                logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
+                print("Error while advancing simulation: %s", sys.exc_info()[0])
                 traceback.print_exc()
                 finalize_simulation()
                 break
@@ -643,18 +556,18 @@ try:
                 sp.sim_status = 0
                 # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
                 #finalize_simulation()
-                logger.info('Simulation Terminated: Status: {0}, Step: {1}/{2}'.
-                            format(sp.sim_status, ep.kStep, ep.MAX_STEPS))
+                #logger.info('Simulation Terminated: Status: {0}, Step: {1}/{2}'.
+                #            format(sp.sim_status, ep.kStep, ep.MAX_STEPS))
                 break
             except:
-                logger.error("Error while attempting to stop / cleanup simulation")
+                #logger.error("Error while attempting to stop / cleanup simulation")
                 finalize_simulation()
                 break
         
             # Done with simulation step
             # print('ping')
 except:
-    logger.error("Simulation error: %s", sys.exc_info()[0])
+    print("Simulation error: %s", sys.exc_info()[0])
     traceback.print_exc()
     finalize_simulation()
 

@@ -48,6 +48,7 @@ services:
       - "./worker/test:/test"
     depends_on:
       - worker
+    tty: true
 
   mongo:
     image: mongo

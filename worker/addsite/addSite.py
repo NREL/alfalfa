@@ -110,7 +110,7 @@ if site_ref:
     tar = tarfile.open(tarname, "w:gz")
     tar.add(directory, filter=reset, arcname=site_ref)
     tar.close()
-
+    #call(['cp','-a /parse','/root/test/'])
     bucket.upload_file(tarname, "parsed/%s" % tarname)
     #os.remove(tarname)
 

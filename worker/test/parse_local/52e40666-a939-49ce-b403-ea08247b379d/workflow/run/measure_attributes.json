@@ -1,0 +1,13 @@
+{
+  "ExposeTimeVariable240": {
+    "ExposeTime": "Yes",
+    "applicable": true
+  },
+  "Haystack": {
+    "local_test": false,
+    "applicable": true
+  },
+  "ExportBCVTB": {
+    "applicable": true
+  }
+}

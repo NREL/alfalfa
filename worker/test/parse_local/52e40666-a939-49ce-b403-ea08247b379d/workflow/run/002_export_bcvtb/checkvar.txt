@@ -1,0 +1,1690 @@
+OS:Output:Variable,
+  {66d1cf5d-57ba-4634-a254-588c13b0db56}, !- Handle
+  System Node Mass Flow Rate,             !- Name
+  Node 100,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {093d640e-dfc2-4d53-be75-cf29c66da36b}, !- Handle
+  System Node Pressure,                   !- Name
+  Node 100,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {218e978a-28e0-4756-a8b4-f95571555200}, !- Handle
+  System Node Relative Humidity,          !- Name
+  Node 100,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {fc95d5f4-9f60-4677-bc53-90b7d50f950e}, !- Handle
+  System Node Temperature,                !- Name
+  Node 100,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {aae7fff3-ad92-4a06-97aa-8872d910c124}, !- Handle
+  System Node Mass Flow Rate 2,           !- Name
+  Node 104,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {0f17e457-698b-456f-be40-a6f7fd5c9b34}, !- Handle
+  System Node Pressure 2,                 !- Name
+  Node 104,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {eaeda090-9e8c-4e55-97a6-ef5ff3e6f0cc}, !- Handle
+  System Node Relative Humidity 2,        !- Name
+  Node 104,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {d6ed02c8-b8d8-4d2b-95e7-7b4c20ee0a7d}, !- Handle
+  System Node Temperature 2,              !- Name
+  Node 104,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {73ee65f5-1b2b-4547-9f30-431c8a0dbae1}, !- Handle
+  System Node Mass Flow Rate 4,           !- Name
+  Node 105,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {6a7628b5-2a49-4526-8273-7d11b4ddbc14}, !- Handle
+  System Node Pressure 4,                 !- Name
+  Node 105,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {27f14953-2c9f-471c-9b7d-29909d068964}, !- Handle
+  System Node Relative Humidity 4,        !- Name
+  Node 105,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {9aae7d8f-3e30-49b7-ad1c-81888529966c}, !- Handle
+  System Node Temperature 4,              !- Name
+  Node 105,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {58a8a9b7-1cdd-4949-ba83-7bab4ad91934}, !- Handle
+  System Node Mass Flow Rate 1,           !- Name
+  Node 106,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {bc2629af-7387-4784-88dc-508c5613226d}, !- Handle
+  System Node Pressure 1,                 !- Name
+  Node 106,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {880bdc38-5b46-4e0a-828e-24dc62c35589}, !- Handle
+  System Node Relative Humidity 1,        !- Name
+  Node 106,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {7a5f5487-bb3d-40dd-bf37-23ac43596ec2}, !- Handle
+  System Node Temperature 1,              !- Name
+  Node 106,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {1064623f-7424-401c-a283-f2fde95a2a99}, !- Handle
+  System Node Mass Flow Rate 48,          !- Name
+  Node 11,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {2403195e-ce9f-492e-b3c6-bd69b4ef4342}, !- Handle
+  System Node Pressure 48,                !- Name
+  Node 11,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {a9066904-fc35-4c3b-aa33-4fa66f7859e0}, !- Handle
+  System Node Relative Humidity 48,       !- Name
+  Node 11,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {4a1d425d-635b-43e1-9bc3-0291415e688a}, !- Handle
+  System Node Temperature 48,             !- Name
+  Node 11,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {3ef0cba6-5469-44b6-9aae-9b3c4e5b3232}, !- Handle
+  System Node Mass Flow Rate 13,          !- Name
+  Node 110,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {03a4f0c9-8a10-4261-88e6-2c17b355dda5}, !- Handle
+  System Node Pressure 13,                !- Name
+  Node 110,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {706f5311-3556-4bf3-a1b3-ea1161712444}, !- Handle
+  System Node Relative Humidity 13,       !- Name
+  Node 110,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {e4baf0a2-7b22-48eb-a429-fe63f33768c3}, !- Handle
+  System Node Temperature 13,             !- Name
+  Node 110,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {5bea13f6-7bf5-4801-85ca-09877d7f4909}, !- Handle
+  System Node Mass Flow Rate 10,          !- Name
+  Node 111,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {43a6878a-9515-41db-a713-b1840548b130}, !- Handle
+  System Node Pressure 10,                !- Name
+  Node 111,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {e2cd9851-489e-43c4-ad9b-25f6ca999c80}, !- Handle
+  System Node Relative Humidity 10,       !- Name
+  Node 111,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {f6f41c93-a751-4f42-bcbd-cbb878fb2d28}, !- Handle
+  System Node Temperature 10,             !- Name
+  Node 111,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {6af34870-33f8-4b34-9144-71d134447833}, !- Handle
+  System Node Mass Flow Rate 12,          !- Name
+  Node 115,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {d28b62bb-7168-41c4-b83e-66ce9a5d05e8}, !- Handle
+  System Node Pressure 12,                !- Name
+  Node 115,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {2c6e73e9-c420-4944-b485-41a61c73b51f}, !- Handle
+  System Node Relative Humidity 12,       !- Name
+  Node 115,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {4a4e4c1e-4a20-4920-9ee1-0961333cdf57}, !- Handle
+  System Node Temperature 12,             !- Name
+  Node 115,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {319c090a-7798-419e-bfc4-92651fb9f4cd}, !- Handle
+  System Node Mass Flow Rate 14,          !- Name
+  Node 116,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {8cde9e6b-c69e-422e-a417-3b835d06f943}, !- Handle
+  System Node Pressure 14,                !- Name
+  Node 116,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {05900f80-a236-4475-ae54-5416c6ebbdc7}, !- Handle
+  System Node Relative Humidity 14,       !- Name
+  Node 116,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {4f420cee-1db9-4ef1-96dc-d607a6d06852}, !- Handle
+  System Node Temperature 14,             !- Name
+  Node 116,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {3d5970e3-9624-43da-b23e-0b4d1b2d48ae}, !- Handle
+  System Node Mass Flow Rate 11,          !- Name
+  Node 117,                               !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {bf440ff9-7427-4535-8227-f09710c3cb44}, !- Handle
+  System Node Pressure 11,                !- Name
+  Node 117,                               !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {df9842a4-34de-42b1-8b06-a77d6e6b871e}, !- Handle
+  System Node Relative Humidity 11,       !- Name
+  Node 117,                               !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {e8a819e5-b662-4b21-8197-ddff9bd64939}, !- Handle
+  System Node Temperature 11,             !- Name
+  Node 117,                               !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {be43fa37-7efd-45ce-a3bb-06417127257a}, !- Handle
+  System Node Mass Flow Rate 45,          !- Name
+  Node 12,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {4faf3210-523f-4d10-8455-480c168445d8}, !- Handle
+  System Node Pressure 45,                !- Name
+  Node 12,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {69379229-f6f3-4fcf-b38f-cf9d62a72fc4}, !- Handle
+  System Node Relative Humidity 45,       !- Name
+  Node 12,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {2e337bba-2c1c-485f-bf70-f8548b63ad1d}, !- Handle
+  System Node Temperature 45,             !- Name
+  Node 12,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {68bb266b-7a10-4ead-ba16-b23f30cb7541}, !- Handle
+  System Node Mass Flow Rate 47,          !- Name
+  Node 16,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {c2d8b57a-3a44-4a46-8aa6-4a1ea6af3d96}, !- Handle
+  System Node Pressure 47,                !- Name
+  Node 16,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {3610e3d7-cfc8-4e91-ac8e-817819f678e8}, !- Handle
+  System Node Relative Humidity 47,       !- Name
+  Node 16,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {4462b7dc-1f4f-4617-a0d0-b06824fcf8a5}, !- Handle
+  System Node Temperature 47,             !- Name
+  Node 16,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {7d91e804-30ce-46e0-98fc-e354a8db8b85}, !- Handle
+  System Node Mass Flow Rate 49,          !- Name
+  Node 17,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {ab35ecfb-0ad1-4043-90a3-87eb9bb744e5}, !- Handle
+  System Node Pressure 49,                !- Name
+  Node 17,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {d625a630-f040-46c6-a200-44b26a586bcf}, !- Handle
+  System Node Relative Humidity 49,       !- Name
+  Node 17,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {8a42b2c4-2b38-4e3b-a5d7-e4f58cd35927}, !- Handle
+  System Node Temperature 49,             !- Name
+  Node 17,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {1ab376eb-cf23-4b68-8909-a06d8397087c}, !- Handle
+  System Node Mass Flow Rate 46,          !- Name
+  Node 18,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {d5d37001-a4e2-4944-b63d-1410b5d28dd0}, !- Handle
+  System Node Pressure 46,                !- Name
+  Node 18,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {1883cef1-32b5-4e3e-833e-82974d34c167}, !- Handle
+  System Node Relative Humidity 46,       !- Name
+  Node 18,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {a27293eb-0853-48b6-bc75-17224df88a9f}, !- Handle
+  System Node Temperature 46,             !- Name
+  Node 18,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {748b01a9-04b6-4fc4-ae24-a9f6b3a65977}, !- Handle
+  System Node Mass Flow Rate 38,          !- Name
+  Node 22,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {d9e957da-acfa-41b0-b230-789114699021}, !- Handle
+  System Node Pressure 38,                !- Name
+  Node 22,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {9ca04c40-eb0b-4128-9f0a-782cac7d90c9}, !- Handle
+  System Node Relative Humidity 38,       !- Name
+  Node 22,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {731c58ef-b57b-4b48-a870-1c2ed6170e95}, !- Handle
+  System Node Temperature 38,             !- Name
+  Node 22,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {762635f1-c4c3-417e-ab89-d77cb1cf2353}, !- Handle
+  System Node Mass Flow Rate 35,          !- Name
+  Node 23,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {13e21bc7-cd94-4ba3-9c1e-089ec7dc4774}, !- Handle
+  System Node Pressure 35,                !- Name
+  Node 23,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {3dab44c2-801b-4d34-bd5d-a24f6c94fd1e}, !- Handle
+  System Node Relative Humidity 35,       !- Name
+  Node 23,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {d913b744-bcf6-4cc6-a540-1dce7eb67080}, !- Handle
+  System Node Temperature 35,             !- Name
+  Node 23,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {b29c3020-4382-4dd3-a457-9ba2e6370148}, !- Handle
+  System Node Mass Flow Rate 37,          !- Name
+  Node 27,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {86d24609-eb7e-49b1-9dde-6e0afec4883e}, !- Handle
+  System Node Pressure 37,                !- Name
+  Node 27,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {dc1d8d9b-5262-4156-b4c3-3338282cc6f3}, !- Handle
+  System Node Relative Humidity 37,       !- Name
+  Node 27,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {d54cd067-1b4e-449a-8cfc-1143b5ca9ccf}, !- Handle
+  System Node Temperature 37,             !- Name
+  Node 27,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {d47cf352-c05e-4e34-b969-87d2d2fb1843}, !- Handle
+  System Node Mass Flow Rate 39,          !- Name
+  Node 28,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {fdbdce3d-c6a2-49fe-8a7e-6e1961ba95f5}, !- Handle
+  System Node Pressure 39,                !- Name
+  Node 28,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {25a265c4-e5c8-48aa-a6de-c8214486f6bc}, !- Handle
+  System Node Relative Humidity 39,       !- Name
+  Node 28,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {80c64c14-71a2-4e09-b637-61c3df492329}, !- Handle
+  System Node Temperature 39,             !- Name
+  Node 28,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {8ec641dc-8709-418b-b39b-093f7b3d6860}, !- Handle
+  System Node Mass Flow Rate 36,          !- Name
+  Node 29,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {68fbbc41-c83e-4a22-9b88-ab7507ed900a}, !- Handle
+  System Node Pressure 36,                !- Name
+  Node 29,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {da726e7c-20c0-4ff6-993f-57ebf2a20207}, !- Handle
+  System Node Relative Humidity 36,       !- Name
+  Node 29,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {1cf6fc55-7712-4da7-b40a-dc55716b9cf1}, !- Handle
+  System Node Temperature 36,             !- Name
+  Node 29,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {fe65779b-434d-4088-b67d-224101072f66}, !- Handle
+  System Node Mass Flow Rate 33,          !- Name
+  Node 33,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {5db0847d-ccfe-418c-9280-d0c91dcb41d1}, !- Handle
+  System Node Pressure 33,                !- Name
+  Node 33,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {27aecb33-3152-4603-9ae4-4d35080dff5d}, !- Handle
+  System Node Relative Humidity 33,       !- Name
+  Node 33,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {4db4fe74-822b-4484-9530-39f0491b41b1}, !- Handle
+  System Node Temperature 33,             !- Name
+  Node 33,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {862adc05-9e9f-49a3-bd92-f74bd76b92b2}, !- Handle
+  System Node Mass Flow Rate 30,          !- Name
+  Node 34,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {1b20729f-ff72-4f97-b005-f8fbdddf2870}, !- Handle
+  System Node Pressure 30,                !- Name
+  Node 34,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {b91b5319-c9c6-429a-a4b0-f9e60cc2604a}, !- Handle
+  System Node Relative Humidity 30,       !- Name
+  Node 34,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {ca314794-1632-4c5b-b888-ea33b40c77fb}, !- Handle
+  System Node Temperature 30,             !- Name
+  Node 34,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {915efa4f-66f0-4791-aa4b-6875d0c049dc}, !- Handle
+  System Node Mass Flow Rate 32,          !- Name
+  Node 38,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {56aaa125-4810-4ae4-a5d6-0ebe5830425d}, !- Handle
+  System Node Pressure 32,                !- Name
+  Node 38,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {33e737d0-597b-4a06-82b0-b3632d9771ca}, !- Handle
+  System Node Relative Humidity 32,       !- Name
+  Node 38,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {8b308a47-0a09-4c57-b36f-438b18073b82}, !- Handle
+  System Node Temperature 32,             !- Name
+  Node 38,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {692a0e7b-2b82-4e98-8e1c-6696acbbc5ef}, !- Handle
+  System Node Mass Flow Rate 34,          !- Name
+  Node 39,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {0320b009-1bc6-48e6-af74-f5bd0ad3003d}, !- Handle
+  System Node Pressure 34,                !- Name
+  Node 39,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {ae2685a8-66cf-4e2d-8047-a34dbe93d385}, !- Handle
+  System Node Relative Humidity 34,       !- Name
+  Node 39,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {fb23bf72-3369-4bd0-988a-2324085a36d8}, !- Handle
+  System Node Temperature 34,             !- Name
+  Node 39,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {72f9a7c5-4004-4616-8aec-b2f75ccd84eb}, !- Handle
+  System Node Mass Flow Rate 31,          !- Name
+  Node 40,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {aeb425ec-c258-46b5-87e3-4354138b0143}, !- Handle
+  System Node Pressure 31,                !- Name
+  Node 40,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {9f9e61dd-67d1-42f2-af30-0ca0f9559278}, !- Handle
+  System Node Relative Humidity 31,       !- Name
+  Node 40,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {6fdbfe35-582f-4bf0-bc2b-72323f6dae5c}, !- Handle
+  System Node Temperature 31,             !- Name
+  Node 40,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {3c373cbc-9f88-47db-afca-8ea0c450523c}, !- Handle
+  System Node Mass Flow Rate 43,          !- Name
+  Node 44,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {47f626f9-7956-4bab-bed4-15296c7a3e9e}, !- Handle
+  System Node Pressure 43,                !- Name
+  Node 44,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {327e65a3-21f0-4ea6-9a72-78cb0dc11b7c}, !- Handle
+  System Node Relative Humidity 43,       !- Name
+  Node 44,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {96f86b5e-67b6-4b92-abd2-53462203c150}, !- Handle
+  System Node Temperature 43,             !- Name
+  Node 44,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {24c8b399-09ee-4f23-bf53-907c784efa00}, !- Handle
+  System Node Mass Flow Rate 40,          !- Name
+  Node 45,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {a73a1049-de7e-48e3-8dbf-dffb60b616de}, !- Handle
+  System Node Pressure 40,                !- Name
+  Node 45,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {5cc5a78f-b6b8-4a86-944e-1acb55a57e58}, !- Handle
+  System Node Relative Humidity 40,       !- Name
+  Node 45,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {2eadf0a0-9c4f-42b2-b55d-652d90bfcb26}, !- Handle
+  System Node Temperature 40,             !- Name
+  Node 45,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {4cc87cbe-0d0b-43b5-b0d0-bc8e93ac47d9}, !- Handle
+  System Node Mass Flow Rate 42,          !- Name
+  Node 49,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {f06bc15b-3161-4df6-8c4e-c73c8c1e24b7}, !- Handle
+  System Node Pressure 42,                !- Name
+  Node 49,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {e3ba85da-c286-4193-82bc-cfd0862be61b}, !- Handle
+  System Node Relative Humidity 42,       !- Name
+  Node 49,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {4ab21523-175d-438b-b0c1-abfdec5cf3f8}, !- Handle
+  System Node Temperature 42,             !- Name
+  Node 49,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {c3e55668-3756-4d5b-b04f-69fdefa89aaa}, !- Handle
+  System Node Mass Flow Rate 44,          !- Name
+  Node 50,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {7a752a44-2c8e-4905-b970-b2f88ae16130}, !- Handle
+  System Node Pressure 44,                !- Name
+  Node 50,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {fb836887-a534-4ae9-8ab9-4aa5934f88d4}, !- Handle
+  System Node Relative Humidity 44,       !- Name
+  Node 50,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {1408783d-63fb-471e-8264-f01fd744a7c6}, !- Handle
+  System Node Temperature 44,             !- Name
+  Node 50,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {27a65dcd-b48b-4d4e-a62b-ad66ce0f07cf}, !- Handle
+  System Node Mass Flow Rate 41,          !- Name
+  Node 51,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {7dc2320d-c5e3-4473-8590-dfecade2a6b5}, !- Handle
+  System Node Pressure 41,                !- Name
+  Node 51,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {1a6a8ae7-329b-4f5c-8c1b-4ca57cdcd993}, !- Handle
+  System Node Relative Humidity 41,       !- Name
+  Node 51,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {42933912-587e-403e-83db-4938af2e1f86}, !- Handle
+  System Node Temperature 41,             !- Name
+  Node 51,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {69262d51-1928-4c1f-a771-4e31fdcc312a}, !- Handle
+  System Node Mass Flow Rate 28,          !- Name
+  Node 55,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {fd50931d-8d18-43fb-bf4e-6db8f40075a1}, !- Handle
+  System Node Pressure 28,                !- Name
+  Node 55,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {fa11a9ac-44f2-468a-a53a-925de54b71dc}, !- Handle
+  System Node Relative Humidity 28,       !- Name
+  Node 55,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {cc49059f-0ea5-4540-bb70-c3b178584041}, !- Handle
+  System Node Temperature 28,             !- Name
+  Node 55,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {0c0d458a-3eae-40ce-b0fa-64555716ec82}, !- Handle
+  System Node Mass Flow Rate 25,          !- Name
+  Node 56,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {4a6a21e9-eaf7-4561-ac49-b454d49b7309}, !- Handle
+  System Node Pressure 25,                !- Name
+  Node 56,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {19673aa0-a836-492f-a577-aeaa8f0b9680}, !- Handle
+  System Node Relative Humidity 25,       !- Name
+  Node 56,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {1ed0e322-bf50-4889-b202-199ce9dbf30c}, !- Handle
+  System Node Temperature 25,             !- Name
+  Node 56,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {cb208ccf-00b9-4108-b9c6-446399d5a420}, !- Handle
+  System Node Mass Flow Rate 27,          !- Name
+  Node 60,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {8938383f-ad0c-4302-a679-df88e2247714}, !- Handle
+  System Node Pressure 27,                !- Name
+  Node 60,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {3d480322-4740-4d18-80e3-54e3af60329c}, !- Handle
+  System Node Relative Humidity 27,       !- Name
+  Node 60,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {acf50f92-1e86-4074-a3ec-e406be56940a}, !- Handle
+  System Node Temperature 27,             !- Name
+  Node 60,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {78506bb6-9e80-44b1-bdfe-ffc9313a144d}, !- Handle
+  System Node Mass Flow Rate 29,          !- Name
+  Node 61,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {362e0c3d-d0e6-4383-a8cf-7cdf8dc097a2}, !- Handle
+  System Node Pressure 29,                !- Name
+  Node 61,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {526885d0-08d9-4719-95c9-d226637031bb}, !- Handle
+  System Node Relative Humidity 29,       !- Name
+  Node 61,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {0ca0a742-df1a-46f4-b89d-f4ba36b58ae2}, !- Handle
+  System Node Temperature 29,             !- Name
+  Node 61,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {51a1590c-1647-4ac5-9bc8-789ba8f1007c}, !- Handle
+  System Node Mass Flow Rate 26,          !- Name
+  Node 62,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {3d0a0da5-0bdc-4d6e-afed-f633fa56d9c3}, !- Handle
+  System Node Pressure 26,                !- Name
+  Node 62,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {fee5a340-0231-4041-867e-398758dd2fb4}, !- Handle
+  System Node Relative Humidity 26,       !- Name
+  Node 62,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {666b15ba-bd0f-4721-8a9a-6f24fb314b15}, !- Handle
+  System Node Temperature 26,             !- Name
+  Node 62,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {bc540709-e700-4b99-bd33-dca2af1e4f7c}, !- Handle
+  System Node Mass Flow Rate 18,          !- Name
+  Node 66,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {509941bc-ed84-40d3-979e-e5415a829539}, !- Handle
+  System Node Pressure 18,                !- Name
+  Node 66,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {f72e3266-6402-41fb-a219-36d1d417c8f9}, !- Handle
+  System Node Relative Humidity 18,       !- Name
+  Node 66,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {204d20d7-4807-48c7-802b-7b0b2a987b75}, !- Handle
+  System Node Temperature 18,             !- Name
+  Node 66,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {6bc299fc-dae3-4c1c-a7a1-dcc38fcd8397}, !- Handle
+  System Node Mass Flow Rate 15,          !- Name
+  Node 67,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {2a6fb25b-2e7f-44cf-bfb8-75f4eeccd183}, !- Handle
+  System Node Pressure 15,                !- Name
+  Node 67,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {c510b6be-adcc-440a-967a-60c56ac50f08}, !- Handle
+  System Node Relative Humidity 15,       !- Name
+  Node 67,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {9a911b14-2155-421b-99ad-c9925d2c217d}, !- Handle
+  System Node Temperature 15,             !- Name
+  Node 67,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {4a55601f-4e82-4d3b-81aa-e0c08cd7ae22}, !- Handle
+  System Node Mass Flow Rate 17,          !- Name
+  Node 71,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {458722c0-7130-4e6a-b8d2-3b2533636605}, !- Handle
+  System Node Pressure 17,                !- Name
+  Node 71,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {7f8e15a3-a875-4afe-8a3f-d2a73d11f96d}, !- Handle
+  System Node Relative Humidity 17,       !- Name
+  Node 71,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {f9fefcb5-afe1-49a7-91ff-a598cb90bf2e}, !- Handle
+  System Node Temperature 17,             !- Name
+  Node 71,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {13e96e8f-610a-4c12-9d32-c7f21ccb193d}, !- Handle
+  System Node Mass Flow Rate 19,          !- Name
+  Node 72,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {06dabc52-b408-4ef1-beb9-3fc729c244e9}, !- Handle
+  System Node Pressure 19,                !- Name
+  Node 72,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {f30369a5-c624-4f20-839d-fc6365ad5482}, !- Handle
+  System Node Relative Humidity 19,       !- Name
+  Node 72,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {282ddf23-05aa-484c-aba2-b6d59836d8c1}, !- Handle
+  System Node Temperature 19,             !- Name
+  Node 72,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {cf2bc373-5a43-49f3-add5-ba3e7f43c69d}, !- Handle
+  System Node Mass Flow Rate 16,          !- Name
+  Node 73,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {eaf8e201-8d05-42c2-aaa2-282f5a8df667}, !- Handle
+  System Node Pressure 16,                !- Name
+  Node 73,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {cfd2753f-3cad-4deb-8476-304d504c2e96}, !- Handle
+  System Node Relative Humidity 16,       !- Name
+  Node 73,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {8fe85bc7-5166-4187-be8c-f7a5f8c9febf}, !- Handle
+  System Node Temperature 16,             !- Name
+  Node 73,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {c7a40c18-0489-43a0-a162-f9b26c4230be}, !- Handle
+  System Node Mass Flow Rate 8,           !- Name
+  Node 77,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {e2e821ba-e492-4f49-9fbc-f7c025b3dac2}, !- Handle
+  System Node Pressure 8,                 !- Name
+  Node 77,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {deac7f9f-cb86-43c0-a68c-a149ead87db4}, !- Handle
+  System Node Relative Humidity 8,        !- Name
+  Node 77,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {a4b4638c-24a1-41af-a15e-3e61c2c09d47}, !- Handle
+  System Node Temperature 8,              !- Name
+  Node 77,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {40813bde-c424-4691-bf7c-ff5c4e8293de}, !- Handle
+  System Node Mass Flow Rate 5,           !- Name
+  Node 78,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {173e5db0-c829-4dec-a60f-f9bb5a40946d}, !- Handle
+  System Node Pressure 5,                 !- Name
+  Node 78,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {ce09453e-4a11-486a-9b61-bf1670511c8b}, !- Handle
+  System Node Relative Humidity 5,        !- Name
+  Node 78,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {dcd999ac-a1d0-4b92-9819-042302da3e13}, !- Handle
+  System Node Temperature 5,              !- Name
+  Node 78,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {df5ccd54-e02d-4cfb-a572-837b97093775}, !- Handle
+  System Node Mass Flow Rate 7,           !- Name
+  Node 82,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {6a4078f8-0e3c-4e51-ac27-b1642cb3ca7f}, !- Handle
+  System Node Pressure 7,                 !- Name
+  Node 82,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {241d0d6e-a33a-4876-8b43-d3c8c87715d8}, !- Handle
+  System Node Relative Humidity 7,        !- Name
+  Node 82,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {8486bc02-b0c9-4237-a58e-c57dbe6a2c87}, !- Handle
+  System Node Temperature 7,              !- Name
+  Node 82,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {e9bbb6b7-ddb8-4976-9242-f3e398d46970}, !- Handle
+  System Node Mass Flow Rate 9,           !- Name
+  Node 83,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {d9c24a1f-0324-4484-bbb5-398e4913edc3}, !- Handle
+  System Node Pressure 9,                 !- Name
+  Node 83,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {566271f5-73a9-425f-8c8f-6399343c92f5}, !- Handle
+  System Node Relative Humidity 9,        !- Name
+  Node 83,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {caa37cdf-d15e-4c4f-bdcb-ef76932d5949}, !- Handle
+  System Node Temperature 9,              !- Name
+  Node 83,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {0fe58a9e-7176-43e6-a21e-b2e5b36ebad7}, !- Handle
+  System Node Mass Flow Rate 6,           !- Name
+  Node 84,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {e1c9de3b-8f31-4283-b445-f7e1e948a405}, !- Handle
+  System Node Pressure 6,                 !- Name
+  Node 84,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {cbc84a2a-0acd-4630-83eb-2e7f8c08b75f}, !- Handle
+  System Node Relative Humidity 6,        !- Name
+  Node 84,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {a6299ecf-f653-4371-9372-66967fa44202}, !- Handle
+  System Node Temperature 6,              !- Name
+  Node 84,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {6e680da1-e8ed-41a4-98bc-8d53710dec84}, !- Handle
+  System Node Mass Flow Rate 23,          !- Name
+  Node 88,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {e65a6c77-eba2-4691-ba64-a8e286e8b9e3}, !- Handle
+  System Node Pressure 23,                !- Name
+  Node 88,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {9d8f359f-0d1f-46ff-bce7-9364288a4f96}, !- Handle
+  System Node Relative Humidity 23,       !- Name
+  Node 88,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {f1e9d027-8d4a-44d9-8b37-806bd2fa3d17}, !- Handle
+  System Node Temperature 23,             !- Name
+  Node 88,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {08249514-96a9-4271-ad91-fe17ccbe3558}, !- Handle
+  System Node Mass Flow Rate 20,          !- Name
+  Node 89,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {807e978d-a6a5-4ff7-b728-0489d24044c5}, !- Handle
+  System Node Pressure 20,                !- Name
+  Node 89,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {1ef148e1-0a52-42cf-9a5b-1630372c23c7}, !- Handle
+  System Node Relative Humidity 20,       !- Name
+  Node 89,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {d02729e0-1542-4d36-9624-e0f8a521a193}, !- Handle
+  System Node Temperature 20,             !- Name
+  Node 89,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {1110202c-5d46-49db-bc9d-eb9b6ef72c1b}, !- Handle
+  System Node Mass Flow Rate 22,          !- Name
+  Node 93,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {a4f71a72-e8ac-4f93-a46c-04c454eb7ee9}, !- Handle
+  System Node Pressure 22,                !- Name
+  Node 93,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {4b8fd015-3935-4a0b-be42-6ab63bc4b7ab}, !- Handle
+  System Node Relative Humidity 22,       !- Name
+  Node 93,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {4f69a76a-a75d-45d4-96f1-42c5d324d2e9}, !- Handle
+  System Node Temperature 22,             !- Name
+  Node 93,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {d78b052f-058e-4a36-9292-6574b01891b9}, !- Handle
+  System Node Mass Flow Rate 24,          !- Name
+  Node 94,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {eddb4dc7-caa5-4ea2-96dc-6f02033d201c}, !- Handle
+  System Node Pressure 24,                !- Name
+  Node 94,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {8b4739e8-c947-415a-be82-f2d86dfd3787}, !- Handle
+  System Node Relative Humidity 24,       !- Name
+  Node 94,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {3bb08826-b818-46f3-b288-89923c2175b1}, !- Handle
+  System Node Temperature 24,             !- Name
+  Node 94,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {2a2ddf6c-1857-460e-a733-9fe2d07b3956}, !- Handle
+  System Node Mass Flow Rate 21,          !- Name
+  Node 95,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {6c6c39e9-036b-449d-8a20-e6773cc7b341}, !- Handle
+  System Node Pressure 21,                !- Name
+  Node 95,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {2f499a32-6b4d-45c8-bec3-9a389e22e4a5}, !- Handle
+  System Node Relative Humidity 21,       !- Name
+  Node 95,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {0fe68dd8-f1e4-4921-996e-91c9053ed709}, !- Handle
+  System Node Temperature 21,             !- Name
+  Node 95,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {0f6a9f60-94b1-4213-909c-f239ac1eca0a}, !- Handle
+  System Node Mass Flow Rate 3,           !- Name
+  Node 99,                                !- Key Value
+  System Node Mass Flow Rate,             !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {70fb99a4-a145-45f5-8664-601525577fcd}, !- Handle
+  System Node Pressure 3,                 !- Name
+  Node 99,                                !- Key Value
+  System Node Pressure,                   !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {b5e2006c-f2b7-4446-83ad-dd718028efa0}, !- Handle
+  System Node Relative Humidity 3,        !- Name
+  Node 99,                                !- Key Value
+  System Node Relative Humidity,          !- Variable Name
+  timestep;                               !- Reporting Frequency
+
+OS:Output:Variable,
+  {9ef3bb48-5680-4320-b004-325ca60355c7}, !- Handle
+  System Node Temperature 3,              !- Name
+  Node 99,                                !- Key Value
+  System Node Temperature,                !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {05e7efff-c616-41d9-b066-8da29efe1f00}, !- Handle
+  Air System Outdoor Air Flow Fraction 9, !- Name
+  Packaged Rooftop Air Conditioner,       !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {17caa85a-8c44-4e5a-81a4-f3d0181f1e61}, !- Handle
+  Air System Outdoor Air Flow Fraction 7, !- Name
+  Packaged Rooftop Air Conditioner 1,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {8c1c739f-830f-4e16-b8f0-2bebbd4f0a7e}, !- Handle
+  Air System Outdoor Air Flow Fraction 6, !- Name
+  Packaged Rooftop Air Conditioner 2,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {b70715c6-20e8-4f48-9e76-7a7b4bc75f87}, !- Handle
+  Air System Outdoor Air Flow Fraction 8, !- Name
+  Packaged Rooftop Air Conditioner 3,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {1837f80e-0e01-460e-b6df-814ae86eac5a}, !- Handle
+  Air System Outdoor Air Flow Fraction 5, !- Name
+  Packaged Rooftop Air Conditioner 4,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {ece83b91-dea6-42c2-85cb-7d75a74e80ca}, !- Handle
+  Air System Outdoor Air Flow Fraction 3, !- Name
+  Packaged Rooftop Air Conditioner 5,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {e9afbe24-4c9a-46c3-a979-70e1da074e50}, !- Handle
+  Air System Outdoor Air Flow Fraction 1, !- Name
+  Packaged Rooftop Air Conditioner 6,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {520485bd-f891-477c-802c-8b426656fa4e}, !- Handle
+  Air System Outdoor Air Flow Fraction 4, !- Name
+  Packaged Rooftop Air Conditioner 7,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {b0b8e293-fef1-4993-b702-3fa859bbc8e2}, !- Handle
+  Air System Outdoor Air Flow Fraction,   !- Name
+  Packaged Rooftop Air Conditioner 8,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
+OS:Output:Variable,
+  {cf2a8dd4-9524-4203-8721-0beec0afbffc}, !- Handle
+  Air System Outdoor Air Flow Fraction 2, !- Name
+  Packaged Rooftop Air Conditioner 9,     !- Key Value
+  Air System Outdoor Air Flow Fraction,   !- Variable Name
+  timestep,                               !- Reporting Frequency
+  ,                                       !- Schedule Name
+  True;                                   !- Export To BCVTB
+
