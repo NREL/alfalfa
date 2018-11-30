@@ -36,63 +36,71 @@ import {Schema} from './schema';
 import historyApiFallback from 'connect-history-api-fallback';
 import morgan from 'morgan';
 
-var app = express();
+MongoClient.connect(process.env.MONGO_URL).then((db) => {
 
-if( process.env.NODE_ENV == "production" ) {
-  app.get('*.js', function (req, res, next) {
-    req.url = req.url + '.gz';
-    res.set('Content-Encoding', 'gzip');
-    next();
-  });
-} else {
-  app.use(morgan('combined'))
-}
+  var app = express();
+  
+  if( process.env.NODE_ENV == "production" ) {
+    app.get('*.js', function (req, res, next) {
+      req.url = req.url + '.gz';
+      res.set('Content-Encoding', 'gzip');
+      next();
+    });
+  } else {
+    app.use(morgan('combined'))
+  }
+  app.locals.alfalfaServer = new alfalfaServer(db);
 
-app.use('/graphql', graphQLHTTP({
-  graphiql: true,
-  pretty: true,
-  schema: Schema,
-}));
-
-app.use(bodyParser.text({ type: 'text/*' }));
-app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
-
-app.all('/api/*', function(req, res) {
-  // Remove this in production
-  var path = url.parse(req.url).pathname;
-  path = path.replace('/api','');
-
-  // parse URI path into "/{opName}/...."
-  var slash = path.indexOf('/', 1);
-  if (slash < 0) slash = path.length;
-  var opName = path.substring(1, slash);
-
-
-  // resolve the op
-  app.locals.alfalfaServer.op(opName, false, function(err, op) {
-    if (typeof(op) === 'undefined' || op === null) {
-      res.status(404);
-      res.send("404 Not Found");
-      res.end();
-      return;
+  app.use('/graphql', (request, response) => {
+      return graphQLHTTP({
+        graphiql: true,
+        pretty: true,
+        schema: Schema,
+        context: {
+          ...request,
+          db
+        }
+      })(request,response)
     }
-
-    // route to the op
-    op.onServiceOp(app.locals.alfalfaServer, req, res, function(err) {
-      if (err) {
-        console.log(err.stack);
-        throw err;
+  );
+  
+  app.use(bodyParser.text({ type: 'text/*' }));
+  app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
+  
+  app.all('/api/*', function(req, res) {
+    // Remove this in production
+    var path = url.parse(req.url).pathname;
+    path = path.replace('/api','');
+  
+    // parse URI path into "/{opName}/...."
+    var slash = path.indexOf('/', 1);
+    if (slash < 0) slash = path.length;
+    var opName = path.substring(1, slash);
+  
+  
+    // resolve the op
+    app.locals.alfalfaServer.op(opName, false, function(err, op) {
+      if (typeof(op) === 'undefined' || op === null) {
+        res.status(404);
+        res.send("404 Not Found");
+        res.end();
+        return;
       }
-      res.end();
+  
+      // route to the op
+      op.onServiceOp(app.locals.alfalfaServer, req, res, function(err) {
+        if (err) {
+          console.log(err.stack);
+          throw err;
+        }
+        res.end();
+      });
     });
   });
-});
+  
+  app.use(historyApiFallback());
+  app.use('/', express.static(path.join(__dirname, './build')));
 
-app.use(historyApiFallback());
-app.use('/', express.static(path.join(__dirname, './build')));
-
-MongoClient.connect(process.env.MONGO_URL).then((db) => {
-  app.locals.alfalfaServer = new alfalfaServer(db);
   let server = app.listen(80, () => {
   
     var host = server.address().address;

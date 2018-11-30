@@ -40,6 +40,7 @@ from datetime import date, datetime, timedelta
 import pytz
 import calendar
 import traceback
+import uuid
 from dateutil.parser import parse
 
 # Time Zone
@@ -186,7 +187,8 @@ def reset(tarinfo):
 
 def finalize_simulation():
     # subprocess.call(['ReadVarsESO'])
-    tar_name = "%s.tar.gz" % sp.site_ref
+    sim_id = str(uuid.uuid4())
+    tar_name = "%s.tar.gz" % sim_id
     
     tar_file = tarfile.open(tar_name, "w:gz")
     tar_file.add(sp.workflow_directory, filter=reset, arcname=site_ref)
@@ -194,11 +196,17 @@ def finalize_simulation():
     
     #subprocess.call(['ReadVarsESO'])
     
-    #bucket.upload_file(tar_name, "simulated/%s" % tar_name)
+    s3_key = "simulated/%s/%s" % (sp.site_ref,tar_name)
+    bucket.upload_file(tar_name, s3_key)
     
-    #os.remove(tar_name)
-    #shutil.rmtree(sp.workflow_directory)
+    os.remove(tar_name)
+    shutil.rmtree(sp.workflow_directory)
 
+    site = recs.find_one({"_id": sp.site_ref})
+    name = site.get("rec",{}).get("dis", "Unknown") if site else "Unknown"
+    name = name.replace("s:","")
+    time = str(datetime.now(tz=pytz.UTC))
+    sims.insert_one({"_id": sim_id, "siteRef": sp.site_ref, "s3Key": s3_key, "name": name, "timeCompleted": time})
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
     recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
@@ -253,6 +261,7 @@ startDatetime = datetime.today()
 mongo_client = MongoClient(os.environ['MONGO_URL'])
 mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
 recs = mongodb.recs
+sims = mongodb.sims
 
 if len(sys.argv) == 6:
     site_ref = sys.argv[1]

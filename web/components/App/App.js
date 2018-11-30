@@ -35,6 +35,7 @@ import AppBar from 'material-ui/AppBar';
 import Badge from 'material-ui/Badge';
 import Upload from '../Upload/Upload.js';
 import Sites from '../Sites/Sites.js';
+import Sims from '../Sims/Sims.js';
 import Typography from 'material-ui/Typography';
 import { withStyles } from 'material-ui/styles';
 import Grid from 'material-ui/Grid';
@@ -66,7 +67,7 @@ class App extends React.Component {
                   </Link>
                 </Grid>
                 <Grid item>
-                  <Link to={'/simulations'} style={{ textDecoration: 'none', color: 'unset' }}>
+                  <Link to={'/sims'} style={{ textDecoration: 'none', color: 'unset' }}>
                     <Typography type="button" color="inherit">Simulations</Typography>
                   </Link>
                 </Grid>
@@ -75,6 +76,7 @@ class App extends React.Component {
           </AppBar>
           <Switch>
             <Route path="/sites" component={Sites}/>
+            <Route path="/sims" component={Sims}/>
             <Route component={Upload}/>
           </Switch>
         </div>

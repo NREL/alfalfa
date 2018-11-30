@@ -97,6 +97,37 @@ var siteType = new GraphQLObjectType({
   })
 });
 
+var simType = new GraphQLObjectType({
+  name: 'Sim',
+  description: 'A completed simulation, including any that may have stopped with errors.',
+  fields: () => ({
+    simRef: {
+      type: GraphQLString,
+      description: 'A unique identifier for the simulation'
+    },
+    siteRef: {
+      type: GraphQLString,
+      description: 'An identifier, corresponding to the haystack siteRef value'
+    },
+    s3Key: {
+      type: GraphQLString,
+      description: 'The s3 key where the simulation point is located.'
+    },
+    name: {
+      type: GraphQLString,
+      description: 'The site name.'
+    },
+    url: {
+      type: GraphQLString,
+      description: 'This is a signed url to the file download.'
+    },
+    timeCompleted: {
+      type: GraphQLString,
+      description: 'The date and time when the simulation was completed.'
+    }
+  })
+});
+
 var userType = new GraphQLObjectType({
   name: 'User',
   description: 'A person who uses our app',
@@ -115,6 +146,17 @@ var userType = new GraphQLObjectType({
       resolve: (user,{siteRef},request) => {
         //return ['site a', 'site b', 'site c']},
         return resolvers.sitesResolver(user,siteRef);
+      }
+    },
+    sims: {
+      type: new GraphQLList(simType),
+      description: 'The simulations', 
+      args: {
+        siteRef: { type: GraphQLString },
+        simRef: { type: GraphQLString }
+      },
+      resolve: (user,args,context) => {
+        return resolvers.simsResolver(user,args,context);
       }
     }
   }),

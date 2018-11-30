@@ -30,7 +30,7 @@ import {FileUpload} from 'material-ui-icons';
 import Grid from 'material-ui/Grid';
 import TextField from 'material-ui/TextField';
 import Button from 'material-ui/Button';
-import Input, { InputLabel, InputLabelProps } from 'material-ui/Input';
+import { InputLabel, InputLabelProps } from 'material-ui/Input';
 import { FormControl, FormHelperText } from 'material-ui/Form';
 import {LinearProgress} from 'material-ui/Progress';
 import 'normalize.css/normalize.css';
@@ -42,9 +42,15 @@ import uuid from 'uuid/v1';
 
 class FileInput extends React.Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    this.fileInputRef = React.createRef();
     this.onChange = this.onChange.bind(this);
+    this.onTextInputClick = this.onTextInputClick.bind(this);
+    this.render = this.render.bind(this);
+    this.state = {
+      filename: ""
+    };
   };
 
   static propTypes = {
@@ -52,20 +58,23 @@ class FileInput extends React.Component {
     onFileChange: PropTypes.func,
   };
 
-  onChange(event) {
-    const file = event.target.files[0];
+  onChange(evt) {
+    const file = evt.target.files[0];
     this.props.onFileChange(file);
-    this.setState({label: file.name});
-  }
+    this.setState({filename: file.name});
+  };
+
+  onTextInputClick() {
+    this.fileInputRef.current.click();
+  };
 
   render() {
     return (
       <label className={styles.row}>
-        <input id="foo" className={styles.hidden} type="file" onChange={this.onChange}/>
-        <TextField fullWidth={true} label='Select OpenStudio or EnergyPlus File' value={this.props.hint}
-          value={this.props.hint}
+        <input type="file" className={styles.hidden} onChange={(evt) => { this.onChange(evt);}} ref={this.fileInputRef} />
+        <TextField fullWidth={true} label='Select OpenStudio or EnergyPlus File' onClick={() => {this.onTextInputClick}} value={this.state.filename}
           InputLabelProps={{
-            shrink: this.props.hint
+            shrink: this.state.filename != ""
           }}
         >
         </TextField>
@@ -174,15 +183,10 @@ class Upload extends React.Component {
   }
 
   modelFileHint() {
-    //if( this.state.modelFile ) {
-    //  return this.state.modelFile.name;
-    //} else {
-    //  return 'Select OpenStudio or EnergyPlus File';
-    //}
     if( this.state.modelFile ) {
       return this.state.modelFile.name;
     } else {
-      return null;
+      return undefined;
     }
   }
 

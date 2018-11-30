@@ -25,9 +25,11 @@
 
 import AWS from 'aws-sdk';
 import request from 'superagent';
+import {MongoClient} from 'mongodb';
 
 AWS.config.update({region: 'us-east-1'});
 var sqs = new AWS.SQS();
+var s3 = new AWS.S3({endpoint: "http://minio:9000"});
 
 function addSiteResolver(osmName, uploadID) {
   var params = {
@@ -166,6 +168,23 @@ function removeSiteResolver(args) {
   });
 }
 
+function  simsResolver(user,args,context) {
+  return new Promise( (resolve,reject) => {
+      let sims = [];
+      const simcollection = context.db.collection('sims');
+      simcollection.find(args).toArray().then((array) => {
+        array.map( (sim) => {
+          var params = {Bucket: 'alfalfa', Key: sim.s3Key, Expires: 86400};
+          var url = s3.getSignedUrl('getObject', params);
+          sims.push(Object.assign(sim, {"simRef": sim._id, "url": url}));
+        })
+        resolve(sims);
+      }).catch((err) => {
+        reject(err);
+      });
+    });
+};
+
 function  sitesResolver(user,siteRef) {
   let filter = "s:site";
   if( siteRef ) {
@@ -212,19 +231,6 @@ function  sitesResolver(user,siteRef) {
       }
     })
   });
-
-    //name: {
-    //  type: GraphQLString,
-    //  description: 'The name of the site, corresponding to the haystack siteRef display name'
-    //},
-    //siteRef: {
-    //  type: GraphQLString,
-    //  description: 'A unique identifier, corresponding to the haystack siteRef value'
-    //},
-    //simStatus: {
-    //  type: GraphQLString,
-    //  description: 'The status of the site simulation'
-    //}
 }
 
 function sitePointResolver(siteRef) {
@@ -285,5 +291,5 @@ function sitePointResolver(siteRef) {
   });
 }
 
-module.exports = { addSiteResolver, sitesResolver, runSiteResolver, stopSiteResolver, removeSiteResolver, sitePointResolver };
+module.exports = { addSiteResolver, sitesResolver, runSiteResolver, stopSiteResolver, removeSiteResolver, sitePointResolver, simsResolver };
 

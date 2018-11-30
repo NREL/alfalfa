@@ -28,7 +28,6 @@ import os from 'os';
 import fs from 'fs';
 import hs from 'nodehaystack';
 import HDict from 'nodehaystack/HDict';
-import {MongoClient} from 'mongodb';
 import uuid from 'uuid/v1';
 
 var HBool = hs.HBool,
