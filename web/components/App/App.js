@@ -27,18 +27,18 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Component } from 'react';
 import { Link, Route, Switch } from 'react-router-dom';
-import IconButton from 'material-ui/IconButton';
-import {FileCloudQueue, FileCloudDone, ActionAccountCircle} from 'material-ui-icons';
+import IconButton from '@material-ui/core/IconButton';
+import {FileCloudQueue, FileCloudDone, ActionAccountCircle} from '@material-ui/icons';
 //import {MuiThemeProvider} from 'material-ui/styles';
-import Toolbar from 'material-ui/Toolbar';
-import AppBar from 'material-ui/AppBar';
-import Badge from 'material-ui/Badge';
+import Toolbar from '@material-ui/core/Toolbar';
+import AppBar from '@material-ui/core/AppBar';
+import Badge from '@material-ui/core/Badge';
 import Upload from '../Upload/Upload.js';
 import Sites from '../Sites/Sites.js';
 import Sims from '../Sims/Sims.js';
-import Typography from 'material-ui/Typography';
-import { withStyles } from 'material-ui/styles';
-import Grid from 'material-ui/Grid';
+import Typography from '@material-ui/core/Typography';
+import { withStyles } from '@material-ui/core/styles';
+import Grid from '@material-ui/core/Grid';
 
 const styles = {
   root: {
@@ -58,17 +58,17 @@ class App extends React.Component {
           <AppBar position="static">
             <Toolbar>
               <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}> 
-                <Typography type="title" color="inherit">Alfalfa</Typography>
+                <Typography variant="title" color="inherit">Alfalfa</Typography>
               </Link>
               <Grid container justify='flex-end'>
                 <Grid item>
                   <Link to={'/sites'} style={{ textDecoration: 'none', color: 'unset' }}>
-                    <Typography type="button" color="inherit">Sites</Typography>
+                    <Typography variant="button" color="inherit">Sites</Typography>
                   </Link>
                 </Grid>
                 <Grid item>
                   <Link to={'/sims'} style={{ textDecoration: 'none', color: 'unset' }}>
-                    <Typography type="button" color="inherit">Simulations</Typography>
+                    <Typography variant="button" color="inherit">Simulations</Typography>
                   </Link>
                 </Grid>
               </Grid>

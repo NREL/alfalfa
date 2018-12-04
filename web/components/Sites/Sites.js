@@ -24,32 +24,31 @@
 ***********************************************************************************************************************/
 
 import React, { PropTypes } from 'react';
-import {FileUpload, MoreVert, ExpandLess, ExpandMore} from 'material-ui-icons';
-import TextField from 'material-ui/TextField';
-import Button from 'material-ui/Button';
-import IconButton from 'material-ui/IconButton';
-import Typography from 'material-ui/Typography';
+import {FileUpload, MoreVert, ExpandLess, ExpandMore} from '@material-ui/icons';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
 import Dialog, {
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-} from 'material-ui/Dialog';
+} from '@material-ui/core/Dialog';
 import ExpansionPanel, {
   ExpansionPanelDetails,
   ExpansionPanelSummary,
-} from 'material-ui/ExpansionPanel';
-import Grid from 'material-ui/Grid';
-import Card, {CardActions, CardHeader, CardText} from 'material-ui/Card';
-import List, { ListItem, ListItemIcon, ListItemText } from 'material-ui/List';
-import {cyan500, red500, greenA200} from 'material-ui/colors';
+} from '@material-ui/core/ExpansionPanel';
+import Grid from '@material-ui/core/Grid';
+import Card, {CardActions, CardHeader, CardText} from '@material-ui/core/Card';
+import List, { ListItem, ListItemIcon, ListItemText } from '@material-ui/core/List';
+import {cyan500, red500, greenA200} from '@material-ui/core/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import Table, {TableBody, TableHead, TableFooter, TableCell, TableRow} from 'material-ui/Table';
-import {CircularProgress} from 'material-ui/Progress';
-import Checkbox from 'material-ui/Checkbox';
-import Collapse from 'material-ui/transitions/Collapse';
-import { withStyles } from 'material-ui/styles';
+import Table, {TableBody, TableHead, TableFooter, TableCell, TableRow} from '@material-ui/core/Table';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Checkbox from '@material-ui/core/Checkbox';
+import { withStyles } from '@material-ui/core/styles';
 import StartDialog from '../StartDialog/StartDialog.js';
 
 class PointDialogComponent extends React.Component {
@@ -129,7 +128,7 @@ class PointDialogComponent extends React.Component {
         </div>
       )
     } else {
-      return null;
+      return (<div></div>);
     }
   }
 }
@@ -300,7 +299,8 @@ class Sites extends React.Component {
 
       return (
         <Grid container direction="column">
-          <PointDialog site={this.state.showSite} onBackdropClick={this.handleRequestClosePoints} />
+          {/*<PointDialog site={this.state.showSite} onBackdropClick={this.handleRequestClosePoints} />*/}
+          {/*
           <Grid item>
             <Table>
               <TableHead>
@@ -337,19 +337,22 @@ class Sites extends React.Component {
               </TableBody>
             </Table>
           </Grid>
+          /*}
+          {/*
           <Grid item>
             <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
               <Grid item>
                 <StartDialog disabled={isStartDisabled} onStartSimulation={this.handleStartSimulation}></StartDialog>
               </Grid>
               <Grid item>
-                <Button raised disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Simulation</Button>
+                <Button variant="raised" disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Simulation</Button>
               </Grid>
               <Grid item>
-                <Button raised disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Site</Button>
+                <Button variant="raised" disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Site</Button>
               </Grid>
             </Grid>
           </Grid>
+          */}
         </Grid>
       );
     } else {

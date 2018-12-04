@@ -25,17 +25,16 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import IconButton from 'material-ui/IconButton';
-import {FileUpload} from 'material-ui-icons';
-import Grid from 'material-ui/Grid';
-import TextField from 'material-ui/TextField';
-import Button from 'material-ui/Button';
-import { InputLabel, InputLabelProps } from 'material-ui/Input';
-import { FormControl, FormHelperText } from 'material-ui/Form';
-import {LinearProgress} from 'material-ui/Progress';
+import IconButton from '@material-ui/core/IconButton';
+import {FileUpload} from '@material-ui/icons';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import { InputLabel, InputLabelProps } from '@material-ui/core/Input';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import 'normalize.css/normalize.css';
 import styles from './Upload.scss';
-import {cyan500, red500, greenA200} from 'material-ui/colors';
+import {cyan500, red500, greenA200} from '@material-ui/core/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import uuid from 'uuid/v1';
@@ -72,7 +71,7 @@ class FileInput extends React.Component {
     return (
       <label className={styles.row}>
         <input type="file" className={styles.hidden} onChange={(evt) => { this.onChange(evt);}} ref={this.fileInputRef} />
-        <TextField fullWidth={true} label='Select OpenStudio or EnergyPlus File' onClick={() => {this.onTextInputClick}} value={this.state.filename}
+        <TextField  fullWidth={true} label='Select OpenStudio or EnergyPlus File' onClick={() => {this.onTextInputClick}} value={this.state.filename}
           InputLabelProps={{
             shrink: this.state.filename != ""
           }}
@@ -202,17 +201,17 @@ class Upload extends React.Component {
 
     return (
       <div className={styles.root}>
-        <LinearProgress mode="determinate" value={this.state.completed} />
+        <LinearProgress variant="determinate" value={this.state.completed} />
         <div className={styles.center}>
           <Grid container>
             <Grid item xs={12}>
               <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
             </Grid>
             <Grid item xs>
-              <Button fullWidth={true} raised color="primary" onClick={this.onClick}>Add Site</Button>
+              <Button fullWidth={true} variant="contained" color="primary" onClick={this.onClick}>Add Site</Button>
             </Grid>
             <Grid item xs>
-              <Button fullWidth={true} raised color="primary" onClick={this.onClick}>Simulate</Button>
+              <Button fullWidth={true} variant="contained" color="primary" onClick={this.onClick}>Simulate</Button>
             </Grid>
           </Grid>
         </div>

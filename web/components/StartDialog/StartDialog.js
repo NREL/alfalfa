@@ -29,14 +29,14 @@ import Dialog, {
   DialogContent,
   DialogContentText,
   DialogTitle,
-} from 'material-ui/Dialog';
+} from '@material-ui/core/Dialog';
 import { DateTimePicker } from 'material-ui-pickers';
-import { withStyles } from 'material-ui/styles';
-import Button from 'material-ui/Button';
-import Grid from 'material-ui/Grid';
-import TextField from 'material-ui/TextField';
-import { FormControlLabel } from 'material-ui/Form';
-import Switch from 'material-ui/Switch';
+import { withStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 
 const styles = {
   label: {
