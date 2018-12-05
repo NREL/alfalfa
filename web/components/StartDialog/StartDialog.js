@@ -24,12 +24,11 @@
 ***********************************************************************************************************************/
 
 import React, { PropTypes } from 'react';
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@material-ui/core/Dialog';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import { DateTimePicker } from 'material-ui-pickers';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -38,11 +37,14 @@ import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 
-const styles = {
+const styles = theme => ({
   label: {
    whiteSpace: 'nowrap' 
   },
-};
+  button: {
+    margin: theme.spacing.unit,
+  },
+});
 
 class StartDialog extends React.Component {
   state = {
@@ -81,14 +83,15 @@ class StartDialog extends React.Component {
 
   render = () => {
     const { selectedStartDateTime, selectedEndDateTime, realtime, timescale } = this.state
+    const { classes } = this.props;
 
     return (
       <div>
-        <Button raised disabled={this.props.disabled} onClick={this.handleShowDialogClick}>Start Simulation</Button>
+        <Button className={classes.button} variant="contained" disabled={this.props.disabled} onClick={this.handleShowDialogClick}>Start Simulation</Button>
         <Dialog fullWidth={true} open={this.state.open}>
           <DialogTitle>Simulation Parameters</DialogTitle>
           <DialogContent>
-            <Grid container>
+            <Grid container spacing={16}>
               <Grid item xs={6}>
                 <DateTimePicker
                   value={selectedStartDateTime}

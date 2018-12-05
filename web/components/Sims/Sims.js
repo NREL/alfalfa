@@ -32,7 +32,11 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import Table, {TableBody, TableHead, TableFooter, TableCell, TableRow} from '@material-ui/core/Table';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import Checkbox from '@material-ui/core/Checkbox';
 import { withStyles } from '@material-ui/core/styles';
 import downloadjs from 'downloadjs'
@@ -142,10 +146,10 @@ class Sims extends React.Component {
           <Grid item>
             <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
               <Grid item>
-                <Button raised disabled={true} onClick={this.handleRemove}>Remove Simulation</Button>
+                <Button className={classes.button} variant="contained" disabled={true} onClick={this.handleRemove}>Remove Simulation</Button>
               </Grid>
               <Grid item>
-                <Button raised disabled={buttonsDisabled} onClick={this.handleDownload}>Download Simulation</Button>
+                <Button className={classes.button} variant="contained" disabled={buttonsDisabled} onClick={this.handleDownload}>Download Simulation</Button>
               </Grid>
             </Grid>
           </Grid>
@@ -180,6 +184,9 @@ const withSims = graphql(simsQL, {
 const styles = theme => ({
   controls: {
     marginLeft: 16,
+  },
+  button: {
+    margin: theme.spacing.unit,
   },
 });
 

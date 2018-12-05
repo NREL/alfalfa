@@ -45,7 +45,11 @@ import List, { ListItem, ListItemIcon, ListItemText } from '@material-ui/core/Li
 import {cyan500, red500, greenA200} from '@material-ui/core/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import Table, {TableBody, TableHead, TableFooter, TableCell, TableRow} from '@material-ui/core/Table';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Checkbox from '@material-ui/core/Checkbox';
 import { withStyles } from '@material-ui/core/styles';
@@ -299,8 +303,7 @@ class Sites extends React.Component {
 
       return (
         <Grid container direction="column">
-          {/*<PointDialog site={this.state.showSite} onBackdropClick={this.handleRequestClosePoints} />*/}
-          {/*
+          <PointDialog site={this.state.showSite} onBackdropClick={this.handleRequestClosePoints} />
           <Grid item>
             <Table>
               <TableHead>
@@ -337,22 +340,19 @@ class Sites extends React.Component {
               </TableBody>
             </Table>
           </Grid>
-          /*}
-          {/*
           <Grid item>
             <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
               <Grid item>
                 <StartDialog disabled={isStartDisabled} onStartSimulation={this.handleStartSimulation}></StartDialog>
               </Grid>
               <Grid item>
-                <Button variant="raised" disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Simulation</Button>
+                <Button variant="contained" className={classes.button} disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Simulation</Button>
               </Grid>
               <Grid item>
-                <Button variant="raised" disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Site</Button>
+                <Button variant="contained" className={classes.button} disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Site</Button>
               </Grid>
             </Grid>
           </Grid>
-          */}
         </Grid>
       );
     } else {
@@ -364,6 +364,9 @@ class Sites extends React.Component {
 const styles = theme => ({
   controls: {
     marginLeft: 16,
+  },
+  button: {
+    margin: theme.spacing.unit,
   },
 });
 

@@ -29,7 +29,8 @@ import { Component } from 'react';
 import { Link, Route, Switch } from 'react-router-dom';
 import IconButton from '@material-ui/core/IconButton';
 import {FileCloudQueue, FileCloudDone, ActionAccountCircle} from '@material-ui/icons';
-//import {MuiThemeProvider} from 'material-ui/styles';
+import { MuiPickersUtilsProvider } from 'material-ui-pickers';
+import DateFnsUtils from '@date-io/date-fns';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
 import Badge from '@material-ui/core/Badge';
@@ -40,7 +41,7 @@ import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 
-const styles = {
+const styles = theme => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -49,37 +50,44 @@ const styles = {
   title: {
     flex: 1,
   },
-};
+  button: {
+    margin: theme.spacing.unit,
+  },
+});
 
 class App extends React.Component {
   render = () => {
+    const { classes } = this.props;
+
     return (
-        <div className={this.props.classes.root}>
-          <AppBar position="static">
-            <Toolbar>
-              <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}> 
-                <Typography variant="title" color="inherit">Alfalfa</Typography>
-              </Link>
-              <Grid container justify='flex-end'>
-                <Grid item>
-                  <Link to={'/sites'} style={{ textDecoration: 'none', color: 'unset' }}>
-                    <Typography variant="button" color="inherit">Sites</Typography>
-                  </Link>
+      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+          <div className={this.props.classes.root}>
+            <AppBar position="static">
+              <Toolbar>
+                <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}> 
+                  <Typography variant="title" color="inherit">Alfalfa</Typography>
+                </Link>
+                <Grid container justify='flex-end'>
+                  <Grid item>
+                    <Link to={'/sites'} style={{ textDecoration: 'none', color: 'unset' }}>
+                      <Typography className={classes.button} variant="button" color="inherit">Sites</Typography>
+                    </Link>
+                  </Grid>
+                  <Grid item>
+                    <Link to={'/sims'} style={{ textDecoration: 'none', color: 'unset' }}>
+                      <Typography className={classes.button} variant="button" color="inherit">Simulations</Typography>
+                    </Link>
+                  </Grid>
                 </Grid>
-                <Grid item>
-                  <Link to={'/sims'} style={{ textDecoration: 'none', color: 'unset' }}>
-                    <Typography variant="button" color="inherit">Simulations</Typography>
-                  </Link>
-                </Grid>
-              </Grid>
-            </Toolbar>
-          </AppBar>
-          <Switch>
-            <Route path="/sites" component={Sites}/>
-            <Route path="/sims" component={Sims}/>
-            <Route component={Upload}/>
-          </Switch>
-        </div>
+              </Toolbar>
+            </AppBar>
+            <Switch>
+              <Route path="/sites" component={Sites}/>
+              <Route path="/sims" component={Sims}/>
+              <Route component={Upload}/>
+            </Switch>
+          </div>
+      </MuiPickersUtilsProvider>
     );
   }
 };

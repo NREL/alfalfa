@@ -38,6 +38,7 @@ import {cyan500, red500, greenA200} from '@material-ui/core/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import uuid from 'uuid/v1';
+import { withStyles } from '@material-ui/core/styles';
 
 class FileInput extends React.Component {
 
@@ -63,7 +64,7 @@ class FileInput extends React.Component {
     this.setState({filename: file.name});
   };
 
-  onTextInputClick() {
+  onTextInputClick(evt) {
     this.fileInputRef.current.click();
   };
 
@@ -71,7 +72,7 @@ class FileInput extends React.Component {
     return (
       <label className={styles.row}>
         <input type="file" className={styles.hidden} onChange={(evt) => { this.onChange(evt);}} ref={this.fileInputRef} />
-        <TextField  fullWidth={true} label='Select OpenStudio or EnergyPlus File' onClick={() => {this.onTextInputClick}} value={this.state.filename}
+        <TextField  fullWidth={true} label='Select OpenStudio or EnergyPlus File' onClick={(evt) => {this.onTextInputClick(evt);}} value={this.state.filename}
           InputLabelProps={{
             shrink: this.state.filename != ""
           }}
@@ -198,12 +199,13 @@ class Upload extends React.Component {
   }
 
   render() {
+    const { classes } = this.props;
 
     return (
       <div className={styles.root}>
         <LinearProgress variant="determinate" value={this.state.completed} />
         <div className={styles.center}>
-          <Grid container>
+          <Grid container spacing={16}>
             <Grid item xs={12}>
               <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
             </Grid>
@@ -220,6 +222,14 @@ class Upload extends React.Component {
   }
 }
 
+const localstyles = theme => ({
+  button: {
+    margin: theme.spacing.unit,
+  },
+});
+
+const withStyle = withStyles(localstyles)(Upload);
+
 const addJobQL = gql`
   mutation addJobMutation($osmName: String!, $uploadID: String!) {
     addSite(osmName: $osmName, uploadID: $uploadID)
@@ -230,5 +240,5 @@ export default graphql(addJobQL, {
   props: ({ mutate }) => ({
     addJobProp: (osmName, uploadID) => mutate({ variables: { osmName, uploadID } }),
   }),
-})(Upload);
+})(withStyle);
 
