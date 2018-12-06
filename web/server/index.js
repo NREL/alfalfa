@@ -99,7 +99,7 @@ MongoClient.connect(process.env.MONGO_URL).then((db) => {
   });
   
   app.use(historyApiFallback());
-  app.use('/', express.static(path.join(__dirname, './build')));
+  app.use('/', express.static(path.join(__dirname, './app')));
 
   let server = app.listen(80, () => {
   

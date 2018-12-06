@@ -32,6 +32,9 @@ const path = require('path');
 const {graphql} = require('graphql');
 const {introspectionQuery, printSchema} = require('graphql/utilities');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const MinifyPlugin = require("babel-minify-webpack-plugin");
+const CompressionPlugin = require('compression-webpack-plugin');
 
 const title = 'Alfalfa';
 const template = './index.html';
@@ -39,22 +42,13 @@ let devtool = '';
 let plugins = [];
 
 if (process.env.NODE_ENV === 'production') {
-  const CompressionPlugin = require('compression-webpack-plugin');
 
   plugins = [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
     }),
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false,
-      },
-      output: {
-        comments: false,
-      },
-    }),
-    new webpack.optimize.AggressiveMergingPlugin(),
+    new MinifyPlugin(),
+    //new webpack.optimize.AggressiveMergingPlugin(),
     new HtmlWebpackPlugin({
       title: title,
       template: template
@@ -66,6 +60,7 @@ if (process.env.NODE_ENV === 'production') {
       threshold: 10240,
       minRatio: 0.8
     })
+    //new UglifyJsPlugin()
   ];
 
   devtool = 'eval';
@@ -86,10 +81,13 @@ module.exports = {
     app: ["./app.js"]
   },
   output: {
-    path: path.join(__dirname, 'build'),
+    path: path.join(__dirname, 'build/app'),
     filename: 'app.bundle.js',
   },
-  devtool: 'source-map',
+  devtool: devtool,
+  //optimization: {
+  //  minimizer: [new UglifyJsPlugin()]
+  //},
   module: {
     rules: [
       {

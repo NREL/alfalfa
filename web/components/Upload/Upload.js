@@ -30,6 +30,7 @@ import {FileUpload} from '@material-ui/icons';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import Input from '@material-ui/core/Input';
 import { InputLabel, InputLabelProps } from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import 'normalize.css/normalize.css';
@@ -45,11 +46,12 @@ class FileInput extends React.Component {
   constructor(props) {
     super(props);
     this.fileInputRef = React.createRef();
-    this.onChange = this.onChange.bind(this);
-    this.onTextInputClick = this.onTextInputClick.bind(this);
-    this.render = this.render.bind(this);
+    //this.onChange = this.onChange.bind(this);
+    //this.onTextInputClick = this.onTextInputClick.bind(this);
+    //this.render = this.render.bind(this);
     this.state = {
-      filename: ""
+      filename: "",
+      file: ""
     };
   };
 
@@ -58,27 +60,33 @@ class FileInput extends React.Component {
     onFileChange: PropTypes.func,
   };
 
-  onChange(evt) {
+  handleFileChange = (evt) => {
     const file = evt.target.files[0];
     this.props.onFileChange(file);
-    this.setState({filename: file.name});
+    this.setState({filename: file.name, file: file});
   };
 
-  onTextInputClick(evt) {
-    this.fileInputRef.current.click();
+  handleTextInputClick = (evt) => {
+    let el = this.fileInputRef.current;
+    if (el.addEventListener) {
+      el.addEventListener("change", this.handleFileChange, false);
+    } else {
+      el.attachEvent('onchange', this.handleFileChange);
+    }
+    el.click();
   };
 
-  render() {
+  render = () => {
     return (
-      <label className={styles.row}>
-        <input type="file" className={styles.hidden} onChange={(evt) => { this.onChange(evt);}} ref={this.fileInputRef} />
-        <TextField  fullWidth={true} label='Select OpenStudio or EnergyPlus File' onClick={(evt) => {this.onTextInputClick(evt);}} value={this.state.filename}
+      <div>
+        <input className={styles.hidden} type="file" ref={this.fileInputRef} onInput={this.handleFileChange} />
+        <TextField fullWidth={true} label='Select OpenStudio or EnergyPlus File' onClick={this.handleTextInputClick} value={this.state.filename}
           InputLabelProps={{
             shrink: this.state.filename != ""
           }}
         >
         </TextField>
-      </label>
+      </div>
     )
   }
 }
