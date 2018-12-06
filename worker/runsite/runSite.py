@@ -52,7 +52,7 @@ def utc_to_local(utc_dt):
 
 
 # Replace Date
-def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
+def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step, year, dayOfweek):
     # Parse Date
     begin_month = [int(s) for s in re.findall(r'\d+', date_start)][0]
     begin_day = [int(s) for s in re.findall(r'\d+', date_start)][1]
@@ -66,9 +66,13 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
     end_month_line = '  {},                                      !- End Month\n'.format(end_month)
     end_day_line = '  {},                                      !- End Day of Month\n'.format(end_day)
     time_step_line = '  {};                                      !- Number of Timesteps per Hour\n'.format(time_step)
-
+    begin_year_line = '  {},                                   !- Begin Year\n'.format(year)
+    end_year_line = '  {},                                   !- End Year\n'.format(year)
+    dayOfweek_line = '  {},                                   !- Day of Week for Start Day\n'.format(dayOfweek)
     
     # Overwrite File
+    # the basic idea is to locate the pattern first (e.g. Timestep, RunPeriod)
+    # then find the relavant lines by couting how many lines away from the patten.
     count = -1
     count_ts = 0
     with open(idf_file, 'r+') as f:
@@ -79,6 +83,7 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
         for line in lines:
             count = count + 1             
             if pattern in line:
+                #RunPeriod block
                 line_runperiod = count
                 print("*** degugging for the runperiod *** ", line_runperiod)
             if 'Timestep,' in line:
@@ -95,53 +100,22 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step):
                   line = begin_month_line
                elif i == line_runperiod + 3:
                   line = begin_day_line
+               elif i == line_runperiod + 4:
+                  line = begin_year_line
                elif i == line_runperiod + 5:
                   line = end_month_line
                elif i == line_runperiod + 6:
-                  line = end_day_line         
+                  line = end_day_line      
+               elif i == line_runperiod + 7:
+                  line = end_year_line
+               elif i == line_runperiod + 8:
+                  line = dayOfweek_line 
                else:
                   line = lines[i]
                f.write(line)
-
-        '''       
-        for line in lines:
-            count_ts = count_ts + 1
-            if pattern in line:
-                count = 0
-                print("*** Hey Debugging RunPeriod Starting here***/n")
-                lines_runperiod=[]
-                while (count<=12):
-                    lines_runperiod.append(line)
-                    count = count + 1
-
-            elif count > 6:
-                # Do nothing
-                count = count - 1
-            elif count == 5:
-                # Begin Month
-                line = begin_month_line
-                print("*** Yanfei *** debugging begin month*** ", line)
-                count = count - 1
-            elif count == 4:
-                # Begin Day
-                line = begin_day_line
-                print("*** Yanfei *** debugging begin day*** ", line)
-                count = count - 1
-            elif count == 3:
-                count = count - 1
-            elif count == 2:
-                # End Month
-                line = end_month_line
-                print("*** Yanfei *** debugging end month*** ", line)
-                count = count - 1
-            elif count == 1:
-                # End day
-                line = end_day_line
-                print("*** Yanfei *** debugging end day*** ", line)
            
-            # Write Every line
-            f.write(line)
-        '''
+   
+        
     return dates
 
 
@@ -215,6 +189,12 @@ def check_localtime(user_start_datetime, user_end_datetime, time_zone):
     
     #check the UTC time zone
     print("****** Yanfei: time zone: ", time.tzname) 
+
+    #obtain the year
+    # this is applied to Energylus version >9.0.0
+    # this will make the simulation well synced with real time in real-time simulation
+    year = int ( str(datetime_utcnow)[0:4] )
+    print("****** Yanfei: Year: ", year)
     
     #obtain the hour and minute from UTC time
     utcnow_hour   = int(str(datetime_utcnow)[11:13])
@@ -235,7 +215,7 @@ def check_localtime(user_start_datetime, user_end_datetime, time_zone):
     #obtain the local timeie from user; here use Denver as a demo    
     local_timezone = pytz.timezone('America/Denver')    
     local_datetime=pytz.UTC.localize(datetime.utcnow()).astimezone(local_timezone)
-    
+     
     if (start_datetime_hour_user == utcnow_hour) or (start_datetime_hour_user != local_hour):
         start_datetime = local_datetime
         end_datetime   = user_end_datetime.astimezone(local_timezone)
@@ -244,8 +224,28 @@ def check_localtime(user_start_datetime, user_end_datetime, time_zone):
         start_datetime = user_start_datetime
         end_datetime   = user_end_datetime
         print("starting local time: ", (start_datetime, end_datetime))
-    
-    return (start_datetime, end_datetime)
+
+    #obtain the day_of_week
+    # this parameter will be input to EnergyPlus verison>9.0.0
+    # this will make the real simulation starting at the correct day of week
+    day_of_week = start_datetime.weekday()
+    if day_of_week==0:
+        dayOFweek="Monday"
+    elif day_of_week==1:
+        dayOFweek="Tuesday"    
+    elif day_of_week==2:
+        dayOFweek="Wednesday"
+        print("****** Yanfei: day of week:****** ", dayOFweek)
+    elif day_of_week==3:
+        dayOFweek="Thursday"
+    elif day_of_week==4:
+        dayOFweek="Friday"
+    elif day_of_week==5:
+        dayOFweek="Saturday"
+    else:
+        dayOFweek="Sunday"
+
+    return (start_datetime, end_datetime, dayOFweek, year)
 
 startDatetime = datetime.today()
 
@@ -265,7 +265,7 @@ if len(sys.argv) == 6:
 
     local_time_zone = 'America/Denver'
 
-    (startDatetime, endDatetime) = check_localtime(user_start_Datetime, user_end_Datetime, local_time_zone)
+    (startDatetime, endDatetime, dayOfweek, year) = check_localtime(user_start_Datetime, user_end_Datetime, local_time_zone)
 
     start_date = "%02d/%02d" % (startDatetime.month,startDatetime.day)
     start_hour = startDatetime.hour
@@ -373,7 +373,7 @@ try:
     # Simulation Parameters
     sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
     bypass_flag = True
-    sim_date = replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour)
+    sim_date = replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour, year, dayOfweek)
     print("****** Yanfei:Actual Date: ******: ", sim_date)
     
     try:
