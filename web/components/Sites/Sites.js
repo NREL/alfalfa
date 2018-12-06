@@ -67,7 +67,7 @@ class PointDialogComponent extends React.Component {
   };
 
   table = () => {
-    if( this.props.data.loading ) {
+    if( this.props.data.networkStatus === 1 ) { // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
       return (
         <Grid container justify="center" alignItems="center">
           <Grid item><CircularProgress/></Grid>
@@ -291,7 +291,9 @@ class Sites extends React.Component {
   render = (props) => {
     const { classes } = this.props;
 
-    if( ! this.props.data.loading ) {
+    if( this.props.data.networkStatus === 1 ) { // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
+      return null;
+    } else {
       const isStartDisabled = this.isStartButtonDisabled();
       const isStopDisabled = this.isStopButtonDisabled();
       const isRemoveDisabled = this.isRemoveButtonDisabled();
@@ -350,8 +352,6 @@ class Sites extends React.Component {
           </Grid>
         </Grid>
       );
-    } else {
-      return null;
     }
   }
 }
