@@ -5,26 +5,11 @@ This is a Haystack implementation backed by a virtual building. Virtual building
 ## Getting Started
 
 1. Install [Docker](https://www.docker.com) for your platform.
-1. The application depends on Amazon s3 to move simulation files around,
-therefore aws credentials must be in the environment. Set the following aws
-environment variables:
-```
-export AWS_ACCESS_KEY_ID=foo
-export AWS_SECRET_ACCESS_KEY=bar
-```
-1. Set environment variables, WEB_REGISTRY_URI, and WORKER_REGISTRY_URI.
-These variables are only used for cloud deployment, but docker-compose will require a value
-```
-export WEB_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web 
-export WORKER_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/worker
-```
-1. Export the NODE_ENV variable
-```
-export NODE_ENV="production"
-```
 1. From a command prompt ```docker-compose up web```.
 1. Navigate to http://localhost/api/nav to verify that the Haystack implementation is running.
 1. Navigate to http://localhost to view web application.
+1. Navigate to http://localhost:9000 to view the minio file server.
+This is a local implementation of Amazon S3 for bulk file storage during development.
 1. Use ```Ctrl-C``` to stop the services.
 
 ## Running Worker Tests
@@ -50,6 +35,17 @@ Development of this project is setup to happen in a handful of docker containers
 https://docs.google.com/presentation/d/1fYtwXvS4jlrhTdHJxPUPpbZZ8PwIM8sGCdLsG_6hwwo/edit#slide=id.p
 
 ## Deployment
+
+1. Set environment variables, WEB_REGISTRY_URI, and WORKER_REGISTRY_URI.
+These variables are only used for cloud deployment, but docker-compose will require a value
+```
+export WEB_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web 
+export WORKER_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/worker
+```
+1. Export the NODE_ENV variable
+```
+export NODE_ENV="production"
+```
 
 ## Create a new AWS account
 
