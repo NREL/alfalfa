@@ -36,8 +36,17 @@ import {Schema} from './schema';
 import historyApiFallback from 'connect-history-api-fallback';
 import morgan from 'morgan';
 
-MongoClient.connect(process.env.MONGO_URL).then((db) => {
+//import Minio from 'minio';
+import * as Minio from 'minio';
+var client = new Minio.Client({
+    endPoint: 'minio',
+    port: 9000,
+    useSSL: false,
+    accessKey: process.env.AWS_ACCESS_KEY_ID,
+    secretKey: process.env.AWS_SECRET_ACCESS_KEY
+})
 
+MongoClient.connect(process.env.MONGO_URL).then((db) => {
   var app = express();
   
   if( process.env.NODE_ENV == "production" ) {
@@ -66,6 +75,28 @@ MongoClient.connect(process.env.MONGO_URL).then((db) => {
   
   app.use(bodyParser.text({ type: 'text/*' }));
   app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
+
+  // Create a post url for file uploads
+  // from a browser
+  app.post('/upload-url', (req, res) => {
+    // Construct a new postPolicy.
+    var policy = client.newPostPolicy()
+    // Set the object name my-objectname.
+    console.log(req.body);
+    policy.setKey(req.body.name);
+    // Set the bucket to my-bucketname.
+    policy.setBucket("alfalfa");
+    
+    var expires = new Date
+    expires.setSeconds(24 * 60 * 60 * 10) // 10 days expiry.
+    policy.setExpires(expires)
+    client.presignedPostPolicy(policy, function(e, urlStr, formData) {
+        if (e) throw e;
+        res.send(JSON.stringify({urlStr, formData}));
+        res.end();
+        return;
+    })
+  });
   
   app.all('/api/*', function(req, res) {
     // Remove this in production

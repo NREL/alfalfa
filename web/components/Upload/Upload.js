@@ -98,8 +98,6 @@ class Upload extends React.Component {
     this.onModelFileChange = this.onModelFileChange.bind(this);
     this.onWeatherFileChange = this.onWeatherFileChange.bind(this);
     this.onClick = this.onClick.bind(this);
-    this.uploadComplete = this.uploadComplete.bind(this);
-    this.uploadProgress = this.uploadProgress.bind(this);
 
     this.state = {
       modelFile: null,
@@ -126,65 +124,72 @@ class Upload extends React.Component {
     this.setState({weatherFile: file, completed: 0});
   }
 
-  uploadProgress(evt) {
-    if (evt.lengthComputable) {
-      var percentComplete = Math.round(evt.loaded * 100 / evt.total);
-      if (percentComplete > 100) {
-        this.setState({completed: 100});
-      } else {
-        this.setState({completed: percentComplete});
-      }
-    }
-    else {
-      console.log('percent: unable to compute');
-    }
-  }
-
-  uploadComplete(evt) {
-    /* This event is raised when the server send back a response */
-    this.props.addJobProp(this.state.modelFile.name, this.state.uploadID);
-
-    //var xhr = new XMLHttpRequest();
-
-    //xhr.open('POST', '/job', true);
-    //xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    //xhr.send(JSON.stringify({file: this.state.modelFile.name}));
-  }
-
-  uploadFailed(evt) {
-    console.log("There was an error attempting to upload the file." + evt);
-  }
-
-  uploadCanceled(evt) {
-    console.log("The upload has been canceled by the user or the browser dropped the connection.");
-  }
-
   onClick() {
     if( this.state.modelFile ) {
+      const key = `uploads/${this.state.uploadID}/${this.state.modelFile.name}`;
 
-      var formData = new FormData();
-      formData.append('key', `uploads/${this.state.uploadID}/${this.state.modelFile.name}`);
-      formData.append('acl', 'private');
-      formData.append('policy', 'eyJleHBpcmF0aW9uIjoiMjA1MC0wMS0wMVQxMjowMDowMC4wMDBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0IjoiYWxmYWxmYSJ9LHsiYWNsIjoicHJpdmF0ZSJ9LHsieC1hbXotY3JlZGVudGlhbCI6IkFLSUFJSjNXUzNIWkRWUUc2NzZRLzIwNTAwMTAxL3VzLXdlc3QtMS9zMy9hd3M0X3JlcXVlc3QifSx7IngtYW16LWFsZ29yaXRobSI6IkFXUzQtSE1BQy1TSEEyNTYifSx7IngtYW16LWRhdGUiOiIyMDUwMDEwMVQwMDAwMDBaIn0sWyJzdGFydHMtd2l0aCIsIiRrZXkiLCJ1cGxvYWRzIl0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMCwxMDQ4NTc2MF1dfQ==');
-      formData.append('x-amz-algorithm', 'AWS4-HMAC-SHA256');
-      formData.append('x-amz-credential', 'AKIAIJ3WS3HZDVQG676Q/20500101/us-west-1/s3/aws4_request');
-      formData.append('x-amz-date', '20500101T000000Z');
-      formData.append('x-amz-signature', '57cf129426bbb95dab909a9696f208c5fb4d72d023a01ec0825e8c29faecf67c');
-      formData.append('file', this.state.modelFile);
+      const request = new XMLHttpRequest();
 
-      var xhr = new XMLHttpRequest();
+      const uploadComplete = () => {
+        this.props.addJobProp(this.state.modelFile.name, this.state.uploadID);
+      };
 
-      xhr.upload.addEventListener("progress", this.uploadProgress, false);
-      xhr.addEventListener("load", this.uploadComplete, false);
-      xhr.addEventListener("error", this.uploadFailed, false);
-      xhr.addEventListener("abort", this.uploadCanceled, false);
+      const uploadFailed = () => {
+        console.log("There was an error attempting to upload the file." + evt);
+      };
 
-      //xhr.open('POST', 'https://alfalfa.s3.amazonaws.com', true);
-      // TODO: Need to configure this on server side
-      const posturl = 'http://' + window.location.hostname + ':9000/alfalfa';
-      xhr.open('POST', posturl, true);
+      const uploadCanceled = () => {
+        console.log("The upload has been canceled by the user or the browser dropped the connection.");
+      };
 
-      xhr.send(formData);  // multipart/form-data
+      const uploadProgress = (evt) => {
+        if (evt.lengthComputable) {
+          var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+          if (percentComplete > 100) {
+            this.setState({completed: 100});
+          } else {
+            this.setState({completed: percentComplete});
+          }
+        }
+        else {
+          console.log('percent: unable to compute');
+        }
+      };
+
+      const uploadFile = () => {
+        const response = JSON.parse(request.responseText).urlStr;
+
+        if ( ! response ) {
+          console.log('Failed to acquire upload url');
+          return;
+        }
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener("progress", uploadProgress, false);
+        xhr.upload.addEventListener("load", uploadComplete, false);
+        xhr.addEventListener("error", uploadFailed, false);
+        xhr.addEventListener("abort", uploadCanceled, false);
+
+        // TODO: Need to configure this on server side
+        const posturl = 'http://' + window.location.hostname + ':9000/alfalfa';
+        xhr.open('POST', posturl, true);
+
+        let formData = new FormData();
+        Object.entries(response.formData).forEach(([key, value]) => {
+            formData.append(key, value);
+        });
+        formData.append('file', this.state.modelFile);
+
+        xhr.send(formData);  // multipart/form-data
+      };
+
+      const url = '/upload-url';
+      const params = JSON.stringify({ name: key });
+      request.open('POST', url, true);
+      request.setRequestHeader("Content-type", "application/json; charset=utf-8");
+      request.addEventListener("load", uploadFile, false);
+      request.send(params);
     } else {
       console.log('Select file to upload');
     }

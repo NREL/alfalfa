@@ -42,6 +42,7 @@
     "graphql-tag": "^2.10.0",
     "html-webpack-plugin": "^3.2.0",
     "material-ui-pickers": "^2.0.4",
+    "minio": "^7.0.2",
     "mocha": "3.4.2",
     "moment": "2.20.1",
     "mongodb": "2.2.29",
