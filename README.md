@@ -8,7 +8,7 @@ This is a Haystack implementation backed by a virtual building. Virtual building
 1. From a command prompt ```docker-compose up web```.
 1. Navigate to http://localhost/api/nav to verify that the Haystack implementation is running.
 1. Navigate to http://localhost to view web application.
-1. Navigate to http://localhost:9000 to view the minio file server.
+1. Navigate to http://localhost:9000 to view the minio file server. The default login is "user" and "password"
 This is a local implementation of Amazon S3 for bulk file storage during development.
 1. Use ```Ctrl-C``` to stop the services.
 

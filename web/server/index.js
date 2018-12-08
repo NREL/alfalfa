@@ -82,7 +82,6 @@ MongoClient.connect(process.env.MONGO_URL).then((db) => {
     // Construct a new postPolicy.
     var policy = client.newPostPolicy()
     // Set the object name my-objectname.
-    console.log(req.body);
     policy.setKey(req.body.name);
     // Set the bucket to my-bucketname.
     policy.setBucket("alfalfa");
