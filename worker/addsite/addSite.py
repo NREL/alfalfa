@@ -69,7 +69,7 @@ ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url='http://minio:9000')
+s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
 key = "uploads/%s/%s" % (upload_id, osm_name)
 seedpath = os.path.join(directory, 'seed.osm')
 workflowpath = os.path.join(directory, 'workflow/workflow.osw')

@@ -157,7 +157,7 @@ class Upload extends React.Component {
       };
 
       const uploadFile = () => {
-        const response = JSON.parse(request.responseText).urlStr;
+        const response = JSON.parse(request.responseText);
 
         if ( ! response ) {
           console.log('Failed to acquire upload url');
@@ -172,8 +172,7 @@ class Upload extends React.Component {
         xhr.addEventListener("abort", uploadCanceled, false);
 
         // TODO: Need to configure this on server side
-        const posturl = 'http://' + window.location.hostname + ':9000/alfalfa';
-        xhr.open('POST', posturl, true);
+        xhr.open('POST', response.postURL, true);
 
         let formData = new FormData();
         Object.entries(response.formData).forEach(([key, value]) => {

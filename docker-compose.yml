@@ -5,7 +5,8 @@ services:
     build: 
       context: web
       args:
-        - NODE_ENV=${NODE_ENV}
+        - NODE_ENV
+    image: ${WEB_REGISTRY_URI}:latest
     ports:
      - "80:80"
      - "29043:29043"
@@ -14,7 +15,8 @@ services:
      - AWS_SECRET_ACCESS_KEY
      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
      - MONGO_URL=mongodb://mongo:27017/
-     - NODE_ENV=${NODE_ENV}
+     - NODE_ENV
+     - S3_URL
     depends_on:
       - mongo
       - goaws
@@ -56,6 +58,7 @@ services:
 
   worker:
     build: worker
+    image: ${WORKER_REGISTRY_URI}:latest
     environment:
      - AWS_ACCESS_KEY_ID
      - AWS_SECRET_ACCESS_KEY
@@ -63,7 +66,8 @@ services:
      - MONGO_URL=mongodb://mongo:27017/
      - MONGO_DB_NAME=admin
      - LOGLEVEL=INFO
-     - NODE_ENV=${NODE_ENV}
+     - NODE_ENV
+     - S3_URL
     depends_on:
       - mongo
       - goaws

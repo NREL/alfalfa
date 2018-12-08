@@ -35,16 +35,19 @@ import graphQLHTTP from 'express-graphql';
 import {Schema} from './schema';
 import historyApiFallback from 'connect-history-api-fallback';
 import morgan from 'morgan';
-
-//import Minio from 'minio';
 import * as Minio from 'minio';
+import { URL } from "url";
+
+const s3URL = new URL(process.env.S3_URL);
+
 var client = new Minio.Client({
-    endPoint: 'minio',
-    port: 9000,
-    useSSL: false,
+    endPoint: s3URL.hostname,
+    port: parseInt(s3URL.port),
+    useSSL: s3URL.protocol == 'https:',
     accessKey: process.env.AWS_ACCESS_KEY_ID,
-    secretKey: process.env.AWS_SECRET_ACCESS_KEY
-})
+    secretKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: 'us-west-1'
+});
 
 MongoClient.connect(process.env.MONGO_URL).then((db) => {
   var app = express();
@@ -89,9 +92,13 @@ MongoClient.connect(process.env.MONGO_URL).then((db) => {
     var expires = new Date
     expires.setSeconds(24 * 60 * 60 * 10) // 10 days expiry.
     policy.setExpires(expires)
-    client.presignedPostPolicy(policy, function(e, urlStr, formData) {
+    client.presignedPostPolicy(policy, function(e, data) {
         if (e) throw e;
-        res.send(JSON.stringify({urlStr, formData}));
+        if ( s3URL.hostname.indexOf("amazonaws") == -1 ) {
+          const postURL = 'http://' + req.host + ':9000/alfalfa';
+          data.postURL = postURL;
+        }
+        res.send(JSON.stringify(data));
         res.end();
         return;
     })

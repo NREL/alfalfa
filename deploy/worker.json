@@ -29,6 +29,10 @@
           {
             "name": "LOGLEVEL",
             "value": "ERROR"
+          },
+          {
+            "name": "S3_URL",
+            "value": "https://s3.amazonaws.com"
           }
       ],
       "logConfiguration": {

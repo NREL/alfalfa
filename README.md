@@ -235,7 +235,7 @@ aws cloudwatch put-metric-alarm --alarm-name WorkerServiceScaleOutAlarm --metric
 ## If you need to update the worker
 
 1. Install docker, https://www.docker.com/community-edition#/download
-1. Use ```aws ecr get-login | bash -``` to login to docker.
+1. Use ```aws ecr get-login --no-include-email | bash -``` to login to docker.
 1. Build current containers with, ```docker-compose build```.
 1. Use ```docker-compose push``` to push new images to the aws container registry.
 1. ```./deploy/deploy create```
