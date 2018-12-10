@@ -44,6 +44,19 @@ function addSiteResolver(osmName, uploadID) {
   });
 }
 
+function runSimResolver(uploadFilename, uploadID) {
+  var params = {
+   MessageBody: `{"op": "InvokeAction", "action": "runSim", "upload_filename": "${uploadFilename}", "upload_id": "${uploadID}"}`,
+   QueueUrl: process.env.JOB_QUEUE_URL
+  };
+  
+  sqs.sendMessage(params, (err, data) => {
+    if (err) {
+      callback(err);
+    }
+  });
+}
+
 function runSiteResolver(args) {
     //args: {
     //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
@@ -291,5 +304,5 @@ function sitePointResolver(siteRef) {
   });
 }
 
-module.exports = { addSiteResolver, sitesResolver, runSiteResolver, stopSiteResolver, removeSiteResolver, sitePointResolver, simsResolver };
+module.exports = { runSimResolver, addSiteResolver, sitesResolver, runSiteResolver, stopSiteResolver, removeSiteResolver, sitePointResolver, simsResolver };
 

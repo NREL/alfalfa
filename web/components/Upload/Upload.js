@@ -124,14 +124,14 @@ class Upload extends React.Component {
     this.setState({weatherFile: file, completed: 0});
   }
 
-  onClick() {
+  onClick(onCompleteProp) {
     if( this.state.modelFile ) {
       const key = `uploads/${this.state.uploadID}/${this.state.modelFile.name}`;
 
       const request = new XMLHttpRequest();
 
       const uploadComplete = () => {
-        this.props.addJobProp(this.state.modelFile.name, this.state.uploadID);
+        onCompleteProp(this.state.modelFile.name, this.state.uploadID);
       };
 
       const uploadFailed = () => {
@@ -222,10 +222,10 @@ class Upload extends React.Component {
               <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
             </Grid>
             <Grid item xs>
-              <Button fullWidth={true} variant="contained" color="primary" onClick={this.onClick}>Add Site</Button>
+              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.addJobProp)} }>Add Site</Button>
             </Grid>
             <Grid item xs>
-              <Button fullWidth={true} variant="contained" color="primary" onClick={this.onClick}>Simulate</Button>
+              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.runSimProp)} }>Simulate</Button>
             </Grid>
           </Grid>
         </div>
@@ -248,9 +248,21 @@ const addJobQL = gql`
   }
 `;
 
+const runSimQL = gql`
+  mutation runSimMutation($uploadFilename: String!, $uploadID: String!) {
+    runSim(uploadFilename: $uploadFilename, uploadID: $uploadID)
+  }
+`;
+
+const withRunSim = graphql(runSimQL, {
+  props: ({ mutate }) => ({
+    runSimProp: (uploadFilename, uploadID) => mutate({ variables: { uploadFilename, uploadID } }),
+  }),
+})(withStyle);
+
 export default graphql(addJobQL, {
   props: ({ mutate }) => ({
     addJobProp: (osmName, uploadID) => mutate({ variables: { osmName, uploadID } }),
   }),
-})(withStyle);
+})(withRunSim);
 

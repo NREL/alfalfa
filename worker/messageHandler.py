@@ -46,14 +46,18 @@ def process_message(message):
                 endDatetime = message_body.get('endDatetime', 'None')
                 realtime = message_body.get('realtime', 'None')
                 timescale = str(message_body.get('timescale', 'None'))
-
                 logger.info('Start simulation for site_ref: %s' % siteRef)
-                subprocess.call(['python3', 'runsite/runSite.py', siteRef, realtime, timescale, startDatetime, endDatetime])
+                subprocess.call(['python3.5', 'runsite/runSite.py', siteRef, realtime, timescale, startDatetime, endDatetime])
             elif action == 'addSite':
                 osm_name = message_body.get('osm_name')
                 upload_id = message_body.get('upload_id')
                 logger.info('Add site for osm_name: %s, and upload_id: %s' % (osm_name, upload_id))
-                subprocess.call(['python3', 'addsite/addSite.py', osm_name, upload_id])
+                subprocess.call(['python3.5', 'addsite/addSite.py', osm_name, upload_id])
+            elif action == 'runSim':
+                upload_filename = message_body.get('upload_filename')
+                upload_id = message_body.get('upload_id')
+                logger.info('Run sim for upload_filename: %s, and upload_id: %s' % (upload_filename, upload_id))
+                subprocess.call(['python3.5', 'runsimulation/runSimulation.py', upload_filename, upload_id])
     except Exception as e:
         print('Exception while processing message: %s' % e, file=sys.stderr)
 

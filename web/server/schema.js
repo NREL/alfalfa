@@ -184,6 +184,17 @@ var queryType = new GraphQLObjectType({
 const mutationType = new GraphQLObjectType({
   name: 'Mutations',
   fields: () => ({
+    runSim: { 
+      name: 'RunSim',
+      type: GraphQLString,
+      args: {
+        uploadFilename : { type: new GraphQLNonNull(GraphQLString) },
+        uploadID : { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve: (_,args,request) => {
+        resolvers.runSimResolver(args.uploadFilename,args.uploadID);
+      },
+    },
     addSite: { 
       name: 'AddSite',
       type: GraphQLString,

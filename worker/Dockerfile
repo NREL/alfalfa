@@ -4,7 +4,7 @@ RUN cd /root
 WORKDIR /root
 
 RUN apt-get update -y && apt-get install -y \
-    ca-certificates curl libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python3 python3-pip
+    ca-certificates curl libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python3.5 python3-pip
 
 RUN apt-get update \
     && apt-get install -y software-properties-common \
@@ -47,8 +47,11 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
+  && python3.5 get-pip.py
+
 COPY requirements.txt /root/
-RUN pip3 install -r requirements.txt
+RUN  python3.5 -m pip install --ignore-installed -r requirements.txt
 
 COPY package.json package-lock.json /root/
 
@@ -57,5 +60,5 @@ RUN npm install
 COPY . /root
 RUN cd addsite && tar -czf ../workflow.tar.gz workflow
 
-CMD [ "python3", "-u", "messageHandler.py" ]
+CMD [ "python3.5", "-u", "messageHandler.py" ]
 
