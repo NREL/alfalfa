@@ -41,61 +41,59 @@ import calendar
 import traceback
 from dateutil.parser import parse
 
-sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
-queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
-# Mongo Database
-mongo_client = MongoClient(os.environ['MONGO_URL'])
-mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
-sims = mongodb.sims
-
-if len(sys.argv) == 3:
+try:
+    sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
+    queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
+    s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
+    # Mongo Database
+    mongo_client = MongoClient(os.environ['MONGO_URL'])
+    mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+    sims = mongodb.sims
+    
     upload_file_name = sys.argv[1]
     upload_id = sys.argv[2]
-else:
-    print('addSite called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
-    sys.exit(1)
-
-key = "uploads/%s/%s" % (upload_id, upload_file_name)
-directory = os.path.join('/simulate', upload_id)
-rootname = os.path.splitext(upload_file_name)[0]
-tarpath = os.path.join(directory, upload_file_name)
-
-try:
+    
+    key = "uploads/%s/%s" % (upload_id, upload_file_name)
+    directory = os.path.join('/simulate', upload_id)
+    rootname = os.path.splitext(upload_file_name)[0]
+    tarpath = os.path.join(directory, upload_file_name)
+    
     if not os.path.exists(directory):
         os.makedirs(directory)
-except:
-    print('error making add site parsing directory for upload_id: %s' % upload_id, file=sys.stderr)
-    sys.exit(1)
+    
+    bucket = s3.Bucket('alfalfa')
+    bucket.download_file(key, tarpath)
+    
+    tar = tarfile.open(tarpath)
+    tar.extractall(directory)
+    tar.close()
 
-bucket = s3.Bucket('alfalfa')
-bucket.download_file(key, tarpath)
+    sims.update_one({"_id": upload_id}, {"$set": {"simStatus": "Running"}}, False)
+    
+    osws = glob.glob(("%s/**/*.osw" % directory), recursive=True)
+    for oswpath in osws :
+        subprocess.call(['openstudio', 'run', "-w", oswpath])
+    
+    os.remove(tarpath)
+    
+    def reset(tarinfo):
+        tarinfo.uid = tarinfo.gid = 0
+        tarinfo.uname = tarinfo.gname = "root"
+        return tarinfo
+    
+    tarname = "%s.tar.gz" % upload_id
+    tar = tarfile.open(tarname, "w:gz")
+    tar.add(directory, filter=reset, arcname=upload_id)
+    tar.close()
+    
+    uploadkey = "simulated/%s" % tarname
+    bucket.upload_file(tarname, uploadkey)
+    os.remove(tarname)
+    shutil.rmtree(directory)
+    
+    time = str(datetime.now(tz=pytz.UTC))
+    sims.update_one({"_id": upload_id}, {"$set": {"simStatus": "Complete", "timeCompleted": time, "s3Key": uploadkey}}, False)
 
-tar = tarfile.open(tarpath)
-tar.extractall(directory)
-tar.close()
-
-osws = glob.glob(("%s/**/*.osw" % directory), recursive=True)
-for oswpath in osws :
-    subprocess.call(['openstudio', 'run', "-w", oswpath])
-
-os.remove(tarpath)
-
-def reset(tarinfo):
-    tarinfo.uid = tarinfo.gid = 0
-    tarinfo.uname = tarinfo.gname = "root"
-    return tarinfo
-
-tarname = "%s.tar.gz" % upload_id
-tar = tarfile.open(tarname, "w:gz")
-tar.add(directory, filter=reset, arcname=upload_id)
-tar.close()
-
-uploadkey = "simulated/%s" % tarname
-bucket.upload_file(tarname, uploadkey)
-os.remove(tarname)
-shutil.rmtree(directory)
-
-time = str(datetime.now(tz=pytz.UTC))
-sims.insert_one({"_id": upload_id, "siteRef": upload_id, "s3Key": uploadkey, "name": rootname, "timeCompleted": time})
+except Exception as e:
+    print('runSimulation: %s' % e, file=sys.stderr)
 

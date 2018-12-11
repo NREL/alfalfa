@@ -120,6 +120,7 @@ class Sims extends React.Component {
                 <TableRow>
                   <TableCell padding="checkbox"></TableCell>
                   <TableCell>Name</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell>Completed Time</TableCell>
                 </TableRow>
               </TableHead>
@@ -136,6 +137,7 @@ class Sims extends React.Component {
                        />
                      </TableCell>
                      <TableCell padding="none">{sim.name}</TableCell>
+                     <TableCell padding="none">{sim.simStatus}</TableCell>
                      <TableCell>{sim.timeCompleted}</TableCell>
                    </TableRow>
                   );
@@ -167,6 +169,7 @@ const simsQL = gql`
       sims {
         simRef,
         name,
+        simStatus,
         siteRef,
         url,
         timeCompleted

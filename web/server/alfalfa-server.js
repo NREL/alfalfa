@@ -633,7 +633,8 @@ class AlfalfaServer extends HServer {
      
         var params = {
          MessageBody: JSON.stringify(body),
-         QueueUrl: process.env.JOB_QUEUE_URL
+         QueueUrl: process.env.JOB_QUEUE_URL,
+         MessageGroupId: "Alfalfa"
         };
 
         sqs.sendMessage(params, function(err, data) {

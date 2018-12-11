@@ -109,6 +109,10 @@ var simType = new GraphQLObjectType({
       type: GraphQLString,
       description: 'An identifier, corresponding to the haystack siteRef value'
     },
+    simStatus: {
+      type: GraphQLString,
+      description: 'The simulation status.'
+    },
     s3Key: {
       type: GraphQLString,
       description: 'The s3 key where the simulation point is located.'
@@ -191,8 +195,8 @@ const mutationType = new GraphQLObjectType({
         uploadFilename : { type: new GraphQLNonNull(GraphQLString) },
         uploadID : { type: new GraphQLNonNull(GraphQLString) },
       },
-      resolve: (_,args,request) => {
-        resolvers.runSimResolver(args.uploadFilename,args.uploadID);
+      resolve: (_,args,context) => {
+        resolvers.runSimResolver(args.uploadFilename,args.uploadID,context);
       },
     },
     addSite: { 

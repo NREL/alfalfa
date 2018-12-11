@@ -26,6 +26,7 @@
 import AWS from 'aws-sdk';
 import request from 'superagent';
 import {MongoClient} from 'mongodb';
+import path from 'path';
 
 AWS.config.update({region: 'us-east-1'});
 var sqs = new AWS.SQS();
@@ -33,26 +34,40 @@ var s3 = new AWS.S3({endpoint: "http://minio:9000"});
 
 function addSiteResolver(osmName, uploadID) {
   var params = {
-   MessageBody: `{"op": "InvokeAction", "action": "addSite", "osm_name": "${osmName}", "upload_id": "${uploadID}"}`,
-   QueueUrl: process.env.JOB_QUEUE_URL
+   MessageBody: `{"op": "InvokeAction", 
+      "action": "addSite", 
+      "osm_name": "${osmName}", 
+      "upload_id": "${uploadID}"
+    }`,
+   QueueUrl: process.env.JOB_QUEUE_URL,
+   MessageGroupId: "Alfalfa"
   };
   
   sqs.sendMessage(params, (err, data) => {
     if (err) {
+      console.log(err);
       callback(err);
     }
   });
 }
 
-function runSimResolver(uploadFilename, uploadID) {
+function runSimResolver(uploadFilename, uploadID, context) {
   var params = {
-   MessageBody: `{"op": "InvokeAction", "action": "runSim", "upload_filename": "${uploadFilename}", "upload_id": "${uploadID}"}`,
-   QueueUrl: process.env.JOB_QUEUE_URL
+   MessageBody: `{"op": "InvokeAction", 
+    "action": "runSim", 
+    "upload_filename": "${uploadFilename}", 
+    "upload_id": "${uploadID}"
+   }`,
+   QueueUrl: process.env.JOB_QUEUE_URL,
+   MessageGroupId: "Alfalfa"
   };
   
   sqs.sendMessage(params, (err, data) => {
     if (err) {
       callback(err);
+    } else {
+      const simcollection = context.db.collection('sims');
+      simcollection.insert( {_id: uploadID, siteRef: uploadID, simStatus: "Queued", name: path.parse(uploadFilename).name } );
     }
   });
 }
@@ -187,9 +202,13 @@ function  simsResolver(user,args,context) {
       const simcollection = context.db.collection('sims');
       simcollection.find(args).toArray().then((array) => {
         array.map( (sim) => {
-          var params = {Bucket: 'alfalfa', Key: sim.s3Key, Expires: 86400};
-          var url = s3.getSignedUrl('getObject', params);
-          sims.push(Object.assign(sim, {"simRef": sim._id, "url": url}));
+          sim = (Object.assign(sim, {"simRef": sim._id}));
+          if ( sim.s3Key ) {
+            var params = {Bucket: 'alfalfa', Key: sim.s3Key, Expires: 86400};
+            var url = s3.getSignedUrl('getObject', params);
+            sim = (Object.assign(sim, {"url": url}));
+          }
+          sims.push(sim)
         })
         resolve(sims);
       }).catch((err) => {

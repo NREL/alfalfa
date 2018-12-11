@@ -167,7 +167,7 @@ class Upload extends React.Component {
         var xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener("progress", uploadProgress, false);
-        xhr.upload.addEventListener("load", uploadComplete, false);
+        xhr.addEventListener("load", uploadComplete, false);
         xhr.addEventListener("error", uploadFailed, false);
         xhr.addEventListener("abort", uploadCanceled, false);
 
