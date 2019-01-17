@@ -1,4 +1,7 @@
-FROM ubuntu:trusty
+FROM michaelwetter/ubuntu-1604_jmodelica_trunk
+
+USER root
+ENV HOME /home/root
 
 RUN cd /root
 WORKDIR /root
@@ -52,6 +55,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
 
 COPY requirements.txt /root/
 RUN  python3.5 -m pip install --ignore-installed -r requirements.txt
+RUN  python -m pip install --ignore-installed -r requirements.txt
 
 COPY package.json package-lock.json /root/
 
@@ -59,6 +63,14 @@ RUN npm install
 
 COPY . /root
 RUN cd addsite && tar -czf ../workflow.tar.gz workflow
+
+ENV ROOT_DIR /usr/local
+ENV JMODELICA_HOME $ROOT_DIR/JModelica
+ENV IPOPT_HOME $ROOT_DIR/Ipopt-3.12.4
+ENV SUNDIALS_HOME $JMODELICA_HOME/ThirdParty/Sundials
+ENV SEPARATE_PROCESS_JVM /usr/lib/jvm/java-8-openjdk-amd64/
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+ENV PYTHONPATH $PYTHONPATH:$JMODELICA_HOME/Python:$JMODELICA_HOME/Python/pymodelica
 
 CMD [ "python3.5", "-u", "messageHandler.py" ]
 
