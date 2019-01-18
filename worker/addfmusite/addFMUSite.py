@@ -35,7 +35,7 @@ from subprocess import call
 import logging
 
 if len(sys.argv) == 3:
-    osm_name = sys.argv[1]
+    fmu_name = sys.argv[1]
     upload_id = sys.argv[2]
 else:
     print('addSite called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
@@ -54,37 +54,22 @@ except:
     print('error making add site parsing directory for upload_id: %s' % upload_id, file=sys.stderr)
     sys.exit(1)
 
-logger = logging.getLogger('addsite')
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-log_file = os.path.join(directory,'addsite.log')
-fh = logging.FileHandler(log_file)
-fh.setLevel(logging.INFO)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
 s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
-key = "uploads/%s/%s" % (upload_id, osm_name)
-seedpath = os.path.join(directory, 'seed.osm')
-workflowpath = os.path.join(directory, 'workflow/workflow.osw')
-jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
+key = "uploads/%s/%s" % (upload_id, fmu_name)
+fmupath = os.path.join(directory, fmu_name)
+#workflowpath = os.path.join(directory, 'workflow/workflow.osw')
+jsonpath = os.path.join(directory, 'tags.json')
 
-tar = tarfile.open("workflow.tar.gz")
-tar.extractall(directory)
-tar.close()
+#tar = tarfile.open("workflow.tar.gz")
+#tar.extractall(directory)
+#tar.close()
 
 #time.sleep(5)
 
 bucket = s3.Bucket('alfalfa')
-bucket.download_file(key, seedpath)
+bucket.download_file(key, fmupath)
 
-call(['openstudio', 'run', '-m', '-w', workflowpath])
+call(['python', 'addfmusite/createFMUTags.py', fmupath, jsonpath])
 
 site_ref = False
 with open(jsonpath) as json_file:
@@ -115,4 +100,3 @@ if site_ref:
     #os.remove(tarname)
 
 shutil.rmtree(directory)
-

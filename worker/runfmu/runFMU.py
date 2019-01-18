@@ -80,7 +80,7 @@ try:
     while tc.start_time < 10000:
         tc.advance(u)
 
-    shutil.rmtree(directory)
+    #shutil.rmtree(directory)
     
     time = str(datetime.now(tz=pytz.UTC))
     sims.update_one({"_id": upload_id}, {"$set": {"simStatus": "Complete", "timeCompleted": time, "s3Key": ''}}, False)
