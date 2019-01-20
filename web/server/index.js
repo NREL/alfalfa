@@ -95,7 +95,7 @@ MongoClient.connect(process.env.MONGO_URL).then((db) => {
     client.presignedPostPolicy(policy, function(e, data) {
         if (e) throw e;
         if ( s3URL.hostname.indexOf("amazonaws") == -1 ) {
-          const postURL = 'http://' + req.host + ':9000/alfalfa';
+          const postURL = 'http://' + req.hostname + ':9000/alfalfa';
           data.postURL = postURL;
         }
         res.send(JSON.stringify(data));

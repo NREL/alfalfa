@@ -13,14 +13,18 @@ output_names = fmu.get_model_variables(causality = 3).keys()
 
 tags = []
 
-fmuname = os.path.splitext(fmupath)[0]
+fmuname = os.path.basename(fmupath) # without directories
+fmuname = os.path.splitext(fmuname)[0] # without extension
+
+siteid = uuid.uuid4()
 sitetag = {
     "dis": "s:%s" % fmuname,
-    "id": "r:%s" % uuid.uuid4(),
-    "site": "m:"
+    "id": "r:%s" % siteid,
+    "site": "m:",
+    "simStatus": "s:Stopped",
+    "siteRef": "r:%s" % siteid
 }
 tags.append(sitetag)
-
 
 with open(jsonpath, 'w') as outfile:
     json.dump(tags, outfile)

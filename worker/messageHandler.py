@@ -52,7 +52,16 @@ def process_message(message):
                 osm_name = message_body.get('osm_name')
                 upload_id = message_body.get('upload_id')
                 logger.info('Add site for osm_name: %s, and upload_id: %s' % (osm_name, upload_id))
-                subprocess.call(['python3.5', 'addsite/addSite.py', osm_name, upload_id])
+
+                # TODO reorganize the message names, because now "osm_name"
+                # is misleading because we are also handling FMUs
+                name, ext = os.path.splitext(osm_name)
+                if ext == '.osm':
+                    subprocess.call(['python3.5', 'addsite/addSite.py', osm_name, upload_id])
+                elif ext == '.fmu':
+                    subprocess.call(['python3.5', 'addfmusite/addFMUSite.py', osm_name, upload_id])
+                else:
+                    logger.info('Unsupported file type was uploaded')
             elif action == 'runSim':
                 upload_filename = message_body.get('upload_filename')
                 upload_id = message_body.get('upload_id')
