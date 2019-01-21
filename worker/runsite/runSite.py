@@ -494,7 +494,7 @@ try:
 
         local_time = utc_to_local_datetime(utc_time, local_time_zone)
         output_time_string = 't:%s %s' % (local_time.isoformat(), local_time.tzname())
-        print('((((((((((((((((((( output time iso: ', output_time_string) 
+        #print('((((((((((((((((((( output time iso: ', output_time_string) 
 
         #print (": )))))))))))))) current time: ((((((((((((((: ", t)    
         # Iterating over timesteps
@@ -631,7 +631,7 @@ try:
                         
                         #output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
                          
-                        recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}}, False)
+                        recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(ep.kStep), "rec.simStatus": "s:Running"}}, False)
     
                     # Step
                     logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
