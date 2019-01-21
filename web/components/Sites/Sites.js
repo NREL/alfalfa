@@ -310,6 +310,7 @@ class Sites extends React.Component {
                   <TableCell>Site Reference</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Time</TableCell>
+                  <TableCell>Step</TableCell>
                   <TableCell></TableCell>
                 </TableRow>
               </TableHead>
@@ -330,6 +331,7 @@ class Sites extends React.Component {
                       <TableCell>{site.siteRef}</TableCell>
                       <TableCell>{site.simStatus}</TableCell>
                       <TableCell>{this.formatTime(site.datetime)}</TableCell>
+                      <TableCell>{site.step}</TableCell>
                       <TableCell><IconButton onClick={event => this.handleRequestShowPoints(event, site)}><MoreVert/></IconButton></TableCell>
                     </TableRow>
                    );
@@ -372,7 +374,8 @@ const sitesQL = gql`
         name,
         datetime,
         siteRef,
-        simStatus
+        simStatus,
+	step,
       }
     }
   }

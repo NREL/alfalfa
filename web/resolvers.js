@@ -206,6 +206,13 @@ function  sitesResolver(user,siteRef) {
             datetime = datetime.replace(/[a-z]\:/,'');
             site.datetime = datetime;
           }
+
+          let step = row['step'];
+          if (step){
+            step=step.replace(/[a-z]\:/, '');
+            site.step=step;
+          }
+
           sites.push(site);
         });
         resolve(sites);

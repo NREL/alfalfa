@@ -176,7 +176,7 @@ def finalize_simulation():
     #os.remove(tar_name)
     #shutil.rmtree(sp.workflow_directory)
 
-    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
+    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""}, "$unset": {"rec.step": ""}  }, False)
     recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
     #sys.exit()
 
@@ -480,7 +480,7 @@ try:
     next_t = t
      
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Starting"}}, False)
-    
+    real_time_step=0 
     # probably need some kind of fail safe/timeout to ensure
     # that this is not an infinite loop
     # or maybe a timeout in the python call to this script
@@ -612,6 +612,7 @@ try:
                                 recs.update_one({"_id": output_id}, {
                                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
     
+                        real_time_step = real_time_step + 1
                         # time computed for ouput purposes
                         output_time = datetime.strptime(sp.start_date, "%m/%d").replace(year=startDatetime.year) + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
                         #output_time = output_time.replace(tzinfo=pytz.utc)
@@ -630,8 +631,9 @@ try:
                                output_time_string = 't:%s %s' % (output_time.isoformat(), 'Denver')
                         
                         #output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
-                         
-                        recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(ep.kStep), "rec.simStatus": "s:Running"}}, False)
+                    
+     
+                        recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(real_time_step), "rec.simStatus": "s:Running"}}, False)
     
                     # Step
                     logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
