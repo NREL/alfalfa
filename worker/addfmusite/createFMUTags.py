@@ -22,6 +22,7 @@ sitetag = {
     "id": "r:%s" % siteid,
     "site": "m:",
     "simStatus": "s:Stopped",
+    "simType": "s:fmu",
     "siteRef": "r:%s" % siteid
 }
 tags.append(sitetag)

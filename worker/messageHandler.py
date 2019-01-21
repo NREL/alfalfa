@@ -59,7 +59,7 @@ def process_message(message):
                 if ext == '.osm':
                     subprocess.call(['python3.5', 'addsite/addSite.py', osm_name, upload_id])
                 elif ext == '.fmu':
-                    subprocess.call(['python3.5', 'addfmusite/addFMUSite.py', osm_name, upload_id])
+                    subprocess.call(['python', 'addfmusite/addFMUSite.py', osm_name, upload_id])
                 else:
                     logger.info('Unsupported file type was uploaded')
             elif action == 'runSim':
@@ -71,7 +71,7 @@ def process_message(message):
                 if ext == '.osm':
                     subprocess.call(['python3.5', 'runsimulation/runSimulation.py', upload_filename, upload_id])
                 elif ext == '.fmu':
-                    subprocess.call(['python', 'runfmu/runFMU.py', upload_filename, upload_id])
+                    subprocess.call(['python', 'runfmusimulation/runFMUSimulation.py', upload_filename, upload_id])
                 else:
                     logger.info('Unsupported file type was uploaded')
 
