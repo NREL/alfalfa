@@ -64,6 +64,7 @@
     "supertest": "3.0.0",
     "typeface-roboto": "0.0.54",
     "uglifyjs-webpack-plugin": "^2.0.1",
+    "url": "^0.11.0",
     "url-loader": "0.6.2",
     "uuid": "3.1.0",
     "webpack": "^4.27.1",
