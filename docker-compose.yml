@@ -73,14 +73,14 @@ services:
       - goaws
       - mc
 
-  worker-test:
-    build:
-      context: ./worker
-      dockerfile: Dockerfile-test
-    volumes:
-      - "./worker/test:/test"
-    depends_on:
-      - worker
+  #worker-test:
+  #  build:
+  #    context: ./worker
+  #    dockerfile: Dockerfile-test
+  #  volumes:
+  #    - "./worker/test:/test"
+  #  depends_on:
+  #    - worker
 
   mongo:
     image: mongo
