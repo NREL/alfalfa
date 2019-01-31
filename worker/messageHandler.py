@@ -31,6 +31,7 @@ import json
 import subprocess
 import sys
 import logging
+from pymongo import MongoClient
 
 # Process Message
 def process_message(message):
@@ -46,8 +47,16 @@ def process_message(message):
                 endDatetime = message_body.get('endDatetime', 'None')
                 realtime = message_body.get('realtime', 'None')
                 timescale = str(message_body.get('timescale', 'None'))
-                logger.info('Start simulation for site_ref: %s' % siteRef)
-                subprocess.call(['python3.5', 'runsite/runSite.py', siteRef, realtime, timescale, startDatetime, endDatetime])
+
+                site = recs.find_one({"_id": siteRef})
+                simType = site.get("rec",{}).get("simType", "osm").replace("s:","")
+
+                logger.info('Start simulation for site_ref: %s, and simType: %s' % (siteRef, simType))
+
+                if simType == 'fmu':
+                    subprocess.call(['python', 'runfmusite/runFMUSite.py', siteRef, realtime, timescale, startDatetime, endDatetime])
+                else:
+                    subprocess.call(['python3.5', 'runsite/runSite.py', siteRef, realtime, timescale, startDatetime, endDatetime])
             elif action == 'addSite':
                 osm_name = message_body.get('osm_name')
                 upload_id = message_body.get('upload_id')
@@ -84,6 +93,10 @@ if __name__ == '__main__':
         sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
         queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
         s3 = boto3.resource('s3', region_name='us-east-1')
+
+        mongo_client = MongoClient(os.environ['MONGO_URL'])
+        mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+        recs = mongodb.recs
 
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         logger = logging.getLogger('worker')

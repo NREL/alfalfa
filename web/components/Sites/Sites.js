@@ -373,7 +373,8 @@ const sitesQL = gql`
         name,
         datetime,
         siteRef,
-        simStatus
+        simStatus,
+        simType
       }
     }
   }

@@ -6,7 +6,8 @@ from pyfmi import load_fmu
 
 #1.0 setup the inputs
 fmupath = sys.argv[1]
-jsonpath = sys.argv[2]
+fmu_upload_name = sys.argv[2]
+jsonpath = sys.argv[3]
 fmu = load_fmu(fmupath)
 
 #2.0 get input/output variables from the FMU
@@ -19,12 +20,12 @@ print ("output names are: )))))): ", output_names )
 #3.0 add site tagging
 tags = []
 
-fmuname = os.path.basename(fmupath) # without directories
-fmuname = os.path.splitext(fmuname)[0] # without extension
+fmu_upload_name = os.path.basename(fmu_upload_name) # without directories
+fmu_upload_name = os.path.splitext(fmu_upload_name)[0] # without extension
 
 siteid = uuid.uuid4()
 sitetag = {
-    "dis": "s:%s" % fmuname,
+    "dis": "s:%s" % fmu_upload_name,
     "id": "r:%s" % siteid,
     "site": "m:",
     "simStatus": "s:Stopped",
@@ -39,13 +40,8 @@ for var_input in input_names:
         "id": "r:%s" % uuid.uuid4(),
         "dis": "s:%s" % var_input + ":input",
         "siteRef": "r:%s" % siteid,
-        "equipRef": "r:",
-        "zone": "m:",
-        "air": "m:",
         "point": "m:",
         "kind": "s:Number",
-        "unit": "s:%",
-        "curVal": "n:"
     }
     tags.append(tag_input)
     tag_input={}
@@ -56,13 +52,8 @@ for var_output in output_names:
         "id": "r:%s" % uuid.uuid4(),
         "dis": "s:%s" % var_output + ":output",
         "siteRef": "r:%s" % siteid,
-        "equipRef": "r:",
-        "zone": "m:",
-        "air": "m:",
         "point": "m:",
         "kind": "s:Number",
-        "unit": "s:%",
-        "curVal": "n:"
     }
     tags.append(tag_output)
     tag_output={}

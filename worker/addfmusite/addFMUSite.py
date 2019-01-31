@@ -35,7 +35,7 @@ from subprocess import call
 import logging
 
 if len(sys.argv) == 3:
-    fmu_name = sys.argv[1]
+    fmu_upload_name = sys.argv[1]
     upload_id = sys.argv[2]
 else:
     print('addSite called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
@@ -55,21 +55,17 @@ except:
     sys.exit(1)
 
 s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
-key = "uploads/%s/%s" % (upload_id, fmu_name)
-fmupath = os.path.join(directory, fmu_name)
-#workflowpath = os.path.join(directory, 'workflow/workflow.osw')
+key = "uploads/%s/%s" % (upload_id, fmu_upload_name)
+# fmu files gets uploaded with user defined names, but here we rename
+# to model.fmu to avoid keeping track of the (unreliable, non unique) user upload name
+# createFMUTags will however use the original fmu upload name for the display name of the site
+fmupath = os.path.join(directory, 'model.fmu')
 jsonpath = os.path.join(directory, 'tags.json')
-
-#tar = tarfile.open("workflow.tar.gz")
-#tar.extractall(directory)
-#tar.close()
-
-#time.sleep(5)
 
 bucket = s3.Bucket('alfalfa')
 bucket.download_file(key, fmupath)
 
-call(['python', 'addfmusite/createFMUTags.py', fmupath, jsonpath])
+call(['python', 'addfmusite/createFMUTags.py', fmupath, fmu_upload_name, jsonpath])
 
 site_ref = False
 with open(jsonpath) as json_file:

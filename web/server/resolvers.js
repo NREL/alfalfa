@@ -251,6 +251,7 @@ function  sitesResolver(user,siteRef) {
             name: row.dis.replace(/[a-z]\:/,''),
             siteRef: row.id.replace(/[a-z]\:/,''),
             simStatus: row.simStatus.replace(/[a-z]\:/,''),
+            simType: row.simType.replace(/[a-z]\:/,''),
           };
           let datetime = row['datetime'];
           if( datetime ) {

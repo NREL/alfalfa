@@ -83,6 +83,10 @@ var siteType = new GraphQLObjectType({
       type: GraphQLString,
       description: 'The status of the site simulation'
     },
+    simType: {
+      type: GraphQLString,
+      description: 'The type of simulation, osm or fmu'
+    },
     datetime: {
       type: GraphQLString,
       description: 'The current simulation time'

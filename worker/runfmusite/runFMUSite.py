@@ -50,27 +50,36 @@ try:
     # Mongo Database
     mongo_client = MongoClient(os.environ['MONGO_URL'])
     mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
-    sims = mongodb.sims
+    recs = mongodb.recs
 
-    upload_file_name = sys.argv[1]
-    upload_id = sys.argv[2]
-    
-    key = "uploads/%s/%s" % (upload_id, upload_file_name)
-    directory = os.path.join('/simulate', upload_id)
-    rootname = os.path.splitext(upload_file_name)[0]
-    downloadpath = os.path.join(directory, upload_file_name)
+    site_ref = sys.argv[1]
+    real_time_flag = sys.argv[2]
+    time_scale = int(sys.argv[3])
+    user_start_Datetime = parse(sys.argv[4])
+    user_end_Datetime = parse(sys.argv[5])
+
+    sim_path = '/simulate'
+    directory = os.path.join(sim_path, site_ref)
+    tar_name = "%s.tar.gz" % site_ref
+    key = "parsed/%s" % tar_name
+    tarpath = os.path.join(directory, tar_name)
+    fmupath = os.path.join(directory, 'model.fmu')
     
     if not os.path.exists(directory):
         os.makedirs(directory)
     
     bucket = s3.Bucket('alfalfa')
-    bucket.download_file(key, downloadpath)
+    bucket.download_file(key, tarpath)
+    
+    tar = tarfile.open(tarpath)
+    tar.extractall(sim_path)
+    tar.close()
 
-    sims.update_one({"_id": upload_id}, {"$set": {"simStatus": "Running"}}, False)
+    recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
 
     # Load fmu
     config = {
-        'fmupath'  : downloadpath,                
+        'fmupath'  : fmupath,                
         'step'     : 60
     }
 
@@ -80,10 +89,10 @@ try:
     while tc.start_time < 10000:
         tc.advance(u)
 
-    #shutil.rmtree(directory)
+    shutil.rmtree(directory)
     
-    time = str(datetime.now(tz=pytz.UTC))
-    sims.update_one({"_id": upload_id}, {"$set": {"simStatus": "Complete", "timeCompleted": time, "s3Key": ''}}, False)
+    recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
+    recs.update_many({"_id": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
 except Exception as e:
     print('runFMU: %s' % e, file=sys.stderr)
