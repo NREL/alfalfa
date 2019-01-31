@@ -30,7 +30,7 @@ import { Link, Route, Switch } from 'react-router-dom';
 import IconButton from '@material-ui/core/IconButton';
 import {FileCloudQueue, FileCloudDone, ActionAccountCircle} from '@material-ui/icons';
 import { MuiPickersUtilsProvider } from 'material-ui-pickers';
-import DateFnsUtils from '@date-io/date-fns';
+import MomentUtils from '@date-io/moment';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
 import Badge from '@material-ui/core/Badge';
@@ -60,7 +60,7 @@ class App extends React.Component {
     const { classes } = this.props;
 
     return (
-      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+      <MuiPickersUtilsProvider utils={MomentUtils}>
           <div className={this.props.classes.root}>
             <AppBar position="static">
               <Toolbar>
