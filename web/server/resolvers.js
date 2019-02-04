@@ -67,7 +67,7 @@ function runSimResolver(uploadFilename, uploadID, context) {
       callback(err);
     } else {
       const simcollection = context.db.collection('sims');
-      simcollection.insert( {_id: uploadID, siteRef: uploadID, simStatus: "Queued", name: path.parse(uploadFilename).name } );
+      simcollection.insert( {_id: uploadID, siteRef: uploadID, simStatus: "Queued", name: path.parse(uploadFilename).name.replace(".tar","") } );
     }
   });
 }

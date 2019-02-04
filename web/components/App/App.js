@@ -70,7 +70,7 @@ class App extends React.Component {
                 <Grid container justify='flex-end'>
                   <Grid item>
                     <Link to={'/sites'} style={{ textDecoration: 'none', color: 'unset' }}>
-                      <Typography className={classes.button} variant="button" color="inherit">Sites</Typography>
+                      <Typography className={classes.button} variant="button" color="inherit">Tags</Typography>
                     </Link>
                   </Grid>
                   <Grid item>

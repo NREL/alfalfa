@@ -77,7 +77,7 @@ def process_message(message):
                 logger.info('Run sim for upload_filename: %s, and upload_id: %s' % (upload_filename, upload_id))
 
                 name, ext = os.path.splitext(upload_filename)
-                if ext == '.osm':
+                if ext == '.gz':
                     subprocess.call(['python3.5', 'runsimulation/runSimulation.py', upload_filename, upload_id])
                 elif ext == '.fmu':
                     subprocess.call(['python', 'runfmusimulation/runFMUSimulation.py', upload_filename, upload_id])

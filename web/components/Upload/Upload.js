@@ -222,7 +222,7 @@ class Upload extends React.Component {
               <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
             </Grid>
             <Grid item xs>
-              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.addJobProp)} }>Add Site</Button>
+              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.addJobProp)} }>Create Tags</Button>
             </Grid>
             <Grid item xs>
               <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.runSimProp)} }>Simulate</Button>
