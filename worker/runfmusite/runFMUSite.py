@@ -43,6 +43,53 @@ from dateutil.parser import parse
 from pyfmi import load_fmu
 import copy
 import testcase
+import json
+
+
+def get_tag_data(tag_filepath):
+    '''this function will retrieve the tagged data,
+     which are model-exchange variables in FMU. 
+     This function will get the tagged properties, like id, dis. etc...
+    '''
+    with open( tag_filepath ) as json_data:
+        tag_data = json.load(json_data)
+        #print(" )))))) Hey tag data are: (((((( ",tag_data)
+
+    return tag_data
+
+
+def match_tags_fmu_vars(tag_data, input_names, output_names):
+    '''This function will match the tags with the FMU variables:
+        inputs and outputs.
+       It will return a dict containing the id and variable names
+    '''
+    #for input_var in input_names:
+    tagid_and_inputs={}
+    for x in tag_data:
+        key_list= x.keys()
+        for each_key in key_list:
+            for input_var in input_names:
+                if input_var in x[each_key]:
+                    tagid_and_inputs[input_var]=x[u'id']
+    #print("hey input id-vars ))))))((((((: ", tagid_and_inputs)
+
+    tagid_and_outputs={}
+    for x in tag_data:
+        key_list= x.keys()
+        for each_key in key_list:
+            for output_var in output_names:
+                if output_var in x[each_key]:
+                    tagid_and_outputs[output_var]=x[u'id']
+    #print("hey output  id-vars ))))))((((((: ", tagid_and_outputs)
+
+    return (tagid_and_inputs, tagid_and_outputs)
+
+
+############################################################################
+####################   Entry for Main Program   #####################
+############################################################################
+
+
 
 try:
     s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
@@ -64,16 +111,23 @@ try:
     key = "parsed/%s" % tar_name
     tarpath = os.path.join(directory, tar_name)
     fmupath = os.path.join(directory, 'model.fmu')
+    tagpath = os.path.join(directory, 'tags.json')
+
+    
     
     if not os.path.exists(directory):
         os.makedirs(directory)
     
     bucket = s3.Bucket('alfalfa')
     bucket.download_file(key, tarpath)
+    bucket.download_file(key, tagpath)
     
     tar = tarfile.open(tarpath)
     tar.extractall(sim_path)
     tar.close()
+    
+    #get the tagging id, disp, etc......
+    tag_data = get_tag_data(tagpath)
 
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
 
@@ -83,13 +137,51 @@ try:
         'step'     : 60
     }
 
-    tc = testcase.TestCase(config)
+    tc = testcase.TestCase(config)   
+    input_names  = tc.get_inputs()
+    output_names = tc.get_measurements()
+    #print(")))))) output names: ((((((", output_names)
+  
+    (tagid_and_inputs, tagid_and_outputs) = \
+            match_tags_fmu_vars(tag_data, input_names, output_names)
+    
+    
+    #setup the fake inputs
+    u={}
+    for each_input in input_names:
+        if each_input !='time':
+            u[each_input]=1.0   
+ 
 
-    u = {}
-    while tc.start_time < 10000:
+    kstep=0 
+    #while tc.start_time <= 1000000000000:
+    for i in range(1000000):
+        print("))))))))))) step counter: ((((((((((( ", i)
         tc.advance(u)
+        output = tc.get_results()
+        #print ("hey output y: ", output['y'])
+        #print ("hey output u: ", output['u'])
+        u_output = output['u']
+        y_output = output['y']
+        for key in u_output.keys():
+            value_u = u_output[key]
+            print(")))))) key/value u is: ((((((", key, value_u )
+            if key!='time':
+                input_id = tagid_and_inputs[key]
+                recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %value_u, "rec.curStatus":"s:ok","rec.cur": "m:" }}, False )
 
-    shutil.rmtree(directory)
+        for key in y_output.keys():
+            value_y = y_output[key]
+            print(")))))) key/value y is: ((((((", key, value_y )
+            if key!='time': 
+                output_id = tagid_and_outputs[key]
+                #print (")))))) Hey output id: ((((((", output_id)
+                #print("outputid: ))))))((((((:", output_id)
+                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }}, False )        
+             
+        
+
+    #shutil.rmtree(directory)
     
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
     recs.update_many({"_id": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
