@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fmiModelDescription fmiVersion="2.0" modelName="wrapped" guid="ec892e00065d0785bd4606c4b53f18d2" generationTool="JModelica.org" generationDateAndTime="2018-12-21T10:29:36" variableNamingConvention="structured" numberOfEventIndicators="2">
+	<ModelExchange modelIdentifier="wrapped" needsExecutionTool="false" completedIntegratorStepNotNeeded="false" canBeInstantiatedOnlyOncePerProcess="true" canNotUseMemoryManagementFunctions="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false" providesDirectionalDerivative="false" />
+	<UnitDefinitions>
+		<Unit name="J/K">
+			<BaseUnit m="2" s="-2" kg="1" K="-1" />
+		</Unit>
+		<Unit name="K">
+			<BaseUnit K="1" />
+			<DisplayUnit name="degC" offset="-273.15" />
+		</Unit>
+		<Unit name="K/s">
+			<BaseUnit s="-1" K="1" />
+		</Unit>
+		<Unit name="W">
+			<BaseUnit m="2" s="-3" kg="1" />
+		</Unit>
+		<Unit name="K/W">
+			<BaseUnit m="-2" s="3" kg="-1" K="1" />
+		</Unit>
+		<Unit name="Hz">
+			<BaseUnit s="-1" />
+		</Unit>
+		<Unit name="rad">
+			<BaseUnit />
+			<DisplayUnit name="deg" factor="57.29577951308232" />
+		</Unit>
+		<Unit name="s">
+			<BaseUnit s="1" />
+		</Unit>
+		<Unit name="1">
+			<BaseUnit />
+		</Unit>
+		<Unit name="1/K">
+			<BaseUnit K="-1" />
+		</Unit>
+	</UnitDefinitions>
+	<TypeDefinitions>
+		<SimpleType name="Modelica.Blocks.Types.SimpleController" description="Enumeration defining P, PI, PD, or PID simple controller type">
+			<Enumeration>
+				<Item name="P" value="1" description="P controller" />
+				<Item name="PI" value="2" description="PI controller" />
+				<Item name="PD" value="3" description="PD controller" />
+				<Item name="PID" value="4" description="PID controller" />
+			</Enumeration>
+		</SimpleType>
+		<SimpleType name="Modelica.Blocks.Types.InitPID" description="Enumeration defining initialization of PID and LimPID blocks">
+			<Enumeration>
+				<Item name="NoInit" value="1" description="No initialization (start values are used as guess values with fixed=false)" />
+				<Item name="SteadyState" value="2" description="Steady state initialization (derivatives of states are zero)" />
+				<Item name="InitialState" value="3" description="Initialization with initial states" />
+				<Item name="InitialOutput" value="4" description="Initialization with initial outputs (and steady state of the states if possible)" />
+				<Item name="DoNotUse_InitialIntegratorState" value="5" description="Do not use, only for backward compatibility (initialize only integrator state)" />
+			</Enumeration>
+		</SimpleType>
+		<SimpleType name="Modelica.Blocks.Types.Init" description="Enumeration defining initialization of a block">
+			<Enumeration>
+				<Item name="NoInit" value="1" description="No initialization (start values are used as guess values with fixed=false)" />
+				<Item name="SteadyState" value="2" description="Steady state initialization (derivatives of states are zero)" />
+				<Item name="InitialState" value="3" description="Initialization with initial states" />
+				<Item name="InitialOutput" value="4" description="Initialization with initial outputs (and steady state of the states if possible)" />
+			</Enumeration>
+		</SimpleType>
+	</TypeDefinitions>
+	<LogCategories>
+		<Category name="logLevel1" description="logLevel1 - fatal error" />
+		<Category name="logLevel2" description="logLevel2 - error" />
+		<Category name="logLevel3" description="logLevel3 - warning" />
+		<Category name="logLevel4" description="logLevel4 - info" />
+		<Category name="logLevel5" description="logLevel5 - verbose" />
+		<Category name="logLevel6" description="logLevel6 - debug" />
+	</LogCategories>
+	<VendorAnnotations>
+		<Tool name="JModelica.org">
+			<Annotations>
+				<Annotation name="CompilerVersion" value="2.2" />
+			</Annotations>
+		</Tool>
+	</VendorAnnotations>
+	<ModelVariables>
+		<ScalarVariable name="ETotHea_y" valueReference="95" description="Measured signal for ETotHea" causality="output" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="PHea_y" valueReference="96" description="Measured signal for PHea" causality="output" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="TRooAir_y" valueReference="97" description="Measured signal for TRooAir" causality="output" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="_block_jacobian_check" valueReference="536870987" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="_block_jacobian_check_tol" valueReference="35" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E-6" />
+		</ScalarVariable>
+		<ScalarVariable name="_block_solver_experimental_mode" valueReference="268435512" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="0" />
+		</ScalarVariable>
+		<ScalarVariable name="_block_solver_profiling" valueReference="536870988" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="_cs_experimental_mode" valueReference="268435513" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="0" />
+		</ScalarVariable>
+		<ScalarVariable name="_cs_rel_tol" valueReference="36" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E-6" />
+		</ScalarVariable>
+		<ScalarVariable name="_cs_solver" valueReference="268435514" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="0" />
+		</ScalarVariable>
+		<ScalarVariable name="_cs_step_size" valueReference="37" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="0.001" />
+		</ScalarVariable>
+		<ScalarVariable name="_enforce_bounds" valueReference="536870989" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="_events_default_tol" valueReference="38" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E-10" />
+		</ScalarVariable>
+		<ScalarVariable name="_events_tol_factor" valueReference="39" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E-4" />
+		</ScalarVariable>
+		<ScalarVariable name="_iteration_variable_scaling" valueReference="268435515" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="1" />
+		</ScalarVariable>
+		<ScalarVariable name="_log_level" valueReference="268435516" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="3" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_active_bounds_mode" valueReference="268435517" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="0" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_brent_ignore_error" valueReference="536870990" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_jacobian_calculation_mode" valueReference="268435518" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="0" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_jacobian_finite_difference_delta" valueReference="40" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.490116119384766E-8" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_jacobian_update_mode" valueReference="268435519" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="2" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_check_jac_cond" valueReference="536870991" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_default_tol" valueReference="41" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E-10" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_exit_criterion" valueReference="268435520" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="3" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_max_iter" valueReference="268435521" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="100" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_max_iter_no_jacobian" valueReference="268435522" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="10" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_max_residual_scaling_factor" valueReference="42" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E10" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_min_residual_scaling_factor" valueReference="43" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E-10" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_min_tol" valueReference="44" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E-12" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_regularization_tolerance" valueReference="45" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="-1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_step_limit_factor" valueReference="46" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="10.0" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_tol_factor" valueReference="47" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0E-4" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_use_last_integrator_step" valueReference="536870992" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="_nle_solver_use_nominals_as_fallback" valueReference="536870993" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="_rescale_after_singular_jac" valueReference="536870994" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="_rescale_each_step" valueReference="536870995" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="_residual_equation_scaling" valueReference="268435523" causality="parameter" variability="fixed" initial="exact">
+			<Integer start="1" />
+		</ScalarVariable>
+		<ScalarVariable name="_runtime_log_to_file" valueReference="536870996" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="_time_events_default_tol" valueReference="48" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="2.220446049250313E-14" />
+		</ScalarVariable>
+		<ScalarVariable name="_use_Brent_in_1d" valueReference="536870997" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="_use_jacobian_equilibration" valueReference="536870998" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="_use_newton_for_brent" valueReference="536870999" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.ETotHea.is_read" valueReference="536870985" description="Protected parameter indicating signal read block" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.ETotHea.u" valueReference="93" description="Connector of Real input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.ETotHea.y" valueReference="93" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.PHea.is_read" valueReference="536870986" description="Protected parameter indicating signal read block" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.PHea.u" valueReference="113" description="Connector of Real input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.PHea.y" valueReference="113" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.TRooAir.is_read" valueReference="536870984" description="Protected parameter indicating signal read block" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.TRooAir.u" valueReference="92" description="Connector of Real input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.TRooAir.y" valueReference="92" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.cap.C" valueReference="2" description="Heat capacity of element (= cp*m)" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="HeatCapacity" unit="J/K" relativeQuantity="false" start="1000000.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.cap.T" valueReference="92" description="Temperature of element" causality="local" variability="continuous" initial="approx">
+			<Real quantity="ThermodynamicTemperature" unit="K" displayUnit="degC" relativeQuantity="false" min="0.0" nominal="300" start="293.15" />
+		</ScalarVariable>
+		<ScalarVariable name="der(mod.cap.T)" valueReference="90" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" derivative="53" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.cap.der_T" valueReference="98" description="Time derivative of temperature (= der(T))" causality="local" variability="continuous" initial="approx">
+			<Real quantity="TemperatureSlope" unit="K/s" relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.cap.port.Q_flow" valueReference="99" description="Heat flow rate (positive if flowing from outside into the component)" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="Power" unit="W" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.cap.port.T" valueReference="92" description="Port temperature" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="ThermodynamicTemperature" unit="K" displayUnit="degC" relativeQuantity="false" min="0.0" nominal="300" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.Dzero.k" valueReference="28" description="Constant output value" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.Dzero.y" valueReference="52" description="Connector of Real output signal" causality="calculatedParameter" variability="fixed" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.Izero.k" valueReference="29" description="Constant output value" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.Izero.y" valueReference="53" description="Connector of Real output signal" causality="calculatedParameter" variability="fixed" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.Nd" valueReference="18" description="The higher Nd, the more ideal the derivative block" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" min="1.0E-13" start="10.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.Ni" valueReference="17" description="Ni*Ti is time constant of anti-windup compensation" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" min="1.0E-13" start="0.9" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.P.k" valueReference="22" description="Gain value multiplied with input signal" causality="parameter" variability="fixed" initial="exact">
+			<Real unit="1" relativeQuantity="false" start="1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.P.u" valueReference="104" description="Input signal connector" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.P.y" valueReference="105" description="Output signal connector" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.Td" valueReference="14" description="Time constant of Derivative block" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="Time" unit="s" relativeQuantity="false" min="0" start="0.1" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.Ti" valueReference="13" description="Time constant of Integrator block" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="Time" unit="s" relativeQuantity="false" min="1.0E-60" start="0.5" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addP.k1" valueReference="50" description="Gain of upper input" causality="calculatedParameter" variability="fixed" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addP.k2" valueReference="21" description="Gain of lower input" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="-1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addP.u1" valueReference="108" description="Connector of Real input signal 1" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addP.u2" valueReference="92" description="Connector of Real input signal 2" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addP.y" valueReference="104" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addPID.k1" valueReference="23" description="Gain of upper input" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addPID.k2" valueReference="24" description="Gain of middle input" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addPID.k3" valueReference="25" description="Gain of lower input" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addPID.u1" valueReference="105" description="Connector 1 of Real input signals" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addPID.u2" valueReference="54" description="Connector 2 of Real input signals" causality="calculatedParameter" variability="fixed" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addPID.u3" valueReference="55" description="Connector 3 of Real input signals" causality="calculatedParameter" variability="fixed" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.addPID.y" valueReference="107" description="Connector of Real output signals" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.controlError" valueReference="103" description="Control error (set point - measurement)" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.controllerType" valueReference="268435524" description="Type of controller" causality="local" variability="constant" initial="exact">
+			<Enumeration declaredType="Modelica.Blocks.Types.SimpleController" start="1" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.gainPID.k" valueReference="51" description="Gain value multiplied with input signal" causality="calculatedParameter" variability="fixed" initial="calculated">
+			<Real unit="1" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.gainPID.u" valueReference="107" description="Input signal connector" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.gainPID.y" valueReference="106" description="Output signal connector" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.initType" valueReference="268435525" description="Type of initialization (1: no init, 2: steady state, 3: initial state, 4: initial output)" causality="local" variability="constant" initial="exact">
+			<Enumeration declaredType="Modelica.Blocks.Types.InitPID" start="5" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.k" valueReference="12" description="Gain of controller" causality="parameter" variability="fixed" initial="exact">
+			<Real unit="1" relativeQuantity="false" min="0" start="2000.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.limiter.limitsAtInit" valueReference="536871000" description="Has no longer an effect and is only kept for backwards compatibility (the implementation uses now the homotopy operator)" causality="local" variability="constant" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.limiter.strict" valueReference="536871001" description="= true, if strict limits with noEvent(..)" causality="local" variability="constant" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.limiter.u" valueReference="106" description="Connector of Real input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.limiter.uMax" valueReference="26" description="Upper limits of input signals" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="100000.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.limiter.uMin" valueReference="27" description="Lower limits of input signals" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.limiter.y" valueReference="109" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.limitsAtInit" valueReference="536871000" description="= false, if limits are ignored during initialization" causality="local" variability="constant" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.strict" valueReference="536871001" description="= true, if strict limits with noEvent(..)" causality="local" variability="constant" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.u_m" valueReference="92" description="Connector of measurement input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.u_s" valueReference="108" description="Connector of setpoint input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.unitTime" valueReference="1" causality="local" variability="constant" initial="exact">
+			<Real quantity="Time" unit="s" relativeQuantity="false" start="1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.wd" valueReference="16" description="Set-point weight for Derivative block (0..1)" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" min="0" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.with_D" valueReference="536871001" causality="local" variability="constant" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.with_I" valueReference="536871001" causality="local" variability="constant" initial="exact">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.wp" valueReference="15" description="Set-point weight for Proportional block (0..1)" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" min="0" start="1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.xd_start" valueReference="20" description="Initial or guess value for state of derivative block" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.xi_start" valueReference="19" description="Initial or guess value value for integrator output (= integrator state)" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.y" valueReference="109" description="Connector of actuator output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.yMax" valueReference="49" description="Upper limit of output" causality="local" variability="constant" initial="exact">
+			<Real relativeQuantity="false" start="100000.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.yMin" valueReference="0" description="Lower limit of output" causality="local" variability="constant" initial="exact">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.con.y_start" valueReference="0" description="Initial value of output" causality="local" variability="constant" initial="exact">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.eff.k" valueReference="32" description="Gain value multiplied with input signal" causality="parameter" variability="fixed" initial="exact">
+			<Real unit="1" relativeQuantity="false" start="1.0101010101010102" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.eff.u" valueReference="112" description="Input signal connector" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.eff.y" valueReference="113" description="Output signal connector" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.intEHeat.initType" valueReference="268435526" description="Type of initialization (1: no init, 2: steady state, 3,4: initial output)" causality="local" variability="constant" initial="exact">
+			<Enumeration declaredType="Modelica.Blocks.Types.Init" start="3" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.intEHeat.k" valueReference="33" description="Integrator gain" causality="parameter" variability="fixed" initial="exact">
+			<Real unit="1" relativeQuantity="false" start="1.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.intEHeat.u" valueReference="113" description="Connector of Real input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.intEHeat.y" valueReference="93" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="der(mod.intEHeat.y)" valueReference="91" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" derivative="115" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.intEHeat.y_start" valueReference="34" description="Initial or guess value of output (= state)" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.activate.y" valueReference="536871028" description="Value of Boolean output" causality="local" variability="discrete" initial="calculated">
+			<Boolean />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.is_overwrite" valueReference="536870983" description="Protected parameter indicating signal overwrite block" causality="parameter" variability="fixed" initial="exact">
+			<Boolean start="true" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.swi.u1" valueReference="110" description="Connector of first Real input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.swi.u2" valueReference="536871028" description="Connector of Boolean input signal" causality="local" variability="discrete" initial="calculated">
+			<Boolean />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.swi.u3" valueReference="109" description="Connector of second Real input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.swi.y" valueReference="112" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.u" valueReference="109" description="Connector of Real input signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.uExt.y" valueReference="110" description="Value of Real output" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.oveAct.y" valueReference="112" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.preHeat.Q_flow" valueReference="112" causality="local" variability="continuous" initial="calculated">
+			<Real unit="W" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.preHeat.T_ref" valueReference="30" description="Reference temperature" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="ThermodynamicTemperature" unit="K" displayUnit="degC" relativeQuantity="false" min="0.0" nominal="300" start="293.15" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.preHeat.alpha" valueReference="31" description="Temperature coefficient of heat flow rate" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="LinearTemperatureCoefficient" unit="1/K" relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.preHeat.port.Q_flow" valueReference="111" description="Heat flow rate (positive if flowing from outside into the component)" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="Power" unit="W" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.preHeat.port.T" valueReference="92" description="Port temperature" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="ThermodynamicTemperature" unit="K" displayUnit="degC" relativeQuantity="false" min="0.0" nominal="300" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.preTOut.T" valueReference="102" causality="local" variability="continuous" initial="calculated">
+			<Real unit="K" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.preTOut.port.Q_flow" valueReference="134217828" description="Heat flow rate (positive if flowing from outside into the component)" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="Power" unit="W" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.preTOut.port.T" valueReference="102" description="Port temperature" causality="local" variability="continuous" initial="approx">
+			<Real quantity="ThermodynamicTemperature" unit="K" displayUnit="degC" relativeQuantity="false" min="0.0" nominal="300" start="288.15" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.res.Q_flow" valueReference="100" description="Heat flow rate from port_a -&gt; port_b" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="Power" unit="W" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.res.R" valueReference="3" description="Constant thermal resistance of material" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="ThermalResistance" unit="K/W" relativeQuantity="false" start="0.01" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.res.dT" valueReference="101" description="port_a.T - port_b.T" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="ThermodynamicTemperature" unit="K" relativeQuantity="true" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.res.port_a.Q_flow" valueReference="100" description="Heat flow rate (positive if flowing from outside into the component)" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="Power" unit="W" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.res.port_a.T" valueReference="102" description="Port temperature" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="ThermodynamicTemperature" unit="K" displayUnit="degC" relativeQuantity="false" min="0.0" nominal="300" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.res.port_b.Q_flow" valueReference="134217828" description="Heat flow rate (positive if flowing from outside into the component)" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="Power" unit="W" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.res.port_b.T" valueReference="92" description="Port temperature" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="ThermodynamicTemperature" unit="K" displayUnit="degC" relativeQuantity="false" min="0.0" nominal="300" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.senTZone.T" valueReference="92" description="Absolute temperature as output signal" causality="local" variability="continuous" initial="calculated">
+			<Real unit="K" relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.senTZone.port.Q_flow" valueReference="0" description="Heat flow rate (positive if flowing from outside into the component)" causality="local" variability="constant" initial="exact">
+			<Real quantity="Power" unit="W" relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.senTZone.port.T" valueReference="92" description="Port temperature" causality="local" variability="continuous" initial="calculated">
+			<Real quantity="ThermodynamicTemperature" unit="K" displayUnit="degC" relativeQuantity="false" min="0.0" nominal="300" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.set.height" valueReference="9" description="Height of step" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="2.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.set.offset" valueReference="10" description="Offset of output signal y" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="293.15" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.set.startTime" valueReference="11" description="Output y = offset for time &lt; startTime" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="Time" unit="s" relativeQuantity="false" start="86400.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.set.y" valueReference="108" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.souTOut.amplitude" valueReference="4" description="Amplitude of sine wave" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="10.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.souTOut.freqHz" valueReference="5" description="Frequency of sine wave" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="Frequency" unit="Hz" relativeQuantity="false" start="1.1574074074074073E-5" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.souTOut.offset" valueReference="7" description="Offset of output signal" causality="parameter" variability="fixed" initial="exact">
+			<Real relativeQuantity="false" start="293.15" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.souTOut.phase" valueReference="6" description="Phase of sine wave" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="Angle" unit="rad" displayUnit="deg" relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.souTOut.startTime" valueReference="8" description="Output = offset for time &lt; startTime" causality="parameter" variability="fixed" initial="exact">
+			<Real quantity="Time" unit="s" relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+		<ScalarVariable name="mod.souTOut.y" valueReference="102" description="Connector of Real output signal" causality="local" variability="continuous" initial="calculated">
+			<Real relativeQuantity="false" />
+		</ScalarVariable>
+		<ScalarVariable name="oveAct_activate" valueReference="536871029" description="Activation for overwrite block oveAct" causality="input" variability="discrete">
+			<Boolean start="false" />
+		</ScalarVariable>
+		<ScalarVariable name="oveAct_u" valueReference="94" description="Signal for overwrite block oveAct" causality="input" variability="continuous">
+			<Real relativeQuantity="false" start="0.0" />
+		</ScalarVariable>
+	</ModelVariables>
+	<ModelStructure>
+		<Outputs>
+			<Unknown index="1" dependencies="115" />
+			<Unknown index="2" dependencies="53 155 156" />
+			<Unknown index="3" dependencies="53" />
+		</Outputs>
+		<Derivatives>
+			<Unknown index="54" dependencies="53 155 156" />
+			<Unknown index="116" dependencies="53 155 156" />
+		</Derivatives>
+		<InitialUnknowns>
+			<Unknown index="1" dependencies="117" />
+			<Unknown index="2" dependencies="58 60 64 70 74 75 76 87 91 92 102 109 145 146 147 155 156" />
+			<Unknown index="3" dependencies="" />
+			<Unknown index="53" dependencies="" />
+			<Unknown index="54" dependencies="52 58 60 64 70 74 75 76 87 91 92 102 128 129 136 145 146 147 149 150 151 152 153 155 156" />
+			<Unknown index="59" dependencies="58" />
+			<Unknown index="61" dependencies="60" />
+			<Unknown index="69" dependencies="102" />
+			<Unknown index="78" dependencies="58" />
+			<Unknown index="79" dependencies="60" />
+			<Unknown index="83" dependencies="87" />
+			<Unknown index="115" dependencies="117" />
+			<Unknown index="116" dependencies="58 60 64 70 74 75 76 87 91 92 102 109 113 145 146 147 155 156" />
+		</InitialUnknowns>
+	</ModelStructure>
+</fmiModelDescription>
