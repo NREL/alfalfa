@@ -93,6 +93,7 @@ if site_ref:
     tar.close()
 
     bucket.upload_file(tarname, "parsed/%s" % tarname)
+    
     #os.remove(tarname)
 
 shutil.rmtree(directory)

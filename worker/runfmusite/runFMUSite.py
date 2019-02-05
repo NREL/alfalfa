@@ -131,6 +131,12 @@ try:
 
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
 
+    myquery = {"_id": site_ref}
+    mydoc = recs.find(myquery)
+    for x in mydoc:
+        #print(")))))) hey i am querying:(((((( ",x)
+        pass
+
     # Load fmu
     config = {
         'fmupath'  : fmupath,                
@@ -144,7 +150,21 @@ try:
   
     (tagid_and_inputs, tagid_and_outputs) = \
             match_tags_fmu_vars(tag_data, input_names, output_names)
-    
+    ''' 
+    for varname in tagid_and_inputs.keys():
+        input_id = tagid_and_inputs[varname]
+        print("))) key (((:", varname, " $$$ value $$$ :", input_id )
+        input_id = input_id.replace('r:','')
+        recs.insert_one ( {"_id": input_id }, {"$set": {"rec.curVal":"n:", "rec.curStatus":"s:ok","rec.cur": "m:" }} )
+ 
+    for varname in tagid_and_outputs.keys():
+        output_id = tagid_and_outputs[varname]
+        print("))) key (((:", varname, " $$$ value $$$ :", output_id )
+        output_id = output_id.replace('r:','')
+        #recs.insert_one( { "fakeid": output_id, "name": varname }  )
+        recs.insert_one( {"_id": output_id }, {"$set": {"rec.curVal":"", "rec.curStatus":"s:ok","rec.cur": "m:" }} )
+    '''
+ 
     
     #setup the fake inputs
     u={}
@@ -155,8 +175,9 @@ try:
 
     kstep=0 
     #while tc.start_time <= 1000000000000:
-    for i in range(1000000):
+    for i in range(10):
         print("))))))))))) step counter: ((((((((((( ", i)
+        time.sleep(5)
         tc.advance(u)
         output = tc.get_results()
         #print ("hey output y: ", output['y'])
@@ -165,26 +186,35 @@ try:
         y_output = output['y']
         for key in u_output.keys():
             value_u = u_output[key]
-            print(")))))) key/value u is: ((((((", key, value_u )
+            #print(")))))) key/value u is: ((((((", key, value_u )
             if key!='time':
                 input_id = tagid_and_inputs[key]
-                recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %value_u, "rec.curStatus":"s:ok","rec.cur": "m:" }}, False )
+                print (")))))) Hey input id: ((((((", input_id)
+                #input_id = input_id.replace("r:","")
+                recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %value_u, "rec.curStatus":"s:ok","rec.cur": "m:" }} )
 
         for key in y_output.keys():
             value_y = y_output[key]
-            print(")))))) key/value y is: ((((((", key, value_y )
+            #print(")))))) key/value y is: ((((((", key, value_y )
             if key!='time': 
                 output_id = tagid_and_outputs[key]
-                #print (")))))) Hey output id: ((((((", output_id)
+                #output_id = output_id.replace("r:","")
+                print (")))))) Hey output id: ((((((", output_id)
                 #print("outputid: ))))))((((((:", output_id)
-                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }}, False )        
+                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
              
-        
+        for varname in tagid_and_outputs.keys():
+            output_id = tagid_and_outputs[varname]
+            print(" )))))) hey querying output_id: (((((( ", output_id )
+            myquery = { "_id": output_id }
+            mydoc = recs.find(myquery)
+            for x in mydoc:
+                print(")))))) my query is: (((((( ", x)
 
     #shutil.rmtree(directory)
     
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
-    recs.update_many({"_id": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
+    #recs.update_many({"_id": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
 except Exception as e:
     print('runFMU: %s' % e, file=sys.stderr)

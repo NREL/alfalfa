@@ -14,8 +14,9 @@ fmu = load_fmu(fmupath)
 input_names = fmu.get_model_variables(causality = 2).keys()
 output_names = fmu.get_model_variables(causality = 3).keys()
 
-print ("input names are: )))))): ", input_names )
-print ("output names are: )))))): ", output_names )
+#print ("input names are: )))))): ", input_names )
+#print ("output names are: )))))): ", output_names )
+
 
 #3.0 add site tagging
 tags = []
@@ -41,6 +42,9 @@ for var_input in input_names:
         "dis": "s:%s" % var_input + ":input",
         "siteRef": "r:%s" % siteid,
         "point": "m:",
+        "cur":  "m:",
+        "curVal": "n:",
+        "curStatus": "s:disabled",
         "kind": "s:Number",
     }
     tags.append(tag_input)
@@ -53,6 +57,9 @@ for var_output in output_names:
         "dis": "s:%s" % var_output + ":output",
         "siteRef": "r:%s" % siteid,
         "point": "m:",
+        "cur":  "m:",
+        "curVal": "n:",
+        "curStatus": "s:disabled",
         "kind": "s:Number",
     }
     tags.append(tag_output)
@@ -61,8 +68,5 @@ for var_output in output_names:
 # 6.0 write tags to the json file
 with open(jsonpath, 'w') as outfile:
     json.dump(tags, outfile)
-    print("Hey ((((((((((((((", tags, outfile)
-
-print("jsonpath is: ", jsonpath )
-print ("jsonpath is: ", jsonpath )
-
+    
+#print("Hey: i am checking json path: ", jsonpath)
