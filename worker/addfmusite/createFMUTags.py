@@ -39,7 +39,7 @@ tags.append(sitetag)
 for var_input in input_names:
     tag_input = {
         "id": "r:%s" % uuid.uuid4(),
-        "dis": "s:%s" % var_input + ":input",
+        "dis": "s:%s" % var_input,
         "siteRef": "r:%s" % siteid,
         "point": "m:",
         "cur":  "m:",
@@ -54,7 +54,7 @@ for var_input in input_names:
 for var_output in output_names:
     tag_output = {
         "id": "r:%s" % uuid.uuid4(),
-        "dis": "s:%s" % var_output + ":output",
+        "dis": "s:%s" % var_output,
         "siteRef": "r:%s" % siteid,
         "point": "m:",
         "cur":  "m:",
