@@ -379,7 +379,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       if outvar.exportToBCVTB
         uuid = create_ref(outvar.handle)
 
-        var_json = Hash.new
+        var_haystack_json = Hash.new
         var_haystack_json[:id] = uuid
         var_haystack_json[:dis] = create_str(outvar.nameString + outvar.keyValue)
         var_haystack_json[:siteRef] = create_ref(building.handle)
@@ -405,7 +405,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       if globalvar.exportToBCVTB
         uuid = create_ref(globalvar.handle)
 
-        var_json = Hash.new
+        var_haystack_json = Hash.new
         var_haystack_json[:id] = uuid
         var_haystack_json[:dis] = create_str(globalvar.nameString)
         var_haystack_json[:siteRef] = create_ref(building.handle)
@@ -415,11 +415,11 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
         haystack_json << var_haystack_json
 
         var_mapping_json = Hash.new
-        var_mapping_json[:id] = create_ref(uuid)
+        var_mapping_json[:id] = uuid
         var_mapping_json[:source] = "Ptolemy" 
         var_mapping_json[:name] = ""
         var_mapping_json[:type] = ""
-        var_mapping_json[:variable] = emsName
+        var_mapping_json[:variable] = globalvar.nameString
         mapping_json << var_mapping_json
       end
     end

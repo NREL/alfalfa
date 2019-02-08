@@ -137,8 +137,8 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     # find all EnergyManagementSystemGlobalVariable objects and 
     # replace those that have exportToBCVTB set to true
     # We also have to swap handles in any ems programs
-    ems = model.getEnergyManagementSystemPrograms
-    ems.append(model.getEnergyManagementSystemSubroutines)
+    ems_programs = model.getEnergyManagementSystemPrograms
+    ems_subroutines = model.getEnergyManagementSystemSubroutines
 
     emsGlobals = model.getEnergyManagementSystemGlobalVariables
 
@@ -150,9 +150,16 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       eevar = OpenStudio::Model::ExternalInterfaceVariable.new(model, emsGlobalName, 0)
       eevarHandle = eevar.handle.to_s
 
-      ems.each do |prog|
+      ems_programs.each do |prog|
         body = prog.body
         body.gsub!(emsGlobalHandle, eevarHandle)
+        prog.setBody(body)
+      end
+
+      ems_subroutines.each do |prog|
+        body = prog.body
+        body.gsub!(emsGlobalHandle, eevarHandle)
+        prog.setBody(body)
       end
     end
     
