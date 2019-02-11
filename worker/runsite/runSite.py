@@ -257,7 +257,7 @@ def get_current_datetime_ep(ep_year, ep_month, ep_day, ep_hour, ep_minute, local
     else:
         pass
         
-    current_datetime_ep = datetime(int(ep_year), int(ep_current_month), int(ep_current_day), int(ep_current_hour), int(ep_current_minute), tzinfo=pytz.timezone(local_time_zone) )
+    current_datetime_ep = datetime(int(ep_year), int(ep_month), int(ep_day), int(ep_hour), int(ep_minute), tzinfo=pytz.timezone(local_time_zone) )
     
     return current_datetime_ep
 
