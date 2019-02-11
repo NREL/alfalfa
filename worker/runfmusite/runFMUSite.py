@@ -177,10 +177,6 @@ try:
             create_DisToID_dictionary(tagpath)
  
 
-    print(')))))): dis-id: ',dis_and_id)
-    print(')))))): tagid-inputs: ',tagid_and_inputs)
-    print(')))))): tagid-output: ',tagid_and_outputs)
-
     #initiate the testcase
     tc = testcase.TestCase(config) 
 
@@ -194,32 +190,27 @@ try:
     kstep=0 
     #while tc.start_time <= 1000000000000:
     for i in range(10):
-        print("))))))))))) step counter: ((((((((((( ", i)
         time.sleep(5)
         tc.advance(u)
         output = tc.get_results()
-        #print ("hey output y: ", output['y'])
-        #print ("hey output u: ", output['u'])
+        
         u_output = output['u']
         y_output = output['y']
         for key in u_output.keys():
             value_u = u_output[key]
-            #print(")))))) key/value u is: ((((((", key, value_u )
+            
             if key!='time':
                 input_id = tagid_and_inputs[key]
-                
-                print (")))))) Hey input id: ((((((", input_id)
+                                
                 cur_value = 3.33
                 recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )
 
         for key in y_output.keys():
             value_y = y_output[key]
-            #print(")))))) key/value y is: ((((((", key, value_y )
+            
             if key!='time': 
                 output_id = tagid_and_outputs[key]
-                
-                print (")))))) Hey output id: ((((((", output_id)
-                #print("outputid: ))))))((((((:", output_id)
+                             
                 cur_value =273.15
                 recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
              
