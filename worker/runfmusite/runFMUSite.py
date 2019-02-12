@@ -56,7 +56,7 @@ def get_tag_data(tag_filepath):
     '''
     with open( tag_filepath ) as json_data:
         tag_data = json.load(json_data)
-        #print(" )))))) Hey tag data are: (((((( ",tag_data)
+        
 
     return tag_data
 
@@ -77,17 +77,19 @@ def create_DisToID_dictionary(tag_filepath):
 
     for point in tag_data:
         var_name = point['dis']
-        print (')))))): var-name: ', var_name)
+        
         var_id   = point['id']
         dis_and_ID[var_name] = var_id
         
-        if 'input' in var_name:
+        if 'writable' in point.keys():
+            #it means it is a input variable.
             #clean the var-name, discarding: ':input','s:','r:'
             input_var = var_name.replace(':input','')
             input_var = input_var.replace('s:','')
             inputs_and_ID[input_var] = var_id.replace('r:','')
 
-        if 'output' in var_name:
+        if 'writable' not in point.keys() and 'point' in point.keys():
+            #it means it is an output variable, plus not sitetag.
             #clean the var-name, discarding: ':output','s:','r:'
             output_var = var_name.replace(':output','')
             output_var = output_var.replace('s:','')
@@ -104,8 +106,11 @@ def query_var_byID(database, var_id):
     '''
     myquery = {"_id": data_id}
     mydoc = database.find(myquery)
-    for x in mydoc:
-        print(")))))) hey i am querying:(((((( ", x)
+    if not mydoc:
+        print(")))))) hey the query is not in the database ((((((")
+    else:
+        for x in mydoc:
+            print(")))))) hey i am querying:(((((( ", x)
         
 def check_vars(var):
    '''
