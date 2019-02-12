@@ -133,6 +133,37 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
         counter += 1
       end
     end  #end EMSoutputVariables
+
+    # find all EnergyManagementSystemGlobalVariable objects and 
+    # replace those that have exportToBCVTB set to true
+    # We also have to swap handles in any ems programs
+    ems_programs = model.getEnergyManagementSystemPrograms
+    ems_subroutines = model.getEnergyManagementSystemSubroutines
+
+    emsGlobals = model.getEnergyManagementSystemGlobalVariables
+
+    emsGlobals.each do |emsvar|
+      if ( emsvar.exportToBCVTB )
+        emsGlobalName = emsvar.nameString
+        emsGlobalHandle = emsvar.handle.to_s
+        emsvar.remove
+
+        eevar = OpenStudio::Model::ExternalInterfaceVariable.new(model, emsGlobalName, 0)
+        eevarHandle = eevar.handle.to_s
+
+        ems_programs.each do |prog|
+          body = prog.body
+          body.gsub!(emsGlobalHandle, eevarHandle)
+          prog.setBody(body)
+        end
+
+        ems_subroutines.each do |prog|
+          body = prog.body
+          body.gsub!(emsGlobalHandle, eevarHandle)
+          prog.setBody(body)
+        end
+      end
+    end
     
     #loop through ExternalInterfaceVariables 
     externalVariables = model.getExternalInterfaceVariables 
@@ -196,3 +227,4 @@ end #end the measure
 
 # register the measure to be used by the application
 ExportBCVTB.new.registerWithApplication
+
