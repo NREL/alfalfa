@@ -143,23 +143,25 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     emsGlobals = model.getEnergyManagementSystemGlobalVariables
 
     emsGlobals.each do |emsvar|
-      emsGlobalName = emsvar.nameString
-      emsGlobalHandle = emsvar.handle.to_s
-      emsvar.remove
+      if ( emsvar.exportToBCVTB )
+        emsGlobalName = emsvar.nameString
+        emsGlobalHandle = emsvar.handle.to_s
+        emsvar.remove
 
-      eevar = OpenStudio::Model::ExternalInterfaceVariable.new(model, emsGlobalName, 0)
-      eevarHandle = eevar.handle.to_s
+        eevar = OpenStudio::Model::ExternalInterfaceVariable.new(model, emsGlobalName, 0)
+        eevarHandle = eevar.handle.to_s
 
-      ems_programs.each do |prog|
-        body = prog.body
-        body.gsub!(emsGlobalHandle, eevarHandle)
-        prog.setBody(body)
-      end
+        ems_programs.each do |prog|
+          body = prog.body
+          body.gsub!(emsGlobalHandle, eevarHandle)
+          prog.setBody(body)
+        end
 
-      ems_subroutines.each do |prog|
-        body = prog.body
-        body.gsub!(emsGlobalHandle, eevarHandle)
-        prog.setBody(body)
+        ems_subroutines.each do |prog|
+          body = prog.body
+          body.gsub!(emsGlobalHandle, eevarHandle)
+          prog.setBody(body)
+        end
       end
     end
     

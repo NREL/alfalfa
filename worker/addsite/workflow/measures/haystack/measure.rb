@@ -381,7 +381,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
 
         var_haystack_json = Hash.new
         var_haystack_json[:id] = uuid
-        var_haystack_json[:dis] = create_str(outvar.nameString + outvar.keyValue)
+        var_haystack_json[:dis] = create_str(outvar.nameString)
         var_haystack_json[:siteRef] = create_ref(building.handle)
         var_haystack_json[:point]="m:"
         var_haystack_json[:cur]="m:" 
@@ -391,7 +391,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
         var_map_json = Hash.new
         var_map_json[:id] = uuid
         var_map_json[:source] = "EnergyPlus"
-        var_map_json[:type] = outvar.nameString
+        var_map_json[:type] = outvar.variableName
         var_map_json[:name] = outvar.keyValue
         var_map_json[:variable] = ""
         mapping_json << var_map_json
@@ -405,14 +405,16 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       if globalvar.exportToBCVTB
         uuid = create_ref(globalvar.handle)
 
-        var_haystack_json = Hash.new
-        var_haystack_json[:id] = uuid
-        var_haystack_json[:dis] = create_str(globalvar.nameString)
-        var_haystack_json[:siteRef] = create_ref(building.handle)
-        var_haystack_json[:point]="m:"
-        var_haystack_json[:writable]="m:" 
-        var_haystack_json[:writeStatus] = "s:ok"
-        haystack_json << var_haystack_json
+        if not globalvar.nameString.end_with?("_Enable")
+          var_haystack_json = Hash.new
+          var_haystack_json[:id] = uuid
+          var_haystack_json[:dis] = create_str(globalvar.nameString)
+          var_haystack_json[:siteRef] = create_ref(building.handle)
+          var_haystack_json[:point]="m:"
+          var_haystack_json[:writable]="m:" 
+          var_haystack_json[:writeStatus] = "s:ok"
+          haystack_json << var_haystack_json
+        end
 
         var_mapping_json = Hash.new
         var_mapping_json[:id] = uuid
