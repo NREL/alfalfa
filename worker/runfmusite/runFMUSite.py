@@ -47,9 +47,12 @@ import json
 
 
 def get_tag_data(tag_filepath):
-    '''this function will retrieve the tagged data,
-     which are model-exchange variables in FMU. 
-     This function will get the tagged properties, like id, dis. etc...
+    '''
+     Purpose: retrieving the haystack tagged data, 
+              which are model-exchange variables in FMU. 
+     Inputs:  a json file containing all the tagged data.
+     Returns: a list for all the tagged data, with the tagging properties
+              like id, dis, site_ref, etc...
     '''
     with open( tag_filepath ) as json_data:
         tag_data = json.load(json_data)
@@ -58,34 +61,62 @@ def get_tag_data(tag_filepath):
     return tag_data
 
 
-def match_tags_fmu_vars(tag_data, input_names, output_names):
-    '''This function will match the tags with the FMU variables:
-        inputs and outputs.
-       It will return a dict containing the id and variable names
+def create_DisToID_dictionary(tag_filepath):
     '''
-    #for input_var in input_names:
-    tagid_and_inputs={}
-    for x in tag_data:
-        key_list= x.keys()
-        for each_key in key_list:
-            for input_var in input_names:
-                if input_var in x[each_key]:
-                    tagid_and_inputs[input_var]=x[u'id']
-    #print("hey input id-vars ))))))((((((: ", tagid_and_inputs)
+    Purpose: matching the haystack display-name and IDs
+    Inputs:  a json file containing all the tagged data
+    Returns: a dictionary mathching all display-names and IDs
+             a dictionary matching all inputs and IDs
+             a dictionary matching all outputs and IDs 
+    '''
+    dis_and_ID={}
+    inputs_and_ID = {}
+    outputs_and_ID = {}
 
-    tagid_and_outputs={}
-    for x in tag_data:
-        key_list= x.keys()
-        for each_key in key_list:
-            for output_var in output_names:
-                if output_var in x[each_key]:
-                    tagid_and_outputs[output_var]=x[u'id']
-    #print("hey output  id-vars ))))))((((((: ", tagid_and_outputs)
+    tag_data = get_tag_data(tag_filepath)
 
-    return (tagid_and_inputs, tagid_and_outputs)
+    for point in tag_data:
+        var_name = point['dis']
+        print (')))))): var-name: ', var_name)
+        var_id   = point['id']
+        dis_and_ID[var_name] = var_id
+        
+        if 'input' in var_name:
+            #clean the var-name, discarding: ':input','s:','r:'
+            input_var = var_name.replace(':input','')
+            input_var = input_var.replace('s:','')
+            inputs_and_ID[input_var] = var_id.replace('r:','')
+
+        if 'output' in var_name:
+            #clean the var-name, discarding: ':output','s:','r:'
+            output_var = var_name.replace(':output','')
+            output_var = output_var.replace('s:','')
+            outputs_and_ID[output_var] = var_id.replace('r:','')
+         
+    return (dis_and_ID, inputs_and_ID, outputs_and_ID)
+        
+
+def query_var_byID(database, var_id):
+    '''
+    Purpose: query a variable by ID to the database
+    Inputs:  database, and the id of the variable
+    Returns: the details of the data
+    '''
+    myquery = {"_id": data_id}
+    mydoc = database.find(myquery)
+    for x in mydoc:
+        print(")))))) hey i am querying:(((((( ", x)
+        
+def check_vars(var):
+   '''
+   Purpose: print the var details to the terminal for debugging purpose
+   Inputs:  variable 
+   Returns: print statement on the terminal
+   '''
+   print(')))))) Hey i am checking '+ str(var) + '((((((: ', var)
 
 
-############################################################################
+
 ####################   Entry for Main Program   #####################
 ############################################################################
 
@@ -94,17 +125,19 @@ def match_tags_fmu_vars(tag_data, input_names, output_names):
 try:
     s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
 
-    # Mongo Database
+    #Initiate Mongo Database
     mongo_client = MongoClient(os.environ['MONGO_URL'])
     mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
     recs = mongodb.recs
 
+    #get user inputs
     site_ref = sys.argv[1]
     real_time_flag = sys.argv[2]
     time_scale = int(sys.argv[3])
     user_start_Datetime = parse(sys.argv[4])
     user_end_Datetime = parse(sys.argv[5])
 
+    #build the path for zipped-file, fmu, json
     sim_path = '/simulate'
     directory = os.path.join(sim_path, site_ref)
     tar_name = "%s.tar.gz" % site_ref
@@ -113,11 +146,11 @@ try:
     fmupath = os.path.join(directory, 'model.fmu')
     tagpath = os.path.join(directory, 'tags.json')
 
-    
-    
+        
     if not os.path.exists(directory):
         os.makedirs(directory)
     
+    #download the tar file and tag file
     bucket = s3.Bucket('alfalfa')
     bucket.download_file(key, tarpath)
     bucket.download_file(key, tagpath)
@@ -131,11 +164,7 @@ try:
 
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
 
-    myquery = {"_id": site_ref}
-    mydoc = recs.find(myquery)
-    for x in mydoc:
-        #print(")))))) hey i am querying:(((((( ",x)
-        pass
+    
 
     # Load fmu
     config = {
@@ -143,78 +172,54 @@ try:
         'step'     : 60
     }
 
-    tc = testcase.TestCase(config)   
-    input_names  = tc.get_inputs()
-    output_names = tc.get_measurements()
-    #print(")))))) output names: ((((((", output_names)
-  
-    (tagid_and_inputs, tagid_and_outputs) = \
-            match_tags_fmu_vars(tag_data, input_names, output_names)
-    ''' 
-    for varname in tagid_and_inputs.keys():
-        input_id = tagid_and_inputs[varname]
-        print("))) key (((:", varname, " $$$ value $$$ :", input_id )
-        input_id = input_id.replace('r:','')
-        recs.insert_one ( {"_id": input_id }, {"$set": {"rec.curVal":"n:", "rec.curStatus":"s:ok","rec.cur": "m:" }} )
+        
+    (dis_and_id, tagid_and_inputs, tagid_and_outputs) = \
+            create_DisToID_dictionary(tagpath)
  
-    for varname in tagid_and_outputs.keys():
-        output_id = tagid_and_outputs[varname]
-        print("))) key (((:", varname, " $$$ value $$$ :", output_id )
-        output_id = output_id.replace('r:','')
-        #recs.insert_one( { "fakeid": output_id, "name": varname }  )
-        recs.insert_one( {"_id": output_id }, {"$set": {"rec.curVal":"", "rec.curStatus":"s:ok","rec.cur": "m:" }} )
-    '''
- 
-    
+
+    #initiate the testcase
+    tc = testcase.TestCase(config) 
+
     #setup the fake inputs
     u={}
-    for each_input in input_names:
+    for each_input in tc.get_inputs():
         if each_input !='time':
             u[each_input]=1.0   
  
-
+    #run the FMU simulation
     kstep=0 
     #while tc.start_time <= 1000000000000:
     for i in range(10):
-        print("))))))))))) step counter: ((((((((((( ", i)
         time.sleep(5)
         tc.advance(u)
         output = tc.get_results()
-        #print ("hey output y: ", output['y'])
-        #print ("hey output u: ", output['u'])
+        
         u_output = output['u']
         y_output = output['y']
         for key in u_output.keys():
             value_u = u_output[key]
-            #print(")))))) key/value u is: ((((((", key, value_u )
+            
             if key!='time':
                 input_id = tagid_and_inputs[key]
-                print (")))))) Hey input id: ((((((", input_id)
-                #input_id = input_id.replace("r:","")
-                recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %value_u, "rec.curStatus":"s:ok","rec.cur": "m:" }} )
+                                
+                cur_value = 3.33
+                recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )
 
         for key in y_output.keys():
             value_y = y_output[key]
-            #print(")))))) key/value y is: ((((((", key, value_y )
+            
             if key!='time': 
                 output_id = tagid_and_outputs[key]
-                #output_id = output_id.replace("r:","")
-                print (")))))) Hey output id: ((((((", output_id)
-                #print("outputid: ))))))((((((:", output_id)
-                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
+                             
+                cur_value =273.15
+                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
              
-        for varname in tagid_and_outputs.keys():
-            output_id = tagid_and_outputs[varname]
-            print(" )))))) hey querying output_id: (((((( ", output_id )
-            myquery = { "_id": output_id }
-            mydoc = recs.find(myquery)
-            for x in mydoc:
-                print(")))))) my query is: (((((( ", x)
+        
 
     #shutil.rmtree(directory)
     
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
-    #recs.update_many({"_id": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
+    recs.update_many({"_id": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
 except Exception as e:
     print('runFMU: %s' % e, file=sys.stderr)
