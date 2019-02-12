@@ -207,17 +207,17 @@ try:
             if key!='time':
                 input_id = tagid_and_inputs[key]
                                 
-                cur_value = 3.33
-                recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )
+                for cur_value in value_u:
+                    recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )
 
         for key in y_output.keys():
             value_y = y_output[key]
             
             if key!='time': 
-                output_id = tagid_and_outputs[key]
-                             
-                cur_value =273.15
-                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
+                output_id = tagid_and_outputs[key]           
+                
+                for cur_value in value_y:
+                    recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
              
         
 
