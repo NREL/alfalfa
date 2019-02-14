@@ -42,8 +42,10 @@ import traceback
 from dateutil.parser import parse
 from pyfmi import load_fmu
 import copy
-import testcase
 import json
+
+
+from common import testcase
 
 
 def get_tag_data(tag_filepath):
