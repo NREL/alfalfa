@@ -257,26 +257,35 @@ class Sites extends React.Component {
 
   formatTime = (isotime) => {
     let result = "-";
-
-    if( isotime ) {
+    console.log('initial time string: '+ isotime ); //debugging line
+    
+    //check if it is ISO format
+    var arr_isotime = isotime.split("-");
+    
+    if (arr_isotime.length===3){
+      //is arr_isotime.length==3, it means it is ISO format
       // Haystack has an extra string representation of the timezone
       // tacked onto the end of the iso time string (after a single space)
       // Here we remove that extra timezone designation
+      
       const _isotime = isotime.replace(/\s[\w]*/,'');
       // Use these options do show year and day of week
       //const options = {  
       //    weekday: "long", year: "numeric", month: "short",  
       //    day: "numeric", hour: "2-digit", minute: "2-digit"  
       //};  
-      // For now keep it simple
+      // For now keep it simple 
+     
       const options = {  
           month: "short",  
           day: "numeric", hour: "2-digit", minute: "2-digit"  
       };  
       const datetime = new Date(_isotime);
       result = datetime.toLocaleTimeString("en-us", options);
-    }
-
+    }else{
+      result = isotime;
+    } 
+    
     return result;
   }
 

@@ -25,6 +25,7 @@ sitetag = {
     "dis": "s:%s" % fmu_upload_name,
     "id": "r:%s" % siteid,
     "site": "m:",
+    "datetime": "s:",
     "simStatus": "s:Stopped",
     "simType": "s:fmu",
     "siteRef": "r:%s" % siteid
