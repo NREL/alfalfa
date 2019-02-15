@@ -371,6 +371,61 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
      
     end # end of do loop   
 
+    # Export all user defined OutputVariable objects
+    # as haystack sensor points
+    building = model.getBuilding
+    output_vars = model.getOutputVariables
+    output_vars.each do |outvar|
+      if outvar.exportToBCVTB
+        uuid = create_ref(outvar.handle)
+
+        var_haystack_json = Hash.new
+        var_haystack_json[:id] = uuid
+        var_haystack_json[:dis] = create_str(outvar.nameString)
+        var_haystack_json[:siteRef] = create_ref(building.handle)
+        var_haystack_json[:point]="m:"
+        var_haystack_json[:cur]="m:" 
+        var_haystack_json[:curStatus] = "s:disabled"
+        haystack_json << var_haystack_json
+
+        var_map_json = Hash.new
+        var_map_json[:id] = uuid
+        var_map_json[:source] = "EnergyPlus"
+        var_map_json[:type] = outvar.variableName
+        var_map_json[:name] = outvar.keyValue
+        var_map_json[:variable] = ""
+        mapping_json << var_map_json
+      end
+    end
+
+    # Export all user defined EnergyManagementSystemGlobalVariable objects
+    # as haystack writable points
+    global_vars = model.getEnergyManagementSystemGlobalVariables
+    global_vars.each do |globalvar|
+      if globalvar.exportToBCVTB
+        uuid = create_ref(globalvar.handle)
+
+        if not globalvar.nameString.end_with?("_Enable")
+          var_haystack_json = Hash.new
+          var_haystack_json[:id] = uuid
+          var_haystack_json[:dis] = create_str(globalvar.nameString)
+          var_haystack_json[:siteRef] = create_ref(building.handle)
+          var_haystack_json[:point]="m:"
+          var_haystack_json[:writable]="m:" 
+          var_haystack_json[:writeStatus] = "s:ok"
+          haystack_json << var_haystack_json
+        end
+
+        var_mapping_json = Hash.new
+        var_mapping_json[:id] = uuid
+        var_mapping_json[:source] = "Ptolemy" 
+        var_mapping_json[:name] = ""
+        var_mapping_json[:type] = ""
+        var_mapping_json[:variable] = globalvar.nameString
+        mapping_json << var_mapping_json
+      end
+    end
+
     #loop through air loops and find economizers
     model.getAirLoopHVACs.each do |airloop|
       supply_components = airloop.supplyComponents

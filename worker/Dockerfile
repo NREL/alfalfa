@@ -21,13 +21,21 @@ RUN apt-get update \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
     && apt-get install -y ca-certificates nodejs
 
-ENV OPENSTUDIO_VERSION 2.7.0
-ENV OPENSTUDIO_TAG v2.7.0
-ENV OPENSTUDIO_SHA 544f363db5
+###  ENV OPENSTUDIO_VERSION 2.7.0
+###  ENV OPENSTUDIO_TAG v2.7.0
+###  ENV OPENSTUDIO_SHA 544f363db5
+###  
+###  #https://github.com/NREL/OpenStudio/releases/download/v2.7.0/OpenStudio-2.7.0.544f363db5-Linux.deb
+###  ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://github.com/NREL/OpenStudio/releases/download/$OPENSTUDIO_TAG
+###  #ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://s3.amazonaws.com/openstudio-builds/$OPENSTUDIO_VERSION
+###  ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-$OPENSTUDIO_VERSION.$OPENSTUDIO_SHA-Linux.deb
+###  ENV OPENSTUDIO_DOWNLOAD_URL $OPENSTUDIO_DOWNLOAD_BASE_URL/$OPENSTUDIO_DOWNLOAD_FILENAME
 
-#https://github.com/NREL/OpenStudio/releases/download/v2.7.0/OpenStudio-2.7.0.544f363db5-Linux.deb
-ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://github.com/NREL/OpenStudio/releases/download/$OPENSTUDIO_TAG
-#ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://s3.amazonaws.com/openstudio-builds/$OPENSTUDIO_VERSION
+ENV OPENSTUDIO_VERSION 2.7.2
+ENV OPENSTUDIO_TAG v2.7.2
+ENV OPENSTUDIO_SHA 5b35dd928c
+
+ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://openstudio-builds.s3.amazonaws.com/2.7.2
 ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-$OPENSTUDIO_VERSION.$OPENSTUDIO_SHA-Linux.deb
 ENV OPENSTUDIO_DOWNLOAD_URL $OPENSTUDIO_DOWNLOAD_BASE_URL/$OPENSTUDIO_DOWNLOAD_FILENAME
 
