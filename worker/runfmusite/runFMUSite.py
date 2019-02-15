@@ -42,8 +42,10 @@ import traceback
 from dateutil.parser import parse
 from pyfmi import load_fmu
 import copy
-import testcase
 import json
+
+
+from common import *
 
 
 def get_tag_data(tag_filepath):
@@ -56,7 +58,7 @@ def get_tag_data(tag_filepath):
     '''
     with open( tag_filepath ) as json_data:
         tag_data = json.load(json_data)
-        #print(" )))))) Hey tag data are: (((((( ",tag_data)
+        
 
     return tag_data
 
@@ -77,17 +79,19 @@ def create_DisToID_dictionary(tag_filepath):
 
     for point in tag_data:
         var_name = point['dis']
-        print (')))))): var-name: ', var_name)
+        
         var_id   = point['id']
         dis_and_ID[var_name] = var_id
         
-        if 'input' in var_name:
+        if 'writable' in point.keys():
+            #it means it is a input variable.
             #clean the var-name, discarding: ':input','s:','r:'
             input_var = var_name.replace(':input','')
             input_var = input_var.replace('s:','')
             inputs_and_ID[input_var] = var_id.replace('r:','')
 
-        if 'output' in var_name:
+        if 'writable' not in point.keys() and 'point' in point.keys():
+            #it means it is an output variable, plus not sitetag.
             #clean the var-name, discarding: ':output','s:','r:'
             output_var = var_name.replace(':output','')
             output_var = output_var.replace('s:','')
@@ -99,13 +103,18 @@ def create_DisToID_dictionary(tag_filepath):
 def query_var_byID(database, var_id):
     '''
     Purpose: query a variable by ID to the database
-    Inputs:  database, and the id of the variable
-    Returns: the details of the data
+    Inputs:  database (recs in this case), and the id of the variable
+    Returns: the details of the data, a dictionary with dictionary inside.
     '''
-    myquery = {"_id": data_id}
-    mydoc = database.find(myquery)
-    for x in mydoc:
-        print(")))))) hey i am querying:(((((( ", x)
+    myquery = {"_id": var_id}
+    mydoc = database.find_one(myquery)
+    if not mydoc:
+        print(")))))) hey the query is not in the database ((((((")
+    else:
+        print(")))))) hey i am querying:(((((( ", mydoc)
+
+    return mydoc
+        
         
 def check_vars(var):
    '''
@@ -113,7 +122,7 @@ def check_vars(var):
    Inputs:  variable 
    Returns: print statement on the terminal
    '''
-   print(')))))) Hey i am checking '+ str(var) + '((((((: ', var)
+   print(')))))) Hey i am checking var: '+ str(var) + '((((((: ', var)
 
 
 
@@ -179,13 +188,31 @@ try:
 
     #initiate the testcase
     tc = testcase.TestCase(config) 
+    
 
     #setup the fake inputs
+    #send the fake inputs to the database
     u={}
-    for each_input in tc.get_inputs():
+    for each_input in tc.get_inputs():       
         if each_input !='time':
-            u[each_input]=1.0   
- 
+            u[each_input]=1.0  # fake inputs here
+            input_id = tagid_and_inputs[ each_input ]
+            recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %u[each_input], "rec.curStatus":"s:ok","rec.cur": "m:" }} )
+
+    #query the database for inputs
+    input_queried={}
+    for each_input in u.keys():
+        input_id = tagid_and_inputs[ each_input ]
+        input_found = query_var_byID(recs, input_id)
+        input_recs = input_found[u'rec']
+        input_value = float( input_recs[u'curVal'].replace('n:','') )
+        input_name  = input_recs[u'dis'].replace('s:','')        
+        input_queried['name'] = input_name
+        input_queried['id'] = input_id
+        input_queried['value'] = input_value
+
+
+    
     #run the FMU simulation
     kstep=0 
     #while tc.start_time <= 1000000000000:
@@ -193,29 +220,24 @@ try:
         time.sleep(5)
         tc.advance(u)
         output = tc.get_results()
+        #cur_time = tc.final_time
+        cur_time = datetime.utcnow(  )   
+        #output_time_string = 's:%s %s' %(cur_time.isoformat(), 'Denver')
+        output_time_string = 's:%s' %(tc.final_time)
+        check_vars(output_time_string) 
+        recs.update_one( {"_id": site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:running"} } )
         
         u_output = output['u']
-        y_output = output['y']
-        for key in u_output.keys():
-            value_u = u_output[key]
-            
-            if key!='time':
-                input_id = tagid_and_inputs[key]
-                                
-                cur_value = 3.33
-                recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )
+        y_output = output['y']   
 
         for key in y_output.keys():
             value_y = y_output[key]
             
             if key!='time': 
-                output_id = tagid_and_outputs[key]
-                             
-                cur_value =273.15
-                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
+                output_id = tagid_and_outputs[key]                          
+                for cur_value in value_y:
+                    recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
              
-        
-
     #shutil.rmtree(directory)
     
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
@@ -223,4 +245,4 @@ try:
 
 except Exception as e:
     print('runFMU: %s' % e, file=sys.stderr)
-
+    

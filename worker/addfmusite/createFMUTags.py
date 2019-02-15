@@ -14,10 +14,6 @@ fmu = load_fmu(fmupath)
 input_names = fmu.get_model_variables(causality = 2).keys()
 output_names = fmu.get_model_variables(causality = 3).keys()
 
-#print ("input names are: )))))): ", input_names )
-#print ("output names are: )))))): ", output_names )
-
-
 #3.0 add site tagging
 tags = []
 
@@ -29,6 +25,7 @@ sitetag = {
     "dis": "s:%s" % fmu_upload_name,
     "id": "r:%s" % siteid,
     "site": "m:",
+    "datetime": "s:",
     "simStatus": "s:Stopped",
     "simType": "s:fmu",
     "siteRef": "r:%s" % siteid
@@ -39,12 +36,13 @@ tags.append(sitetag)
 for var_input in input_names:
     tag_input = {
         "id": "r:%s" % uuid.uuid4(),
-        "dis": "s:%s" % var_input+':input',
+        "dis": "s:%s" % var_input,
         "siteRef": "r:%s" % siteid,
         "point": "m:",
         "cur":  "m:",
         "curVal": "n:",
         "curStatus": "s:disabled",
+        "writable": "m:",
         "kind": "s:Number",
     }
     tags.append(tag_input)
@@ -54,7 +52,7 @@ for var_input in input_names:
 for var_output in output_names:
     tag_output = {
         "id": "r:%s" % uuid.uuid4(),
-        "dis": "s:%s" % var_output+':output',
+        "dis": "s:%s" % var_output,
         "siteRef": "r:%s" % siteid,
         "point": "m:",
         "cur":  "m:",
@@ -69,4 +67,4 @@ for var_output in output_names:
 with open(jsonpath, 'w') as outfile:
     json.dump(tags, outfile)
     
-#print("Hey: i am checking json path: ", jsonpath)
+
