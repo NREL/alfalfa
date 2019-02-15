@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 '''
 Copyright: See the link for details: http://github.com/ibpsa/project1-boptest/blob/master/license.md
 BOPTEST. Copyright (c) 2018 International Building Performance Simulation Association (IBPSA) and contributors. All rights reserved.
@@ -10,15 +9,20 @@ Redistribution and use in source and binary forms, with or without modification,
     Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 '''
 
-
 import json
+import sys
+import os
+from subprocess import call
+import tarfile
 
-def obtain_id_siteref(jsonpath):
+
+def upload_site_DB_Cloud(jsonpath, bucket, folderpath):
     '''
-    Purpose: remove the r: from the site id in json file
-    Inputs: json file path
-    Returns: revised id string for site
+    Purpose: upload the tagged site to the database and cloud
+    Inputs: the S3-bucket
+    Returns: nothing
     '''
+    # get the id of site tag(remove the 'r:')
     site_ref = ''
     with open(jsonpath) as json_file:
         data = json.load(json_file)
@@ -28,4 +32,27 @@ def obtain_id_siteref(jsonpath):
                     site_ref = entity['id'].replace('r:', '')
                     break
 
-    return site_ref
+
+    if site_ref:
+        # This adds a new haystack site to the database
+        call(['npm', 'run', 'start', jsonpath, site_ref])
+
+       
+        # Open the json file and get a site reference
+        # Store the results by site ref
+        def reset(tarinfo):
+            tarinfo.uid = tarinfo.gid = 0
+            tarinfo.uname = tarinfo.gname = "root"
+            
+            return tarinfo
+
+        tarname = "%s.tar.gz" % site_ref
+        tar = tarfile.open(tarname, "w:gz")
+        tar.add(folderpath, filter=reset, arcname=site_ref)
+        tar.close()
+        
+        # This upload the tagged site to the cloud
+        bucket.upload_file(tarname, "parsed/%s" % tarname)
+
+        #os.remove(tarname)
+

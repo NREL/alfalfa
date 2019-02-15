@@ -36,27 +36,10 @@ import logging
 from common import *
 #from common import testcase, make_gzip_file, obtain_id_siteref
 
-if len(sys.argv) == 3:
-    fmu_upload_name = sys.argv[1]
-    upload_id = sys.argv[2]
-else:
-    print('addSite called with incorrect number of arguments: %s.' % len(sys.argv), file=sys.stderr)
-    sys.exit(1)
 
-if not upload_id:
-    print('upload_id is empty', file=sys.stderr)
-    sys.exit(1)
 
-directory = os.path.join('/parse', upload_id)
 
-try:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-except:
-    print('error making add site parsing directory for upload_id: %s' % upload_id, file=sys.stderr)
-    sys.exit(1)
-
-#(fmu_upload_name, upload_id, directory) = precheck_argus(sys.argv)
+(fmu_upload_name, upload_id, directory) = precheck_argus(sys.argv)
 
 s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
 key = "uploads/%s/%s" % (upload_id, fmu_upload_name)
@@ -71,32 +54,7 @@ bucket.download_file(key, fmupath)
 
 call(['python', 'addfmusite/createFMUTags.py', fmupath, fmu_upload_name, jsonpath])
 
-#site_ref = obtain_id_siteref(jsonpath)
+upload_site_DB_Cloud( jsonpath, bucket, directory )
 
-'''
-Purpose: remove the r: from the site id in json file
-Inputs: json file path
-Returns: revised id string for site
-'''
-site_ref = ''
-with open(jsonpath) as json_file:
-    data = json.load(json_file)
-    for entity in data:
-        if 'site' in entity:
-            if entity['site'] == 'm:':
-                site_ref = entity['id'].replace('r:', '')
-                break
-
-
-
-
-if site_ref:
-    # This adds a new haystack site to the database
-    call(['npm', 'run', 'start', jsonpath, site_ref])
-
-    tarname = make_gzip_file(site_ref, directory)
-    bucket.upload_file(tarname, "parsed/%s" % tarname)
-    
-    #os.remove(tarname)
 
 shutil.rmtree(directory)
