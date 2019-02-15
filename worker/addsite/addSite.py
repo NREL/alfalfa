@@ -33,6 +33,8 @@ import shutil
 import time
 from subprocess import call
 import logging
+from common import *
+
 
 if len(sys.argv) == 3:
     osm_name = sys.argv[1]
@@ -53,6 +55,8 @@ try:
 except:
     print('error making add site parsing directory for upload_id: %s' % upload_id, file=sys.stderr)
     sys.exit(1)
+
+# (osm_name, upload_id, directory) = precheck_argus(sys.argv)
 
 logger = logging.getLogger('addsite')
 logger.setLevel(logging.INFO)
@@ -86,30 +90,14 @@ bucket.download_file(key, seedpath)
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
-site_ref = False
-with open(jsonpath) as json_file:
-    data = json.load(json_file)
-    for entity in data:
-        if 'site' in entity:
-            if entity['site'] == 'm:':
-                site_ref = entity['id'].replace('r:', '')
-                break
+site_ref = obtain_id_siteref(jsonpath)
+
 
 if site_ref:
     # This adds a new haystack site to the database
     call(['npm', 'run', 'start', jsonpath, site_ref])
 
-    # Open the json file and get a site reference
-    # Store the results by site ref
-    def reset(tarinfo):
-        tarinfo.uid = tarinfo.gid = 0
-        tarinfo.uname = tarinfo.gname = "root"
-        return tarinfo
-
-    tarname = "%s.tar.gz" % site_ref
-    tar = tarfile.open(tarname, "w:gz")
-    tar.add(directory, filter=reset, arcname=site_ref)
-    tar.close()
+    tarname = make_gzip_file(site_ref, directory)
 
     bucket.upload_file(tarname, "parsed/%s" % tarname)
     #os.remove(tarname)

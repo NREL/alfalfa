@@ -45,7 +45,7 @@ import copy
 import json
 
 
-from common import testcase
+from common import *
 
 
 def get_tag_data(tag_filepath):
