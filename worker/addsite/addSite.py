@@ -35,7 +35,7 @@ from subprocess import call
 import logging
 from common import *
 
-
+'''
 if len(sys.argv) == 3:
     osm_name = sys.argv[1]
     upload_id = sys.argv[2]
@@ -55,8 +55,9 @@ try:
 except:
     print('error making add site parsing directory for upload_id: %s' % upload_id, file=sys.stderr)
     sys.exit(1)
+'''
 
-# (osm_name, upload_id, directory) = precheck_argus(sys.argv)
+(osm_name, upload_id, directory) = precheck_argus(sys.argv)
 
 logger = logging.getLogger('addsite')
 logger.setLevel(logging.INFO)
@@ -90,6 +91,9 @@ bucket.download_file(key, seedpath)
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
+upload_site_DB_Cloud(jsonpath, bucket, directory)
+
+'''
 site_ref = obtain_id_siteref(jsonpath)
 
 
@@ -101,6 +105,7 @@ if site_ref:
 
     bucket.upload_file(tarname, "parsed/%s" % tarname)
     #os.remove(tarname)
+'''
 
 shutil.rmtree(directory)
 
