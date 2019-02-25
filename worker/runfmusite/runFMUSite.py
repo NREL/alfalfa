@@ -111,20 +111,53 @@ def query_var_byID(database, var_id):
     if not mydoc:
         print(")))))) hey the query is not in the database ((((((")
     else:
-        print(")))))) hey i am querying:(((((( ", mydoc)
+        #print(")))))) hey i am querying:(((((( ", mydoc)
+        pass
 
     return mydoc
         
         
-def check_vars(var):
+def check_vars(var, var_string):
    '''
    Purpose: print the var details to the terminal for debugging purpose
-   Inputs:  variable 
+   Inputs:  variable and variable-string
    Returns: print statement on the terminal
    '''
-   print(')))))) Hey i am checking var: '+ str(var) + '((((((: ', var)
+   print(')))))) Hey i am checking var: '+ var_string + ' ((((((: ', var)
 
 
+
+def check_writearrays(mongodb, id_site):
+   '''
+   Purpose: check the writearray to see if it is there
+   Inputs: mongodb and id-siteref
+   Returns: contents on the writearray
+   Notes: writearrays is needed in Haystack standard
+   Notes2: siteRef has 'r:'; site_ref has no 'r:'. 
+           They are different in the mongodb.
+   '''
+   write_arrays = mongodb.writearrays
+   found_arrays = write_arrays.find({"siteRef": 'r:'+id_site})
+   if not found_arrays:
+       print ("):: hey the write_arrays is not found: ", found_arrays)
+       print (type(found_arrays))
+   else:
+       print ("(:: hey the write_arrays is found: ", found_arrays)
+       print(type(found_arrays))
+       for array in found_arrays:
+           print(" )))))) Hey write array: %s" % array)
+           id = array.get('_id')
+           print("))))))Hey the id found is: ", id)
+
+           for val in array.get('val'):
+               if val:
+                   print("Congratulations!")
+                   print("val: %s" % val)
+
+               else:
+                   print("writearray is empty!")
+
+  
 
 ####################   Entry for Main Program   #####################
 ############################################################################
@@ -211,7 +244,8 @@ try:
         input_queried['id'] = input_id
         input_queried['value'] = input_value
 
-
+    check_vars(site_ref,'site_ref')
+    check_writearrays(mongodb, site_ref)
     
     #run the FMU simulation
     kstep=0 
@@ -224,7 +258,7 @@ try:
         cur_time = datetime.utcnow(  )   
         #output_time_string = 's:%s %s' %(cur_time.isoformat(), 'Denver')
         output_time_string = 's:%s' %(tc.final_time)
-        check_vars(output_time_string) 
+        #check_vars(output_time_string, 'output_time_string') 
         recs.update_one( {"_id": site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:running"} } )
         
         u_output = output['u']
