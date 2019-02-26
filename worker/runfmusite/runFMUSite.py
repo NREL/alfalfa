@@ -70,34 +70,37 @@ def create_DisToID_dictionary(tag_filepath):
     Returns: a dictionary mathching all display-names and IDs
              a dictionary matching all inputs and IDs
              a dictionary matching all outputs and IDs 
+             a dictionary matching all IDs and display-names 
     '''
     dis_and_ID={}
     inputs_and_ID = {}
     outputs_and_ID = {}
+    id_and_dis={}
 
     tag_data = get_tag_data(tag_filepath)
 
     for point in tag_data:
-        var_name = point['dis']
-        
-        var_id   = point['id']
+        var_name = point['dis'].replace('s:','')
+        var_id = point['id'].replace('r:','')
+
         dis_and_ID[var_name] = var_id
+        id_and_dis[var_id] = var_name
         
         if 'writable' in point.keys():
             #it means it is a input variable.
             #clean the var-name, discarding: ':input','s:','r:'
-            input_var = var_name.replace(':input','')
-            input_var = input_var.replace('s:','')
-            inputs_and_ID[input_var] = var_id.replace('r:','')
+            #input_var = var_name.replace(':input','')
+            #input_var = input_var.replace('s:','')
+            inputs_and_ID[var_name] = var_id
 
         if 'writable' not in point.keys() and 'point' in point.keys():
             #it means it is an output variable, plus not sitetag.
             #clean the var-name, discarding: ':output','s:','r:'
-            output_var = var_name.replace(':output','')
-            output_var = output_var.replace('s:','')
-            outputs_and_ID[output_var] = var_id.replace('r:','')
+            #output_var = var_name.replace(':output','')
+            #output_var = output_var.replace('s:','')
+            outputs_and_ID[var_name] = var_id
          
-    return (dis_and_ID, inputs_and_ID, outputs_and_ID)
+    return (dis_and_ID, inputs_and_ID, outputs_and_ID, id_and_dis)
         
 
 def query_var_byID(database, var_id):
@@ -138,8 +141,10 @@ try:
     mongo_client = MongoClient(os.environ['MONGO_URL'])
     mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
     recs = mongodb.recs
+    write_arrays = mongodb.writearrays
 
-    #get user inputs
+    # get arguments from calling program
+    # which is the processMessage program
     site_ref = sys.argv[1]
     real_time_flag = sys.argv[2]
     time_scale = int(sys.argv[3])
@@ -162,18 +167,15 @@ try:
     #download the tar file and tag file
     bucket = s3.Bucket('alfalfa')
     bucket.download_file(key, tarpath)
-    bucket.download_file(key, tagpath)
     
     tar = tarfile.open(tarpath)
     tar.extractall(sim_path)
     tar.close()
     
     #get the tagging id, disp, etc......
-    tag_data = get_tag_data(tagpath)
+    #tag_data = get_tag_data(tagpath)
 
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
-
-    
 
     # Load fmu
     config = {
@@ -182,66 +184,65 @@ try:
     }
 
         
-    (dis_and_id, tagid_and_inputs, tagid_and_outputs) = \
+    (dis_and_id, tagid_and_inputs, tagid_and_outputs, id_and_dis) = \
             create_DisToID_dictionary(tagpath)
  
 
     #initiate the testcase
     tc = testcase.TestCase(config) 
     
-
-    #setup the fake inputs
-    #send the fake inputs to the database
+    # u represents simulation input values
     u={}
-    for each_input in tc.get_inputs():       
-        if each_input !='time':
-            u[each_input]=1.0  # fake inputs here
-            input_id = tagid_and_inputs[ each_input ]
-            recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %u[each_input], "rec.curStatus":"s:ok","rec.cur": "m:" }} )
-
-    #query the database for inputs
-    input_queried={}
-    for each_input in u.keys():
-        input_id = tagid_and_inputs[ each_input ]
-        input_found = query_var_byID(recs, input_id)
-        input_recs = input_found[u'rec']
-        input_value = float( input_recs[u'curVal'].replace('n:','') )
-        input_name  = input_recs[u'dis'].replace('s:','')        
-        input_queried['name'] = input_name
-        input_queried['id'] = input_id
-        input_queried['value'] = input_value
-
-
     
     #run the FMU simulation
     kstep=0 
-    #while tc.start_time <= 1000000000000:
-    for i in range(10):
-        time.sleep(5)
-        tc.advance(u)
-        output = tc.get_results()
-        #cur_time = tc.final_time
-        cur_time = datetime.utcnow(  )   
-        #output_time_string = 's:%s %s' %(cur_time.isoformat(), 'Denver')
-        output_time_string = 's:%s' %(tc.final_time)
-        check_vars(output_time_string) 
-        recs.update_one( {"_id": site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:running"} } )
-        
-        u_output = output['u']
-        y_output = output['y']   
+    stop = False
+    simtime = 0
+    while simtime < 86400 and not stop:
+        # look in the database for current write arrays
+        # for each write array there is an array of controller
+        # input values, the first element in the array with a value
+        # is what should be applied to the simulation according to Project Haystack
+        # convention
+        for array in write_arrays.find({"siteRef": site_ref}):
+            for val in array.get('val'):
+                if val:
+                    _id = array.get('_id')
+                    dis = id_and_dis.get(_id)
+                    if dis:
+                        u[dis] = val
+                        u[dis.replace('_u', '_activate')] = 1
+                        print('inputs:')
+                        print(u)
+                        break
 
+        y_output = tc.advance(u)
+        simtime = tc.final_time
+        output_time_string = 's:%s' %(simtime)
+        recs.update_one( {"_id": site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:Running"} } )
+
+        # get each of the simulation output values and feed to the database
         for key in y_output.keys():
             value_y = y_output[key]
             
             if key!='time': 
                 output_id = tagid_and_outputs[key]                          
-                for cur_value in value_y:
-                    recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
-             
-    #shutil.rmtree(directory)
+                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
+
+        time.sleep(5)
+
+        # A client may have requested that the simulation stop early,
+        # look for a signal to stop from the database
+        site = recs.find_one({"_id": site_ref})
+        if site and (site.get("rec",{}).get("simStatus") == "s:Stopping") :
+            stop = True;
     
+    # Clear all current values from the database when the simulation is no longer running
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
-    recs.update_many({"_id": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
+    recs.update_many({"site_ref": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
+    recs.update_many({"site_ref": site_ref, "rec.writable": "m:"}, {"$unset": {"rec.writeLevel": "","rec.writeVal": ""}, "$set": { "rec.writeStatus": "s:disabled" } }, False)
+
+    shutil.rmtree(directory)
 
 except Exception as e:
     print('runFMU: %s' % e, file=sys.stderr)

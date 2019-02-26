@@ -34,19 +34,18 @@ tags.append(sitetag)
 
 #4.0 add input tagging
 for var_input in input_names:
-    tag_input = {
-        "id": "r:%s" % uuid.uuid4(),
-        "dis": "s:%s" % var_input,
-        "siteRef": "r:%s" % siteid,
-        "point": "m:",
-        "cur":  "m:",
-        "curVal": "n:",
-        "curStatus": "s:disabled",
-        "writable": "m:",
-        "kind": "s:Number",
-    }
-    tags.append(tag_input)
-    tag_input={}
+    if not var_input.endswith("_activate"):
+        tag_input = {
+            "id": "r:%s" % uuid.uuid4(),
+            "dis": "s:%s" % var_input,
+            "siteRef": "r:%s" % siteid,
+            "point": "m:",
+            "writable": "m:",
+            "writeStatus": "s:disabled",
+            "kind": "s:Number",
+        }
+        tags.append(tag_input)
+        tag_input={}
 
 #5.0 add output tagging
 for var_output in output_names:

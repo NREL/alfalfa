@@ -256,13 +256,12 @@ class Sites extends React.Component {
   }
 
   formatTime = (isotime) => {
-    let result = "-";
-    console.log('initial time string: '+ isotime ); //debugging line
+    let result = "";
     
     //check if it is ISO format
-    var arr_isotime = isotime.split("-");
-    
-    if (arr_isotime.length===3){
+    if ( ! isotime ) {
+      result = "-"
+    } else if ( (isotime.split("-").length === 3 ) ){
       //is arr_isotime.length==3, it means it is ISO format
       // Haystack has an extra string representation of the timezone
       // tacked onto the end of the iso time string (after a single space)
@@ -282,7 +281,7 @@ class Sites extends React.Component {
       };  
       const datetime = new Date(_isotime);
       result = datetime.toLocaleTimeString("en-us", options);
-    }else{
+    } else {
       result = isotime;
     } 
     
