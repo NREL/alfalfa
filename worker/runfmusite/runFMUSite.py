@@ -46,7 +46,8 @@ import json
 
 
 from common import *
-
+import requests
+#import curl
 
 def get_tag_data(tag_filepath):
     '''
@@ -157,7 +158,53 @@ def check_writearrays(mongodb, id_site):
                else:
                    print("writearray is empty!")
 
-  
+
+def send_reading_requests(point_id_readable):
+    '''
+    Purpose: receive responses of http-reading-requests from the Haystack
+    Inputs: point_id_readable
+    Returns: http-reading-request status
+    Notes: url ="http://localhost:80/api/read"
+    '''
+    url ="http://localhost:80/api/read"
+    header = { "Accept":"application/json", "Content-Type":"text/zinc" }
+    data = """ver:"2.0" 
+           filter,limit 
+           \"id==@""" + point_id_readable + "\,1000"
+    
+    reading_response = requests.post(url=url, headers=header, data=data)
+    print (reading_response)
+        
+
+def send_writing_requests(point_id_writable):
+    '''
+    Purpose: receive responses of http-writing-requests from the Haystack
+    Inputs: point_id_writable
+    Returns: http-writing-request status
+    Notes:  url ="http://localhost:80/api/pointWrite"
+    '''
+    url ="http://localhost:80/api/pointWrite"
+    header = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
+    
+    data = json.dumps(
+       {
+        "meta": {"ver":"2.0"},
+        "rows": [ { "id"  :"r:" + point_id_writable, \
+                    "level": "n:1",  \
+                    "who"  : "s:" ,  \
+                    "val"  : "n:0.5",\
+                    "duration": "s:"
+                  }
+                ],
+        "cols": [  {"name":"id"}, {"name":"level"}, {"name":"val"}, {"name":"who"}, {"name":"duration"}
+                ]
+       } 
+    )
+         
+    writing_response = requests.post(url=url, headers=header, data=data)
+    print (writing_response)
+     
+
 
 ####################   Entry for Main Program   #####################
 ############################################################################
@@ -222,15 +269,24 @@ try:
     #initiate the testcase
     tc = testcase.TestCase(config) 
     
-
+    
     #setup the fake inputs
     #send the fake inputs to the database
+    #overwrite the fake inputs through writing-requests-by-http
     u={}
     for each_input in tc.get_inputs():       
         if each_input !='time':
             u[each_input]=1.0  # fake inputs here
             input_id = tagid_and_inputs[ each_input ]
             recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %u[each_input], "rec.curStatus":"s:ok","rec.cur": "m:" }} )
+            #send_writing_requests(input_id)
+
+    #send reading requests through http
+    for output_var in tagid_and_outputs.keys():
+        output_id = tagid_and_outputs[output_var]
+        check_vars(output_id, 'output_id')
+        send_reading_requests(output_id)
+
 
     #query the database for inputs
     input_queried={}
@@ -245,8 +301,9 @@ try:
         input_queried['value'] = input_value
 
     check_vars(site_ref,'site_ref')
-    check_writearrays(mongodb, site_ref)
+    #check_writearrays(mongodb, site_ref)
     
+ 
     #run the FMU simulation
     kstep=0 
     #while tc.start_time <= 1000000000000:
@@ -273,7 +330,8 @@ try:
                     recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %cur_value, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
              
     #shutil.rmtree(directory)
-    
+    #get_http_requests(site_ref)
+
     recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
     recs.update_many({"_id": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 

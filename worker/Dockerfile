@@ -19,7 +19,8 @@ RUN apt-get update \
     && curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz \
     && tar -xzf bcvtb-linux.tar.gz \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
-    && apt-get install -y ca-certificates nodejs
+    && apt-get install -y ca-certificates nodejs 
+    
 
 ###  ENV OPENSTUDIO_VERSION 2.7.0
 ###  ENV OPENSTUDIO_TAG v2.7.0
@@ -64,6 +65,8 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
 COPY requirements.txt /root/
 RUN  python3.5 -m pip install --ignore-installed -r requirements.txt
 RUN  python -m pip install --ignore-installed -r requirements.txt
+
+
 
 COPY package.json package-lock.json /root/
 
