@@ -161,10 +161,10 @@ def check_writearrays(mongodb, id_site):
 
 def send_reading_requests(point_id_readable):
     '''
-    Purpose: receive responses of http-reading-requests from the Haystack
+    Purpose: receive responses of http-reading-requests for Haystack point
     Inputs: point_id_readable
     Returns: http-reading-request status
-    Notes: url ="http://localhost:80/api/read"
+    Notes: url ="http://localhost:80/api/read"; header and data need to follow Haystack syntax
     '''
     url ="http://localhost:80/api/read"
     header = { "Accept":"application/json", "Content-Type":"text/zinc" }
@@ -178,10 +178,10 @@ def send_reading_requests(point_id_readable):
 
 def send_writing_requests(point_id_writable):
     '''
-    Purpose: receive responses of http-writing-requests from the Haystack
+    Purpose: receive responses of http-writing-requests for Haystack point
     Inputs: point_id_writable
     Returns: http-writing-request status
-    Notes:  url ="http://localhost:80/api/pointWrite"
+    Notes:  url ="http://localhost:80/api/pointWrite"; header and data need to follow Haystack syntax
     '''
     url ="http://localhost:80/api/pointWrite"
     header = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
