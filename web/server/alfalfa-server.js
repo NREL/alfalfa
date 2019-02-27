@@ -521,7 +521,7 @@ class AlfalfaServer extends HServer {
           array.who[level - 1] = who;
         } else {
           array.val[level - 1] = null;
-          array.who[level - 1] = who;
+          array.who[level - 1] = null;
         }
         this.writearrays.updateOne(
           { "_id": array._id },
@@ -557,7 +557,7 @@ class AlfalfaServer extends HServer {
           array.who[level - 1] = who;
         } else {
           array.val[level - 1] = null;
-          array.who[level - 1] = who;
+          array.who[level - 1] = null;
         }
         this.writearrays.insertOne(array).then( () => {
           const current = this.currentWinningValue(array);

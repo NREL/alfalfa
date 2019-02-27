@@ -47,24 +47,39 @@ const styles = theme => ({
 });
 
 class StartDialog extends React.Component {
-  state = {
-    open: false,
-    selectedStartDateTime: new Date(),
-    selectedEndDateTime: new Date(),
-    realtime: false,
-    timescale: 5,
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      open: false,
+      realtime: false,
+      timescale: 5,
+      selectedStartTime: 0,
+      selectedEndTime: 86400
+    };
   }
 
-  handleStartDateTimeChange = dateTime => {
-    this.setState({ selectedStartDateTime: dateTime })
+  //componentWillMount = () => {
+  //  console.log(this.props);
+  //  if ( this.props.type == 'osm' ) {
+  //    this.state.selectedStartTime = new Date();
+  //    this.state.selectedEndTime = new Date();
+  //  } else {
+  //    this.state.selectedStartTime = 0;
+  //    this.state.selectedEndTime = 86400;
+  //  }
+  //}
+
+  handleStartTimeChange = time => {
+    this.setState({ selectedStartTime: time })
   }
 
   handleTimescaleChange = event => {
     this.setState({ timescale: event.target.value })
   }
 
-  handleEndDateTimeChange = dateTime => {
-    this.setState({ selectedEndDateTime: dateTime })
+  handleEndTimeChange = time => {
+    this.setState({ selectedEndTime: time })
   }
 
   handleShowDialogClick = () => {
@@ -75,15 +90,62 @@ class StartDialog extends React.Component {
     this.setState({open: false});
   }
 
-  //startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
   handleRequestStart = () => {
-    this.props.onStartSimulation(this.state.selectedStartDateTime,this.state.selectedEndDateTime,this.state.timescale,this.state.realtime);
+    this.props.onStartSimulation(this.state.selectedStartTime,this.state.selectedEndTime,this.state.timescale,this.state.realtime);
     this.setState({open: false});
   }
 
   render = () => {
-    const { selectedStartDateTime, selectedEndDateTime, realtime, timescale } = this.state
-    const { classes } = this.props;
+    const { selectedStartTime, selectedEndTime, realtime, timescale } = this.state
+    const { classes, type } = this.props;
+
+    let start;
+    let stop;
+    if ( type == 'osm' ) {
+      start = 
+      <Grid item xs={6}>
+        <DateTimePicker
+          value={selectedStartTime}
+          onChange={this.handleStartTimeChange}
+          label="EnergyPlus Start Time"
+          disabled={this.state.realtime}
+        />
+      </Grid>;
+
+      stop = 
+      <Grid item xs={6}>
+        <DateTimePicker
+          value={selectedEndTime}
+          onChange={this.handleEndTimeChange}
+          label="EnergyPlus End Time"
+          disabled={this.state.realtime}
+        />
+      </Grid>;
+    } else {
+      start = 
+      <Grid item xs={6}>
+        <TextField 
+          label="FMU Start Time"
+          value={selectedStartTime}
+          onChange={this.handleStartTimeChange}
+          InputLabelProps={{shrink: true, className: this.props.classes.label}}
+          disabled={realtime}
+          inputProps={{type: 'number', max: selectedEndTime}}
+        />
+      </Grid>;
+
+      stop = 
+      <Grid item xs={6}>
+        <TextField 
+          label="FMU Stop Time"
+          value={selectedEndTime}
+          onChange={this.handleEndTimeChange}
+          InputLabelProps={{shrink: true, className: this.props.classes.label}}
+          disabled={realtime}
+          inputProps={{type: 'number', min: selectedStartTime}}
+        />
+      </Grid>;
+    }
 
     return (
       <div>
@@ -92,22 +154,8 @@ class StartDialog extends React.Component {
           <DialogTitle>Simulation Parameters</DialogTitle>
           <DialogContent>
             <Grid container spacing={16}>
-              <Grid item xs={6}>
-                <DateTimePicker
-                  value={selectedStartDateTime}
-                  onChange={this.handleStartDateTimeChange}
-                  label="Begin"
-                  disabled={this.state.realtime}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <DateTimePicker
-                  value={selectedEndDateTime}
-                  onChange={this.handleEndDateTimeChange}
-                  label="End"
-                  disabled={this.state.realtime}
-                />
-              </Grid>
+              {start}
+              {stop}
               <Grid item xs={6}>
                 <TextField 
                   label="Timescale"

@@ -169,6 +169,7 @@ class Sites extends React.Component {
     selected: [],
     disabled: true,
     showPointsSiteRef: null,
+    startDialogType: 'osm'
   };
 
   isSelected = (siteRef) => {
@@ -179,6 +180,16 @@ class Sites extends React.Component {
     const { selected } = this.state;
     const selectedIndex = selected.indexOf(siteRef);
     let newSelected = [];
+
+    // Don't let two different simulation types be selected
+    const firstSimType = 'osm';
+
+    const clickedSite = this.props.data.viewer.sites.find(s => s.siteRef === siteRef);
+    const firstSite = this.selectedSites()[0];
+    const simType = clickedSite.simType;
+    if ( firstSite && (simType != firstSite.simType) ) {
+      return;
+    }
 
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, siteRef);
@@ -193,7 +204,7 @@ class Sites extends React.Component {
       );
     }
 
-    this.setState({ selected: newSelected });
+    this.setState({ selected: newSelected, startDialogType: simType });
   };
 
   isStartButtonDisabled = () => {
@@ -348,7 +359,7 @@ class Sites extends React.Component {
           <Grid item>
             <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
               <Grid item>
-                <StartDialog disabled={isStartDisabled} onStartSimulation={this.handleStartSimulation}></StartDialog>
+                <StartDialog type={this.state.startDialogType} disabled={isStartDisabled} onStartSimulation={this.handleStartSimulation}></StartDialog>
               </Grid>
               <Grid item>
                 <Button variant="contained" className={classes.button} disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Simulation</Button>
