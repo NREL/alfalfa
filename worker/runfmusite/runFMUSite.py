@@ -279,7 +279,7 @@ try:
             u[each_input]=1.0  # fake inputs here
             input_id = tagid_and_inputs[ each_input ]
             recs.update_one( {"_id": input_id }, {"$set": {"rec.curVal":"n:%s" %u[each_input], "rec.curStatus":"s:ok","rec.cur": "m:" }} )
-            #send_writing_requests(input_id)
+            send_writing_requests(input_id)
 
     #send reading requests through http
     for output_var in tagid_and_outputs.keys():
