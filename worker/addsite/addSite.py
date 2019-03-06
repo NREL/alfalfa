@@ -93,19 +93,5 @@ call(['openstudio', 'run', '-m', '-w', workflowpath])
 
 upload_site_DB_Cloud(jsonpath, bucket, directory)
 
-'''
-site_ref = obtain_id_siteref(jsonpath)
-
-
-if site_ref:
-    # This adds a new haystack site to the database
-    call(['npm', 'run', 'start', jsonpath, site_ref])
-
-    tarname = make_gzip_file(site_ref, directory)
-
-    bucket.upload_file(tarname, "parsed/%s" % tarname)
-    #os.remove(tarname)
-'''
-
 shutil.rmtree(directory)
 
