@@ -80,7 +80,7 @@ class FileInput extends React.Component {
     return (
       <div>
         <input className={styles.hidden} type="file" ref={this.fileInputRef} onInput={this.handleFileChange} />
-        <TextField fullWidth={true} label='Select OpenStudio or EnergyPlus File' onClick={this.handleTextInputClick} value={this.state.filename}
+        <TextField fullWidth={true} label='Select Model' onClick={this.handleTextInputClick} value={this.state.filename}
           InputLabelProps={{
             shrink: this.state.filename != ""
           }}

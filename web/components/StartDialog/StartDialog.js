@@ -99,9 +99,11 @@ class StartDialog extends React.Component {
     const { selectedStartTime, selectedEndTime, realtime, timescale } = this.state
     const { classes, type } = this.props;
 
+    console.log("startDialogType: ", this.props.type);
+
     let start;
     let stop;
-    if ( type == 'osm' ) {
+    if ( this.props.type == 'osm' ) {
       start = 
       <Grid item xs={6}>
         <DateTimePicker
