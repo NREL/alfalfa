@@ -55,20 +55,22 @@ class StartDialog extends React.Component {
       realtime: false,
       timescale: 5,
       selectedStartTime: 0,
-      selectedEndTime: 86400
+      selectedEndTime: 86400,
+      selectedStartSeconds: 0,
+      selectedEndSeconds: 86400,
     };
   }
 
-  //componentWillMount = () => {
-  //  console.log(this.props);
-  //  if ( this.props.type == 'osm' ) {
-  //    this.state.selectedStartTime = new Date();
-  //    this.state.selectedEndTime = new Date();
-  //  } else {
-  //    this.state.selectedStartTime = 0;
-  //    this.state.selectedEndTime = 86400;
-  //  }
-  //}
+  componentWillMount = () => {
+    console.log(this.props);
+    if ( this.props.type == 'osm' ) {
+      this.state.selectedStartTime = new Date();
+      this.state.selectedEndTime = new Date();
+    } else {
+      this.state.selectedStartSeconds = 0;
+      this.state.selectedEndSeconds = 86400;
+    }
+  }
 
   handleStartTimeChange = time => {
     this.setState({ selectedStartTime: time })
@@ -82,6 +84,14 @@ class StartDialog extends React.Component {
     this.setState({ selectedEndTime: time })
   }
 
+  handleStartSecondChange = second => {
+    this.setState({ selectedStartSeconds: second })
+  }
+
+  handleEndSecondChange = second => {
+    this.setState({ selectedEndSeconds: second })
+  }
+
   handleShowDialogClick = () => {
     this.setState({open: true});
   }
@@ -91,12 +101,17 @@ class StartDialog extends React.Component {
   }
 
   handleRequestStart = () => {
-    this.props.onStartSimulation(this.state.selectedStartTime,this.state.selectedEndTime,this.state.timescale,this.state.realtime);
-    this.setState({open: false});
+    if ( this.props.type == 'osm' ) {
+      this.props.onStartSimulation(this.state.selectedStartTime,this.state.selectedEndTime,this.state.timescale,this.state.realtime);
+      this.setState({open: false});
+    } else {
+      this.props.onStartSimulation(this.state.selectedStartSeconds,this.state.selectedEndSeconds,this.state.timescale,this.state.realtime);
+      this.setState({open: false});
+    }
   }
 
   render = () => {
-    const { selectedStartTime, selectedEndTime, realtime, timescale } = this.state
+    const { selectedStartTime, selectedEndTime, selectedStartSeconds, selectedEndSeconds, realtime, timescale } = this.state
     const { classes, type } = this.props;
 
     console.log("startDialogType: ", this.props.type);
@@ -128,11 +143,11 @@ class StartDialog extends React.Component {
       <Grid item xs={6}>
         <TextField 
           label="FMU Start Time"
-          value={selectedStartTime}
-          onChange={this.handleStartTimeChange}
+          value={selectedStartSeconds}
+          onChange={this.handleStartSecondChange}
           InputLabelProps={{shrink: true, className: this.props.classes.label}}
           disabled={realtime}
-          inputProps={{type: 'number', max: selectedEndTime}}
+          inputProps={{type: 'number', max: selectedEndSeconds}}
         />
       </Grid>;
 
@@ -140,11 +155,11 @@ class StartDialog extends React.Component {
       <Grid item xs={6}>
         <TextField 
           label="FMU Stop Time"
-          value={selectedEndTime}
-          onChange={this.handleEndTimeChange}
+          value={selectedEndSeconds}
+          onChange={this.handleEndSecondChange}
           InputLabelProps={{shrink: true, className: this.props.classes.label}}
           disabled={realtime}
-          inputProps={{type: 'number', min: selectedStartTime}}
+          inputProps={{type: 'number', min: selectedEndSeconds}}
         />
       </Grid>;
     }
