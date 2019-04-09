@@ -159,7 +159,7 @@ try:
     tarpath = os.path.join(directory, tar_name)
     fmupath = os.path.join(directory, 'model.fmu')
     tagpath = os.path.join(directory, 'tags.json')
-
+    print ("Hey fmu path ]]]]]]: ",fmupath)
         
     if not os.path.exists(directory):
         os.makedirs(directory)

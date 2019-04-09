@@ -86,4 +86,23 @@ services:
     image: mongo
     ports:
       - "27017:27017"
+  
+
+  client:
+    build:
+      context: client
+      dockerfile: Dockerfile-client
+    image: client
+    environment:
+      - S3_URL
+      - MINIO_ACCESS_KEY=${AWS_ACCESS_KEY_ID}
+      - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
+      - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
+      - MONGO_URL=mongodb://mongo:27017/
+      - MONGO_DB_NAME=admin
+      - NODE_ENV
+
+    depends_on:
+      - minio
+      - mongo
 
