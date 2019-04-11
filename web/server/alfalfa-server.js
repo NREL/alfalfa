@@ -527,8 +527,8 @@ class AlfalfaServer extends HServer {
           { "_id": array._id },
           { $set: { "val": array.val, "who": array.who } }
         ).then( () => {
-          const current = this.currentWinningValue(array);
-          if( current ) {
+          if( val && val.val ) {
+            const current = this.currentWinningValue(array);
             return this.mrecs.updateOne(
               { "_id": array._id },
               { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
@@ -536,7 +536,7 @@ class AlfalfaServer extends HServer {
           } else {
             return this.mrecs.updateOne(
               { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:ok" }, $unset: { writeVal: "", writeLevel: "", writeErr: ""} }
+              { $set: { "rec.writeStatus": "s:disabled" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
             )
           }
         }).then( () => {
@@ -569,7 +569,7 @@ class AlfalfaServer extends HServer {
           } else {
             return this.mrecs.updateOne(
               { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:ok" }, $unset: { writeVal: "", writeLevel: "", writeErr: ""} }
+              { $set: { "rec.writeStatus": "s:disabled" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
             )
           }
         }).then(() => {
