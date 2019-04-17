@@ -1,5 +1,6 @@
 import uuid
 import requests
+from requests_toolbelt import MultipartEncoder
 import json
 import os
 
@@ -16,27 +17,23 @@ class Boptest:
     # https://github.com/NREL/alfalfa/blob/develop/web/components/Upload/Upload.js#L127
     # return value should be a string unique identifier for the model
     def submit(self, path):
-        #key = `uploads/${this.state.uploadID}/${this.state.modelFile.name}`
-        key = 'uploads/1234/foo'
+        filename = os.path.basename(path)
+        uid = uuid.uuid1()
+        key = 'uploads/' + str(uid) + '/' + filename
         payload = {'name': key}
 
         response = requests.post(self.url + '/upload-url', json=payload)
         json = response.json()
         postURL = json['postURL']
         formData = json['formData']
-        form = {} 
-        for key,value in formData.items():
-            form[key] = value
-        form['file'] = open('/Users/kbenne/Development/alfalfa/README.md', 'rb')
-        #print(form)
+        formData['file'] = open(path, 'rb')
 
-        #formData.append('file', this.state.modelFile);
+        encoder = MultipartEncoder(fields=formData)
 
         if response.ok:
-            print ('status: ', response.status_code)
-            print(postURL)
-            response = requests.post(postURL, files=form)
-            print(response)
+            response = requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
+        else:
+            print('Error submitting model')
 
     # make http requests to upload file
     def upload_model_http(self, path):
