@@ -18,22 +18,26 @@ class Boptest:
     # return value should be a string unique identifier for the model
     def submit(self, path):
         filename = os.path.basename(path)
-        uid = uuid.uuid1()
-        key = 'uploads/' + str(uid) + '/' + filename
+        uid = str(uuid.uuid1())
+        key = 'uploads/' + uid + '/' + filename
         payload = {'name': key}
 
+        # Get a template for the file upload form data
+        # The server has an api to give this to us
         response = requests.post(self.url + '/upload-url', json=payload)
         json = response.json()
         postURL = json['postURL']
         formData = json['formData']
         formData['file'] = open(path, 'rb')
 
+        # Use the form data from the server to actually upload the file
         encoder = MultipartEncoder(fields=formData)
+        requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
 
-        if response.ok:
-            response = requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
-        else:
-            print('Error submitting model')
+        # After the file has been uploaded, then tell BOPTEST to process the site
+        # This is done not via the haystack api, but through a graphql api
+        mutation = 'mutation { addSite(osmName: "%s", uploadID: "%s") }' % (filename, uid)
+        response = requests.post(self.url + '/graphql', json={'query': mutation})
 
     # Start a simulation for model identified by id. The id should corrsespond to 
     # a return value from the submit method
