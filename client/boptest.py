@@ -1,8 +1,8 @@
 import uuid
 import requests
-from requests_toolbelt import MultipartEncoder
 import json
 import os
+from requests_toolbelt import MultipartEncoder
 
 class Boptest:
 
@@ -34,63 +34,6 @@ class Boptest:
             response = requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
         else:
             print('Error submitting model')
-
-    # make http requests to upload file
-    def upload_model_http(self, path):
-        upload_dst = self.submit(path)
-        if upload_dst:
-            tmp = upload_dst.split("/")
-            model_name = tmp[-1]
-            upload_id  = tmp[-2]
-         
-             
-            model = MultipartEncoder(fields={'name':('wrapped.fmu', \
-                                                 open(upload_dst,'rb')), 'Content-Type': ('application/json; charset=utf-8')
-                                        }
-                                 )
-                       
-            header = {'Content-type': 'application/json; charset=utf-8'}
-            http_url = 'http://localhost/upload-url'            
-            payload = {'name': upload_dst }
-            r = requests.post(http_url, data=model, \
-                              headers={'Content-Type': model.content_type})
-            #r = requests.post(http_url, data = payload, headers=header)
-            print ("......http requests ......") 
-            print (r.text)
-            print(r.status_code)
-            
-            
-    #use Minio client to upload file
-    def upload_model_s3(self, path):
-        tmp = path.split("/")
-        model_name = tmp[-1]
-        #print('Hey modle name: ', model_name)
-        upload_id  = tmp[-2]
-        
-        #s3_url = 'http://minio:9000'
-        s3_url = 'http://localhost/upload-url'
-              
-        s3 = boto3.resource('s3', 
-                            region_name = 'us-east-1', 
-                            endpoint_url = s3_url )
-
-        bucket = s3.Bucket('alfalfa')
-        
-        upload_id = 'abcde'
-        key = "uploads/%s/%s" % (upload_id, model_name)
-
-        if not os.path.exists("uploads/"+upload_id):
-            os.makedirs("uploads/"+upload_id)
-
-        if not os.path.isfile(key):
-            copyfile("sharedfiles/wrapped.fmu", key)
-
-        #filedata = open(model_name, 'rb')        
-        bucket.upload_file(key,'alfalfa')
-        print ("...... s3 request ......")
-
-
-
 
     # Start a simulation for model identified by id. The id should corrsespond to 
     # a return value from the submit method

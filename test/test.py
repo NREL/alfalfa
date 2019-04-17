@@ -1,3 +1,6 @@
+# Execute this file from the test directory
+# python test.py
+
 #from os.path import dirname
 import sys
 import os.path
