@@ -1,0 +1,78 @@
+version: '3'
+
+services:
+  web: # main haystack application
+    build: ../../web
+    image: ${DOCKER_REGISTRY_URI}web-${BT_ENV}:latest
+    ports:
+     - "80:80"
+     - "29043:29043"
+    environment:
+     - AWS_ACCESS_KEY_ID
+     - AWS_SECRET_ACCESS_KEY
+     - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
+     - MONGO_URL=mongodb://mongo:27017/
+     - NODE_ENV
+     - S3_URL
+    depends_on:
+      - mongo
+      - goaws
+      - worker
+      - mc
+
+  # Provides a local queue, conforming to aws Queue API
+  goaws:
+    image: pafortin/goaws
+    ports:
+      - "4100:4100"
+
+  # Local implementation of s3
+  minio:
+    image: minio/minio
+    entrypoint:
+      - minio
+      - server
+      - /data
+    ports:
+      - "9000:9000"
+    environment:
+      - MINIO_ACCESS_KEY=${AWS_ACCESS_KEY_ID}
+      - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
+
+  mc:
+    image: minio/mc
+    environment:
+      - MINIO_ACCESS_KEY=${AWS_ACCESS_KEY_ID}
+      - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc config host add myminio http://minio:9000 $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY};
+      /usr/bin/mc mb myminio/alfalfa;
+      /usr/bin/mc policy public myminio/alfalfa;
+      "
+    depends_on:
+      - minio
+
+  worker:
+    build: ../../worker
+    image: ${DOCKER_REGISTRY_URI}worker-${BT_ENV}:latest
+    environment:
+     - AWS_ACCESS_KEY_ID
+     - AWS_SECRET_ACCESS_KEY
+     - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
+     - MONGO_URL=mongodb://mongo:27017/
+     - MONGO_DB_NAME=admin
+     - LOGLEVEL=INFO
+     - NODE_ENV
+     - S3_URL
+    depends_on:
+      - mongo
+      - goaws
+      - mc
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+
