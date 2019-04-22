@@ -76,6 +76,10 @@ def create_DisToID_dictionary(tag_filepath):
     inputs_and_ID = {}
     outputs_and_ID = {}
     id_and_dis={}
+    # default_input is a dictionay
+    # with keys for every "_enable" input, set to value 0
+    # in other words, disable everything
+    default_input={}
 
     tag_data = get_tag_data(tag_filepath)
 
@@ -87,20 +91,13 @@ def create_DisToID_dictionary(tag_filepath):
         id_and_dis[var_id] = var_name
         
         if 'writable' in point.keys():
-            #it means it is a input variable.
-            #clean the var-name, discarding: ':input','s:','r:'
-            #input_var = var_name.replace(':input','')
-            #input_var = input_var.replace('s:','')
             inputs_and_ID[var_name] = var_id
+            default_input[var_name.replace('_u', '_activate')] = 0;
 
         if 'writable' not in point.keys() and 'point' in point.keys():
-            #it means it is an output variable, plus not sitetag.
-            #clean the var-name, discarding: ':output','s:','r:'
-            #output_var = var_name.replace(':output','')
-            #output_var = output_var.replace('s:','')
             outputs_and_ID[var_name] = var_id
          
-    return (dis_and_ID, inputs_and_ID, outputs_and_ID, id_and_dis)
+    return (dis_and_ID, inputs_and_ID, outputs_and_ID, id_and_dis, default_input)
         
 
 def query_var_byID(database, var_id):
@@ -148,8 +145,8 @@ try:
     site_ref = sys.argv[1]
     real_time_flag = sys.argv[2]
     time_scale = int(sys.argv[3])
-    user_start_Datetime = parse(sys.argv[4])
-    user_end_Datetime = parse(sys.argv[5])
+    startTime = int(sys.argv[4])
+    endTime = int(sys.argv[5])
 
     #build the path for zipped-file, fmu, json
     sim_path = '/simulate'
@@ -184,21 +181,20 @@ try:
     }
 
         
-    (dis_and_id, tagid_and_inputs, tagid_and_outputs, id_and_dis) = \
+    (dis_and_id, tagid_and_inputs, tagid_and_outputs, id_and_dis, default_input) = \
             create_DisToID_dictionary(tagpath)
  
 
     #initiate the testcase
     tc = testcase.TestCase(config) 
     
-    # u represents simulation input values
-    u={}
-    
     #run the FMU simulation
     kstep=0 
     stop = False
     simtime = 0
-    while simtime < 86400 and not stop:
+    while simtime < endTime and not stop:
+        # u represents simulation input values
+        u=default_input.copy()
         # look in the database for current write arrays
         # for each write array there is an array of controller
         # input values, the first element in the array with a value
@@ -206,14 +202,12 @@ try:
         # convention
         for array in write_arrays.find({"siteRef": site_ref}):
             for val in array.get('val'):
-                if val:
+                if val is not None:
                     _id = array.get('_id')
                     dis = id_and_dis.get(_id)
                     if dis:
                         u[dis] = val
                         u[dis.replace('_u', '_activate')] = 1
-                        print('inputs:')
-                        print(u)
                         break
 
         y_output = tc.advance(u)

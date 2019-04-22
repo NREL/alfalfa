@@ -47,24 +47,49 @@ const styles = theme => ({
 });
 
 class StartDialog extends React.Component {
-  state = {
-    open: false,
-    selectedStartDateTime: new Date(),
-    selectedEndDateTime: new Date(),
-    realtime: false,
-    timescale: 5,
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      open: false,
+      realtime: false,
+      timescale: 5,
+      selectedStartTime: 0,
+      selectedEndTime: 86400,
+      selectedStartSeconds: 0,
+      selectedEndSeconds: 86400,
+    };
   }
 
-  handleStartDateTimeChange = dateTime => {
-    this.setState({ selectedStartDateTime: dateTime })
+  componentWillMount = () => {
+    console.log(this.props);
+    if ( this.props.type == 'osm' ) {
+      this.state.selectedStartTime = new Date();
+      this.state.selectedEndTime = new Date();
+    } else {
+      this.state.selectedStartSeconds = 0;
+      this.state.selectedEndSeconds = 86400;
+    }
+  }
+
+  handleStartTimeChange = time => {
+    this.setState({ selectedStartTime: time })
   }
 
   handleTimescaleChange = event => {
     this.setState({ timescale: event.target.value })
   }
 
-  handleEndDateTimeChange = dateTime => {
-    this.setState({ selectedEndDateTime: dateTime })
+  handleEndTimeChange = time => {
+    this.setState({ selectedEndTime: time })
+  }
+
+  handleStartSecondChange = second => {
+    this.setState({ selectedStartSeconds: second })
+  }
+
+  handleEndSecondChange = second => {
+    this.setState({ selectedEndSeconds: second })
   }
 
   handleShowDialogClick = () => {
@@ -75,15 +100,69 @@ class StartDialog extends React.Component {
     this.setState({open: false});
   }
 
-  //startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
   handleRequestStart = () => {
-    this.props.onStartSimulation(this.state.selectedStartDateTime,this.state.selectedEndDateTime,this.state.timescale,this.state.realtime);
-    this.setState({open: false});
+    if ( this.props.type == 'osm' ) {
+      this.props.onStartSimulation(this.state.selectedStartTime,this.state.selectedEndTime,this.state.timescale,this.state.realtime);
+      this.setState({open: false});
+    } else {
+      this.props.onStartSimulation(this.state.selectedStartSeconds,this.state.selectedEndSeconds,this.state.timescale,this.state.realtime);
+      this.setState({open: false});
+    }
   }
 
   render = () => {
-    const { selectedStartDateTime, selectedEndDateTime, realtime, timescale } = this.state
-    const { classes } = this.props;
+    const { selectedStartTime, selectedEndTime, selectedStartSeconds, selectedEndSeconds, realtime, timescale } = this.state
+    const { classes, type } = this.props;
+
+    console.log("startDialogType: ", this.props.type);
+
+    let start;
+    let stop;
+    if ( this.props.type == 'osm' ) {
+      start = 
+      <Grid item xs={6}>
+        <DateTimePicker
+          value={selectedStartTime}
+          onChange={this.handleStartTimeChange}
+          label="EnergyPlus Start Time"
+          disabled={this.state.realtime}
+        />
+      </Grid>;
+
+      stop = 
+      <Grid item xs={6}>
+        <DateTimePicker
+          value={selectedEndTime}
+          onChange={this.handleEndTimeChange}
+          label="EnergyPlus End Time"
+          disabled={this.state.realtime}
+        />
+      </Grid>;
+    } else {
+      start = 
+      <Grid item xs={6}>
+        <TextField 
+          label="FMU Start Time"
+          value={selectedStartSeconds}
+          onChange={this.handleStartSecondChange}
+          InputLabelProps={{shrink: true, className: this.props.classes.label}}
+          disabled={realtime}
+          inputProps={{type: 'number', max: selectedEndSeconds}}
+        />
+      </Grid>;
+
+      stop = 
+      <Grid item xs={6}>
+        <TextField 
+          label="FMU Stop Time"
+          value={selectedEndSeconds}
+          onChange={this.handleEndSecondChange}
+          InputLabelProps={{shrink: true, className: this.props.classes.label}}
+          disabled={realtime}
+          inputProps={{type: 'number', min: selectedEndSeconds}}
+        />
+      </Grid>;
+    }
 
     return (
       <div>
@@ -92,22 +171,8 @@ class StartDialog extends React.Component {
           <DialogTitle>Simulation Parameters</DialogTitle>
           <DialogContent>
             <Grid container spacing={16}>
-              <Grid item xs={6}>
-                <DateTimePicker
-                  value={selectedStartDateTime}
-                  onChange={this.handleStartDateTimeChange}
-                  label="Begin"
-                  disabled={this.state.realtime}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <DateTimePicker
-                  value={selectedEndDateTime}
-                  onChange={this.handleEndDateTimeChange}
-                  label="End"
-                  disabled={this.state.realtime}
-                />
-              </Grid>
+              {start}
+              {stop}
               <Grid item xs={6}>
                 <TextField 
                   label="Timescale"

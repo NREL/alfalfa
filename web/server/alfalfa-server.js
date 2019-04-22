@@ -521,14 +521,14 @@ class AlfalfaServer extends HServer {
           array.who[level - 1] = who;
         } else {
           array.val[level - 1] = null;
-          array.who[level - 1] = who;
+          array.who[level - 1] = null;
         }
         this.writearrays.updateOne(
           { "_id": array._id },
           { $set: { "val": array.val, "who": array.who } }
         ).then( () => {
-          const current = this.currentWinningValue(array);
-          if( current ) {
+          if( val && val.val ) {
+            const current = this.currentWinningValue(array);
             return this.mrecs.updateOne(
               { "_id": array._id },
               { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
@@ -536,7 +536,7 @@ class AlfalfaServer extends HServer {
           } else {
             return this.mrecs.updateOne(
               { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:ok" }, $unset: { writeVal: "", writeLevel: "", writeErr: ""} }
+              { $set: { "rec.writeStatus": "s:disabled" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
             )
           }
         }).then( () => {
@@ -557,7 +557,7 @@ class AlfalfaServer extends HServer {
           array.who[level - 1] = who;
         } else {
           array.val[level - 1] = null;
-          array.who[level - 1] = who;
+          array.who[level - 1] = null;
         }
         this.writearrays.insertOne(array).then( () => {
           const current = this.currentWinningValue(array);
@@ -569,7 +569,7 @@ class AlfalfaServer extends HServer {
           } else {
             return this.mrecs.updateOne(
               { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:ok" }, $unset: { writeVal: "", writeLevel: "", writeErr: ""} }
+              { $set: { "rec.writeStatus": "s:disabled" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
             )
           }
         }).then(() => {
