@@ -136,7 +136,7 @@ try:
 
     #Initiate Mongo Database
     mongo_client = MongoClient(os.environ['MONGO_URL'])
-    mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+    mongodb = mongo_client['boptest']
     recs = mongodb.recs
     write_arrays = mongodb.writearrays
 

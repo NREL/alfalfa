@@ -96,7 +96,7 @@ if __name__ == '__main__':
         s3 = boto3.resource('s3', region_name='us-east-1')
 
         mongo_client = MongoClient(os.environ['MONGO_URL'])
-        mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+        mongodb = mongo_client['boptest']
         recs = mongodb.recs
 
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))

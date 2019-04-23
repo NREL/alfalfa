@@ -83,8 +83,8 @@ function addFile(json_file, site_ref) {
   });
 }
 
-MongoClient.connect(process.env.MONGO_URL).then((_db) => {
-  db = _db;
+MongoClient.connect(process.env.MONGO_URL).then((client) => {
+  db = client.db('boptest');
   mrecs = db.collection('recs');
   addFile(process.argv[2],process.argv[3]);
 }).catch((err) => {

@@ -49,7 +49,7 @@ var client = new Minio.Client({
     region: 'us-west-1'
 });
 
-MongoClient.connect(process.env.MONGO_URL).then((db) => {
+MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   var app = express();
   
   if( process.env.NODE_ENV == "production" ) {
@@ -61,6 +61,9 @@ MongoClient.connect(process.env.MONGO_URL).then((db) => {
   } else {
     app.use(morgan('combined'))
   }
+
+  const db = mongoClient.db('boptest');
+
   app.locals.alfalfaServer = new alfalfaServer(db);
 
   app.use('/graphql', (request, response) => {

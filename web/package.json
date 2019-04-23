@@ -44,7 +44,7 @@
     "minio": "^7.0.2",
     "mocha": "^5.2.0",
     "moment": "^2.20.1",
-    "mongodb": "2.2.29",
+    "mongodb": "^3.2.3",
     "morgan": "^1.9.1",
     "node-sass": "^4.9.3",
     "nodehaystack": "2.0.0",

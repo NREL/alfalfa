@@ -279,7 +279,7 @@ def get_current_datetime_ep(ep_year, ep_month, ep_day, ep_hour, ep_minute, local
 
 # Mongo Database
 mongo_client = MongoClient(os.environ['MONGO_URL'])
-mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+mongodb = mongo_client['boptest']
 recs = mongodb.recs
 sims = mongodb.sims
 
