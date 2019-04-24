@@ -7,7 +7,7 @@
 #build images
 export BT_DOCKER_REGISTRY_URI=ic-docker-registry.nrel.gov:5000/
 export BT_ENV=stage
-docker-compose -f ./deploy/docker/docker-compose-staging.yml build
+docker-compose -f ./deploy/docker/docker-compose-noaws.yml build
 
 #push images to registry
 docker push "${BT_DOCKER_REGISTRY_URI}bt-web-${BT_ENV}:latest"

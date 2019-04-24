@@ -44,9 +44,19 @@ services:
     environment:
       - MINIO_ACCESS_KEY=${AWS_ACCESS_KEY_ID}
       - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
+
+    # needs to wait on minio:9000 
+    # depends_on only requires that the container be starting, not ready
+    # depends_on is also ignored when deploying in swarm mode
     entrypoint: >
       /bin/sh -c "
-      sleep 5;
+      minio_up=1;
+      while [ "$$minio_up" -ne 0 ]
+        do 
+        sleep 5 
+        nc -z minio 9000
+        minio_up=$$?
+      done;
       /usr/bin/mc config host add myminio http://minio:9000 $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY};
       /usr/bin/mc mb myminio/alfalfa;
       /usr/bin/mc policy public myminio/alfalfa;
