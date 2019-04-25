@@ -3,7 +3,7 @@ version: '3'
 services:
   web: # main haystack application
     build: ../../web
-    image: ${BT_DOCKER_REGISTRY_URI}web-${BT_ENV}:latest
+    image: ${BT_DOCKER_REGISTRY_URI}bt-web-${BT_ENV}:latest
     ports:
      - "80:80"
      - "29043:29043"
@@ -66,7 +66,7 @@ services:
 
   worker:
     build: ../../worker
-    image: ${BT_DOCKER_REGISTRY_URI}worker-${BT_ENV}:latest
+    image: ${BT_DOCKER_REGISTRY_URI}bt-worker-${BT_ENV}:latest
     environment:
      - AWS_ACCESS_KEY_ID
      - AWS_SECRET_ACCESS_KEY
