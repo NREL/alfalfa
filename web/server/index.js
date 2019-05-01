@@ -31,8 +31,10 @@ import url from 'url';
 import bodyParser from 'body-parser';
 import alfalfaServer from './alfalfa-server';
 import {MongoClient} from 'mongodb';
+import node_redis from 'redis';
 import graphQLHTTP from 'express-graphql';
 import {Schema} from './schema';
+import {Advancer} from './advancer';
 import historyApiFallback from 'connect-history-api-fallback';
 import morgan from 'morgan';
 import * as Minio from 'minio';
@@ -40,7 +42,7 @@ import { URL } from "url";
 
 const s3URL = new URL(process.env.S3_URL);
 
-var client = new Minio.Client({
+const client = new Minio.Client({
     endPoint: s3URL.hostname,
     port: parseInt(s3URL.port),
     useSSL: s3URL.protocol == 'https:',
@@ -48,6 +50,11 @@ var client = new Minio.Client({
     secretKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: 'us-west-1'
 });
+
+const redis = node_redis.createClient({host: 'redis'});
+const pub = redis.duplicate();
+const sub = redis.duplicate();
+const advancer = new Advancer(redis, pub, sub);
 
 MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   var app = express();
@@ -64,7 +71,7 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
 
   const db = mongoClient.db('boptest');
 
-  app.locals.alfalfaServer = new alfalfaServer(db);
+  app.locals.alfalfaServer = new alfalfaServer(db, redis, pub, sub);
 
   app.use('/graphql', (request, response) => {
       return graphQLHTTP({
@@ -73,7 +80,8 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
         schema: Schema,
         context: {
           ...request,
-          db
+          db,
+          advancer
         }
       })(request,response)
     }

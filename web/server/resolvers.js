@@ -79,6 +79,7 @@ function runSiteResolver(args) {
     //  endDatetime : { type: GraphQLString },
     //  timescale : { type: GraphQLFloat },
     //  realtime : { type: GraphQLBoolean },
+    //  externalClock : { type: GraphQLBoolean },
     //},
   return new Promise( (resolve,reject) => {
     request
@@ -104,6 +105,9 @@ function runSiteResolver(args) {
         {
           "name": "realtime"
         },
+        {
+          "name": "externalClock"
+        },
       ],
       "rows": [
         {
@@ -111,6 +115,7 @@ function runSiteResolver(args) {
           "startDatetime": `s:${args.startDatetime}`,
           "endDatetime": `s:${args.endDatetime}`,
           "realtime": `s:${args.realtime}`,
+          "externalClock": `s:${args.externalClock}`,
         }
       ]
     })
@@ -331,5 +336,9 @@ function sitePointResolver(siteRef) {
   });
 }
 
-module.exports = { runSimResolver, addSiteResolver, sitesResolver, runSiteResolver, stopSiteResolver, removeSiteResolver, sitePointResolver, simsResolver };
+function advanceResolver(advancer, siteRef) {
+  return advancer.advance(siteRef);
+}
+
+module.exports = { runSimResolver, addSiteResolver, sitesResolver, runSiteResolver, stopSiteResolver, removeSiteResolver, sitePointResolver, simsResolver, advanceResolver };
 

@@ -47,6 +47,7 @@ def process_message(message):
                 endDatetime = message_body.get('endDatetime', 'None')
                 realtime = message_body.get('realtime', 'None')
                 timescale = str(message_body.get('timescale', 'None'))
+                externalClock = str(message_body.get('externalClock', 'None'))
 
                 site = recs.find_one({"_id": siteRef})
                 simType = site.get("rec",{}).get("simType", "osm").replace("s:","")
@@ -54,9 +55,9 @@ def process_message(message):
                 logger.info('Start simulation for site_ref: %s, and simType: %s' % (siteRef, simType))
 
                 if simType == 'fmu':
-                    subprocess.call(['python', 'runfmusite/runFMUSite.py', siteRef, realtime, timescale, startDatetime, endDatetime])
+                    subprocess.call(['python', 'runfmusite/runFMUSite.py', siteRef, realtime, timescale, startDatetime, endDatetime, externalClock])
                 else:
-                    subprocess.call(['python3.5', 'runsite/runSite.py', siteRef, realtime, timescale, startDatetime, endDatetime])
+                    subprocess.call(['python3.5', 'runsite/runSite.py', siteRef, realtime, timescale, startDatetime, endDatetime, externalClock])
             elif action == 'addSite':
                 osm_name = message_body.get('osm_name')
                 upload_id = message_body.get('upload_id')

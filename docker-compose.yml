@@ -18,6 +18,7 @@ services:
      - NODE_ENV
      - S3_URL
     depends_on:
+      - redis
       - mongo
       - goaws
       - worker
@@ -70,6 +71,7 @@ services:
      - NODE_ENV
      - S3_URL
     depends_on:
+      - redis
       - mongo
       - goaws
       - mc
@@ -87,4 +89,9 @@ services:
     image: mongo
     ports:
       - "27017:27017"
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
 

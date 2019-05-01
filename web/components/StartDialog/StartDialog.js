@@ -53,6 +53,7 @@ class StartDialog extends React.Component {
     this.state = {
       open: false,
       realtime: false,
+      externalClock: false,
       timescale: 5,
       selectedStartTime: 0,
       selectedEndTime: 86400,
@@ -102,16 +103,16 @@ class StartDialog extends React.Component {
 
   handleRequestStart = () => {
     if ( this.props.type == 'osm' ) {
-      this.props.onStartSimulation(this.state.selectedStartTime,this.state.selectedEndTime,this.state.timescale,this.state.realtime);
+      this.props.onStartSimulation(this.state.selectedStartTime,this.state.selectedEndTime,this.state.timescale,this.state.realtime,this.state.externalClock);
       this.setState({open: false});
     } else {
-      this.props.onStartSimulation(this.state.selectedStartSeconds,this.state.selectedEndSeconds,this.state.timescale,this.state.realtime);
+      this.props.onStartSimulation(this.state.selectedStartSeconds,this.state.selectedEndSeconds,this.state.timescale,this.state.realtime,this.state.externalClock);
       this.setState({open: false});
     }
   }
 
   render = () => {
-    const { selectedStartTime, selectedEndTime, selectedStartSeconds, selectedEndSeconds, realtime, timescale } = this.state
+    const { selectedStartTime, selectedEndTime, selectedStartSeconds, selectedEndSeconds, realtime, timescale, externalClock } = this.state
     const { classes, type } = this.props;
 
     console.log("startDialogType: ", this.props.type);
@@ -125,7 +126,7 @@ class StartDialog extends React.Component {
           value={selectedStartTime}
           onChange={this.handleStartTimeChange}
           label="EnergyPlus Start Time"
-          disabled={this.state.realtime}
+          disabled={realtime || externalClock}
         />
       </Grid>;
 
@@ -135,7 +136,7 @@ class StartDialog extends React.Component {
           value={selectedEndTime}
           onChange={this.handleEndTimeChange}
           label="EnergyPlus End Time"
-          disabled={this.state.realtime}
+          disabled={realtime || externalClock}
         />
       </Grid>;
     } else {
@@ -146,7 +147,7 @@ class StartDialog extends React.Component {
           value={selectedStartSeconds}
           onChange={this.handleStartSecondChange}
           InputLabelProps={{shrink: true, className: this.props.classes.label}}
-          disabled={realtime}
+          disabled={realtime || externalClock}
           inputProps={{type: 'number', max: selectedEndSeconds}}
         />
       </Grid>;
@@ -158,7 +159,7 @@ class StartDialog extends React.Component {
           value={selectedEndSeconds}
           onChange={this.handleEndSecondChange}
           InputLabelProps={{shrink: true, className: this.props.classes.label}}
-          disabled={realtime}
+          disabled={realtime || externalClock}
           inputProps={{type: 'number', min: selectedEndSeconds}}
         />
       </Grid>;
@@ -173,13 +174,13 @@ class StartDialog extends React.Component {
             <Grid container spacing={16}>
               {start}
               {stop}
-              <Grid item xs={6}>
+              <Grid item xs={12}>
                 <TextField 
                   label="Timescale"
                   value={this.state.timescale}
                   onChange={this.handleTimescaleChange}
                   InputLabelProps={{shrink: true, className: this.props.classes.label}}
-                  disabled={this.state.realtime}
+                  disabled={realtime || externalClock}
                   inputProps={{type: 'number', min: 1, max: 200}}
                 />
               </Grid>
@@ -188,11 +189,23 @@ class StartDialog extends React.Component {
                   control={
                     <Switch
                       checked={realtime}
-                      disabled={false}
+                      disabled={externalClock}
                       onChange={(event, checked) => this.setState({ realtime: checked })}
                     />
                   }
                   label="Realtime Simulation"
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={externalClock}
+                      disabled={realtime}
+                      onChange={(event, checked) => this.setState({ externalClock: checked })}
+                    />
+                  }
+                  label="External Clock"
                 />
               </Grid>
             </Grid>

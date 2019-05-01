@@ -187,10 +187,13 @@ class AlfalfaWatch extends HWatch {
  * @constructor
  */
 class AlfalfaServer extends HServer {
-  constructor(mongodb) {
+  constructor(mongodb, redis, pub, sub) {
     super();
 
-    this.db = mongodb
+    this.db = mongodb;
+    this.redis = redis;
+    this.pub = pub;
+    this.sub = sub;
     this.writearrays = this.db.collection('writearrays');
     this.mrecs = this.db.collection('recs');
     this.recs = {};
@@ -647,10 +650,13 @@ class AlfalfaServer extends HServer {
         });
       })
     } else if ( action == "stopSite" ) {
+      const siteRef = rec.id().val
       this.mrecs.updateOne(
-        { _id: rec.id().val },
+        { _id: siteRef },
         { $set: { "rec.simStatus": "s:Stopping" } }
-      )
+      ).then( () => {
+        this.pub.publish(siteRef, "stop");
+      });
       callback(null,HGrid.EMPTY);
     } else if ( action == "removeSite" ) {
       this.mrecs.deleteMany({site_ref: rec.id().val});
