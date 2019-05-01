@@ -37,7 +37,7 @@ from common import *
 class RunFMUSite:
     def __init__(self, **kwargs):
         self.s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
-        self.redis = redis.Redis(host='redis')
+        self.redis = redis.Redis(host=os.environ['REDIS_HOST'])
         self.pubsub = self.redis.pubsub()
 
         #Initiate Mongo Database

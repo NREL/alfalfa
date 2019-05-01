@@ -17,6 +17,7 @@ services:
      - MONGO_URL=mongodb://mongo:27017/
      - NODE_ENV
      - S3_URL
+     - REDIS_HOST
     depends_on:
       - redis
       - mongo
@@ -70,6 +71,7 @@ services:
      - LOGLEVEL=INFO
      - NODE_ENV
      - S3_URL
+     - REDIS_HOST
     depends_on:
       - redis
       - mongo

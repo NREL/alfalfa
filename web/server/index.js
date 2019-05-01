@@ -51,7 +51,7 @@ const client = new Minio.Client({
     region: 'us-west-1'
 });
 
-const redis = node_redis.createClient({host: 'redis'});
+const redis = node_redis.createClient({host: process.env.REDIS_HOST});
 const pub = redis.duplicate();
 const sub = redis.duplicate();
 const advancer = new Advancer(redis, pub, sub);
