@@ -13,9 +13,17 @@ Docker swarm will run the stack from your docker-compose file as a services.  Ea
 1. When you are done, clean up stack using `docker stack rm bt-development`.
 
 ### Deploy using docker-compose
-1. From command prompt in Alfalfa root directory, run `docker-compose -f docker/docker-compose-noaws.yml build`
-1. `docker-compose -f docker/docker-compose-noaws.yml build`.  Your stack will run in the foreground.
-1. To clean up, first type `Ctrl+C`.  
+1. From command prompt in Alfalfa root directory, run 
+````
+docker-compose -f docker/docker-compose-noaws.yml build
+docker-compose -f docker/docker-compose-noaws.yml up
+````  
+Your stack will run in the foreground.
+1. To clean up: 
+````
+Ctrl+C
+docker-compose -f docker/docker-compose-noaws.yml down
+```` 
 
 ### Verifying local deployment:
 1. Navigate to http://localhost/api/nav to verify that the Haystack implementation is running.

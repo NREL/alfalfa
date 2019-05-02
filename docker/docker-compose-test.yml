@@ -1,0 +1,20 @@
+# this file is designed to be run as an override on docker-compose
+version: '3'
+
+services:
+  worker-test:
+   image: ${BT_DOCKER_REGISTRY_URI}bt-worker-${BT_ENV}:latest
+   environment:
+     - AWS_ACCESS_KEY_ID
+     - AWS_SECRET_ACCESS_KEY
+     - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
+     - MONGO_URL=mongodb://mongo:27017/
+     - MONGO_DB_NAME=admin
+     - LOGLEVEL=INFO
+     - NODE_ENV
+     - S3_URL
+   command: [ "python3", "-u", "/test/test.py" ]
+   volumes:
+     - "../worker/test:/test"
+   depends_on:
+     - worker
