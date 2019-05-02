@@ -10,8 +10,94 @@ class Boptest:
     # default should be http://localhost/api
     def __init__(self, url='http://localhost'):
         self.url = url
+    
+
+    # check the initial response of http requests
+    # if it is good, then go further for other actions
+    def parse_response(self, response):
+        r = response.text
+        #print (r)
+        r = r.splitlines()
+        tmp = r[-1]
+        status_seek = tmp.split(',')
+        #print('%%% hey status %%% ', status_seek)
+        if 'empty' in status_seek:
+            status="Empty"
+        elif '"Stopped"' in status_seek:
+            status="Stopped"
+            #print("You catch me!!!")
+        elif '"Running"' in status_seek:
+            status="Running"
+        else:
+            status="Watchout"
         
-    # The path argument should be a filesystem path to an fmu
+        return status
+
+
+    def get_siteid(self, response):
+        r = response.text
+        #print (r)
+        r = r.splitlines()
+        line_seek = r[-1].split(',')
+        site_id = line_seek[-1].replace('@','')
+        print("%%%%% site-id %%%%%", site_id)
+        return site_id
+
+         
+    def init_check_stopped(self):
+        response = requests.get(self.url+'/api/nav')
+        #print(response.text) 
+        if response.status_code ==200:
+           status = self.parse_response(response)
+           while status != "Stopped":
+               response2 = requests.get(self.url+'/api/nav')
+               status = self.parse_response(response2)
+               if status == "Stopped":
+                   break
+        return status   
+
+
+    def init_check_running(self):
+        response = requests.get(self.url+'/api/nav')
+        #print(response.text) 
+        if response.status_code ==200:
+           status = self.parse_response(response)
+           while status != "Running":
+               response2 = requests.get(self.url+'/api/nav')
+               status = self.parse_response(response2)
+               if status == "Running":
+                   break
+
+        return status
+
+    
+    
+
+    def parse_updating(self, response):    
+        r = response.text
+        #print (r)
+        r = r.splitlines()
+        tmp = r[-1]
+        tmp2 = tmp.split(',')
+        updating = tmp2[1]
+        print ('hey updating: ',updating)      
+
+        return updating
+    
+   
+    def init_check_updating(self):
+        response = requests.get(self.url+'/api/nav')
+        if response.status_code ==200:
+           updating = self.parse_updating(response)
+           while updating == '"NaN"' or '""':
+               response2 = requests.get(self.url+'/api/nav')
+               updating = self.parse_updating(response2)
+               if updating != '"NaN"' or '""':
+                   print("I am updating now!")
+                   break
+
+        return updating
+
     # this should be equivalent to uploading a file through 
     # Boptest UI. See code here 
     # https://github.com/NREL/alfalfa/blob/develop/web/components/Upload/Upload.js#L127
@@ -41,43 +127,44 @@ class Boptest:
         # This is done not via the haystack api, but through a graphql api
         mutation = 'mutation { addSite(osmName: "%s", uploadID: "%s") }' % (filename, uid)
         response = requests.post(self.url + '/graphql', json={'query': mutation})
-        self.uuid = uid
-        self.modelname = filename
-        #print('second response: ', response.text)
-        #payload = {'name': siteRef} 
-        response = requests.get(self.url+'/api/nav')
-        #print('third response: ', response.text )   
-        r = response.text
-        r = r.splitlines()
-        line_seek = r[-1].split(',')
-        siteref = line_seek[-1].replace('@','')
-        #print (siteref)
-        self.siteref = siteref
-        return (self.siteref, self.modelname)
+                
+        status = self.init_check_stopped()
+         
+        if status == "Stopped":
+            response = requests.get(self.url+'/api/nav')
+            #print ('hey final response: ', response.text)
+            siteref = self.get_siteid(response)            
+        else:
+            siteref = ''
+
+        return siteref
 
     # Start a simulation for model identified by id. The id should corrsespond to 
     # a return value from the submit method
     # sim_params should be parameters such as start_time, end_time, timescale,
     # and others. The details need to be further defined and documented
     def start(self,  **sim_params):
-        
+        site_id        = sim_params["site_id"] 
         time_scale     = sim_params["time_scale"]
         start_datetime = sim_params["start_datetime"]
         end_datetime   = sim_params["end_datetime"]
         realtime       = sim_params["realtime"]
         
-        mutation = 'mutation {\n' + ' runSite(siteRef: "%s",\n startDatetime: "%s",\n endDatetime: "%s",\n timescale: "%s",\n realtime: "%s") \n}' % (self.siteref, start_datetime, end_datetime, time_scale, realtime)
+        mutation = 'mutation {\n' + ' runSite(siteRef: "%s",\n startDatetime: "%s",\n endDatetime: "%s",\n timescale: "%s",\n realtime: "%s") \n}' % (site_id, start_datetime, end_datetime, time_scale, realtime)
           
         mutation = mutation.replace('timescale: "5"', 'timescale: 5')
         #print (mutation)
         
         payload = {'query': mutation}
-         
-        response = requests.post(self.url + '/graphql', data=payload ) 
-        print('starting simu API response: \n')
-        print(response.text)
-        print (response.status_code)
+        response = requests.post(self.url + '/graphql', data=payload )
 
+        if response.status_code == 200:
+            status = self.init_check_running()
+            #print ("****** status ******", status)
+            if status =='Running':
+                print("The Model is running now!")
+                
+        
       
 
 
@@ -105,11 +192,12 @@ class Boptest:
  
     # Return the input values for simulation identified by id,
     # in the form of a dictionary. See setInputs method for dictionary format
-    def inputs(self):
+    def inputs(self, siteref):
           
-        viewer = '{viewer {\n'+ ' sites(\n ' + ('  siteRef: "%s"') %(self.siteref) +'){\n ' + ' points {\n' + '  dis\n' + '  tags{\n' + '   key' +' '+ 'value' + '\n}}}}}'
+        viewer = '{viewer {\n'+ ' sites(\n ' + ('  siteRef: "%s"') %(siteref) +'){\n ' + ' points {\n' + '  dis\n' + '  tags{\n' + '   key' +' '+ 'value' + '\n}}}}}'
 
         payload = {'query': viewer}
+        
         response = requests.post(self.url+'/graphql', json=payload)
         response = response.json()
         response = response["data"]
@@ -125,16 +213,17 @@ class Boptest:
             for y in tags: 
                 if y['key']=="id":
                     var_id = y['value']
-                if y['key']=="curVal":
-                    print ( y['value'] )
-                #if y['key']=="writable":
-                #    input_map[var_id] = var_name
+                    if y['key']=="curVal":
+                        print ( y['value'] )
+                        #if y['key']=="writable":
+                        #    input_map[var_id] = var_name
             input_map[var_id] = var_name
+        
         self.inputs = input_map
         print('hey input-map: ',input_map)
         return self.inputs
 
-    # Set inputs for model identified by id
+    # Set inne_sputs for model identified by id
     # The inputs argument should be a dictionary of 
     # with the form
     # inputs = {
@@ -151,7 +240,7 @@ class Boptest:
                 data = json.dumps(
                        {
                           "meta": {"ver":"2.0"},
-                          "rows": [ { "id" :"r:" + id, \
+                          "rows": [ { "id" : id, \
                           "level": "n:"+str(level), \
                           "who" : "s:" , \
                           "val" : "n:"+str(the_value),\
@@ -183,7 +272,7 @@ class Boptest:
         data = json.dumps(
                        {
                           "meta": {"ver":"2.0"},
-                          "rows": [ { "id" :"r:" + id, \
+                          "rows": [ { "id" :  id, \
                           "who" : "s:" , \
                           "val" : "n:" , \
                           "duration": "s:"
@@ -192,15 +281,15 @@ class Boptest:
                           "cols": [ {"name":"id"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
                        }
                        )
- 
-        reading_response = requests.post(url=url, headers=header2, data=data)
+        updating = self.init_check_updating()
+        if updating !='"NaN"' or '""': 
+            reading_response = requests.post(url=url, headers=header2, data=data)
+            if reading_response.status_code==200:
+                print("Congratulations! Outputs were retrieved!")
+                print (reading_response.text)
+                return reading_response.text
 
-        
-        if reading_response.status_code==200:
-            print("Congratulations! Outputs were retrieved!")
-            print (reading_response.text)
-        else:
-            print("Poor boy, outputs have issues!")
+            else:
+                print("Poor boy, outputs have issues!")
      
-
 
