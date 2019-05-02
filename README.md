@@ -5,16 +5,33 @@ This is a Haystack implementation backed by a virtual building. Virtual building
 ## Getting Started
 
 1. Install [Docker](https://www.docker.com) for your platform.
-1. From a command prompt ```docker-compose up web```.
+
+### Deploy as service with Docker Swarm
+Docker swarm will run the stack from your docker-compose file as a services.  Each will be restarted automatically if it dies.  Local docker deployment using Swarm vs docker-compose up is a question of preference.
+1. Your must have run `docker swarm init` at least once for your Docker installation.
+1. From alfalfa root directory run `./docker/deploy-local.sh`.  This script should be self-documenting.
+1. When you are done, clean up stack using `docker stack rm bt-development`.
+
+### Deploy using docker-compose
+1. From command prompt in Alfalfa root directory, run `docker-compose -f docker/docker-compose-noaws.yml build`
+1. `docker-compose -f docker/docker-compose-noaws.yml build`.  Your stack will run in the foreground.
+1. To clean up, first type `Ctrl+C`.  
+
+### Verifying local deployment:
 1. Navigate to http://localhost/api/nav to verify that the Haystack implementation is running.
 1. Navigate to http://localhost to view web application.
 1. Navigate to http://localhost:9000 to view the minio file server. The default login is "user" and "password"
 This is a local implementation of Amazon S3 for bulk file storage during development.
-1. Use ```Ctrl-C``` to stop the services.
+
+### Interacting w/Docker Containers:
+A few useful commands.  
+- `docker ps` lists all running Docker containers, including Container ID.
+- `docker logs -f <container_id>` will tail the logs for the specific container.
+- `docker exec -it <container_id> bash` will open an interactive bash terminal on the running container.
 
 ## Running Worker Tests
 
-1. Run ```docker-compose up worker-test``` 
+1. Run ```docker-compose -f docker/docker-compose-noaws.yml -f docker/docker-compose-test.yml up worker-test``` 
 1. Test output should be located in worker/test/output. 
 1. See worker/test/test.py for an example. 
 
