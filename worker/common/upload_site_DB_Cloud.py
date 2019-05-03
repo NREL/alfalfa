@@ -43,10 +43,12 @@ def upload_site_DB_Cloud(jsonpath, bucket, folderpath):
     site_ref = ''
     with open(jsonpath) as json_file:
         data = json.load(json_file)
+        #print ('***hey json data ****' , data)
         for entity in data:
             if 'site' in entity:
                 if entity['site'] == 'm:':
                     site_ref = entity['id'].replace('r:', '')
+                    #print ('***** hey site_ref *****', site_ref)
                     break
 
 

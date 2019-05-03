@@ -129,14 +129,20 @@ class Boptest:
         response = requests.post(self.url + '/graphql', json={'query': mutation})
                 
         status = self.init_check_stopped()
-         
+        if status == "Stopped":
+            siteref = uid
+        else:
+            siteref = ''
+        ''' 
         if status == "Stopped":
             response = requests.get(self.url+'/api/nav')
             #print ('hey final response: ', response.text)
             siteref = self.get_siteid(response)            
         else:
             siteref = ''
-
+        
+        siteref = uid
+        '''
         return siteref
 
     # Start a simulation for model identified by id. The id should corrsespond to 
