@@ -52,5 +52,4 @@ const sig = crypto.HmacSHA256(base64Policy,key).toString(crypto.enc.Hex);
 
 console.log('base64Policy:', base64Policy);
 console.log('signature:', sig.toString(crypto.enc.Hex));
-console.log('Yanfei: AWS key: ')
-console.log(key)
+

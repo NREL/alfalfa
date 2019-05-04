@@ -42,7 +42,6 @@ from common import *
 (fmu_upload_name, upload_id, directory) = precheck_argus(sys.argv)
 
 s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
-
 key = "uploads/%s/%s" % (upload_id, fmu_upload_name)
 # fmu files gets uploaded with user defined names, but here we rename
 # to model.fmu to avoid keeping track of the (unreliable, non unique) user upload name

@@ -593,7 +593,7 @@ try:
                                 #pass
                     else:
                         logger.info('############### SIMULATION --no bypass ###############')
-                        input("\nPlease press Enter key to continue!\n")
+                        #pass 
                     
                     
                     if ep.flag != 0:

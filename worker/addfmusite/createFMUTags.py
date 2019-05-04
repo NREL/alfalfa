@@ -10,7 +10,6 @@ fmu_upload_name = sys.argv[2]
 jsonpath = sys.argv[3]
 fmu = load_fmu(fmupath)
 
-
 #2.0 get input/output variables from the FMU
 input_names = fmu.get_model_variables(causality = 2).keys()
 output_names = fmu.get_model_variables(causality = 3).keys()
