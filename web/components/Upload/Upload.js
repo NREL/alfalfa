@@ -173,8 +173,7 @@ class Upload extends React.Component {
 
         // TODO: Need to configure this on server side
         xhr.open('POST', response.postURL, true);
-        console.log(response.postURL);
-        console.log('Yanfei: Test Good!');
+        
 
         let formData = new FormData();
         Object.entries(response.formData).forEach(([key, value]) => {

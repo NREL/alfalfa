@@ -80,6 +80,8 @@ seedpath = os.path.join(directory, 'seed.osm')
 workflowpath = os.path.join(directory, 'workflow/workflow.osw')
 jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
 
+#print ("***** jsonpath ******", jsonpath)
+
 tar = tarfile.open("workflow.tar.gz")
 tar.extractall(directory)
 tar.close()

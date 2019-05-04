@@ -1,0 +1,180 @@
+
+
+Thu Apr 18 22:11:22 2019
+Command line: TestDisk
+
+TestDisk 7.0, Data Recovery Utility, April 2015
+Christophe GRENIER <grenier@cgsecurity.org>
+http://www.cgsecurity.org
+OS: Linux, kernel 4.15.0-47-generic (#50~16.04.1-Ubuntu SMP Fri Mar 15 16:06:21 UTC 2019) x86_64
+Compiler: GCC 5.3
+ext2fs lib: 1.42.13, ntfs lib: libntfs-3g, reiserfs lib: none, ewf lib: none, curses lib: ncurses 6.0
+/dev/sda: LBA, LBA48 support
+/dev/sda: size       2477862912 sectors
+/dev/sda: user_max   2477862912 sectors
+Warning: can't get size for Disk /dev/mapper/control - 0 B - 0 sectors, sector size=512
+Hard disk list
+Disk /dev/sda - 1268 GB / 1181 GiB - CHS 154239 255 63, sector size=512 - VBOX HARDDISK, S/N:VBa2f6f392-c777b237, FW:1.0
+
+Partition table type (auto): Intel
+Disk /dev/sda - 1268 GB / 1181 GiB - VBOX HARDDISK
+Partition table type: Intel
+
+Interface Advanced
+Geometry from i386 MBR: head=255 sector=63
+ 1 * Linux                    0  32 33 154115  72  5 2475859968
+     ext4 blocksize=4096 Large_file Sparse_SB Recover, 1267 GB / 1180 GiB
+ 2 E extended             154115 104 36 154239 179 52    1996802
+ 5 L Linux Swap           154115 104 38 154239 179 52    1996800
+     SWAP2 version 1, pagesize=4096, 1022 MB / 975 MiB
+search_superblock
+
+recover_EXT2: s_block_group_nr=0/9444, s_mnt_count=42/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 2 (block=0, blocksize=4096)
+
+block_group_nr 1
+
+recover_EXT2: "e2fsck -b 32768 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=1/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 262144 (block=32768, blocksize=4096)
+
+block_group_nr 3
+
+recover_EXT2: "e2fsck -b 98304 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=3/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 786432 (block=98304, blocksize=4096)
+
+block_group_nr 5
+
+recover_EXT2: "e2fsck -b 163840 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=5/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 1310720 (block=163840, blocksize=4096)
+
+block_group_nr 7
+
+recover_EXT2: "e2fsck -b 229376 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=7/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 1835008 (block=229376, blocksize=4096)
+
+block_group_nr 9
+
+recover_EXT2: "e2fsck -b 294912 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=9/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 2359296 (block=294912, blocksize=4096)
+
+block_group_nr 25
+
+recover_EXT2: "e2fsck -b 819200 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=25/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 6553600 (block=819200, blocksize=4096)
+
+block_group_nr 27
+
+recover_EXT2: "e2fsck -b 884736 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=27/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 7077888 (block=884736, blocksize=4096)
+
+block_group_nr 49
+
+recover_EXT2: "e2fsck -b 1605632 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=49/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 12845056 (block=1605632, blocksize=4096)
+
+block_group_nr 81
+
+recover_EXT2: "e2fsck -b 2654208 -B 4096 device" may be needed
+recover_EXT2: s_block_group_nr=81/9444, s_mnt_count=0/4294967295, s_blocks_per_group=32768, s_inodes_per_group=8192
+recover_EXT2: s_blocksize=4096
+recover_EXT2: s_blocks_count 309482496
+recover_EXT2: part_size 2475859968
+Ext2 superblock found at sector 21233664 (block=2654208, blocksize=4096)
+  Linux                    0  32 33 154115  72  5 2475859968
+superblock 0, blocksize=4096 []
+superblock 32768, blocksize=4096 []
+superblock 98304, blocksize=4096 []
+superblock 163840, blocksize=4096 []
+superblock 229376, blocksize=4096 []
+superblock 294912, blocksize=4096 []
+superblock 819200, blocksize=4096 []
+superblock 884736, blocksize=4096 []
+superblock 1605632, blocksize=4096 []
+superblock 2654208, blocksize=4096 []
+
+To repair the filesystem using alternate superblock, run
+fsck.ext4 -p -b superblock -B blocksize device
+
+
+dir_partition inode=2
+ 1 * Linux                    0  32 33 154115  72  5 2475859968
+     ext4 blocksize=4096 Large_file Sparse_SB Recover, 1267 GB / 1180 GiB
+Directory /
+       2 drwxr-xr-x     0      0      4096  2-Apr-2019 11:53 .
+       2 drwxr-xr-x     0      0      4096  2-Apr-2019 11:53 ..
+      11 drwx------     0      0     16384 21-Feb-2019 10:30 lost+found
+ 41943041 drwxr-xr-x     0      0     12288 17-Apr-2019 06:32 etc
+ 33423361 drwxr-xr-x     0      0      4096 30-Jul-2018 18:30 media
+ 55836673 drwxr-xr-x     0      0      4096 17-Apr-2019 06:31 bin
+ 3276801 drwxr-xr-x     0      0      4096 17-Apr-2019 06:32 boot
+ 30932993 drwxr-xr-x     0      0      4096 30-Jul-2018 18:31 dev
+ 31850497 drwxr-xr-x     0      0      4096 21-Feb-2019 10:33 home
+ 77201409 drwxr-xr-x     0      0      4096 21-Feb-2019 10:34 lib
+ 72220673 drwxr-xr-x     0      0      4096 21-Feb-2019 15:47 lib64
+ 5636097 drwxr-xr-x     0      0      4096 29-Mar-2019 09:51 mnt
+ 39059457 drwxr-xr-x     0      0      4096 21-Feb-2019 11:03 opt
+ 56098817 drwxr-xr-x     0      0      4096 12-Apr-2016 14:14 proc
+ 10616833 drwx------     0      0      4096 18-Mar-2019 10:37 root
+ 23199745 drwxr-xr-x     0      0      4096 30-Jul-2018 18:45 run
+ 55574529 drwxr-xr-x     0      0     12288 17-Apr-2019 06:31 sbin
+ 20840449 drwxr-xr-x     0      0      4096 25-Mar-2019 09:19 snap
+ 39321601 drwxr-xr-x     0      0      4096 30-Jul-2018 18:30 srv
+ 17563649 drwxr-xr-x     0      0      4096  5-Feb-2016 02:48 sys
+ 47579137 drwxrwxrwt     0      0      4096 18-Apr-2019 22:11 tmp
+ 37617665 drwxr-xr-x     0      0      4096  4-Apr-2019 00:18 usr
+  524289 drwxr-xr-x     0      0      4096 30-Jul-2018 18:50 var
+      15 lrwxrwxrwx     0      0        30  2-Apr-2019 11:53 vmlinuz
+      14 lrwxrwxrwx     0      0        33  2-Apr-2019 11:53 initrd.img.old
+      13 lrwxrwxrwx     0      0        33  2-Apr-2019 11:53 initrd.img
+ 31719425 drwxr-xr-x     0      0      4096 29-Mar-2019 10:37 data
+ 46006273 drwxrwxr-x     0      0      4096 21-Feb-2019 10:33 cdrom
+X     13 lrwxrwxrwx     0      0        33  2-Apr-2019 11:53 initrd.img.415169
+      12 lrwxrwxrwx     0      0        30  2-Apr-2019 11:53 vmlinuz.old
+X     14 lrwxrwxrwx     0      0        33  2-Apr-2019 11:53 initrd.img.old.151727
+
+dir_partition inode=31850497
+ 1 * Linux                    0  32 33 154115  72  5 2475859968
+     ext4 blocksize=4096 Large_file Sparse_SB Recover, 1267 GB / 1180 GiB
+Directory /home
+ 31850497 drwxr-xr-x     0      0      4096 21-Feb-2019 10:33 .
+       2 drwxr-xr-x     0      0      4096  2-Apr-2019 11:53 ..
+ 31850498 drwxr-xr-x  1000   1000      4096 18-Apr-2019 22:10 mindcoder
+
+dir_partition inode=31850498
+ 1 * Linux                    0  32 33 154115  72  5 2475859968
+     ext4 blocksize=

@@ -10,8 +10,94 @@ class Boptest:
     # default should be http://localhost/api
     def __init__(self, url='http://localhost'):
         self.url = url
+    
+
+    # check the initial response of http requests
+    # if it is good, then go further for other actions
+    def parse_response(self, response):
+        r = response.text
+        #print (r)
+        r = r.splitlines()
+        tmp = r[-1]
+        status_seek = tmp.split(',')
+        #print('%%% hey status %%% ', status_seek)
+        if 'empty' in status_seek:
+            status="Empty"
+        elif '"Stopped"' in status_seek:
+            status="Stopped"
+            #print("You catch me!!!")
+        elif '"Running"' in status_seek:
+            status="Running"
+        else:
+            status="Watchout"
         
-    # The path argument should be a filesystem path to an fmu
+        return status
+
+
+    def get_siteid(self, response):
+        r = response.text
+        #print (r)
+        r = r.splitlines()
+        line_seek = r[-1].split(',')
+        site_id = line_seek[-1].replace('@','')
+        print("%%%%% site-id %%%%%", site_id)
+        return site_id
+
+         
+    def init_check_stopped(self):
+        response = requests.get(self.url+'/api/nav')
+        #print(response.text) 
+        if response.status_code ==200:
+           status = self.parse_response(response)
+           while status != "Stopped":
+               response2 = requests.get(self.url+'/api/nav')
+               status = self.parse_response(response2)
+               if status == "Stopped":
+                   break
+        return status   
+
+
+    def init_check_running(self):
+        response = requests.get(self.url+'/api/nav')
+        #print(response.text) 
+        if response.status_code ==200:
+           status = self.parse_response(response)
+           while status != "Running":
+               response2 = requests.get(self.url+'/api/nav')
+               status = self.parse_response(response2)
+               if status == "Running":
+                   break
+
+        return status
+
+    
+    
+
+    def parse_updating(self, response):    
+        r = response.text
+        #print (r)
+        r = r.splitlines()
+        tmp = r[-1]
+        tmp2 = tmp.split(',')
+        updating = tmp2[1]
+        print ('hey updating: ',updating)      
+
+        return updating
+    
+   
+    def init_check_updating(self):
+        response = requests.get(self.url+'/api/nav')
+        if response.status_code ==200:
+           updating = self.parse_updating(response)
+           while updating == '"NaN"' or '""':
+               response2 = requests.get(self.url+'/api/nav')
+               updating = self.parse_updating(response2)
+               if updating != '"NaN"' or '""':
+                   print("I am updating now!")
+                   break
+
+        return updating
+
     # this should be equivalent to uploading a file through 
     # Boptest UI. See code here 
     # https://github.com/NREL/alfalfa/blob/develop/web/components/Upload/Upload.js#L127
@@ -19,13 +105,16 @@ class Boptest:
     def submit(self, path):
         filename = os.path.basename(path)
         uid = str(uuid.uuid1())
+        
         key = 'uploads/' + uid + '/' + filename
         payload = {'name': key}
 
         # Get a template for the file upload form data
         # The server has an api to give this to us
         response = requests.post(self.url + '/upload-url', json=payload)
+        
         json = response.json()
+        #print ('initial response: ', json)
         postURL = json['postURL']
         formData = json['formData']
         formData['file'] = open(path, 'rb')
@@ -38,132 +127,175 @@ class Boptest:
         # This is done not via the haystack api, but through a graphql api
         mutation = 'mutation { addSite(osmName: "%s", uploadID: "%s") }' % (filename, uid)
         response = requests.post(self.url + '/graphql', json={'query': mutation})
+                
+        status = self.init_check_stopped()
+        if status == "Stopped":
+            siteref = uid
+        else:
+            siteref = ''
+        ''' 
+        if status == "Stopped":
+            response = requests.get(self.url+'/api/nav')
+            #print ('hey final response: ', response.text)
+            siteref = self.get_siteid(response)            
+        else:
+            siteref = ''
+        
+        siteref = uid
+        '''
+        return siteref
 
     # Start a simulation for model identified by id. The id should corrsespond to 
     # a return value from the submit method
     # sim_params should be parameters such as start_time, end_time, timescale,
     # and others. The details need to be further defined and documented
     def start(self,  **sim_params):
-        site_ref = 'id'
-        real_time_flag = False
-        time_scale = 5
-        user_start_Datetime = sim_params['start_datetime']
-        user_end_Datetime = sim_params['end_datetime']
-        sim_path = 'simulate/'
-        if not os.path.exists(sim_path):
-            os.makedirs(sim_path)
-            
-
-        fmupath = os.path.join(os.getcwd())+'/'+sim_path+'model.fmu'
-        if not os.path.isfile(fmupath):
-            copyfile("sharedfiles/wrapped.fmu", fmupath)
-
-        #tagpath = os.path.join(os.getcwd())+'/'+sim_path+'tags.json'
-        #if not os.path.isfile(tagpath):
-        #    copyfile("sharedfiles/tags.json", tagpath)
-
-        print ("hey fmupath: ", fmupath)
-        mongo_client = MongoClient('mongodb://mongo:27017/')
-        mongodb = mongo_client['admin']
-        recs = mongodb.recs
-        recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
-
-        config = { 'fmupath': fmupath, 'step': 60 }
+        site_id        = sim_params["site_id"] 
+        time_scale     = sim_params["time_scale"]
+        start_datetime = sim_params["start_datetime"]
+        end_datetime   = sim_params["end_datetime"]
+        realtime       = sim_params["realtime"]
         
+        mutation = 'mutation {\n' + ' runSite(siteRef: "%s",\n startDatetime: "%s",\n endDatetime: "%s",\n timescale: "%s",\n realtime: "%s") \n}' % (site_id, start_datetime, end_datetime, time_scale, realtime)
+          
+        mutation = mutation.replace('timescale: "5"', 'timescale: 5')
+        #print (mutation)
+        
+        payload = {'query': mutation}
+        response = requests.post(self.url + '/graphql', data=payload )
+
+        if response.status_code == 200:
+            status = self.init_check_running()
+            #print ("****** status ******", status)
+            if status =='Running':
+                print("The Model is running now!")
                 
-        tc = testcase.TestCase(config)
-        u = {}
-        #run the FMU simulation
-        kstep=0
-        stop = False
-        simtime = 0
-        while simtime < 120 and not stop:
-            y_output = tc.advance(u)
-            simtime = tc.final_time
-            output_time_string = 's:%s' %(simtime)
-            recs.update_one( {"_id": site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:Running"} } )
-
-        return 0
         
-    
-    def get_tag_data(self, tag_filepath):
-        '''
-        Purpose: retrieving the haystack tagged data, 
-              which are model-exchange variables in FMU. 
-        Inputs:  a json file containing all the tagged data.
-        Returns: a list for all the tagged data, with the tagging properties
-              like id, dis, site_ref, etc...
-        '''
-        with open( tag_filepath ) as json_data:
-            tag_data = json.load(json_data)
-     
-        return tag_data
-
-
-    #This is the function to create tags
-    def create_DisToID_dictionary(self, tag_filepath):
-        '''
-        Purpose: matching the haystack display-name and IDs
-        Inputs:  a json file containing all the tagged data
-        Returns: a dictionary mathching all display-names and IDs
-             a dictionary matching all inputs and IDs
-             a dictionary matching all outputs and IDs 
-             a dictionary matching all IDs and display-names 
-        '''
-        dis_and_ID={}
-        inputs_and_ID = {}
-        outputs_and_ID = {}
-        id_and_dis={}
-
-        tag_data = get_tag_data(tag_filepath)
-
-        for point in tag_data:
-            var_name = point['dis'].replace('s:','')
-            var_id = point['id'].replace('r:','')
-
-            dis_and_ID[var_name] = var_id
-            id_and_dis[var_id] = var_name
-
-            if 'writable' in point.keys():
-                #it means it is a input variable.
-                #clean the var-name, discarding: ':input','s:','r:'
-                #input_var = var_name.replace(':input','')
-                #input_var = input_var.replace('s:','')
-                inputs_and_ID[var_name] = var_id
-
-            if 'writable' not in point.keys() and 'point' in point.keys():
-                #it means it is an output variable, plus not sitetag.
-                #clean the var-name, discarding: ':output','s:','r:'
-                #output_var = var_name.replace(':output','')
-                #output_var = output_var.replace('s:','')
-                outputs_and_ID[var_name] = var_id
-
-        return (dis_and_ID, inputs_and_ID, outputs_and_ID, id_and_dis)
-
+      
 
 
     # Stop a simulation for model identified by id
-    def stop(self, id):
-        pass
+    def stop(self, id):    
+        mutation = 'mutation { stopSite(siteRef: "%s") }' % (id)
 
+        payload = {'query': mutation}
+        
+        response = requests.post(self.url + '/graphql', json=payload )
+        print('stopping simu API response: \n')
+        print(response.text)
+
+
+    # remove a site for model identified by id
+    def remove(self, id):
+        mutation = 'mutation { removeSite(siteRef: "%s") }' % (id)
+
+        payload = {'query': mutation}
+
+        response = requests.post(self.url + '/graphql', json=payload )
+        print('remove site API response: \n')
+        print(response.text) 
+       
+ 
     # Return the input values for simulation identified by id,
     # in the form of a dictionary. See setInputs method for dictionary format
-    def inputs(self, id):
-        pass
-    # Set inputs for model identified by id
+    def inputs(self, siteref):
+          
+        viewer = '{viewer {\n'+ ' sites(\n ' + ('  siteRef: "%s"') %(siteref) +'){\n ' + ' points {\n' + '  dis\n' + '  tags{\n' + '   key' +' '+ 'value' + '\n}}}}}'
+
+        payload = {'query': viewer}
+        
+        response = requests.post(self.url+'/graphql', json=payload)
+        response = response.json()
+        response = response["data"]
+        response = response["viewer"]
+        response = response["sites"]
+        response = response[0]
+        response = response["points"]
+        input_map={}
+        for x in response:
+            var_name = x['dis']
+            tags = x['tags']
+           
+            for y in tags: 
+                if y['key']=="id":
+                    var_id = y['value']
+                    if y['key']=="curVal":
+                        print ( y['value'] )
+                        #if y['key']=="writable":
+                        #    input_map[var_id] = var_name
+            input_map[var_id] = var_name
+        
+        self.inputs = input_map
+        print('hey input-map: ',input_map)
+        return self.inputs
+
+    # Set inne_sputs for model identified by id
     # The inputs argument should be a dictionary of 
     # with the form
     # inputs = {
     #  input_name: { level_1: value_1, level_2: value_2...},
     #  input_name2: { level_1: value_1, level_2: value_2...}
     # }
-    def setInputs(self, id, **inputs):
-        pass
+    def setInputs(self, id, **user_inputs): 
+        url    = "http://localhost:80/api/pointWrite"
+        header = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
+        for var in user_inputs.keys():
+            value_inputs = user_inputs[var]
+            for level in value_inputs.keys():
+                the_value = value_inputs[level]
+                data = json.dumps(
+                       {
+                          "meta": {"ver":"2.0"},
+                          "rows": [ { "id" : id, \
+                          "level": "n:"+str(level), \
+                          "who" : "s:" , \
+                          "val" : "n:"+str(the_value),\
+                          "duration": "s:"
+                                    }
+                                  ],
+                          "cols": [ {"name":"id"}, {"name":"level"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
+                       }
+                       )
+                writing_response = requests.post(url=url, headers=header, data=data)
+        if writing_response.status_code==200:
+            print("Congratulations! Your inputs were applied!")
+            print (writing_response.text)                
+        else:
+            print("Poor Boy! You inputs have some issue!")        
+
+
     # Return a dictionary of the output values
     # result = {
     # output_name1 : output_value1,
     # output_name2 : output_value2
     #}
     def outputs(self, id):
-        pass
+        
+        url    = "http://localhost:80/api/read"
+        header = { "Accept":"application/json", "Content-Type":"text/zinc" }
+        header2 = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
+        payload = 'ver:"2.0"\n' + 'filter,limit\n' + ('id==@"%s"')%(id) + '\,1000'
+        data = json.dumps(
+                       {
+                          "meta": {"ver":"2.0"},
+                          "rows": [ { "id" :  id, \
+                          "who" : "s:" , \
+                          "val" : "n:" , \
+                          "duration": "s:"
+                                    }
+                                  ],
+                          "cols": [ {"name":"id"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
+                       }
+                       )
+        updating = self.init_check_updating()
+        if updating !='"NaN"' or '""': 
+            reading_response = requests.post(url=url, headers=header2, data=data)
+            if reading_response.status_code==200:
+                print("Congratulations! Outputs were retrieved!")
+                print (reading_response.text)
+                return reading_response.text
+
+            else:
+                print("Poor boy, outputs have issues!")
+     
 
