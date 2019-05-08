@@ -13,7 +13,7 @@ import boptest
 bop = boptest.Boptest()
 
 
-siteref = bop.submit('wrapped.fmu')
+siteref = bop.submit('SmallOffice.osm')
 
 time_scale=5
 start_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -35,7 +35,7 @@ bop.start(**input_params)
 
 model_inputs = bop.inputs(siteref)
 
-yanfei_inputs = {"oveAct_u": { '1': 0.625 } }
+yanfei_inputs = {"Packaged_Rooftop_Air_Conditioner_1_Outside_Air_Damper_CMD": { '1': 0.625 } }
 inputs = yanfei_inputs.keys()
 
 for x in model_inputs.keys():
@@ -51,7 +51,7 @@ for x in model_inputs.keys():
             bop.setInputs(input_id, **yanfei_inputs)
 
 for x in model_inputs.keys():
-    if 'TRooAir_y' in model_inputs[x]:
+    if 'Packaged Rooftop Air Conditioner 8 Discharge Air Temp Sensor' in model_inputs[x]:
         id = x
         #print ('check888: ', id)
         outpus = bop.outputs(id)

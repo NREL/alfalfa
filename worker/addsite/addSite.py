@@ -91,6 +91,8 @@ bucket.download_file(key, seedpath)
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
+replace_siteid(upload_id, jsonpath)
+
 upload_site_DB_Cloud(jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
