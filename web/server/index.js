@@ -38,16 +38,22 @@ import morgan from 'morgan';
 import * as Minio from 'minio';
 import { URL } from "url";
 
-const s3URL = new URL(process.env.S3_URL);
+var client;
 
-var client = new Minio.Client({
-    endPoint: s3URL.hostname,
-    port: parseInt(s3URL.port),
-    useSSL: s3URL.protocol == 'https:',
-    accessKey: process.env.AWS_ACCESS_KEY_ID,
-    secretKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: 'us-west-1'
-});
+if ( process.env.S3_HOST.indexOf("amazonaws") == -1 ) {
+  client = new Minio.Client({
+      endPoint: process.env.S3_HOST,
+      port: 9000,
+      useSSL: false,
+      accessKey: process.env.AWS_ACCESS_KEY_ID,
+      secretKey: process.env.AWS_SECRET_ACCESS_KEY,
+  });
+} else {
+  client = new Minio.Client({
+      endPoint: process.env.S3_HOST,
+      region: process.env.REGION
+  });
+}
 
 MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   var app = express();
@@ -62,7 +68,7 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
     app.use(morgan('combined'))
   }
 
-  const db = mongoClient.db('boptest');
+  const db = mongoClient.db(process.env.MONGO_DB_NAME);
 
   app.locals.alfalfaServer = new alfalfaServer(db);
 
@@ -90,15 +96,15 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
     // Set the object name my-objectname.
     policy.setKey(req.body.name);
     // Set the bucket to my-bucketname.
-    policy.setBucket("alfalfa");
+    policy.setBucket(process.env.S3_BUCKET);
     
     var expires = new Date
     expires.setSeconds(24 * 60 * 60 * 10) // 10 days expiry.
     policy.setExpires(expires)
     client.presignedPostPolicy(policy, function(e, data) {
         if (e) throw e;
-        if ( s3URL.hostname.indexOf("amazonaws") == -1 ) {
-          const postURL = 'http://' + req.hostname + ':9000/alfalfa';
+        if ( process.env.S3_HOST.indexOf("amazonaws") == -1 ) {
+          const postURL = 'http://' + req.hostname + ':9000/' + process.env.S3_BUCKET;
           data.postURL = postURL;
         }
         res.send(JSON.stringify(data));

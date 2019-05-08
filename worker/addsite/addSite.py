@@ -74,7 +74,11 @@ ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
+if 'amazonaws' not in os.environ['S3_HOST']:
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url='http://minio:9000')
+else:
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'])
+
 key = "uploads/%s/%s" % (upload_id, osm_name)
 seedpath = os.path.join(directory, 'seed.osm')
 workflowpath = os.path.join(directory, 'workflow/workflow.osw')
@@ -86,7 +90,7 @@ tar.close()
 
 #time.sleep(5)
 
-bucket = s3.Bucket('alfalfa')
+bucket = s3.Bucket(os.environ['S3_BUCKET'])
 bucket.download_file(key, seedpath)
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])

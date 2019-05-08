@@ -279,7 +279,7 @@ def get_current_datetime_ep(ep_year, ep_month, ep_day, ep_hour, ep_minute, local
 
 # Mongo Database
 mongo_client = MongoClient(os.environ['MONGO_URL'])
-mongodb = mongo_client['boptest']
+mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
 recs = mongodb.recs
 sims = mongodb.sims
 
@@ -353,10 +353,13 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
+sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-# TODO Configure this
-s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
+
+if 'amazonaws' not in os.environ['S3_HOST']:
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url='http://minio:9000')
+else:
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'])
 
 sp = SimProcess()
 ep = mlep.MlepProcess()
@@ -388,7 +391,7 @@ variables_path = os.path.join(directory, 'workflow/reports/export_bcvtb_report_v
 variables_new_path = os.path.join(directory, 'workflow/run/variables.cfg')
 
 try:
-    bucket = s3.Bucket('alfalfa')
+    bucket = s3.Bucket(os.environ['S3_BUCKET'])
     bucket.download_file(key, tarpath)
     
     tar = tarfile.open(tarpath)

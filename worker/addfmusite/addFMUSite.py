@@ -34,14 +34,14 @@ import time
 from subprocess import call
 import logging
 from common import *
-#from common import testcase, make_gzip_file, obtain_id_siteref
-
-
-
 
 (fmu_upload_name, upload_id, directory) = precheck_argus(sys.argv)
 
-s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
+if 'amazonaws' not in os.environ['S3_HOST']:
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url='http://minio:9000')
+else:
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'])
+
 key = "uploads/%s/%s" % (upload_id, fmu_upload_name)
 # fmu files gets uploaded with user defined names, but here we rename
 # to model.fmu to avoid keeping track of the (unreliable, non unique) user upload name
@@ -49,7 +49,7 @@ key = "uploads/%s/%s" % (upload_id, fmu_upload_name)
 fmupath = os.path.join(directory, 'model.fmu')
 jsonpath = os.path.join(directory, 'tags.json')
 
-bucket = s3.Bucket('alfalfa')
+bucket = s3.Bucket(os.environ['S3_BUCKET'])
 bucket.download_file(key, fmupath)
 
 call(['python', 'addfmusite/createFMUTags.py', fmupath, fmu_upload_name, jsonpath])

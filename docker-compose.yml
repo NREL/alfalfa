@@ -11,12 +11,15 @@ services:
      - "80:80"
      - "29043:29043"
     environment:
+     - NODE_ENV
      - AWS_ACCESS_KEY_ID
      - AWS_SECRET_ACCESS_KEY
-     - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
-     - MONGO_URL=mongodb://mongo:27017/
-     - NODE_ENV
-     - S3_URL
+     - JOB_QUEUE_URL
+     - MONGO_URL
+     - MONGO_DB_NAME
+     - S3_HOST
+     - S3_BUCKET
+     - REGION
     depends_on:
       - mongo
       - goaws
@@ -63,12 +66,14 @@ services:
     environment:
      - AWS_ACCESS_KEY_ID
      - AWS_SECRET_ACCESS_KEY
-     - JOB_QUEUE_URL=http://goaws:4100/queue/local-queue1
-     - MONGO_URL=mongodb://mongo:27017/
-     - MONGO_DB_NAME=admin
+     - JOB_QUEUE_URL
+     - MONGO_URL
+     - MONGO_DB_NAME
      - LOGLEVEL=INFO
      - NODE_ENV
-     - S3_URL
+     - S3_HOST
+     - S3_BUCKET
+     - REGION
     depends_on:
       - mongo
       - goaws

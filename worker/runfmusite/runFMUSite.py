@@ -132,11 +132,14 @@ def check_vars(var):
 
 
 try:
-    s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
+    if 'amazonaws' not in os.environ['S3_HOST']:
+        s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url='http://minio:9000')
+    else:
+        s3 = boto3.resource('s3', region_name=os.environ['REGION'])
 
     #Initiate Mongo Database
     mongo_client = MongoClient(os.environ['MONGO_URL'])
-    mongodb = mongo_client['boptest']
+    mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
     recs = mongodb.recs
     write_arrays = mongodb.writearrays
 
@@ -162,7 +165,7 @@ try:
         os.makedirs(directory)
     
     #download the tar file and tag file
-    bucket = s3.Bucket('alfalfa')
+    bucket = s3.Bucket(os.environ['S3_BUCKET'])
     bucket.download_file(key, tarpath)
     
     tar = tarfile.open(tarpath)
