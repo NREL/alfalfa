@@ -123,18 +123,18 @@ if __name__ == '__main__':
             logger.info('Message Received with payload: %s' % msg.body)
             # Process Message
             process_message(msg)
-        else:
-            if "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" in os.environ:
-                ecsclient = boto3.client('ecs', region_name=os.environ['REGION'])
-                response = ecsclient.describe_services(cluster='worker_ecs_cluster',services=['worker-service'])['services'][0]
-                desiredCount = response['desiredCount']
-                runningCount = response['runningCount']
-                pendingCount = response['pendingCount']
-                minimumCount = 1
+        #else:
+        #    if "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" in os.environ:
+        #        ecsclient = boto3.client('ecs', region_name=os.environ['REGION'])
+        #        response = ecsclient.describe_services(cluster='worker_ecs_cluster',services=['worker-service'])['services'][0]
+        #        desiredCount = response['desiredCount']
+        #        runningCount = response['runningCount']
+        #        pendingCount = response['pendingCount']
+        #        minimumCount = 1
 
-                if ((runningCount > minimumCount) & (desiredCount > minimumCount)):
-                    ecsclient.update_service(cluster='worker_ecs_cluster',
-                        service='worker-service',
-                        desiredCount=(desiredCount - 1))
-                    sys.exit(0)
+        #        if ((runningCount > minimumCount) & (desiredCount > minimumCount)):
+        #            ecsclient.update_service(cluster='worker_ecs_cluster',
+        #                service='worker-service',
+        #                desiredCount=(desiredCount - 1))
+        #            sys.exit(0)
 
