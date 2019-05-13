@@ -45,10 +45,8 @@ try:
     sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
     queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
 
-    if 'amazonaws' not in os.environ['S3_HOST']:
-        s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url='http://minio:9000')
-    else:
-        s3 = boto3.resource('s3', region_name=os.environ['REGION'])
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+
     # Mongo Database
     mongo_client = MongoClient(os.environ['MONGO_URL'])
     mongodb = mongo_client[os.environ['MONGO_DB_NAME']]

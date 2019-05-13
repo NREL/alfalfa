@@ -37,10 +37,7 @@ from common import *
 
 (fmu_upload_name, upload_id, directory) = precheck_argus(sys.argv)
 
-if 'amazonaws' not in os.environ['S3_HOST']:
-    s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url='http://minio:9000')
-else:
-    s3 = boto3.resource('s3', region_name=os.environ['REGION'])
+s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
 key = "uploads/%s/%s" % (upload_id, fmu_upload_name)
 # fmu files gets uploaded with user defined names, but here we rename

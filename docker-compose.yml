@@ -17,7 +17,7 @@ services:
      - JOB_QUEUE_URL
      - MONGO_URL
      - MONGO_DB_NAME
-     - S3_HOST
+     - S3_URL
      - S3_BUCKET
      - REGION
     depends_on:
@@ -71,7 +71,7 @@ services:
      - MONGO_DB_NAME
      - LOGLEVEL=INFO
      - NODE_ENV
-     - S3_HOST
+     - S3_URL
      - S3_BUCKET
      - REGION
     depends_on:

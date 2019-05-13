@@ -30,7 +30,6 @@ import path from 'path';
 
 AWS.config.update({region: process.env.REGION});
 var sqs = new AWS.SQS();
-var s3 = new AWS.S3({endpoint: "http://minio:9000"});
 
 function addSiteResolver(osmName, uploadID) {
   var params = {

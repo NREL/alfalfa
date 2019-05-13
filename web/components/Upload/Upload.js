@@ -172,10 +172,11 @@ class Upload extends React.Component {
         xhr.addEventListener("abort", uploadCanceled, false);
 
         // TODO: Need to configure this on server side
-        xhr.open('POST', response.postURL, true);
+        xhr.open('POST', response.url, true);
 
         let formData = new FormData();
-        Object.entries(response.formData).forEach(([key, value]) => {
+        console.log(response)
+        Object.entries(response.fields).forEach(([key, value]) => {
             formData.append(key, value);
         });
         formData.append('file', this.state.modelFile);

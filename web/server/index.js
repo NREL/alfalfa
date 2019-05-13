@@ -35,25 +35,10 @@ import graphQLHTTP from 'express-graphql';
 import {Schema} from './schema';
 import historyApiFallback from 'connect-history-api-fallback';
 import morgan from 'morgan';
-import * as Minio from 'minio';
 import { URL } from "url";
+import AWS from 'aws-sdk';
 
-var client;
-
-if ( process.env.S3_HOST.indexOf("amazonaws") == -1 ) {
-  client = new Minio.Client({
-      endPoint: process.env.S3_HOST,
-      port: 9000,
-      useSSL: false,
-      accessKey: process.env.AWS_ACCESS_KEY_ID,
-      secretKey: process.env.AWS_SECRET_ACCESS_KEY,
-  });
-} else {
-  client = new Minio.Client({
-      endPoint: process.env.S3_HOST,
-      region: process.env.REGION
-  });
-}
+var client = new AWS.S3({endpoint: process.env.S3_URL});
 
 MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   var app = express();
@@ -92,25 +77,26 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   // from a browser
   app.post('/upload-url', (req, res) => {
     // Construct a new postPolicy.
-    var policy = client.newPostPolicy()
-    // Set the object name my-objectname.
-    policy.setKey(req.body.name);
-    // Set the bucket to my-bucketname.
-    policy.setBucket(process.env.S3_BUCKET);
-    
-    var expires = new Date
-    expires.setSeconds(24 * 60 * 60 * 10) // 10 days expiry.
-    policy.setExpires(expires)
-    client.presignedPostPolicy(policy, function(e, data) {
-        if (e) throw e;
-        if ( process.env.S3_HOST.indexOf("amazonaws") == -1 ) {
-          const postURL = 'http://' + req.hostname + ':9000/' + process.env.S3_BUCKET;
-          data.postURL = postURL;
+    const params = {
+      Bucket: process.env.S3_BUCKET,
+      Fields: {
+        key: req.body.name
+      }
+    };
+
+    client.createPresignedPost(params, function(err, data) {
+      if (err) {
+        throw err;
+      } else {
+        if ( process.env.S3_URL.indexOf("amazonaws") == -1 ) {
+          const url = 'http://' + req.hostname + ':9000/' + process.env.S3_BUCKET;
+          data.url = url;
         }
         res.send(JSON.stringify(data));
         res.end();
         return;
-    })
+      }
+    });
   });
   
   app.all('/api/*', function(req, res) {

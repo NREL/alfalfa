@@ -74,10 +74,7 @@ ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-if 'amazonaws' not in os.environ['S3_HOST']:
-    s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url='http://minio:9000')
-else:
-    s3 = boto3.resource('s3', region_name=os.environ['REGION'])
+s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
 key = "uploads/%s/%s" % (upload_id, osm_name)
 seedpath = os.path.join(directory, 'seed.osm')
