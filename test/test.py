@@ -16,18 +16,30 @@ bop = boptest.Boptest()
 siteref = bop.submit('wrapped.fmu')
 
 time_scale=5
+
+'''
+# For OSM models
 start_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 tmp   = datetime.datetime.now() + datetime.timedelta(minutes=10)
 end_datetime   = tmp.strftime("%Y-%m-%d %H:%M:%S")
+'''
+
+
+
+# For FMU models
+start_datetime = 0
+end_datetime   = 300
+
 realtime = False
 input_params = { "site_id"       :  siteref,
                  "time_scale"    :  time_scale, 
-                 "start_datetime":  start_datetime,
-                 "end_datetime"  :  end_datetime,
+                 "start_datetime":  str(start_datetime),
+                 "end_datetime"  :  str(end_datetime),
                  "realtime"     :  realtime
                }
-bop.start(**input_params)
 
+
+bop.start(**input_params)
 
 
 #bop.remove(siteref)
@@ -55,3 +67,4 @@ for x in model_inputs.keys():
         id = x
         #print ('check888: ', id)
         outpus = bop.outputs(id)
+

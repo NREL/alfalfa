@@ -15,25 +15,28 @@ class Boptest:
     # check the initial response of http requests
     # if it is good, then go further for other actions
     def parse_response(self, response):
-        r = response.text
-        #print (r)
+        r = response.text        
         r = r.splitlines()
         tmp = r[-1]
         status_seek = tmp.split(',')
-        #print('%%% hey status %%% ', status_seek)
+        print('%%% hey status %%% ', status_seek, type(status_seek))
         if 'empty' in status_seek:
-            status="Empty"
+            status = "Empty"
         elif '"Stopped"' in status_seek:
-            status="Stopped"
-            #print("You catch me!!!")
+            status = "Stopped"
+        elif '"Starting"' in status_seek:
+            status = "Starting"
         elif '"Running"' in status_seek:
-            status="Running"
+            status = "Running"
+        elif '"Updating"' in status_seek:
+            status = "Updating"
         else:
-            status="Watchout"
+            status = "Watchout"
         
+
         return status
 
-
+    
     def get_siteid(self, response):
         r = response.text
         #print (r)
@@ -42,61 +45,47 @@ class Boptest:
         site_id = line_seek[-1].replace('@','')
         print("%%%%% site-id %%%%%", site_id)
         return site_id
-
+    
          
-    def init_check_stopped(self):
+    def check_status_stopped(self):
         response = requests.get(self.url+'/api/nav')
         #print(response.text) 
         if response.status_code ==200:
            status = self.parse_response(response)
-           while status != "Stopped":
+           #print ('initial status: ',status)
+           #print (type(status), len(status))
+
+           while "Stopped"!= status:
                response2 = requests.get(self.url+'/api/nav')
                status = self.parse_response(response2)
+               
+               print ("I keep checking stop status: ", status)
                if status == "Stopped":
+               #if 'Stopped' in status:
                    break
         return status   
 
 
-    def init_check_running(self):
+    def check_status_running(self):
         response = requests.get(self.url+'/api/nav')
         #print(response.text) 
         if response.status_code ==200:
            status = self.parse_response(response)
            while status != "Running":
+           #while 'Running' not in status:
                response2 = requests.get(self.url+'/api/nav')
                status = self.parse_response(response2)
+               print ("I am checking running status!", status)
                if status == "Running":
+               #if 'Running' in status:
                    break
 
         return status
 
     
     
-
-    def parse_updating(self, response):    
-        r = response.text
-        #print (r)
-        r = r.splitlines()
-        tmp = r[-1]
-        tmp2 = tmp.split(',')
-        updating = tmp2[1]
-        print ('hey updating: ',updating)      
-
-        return updating
-    
    
-    def init_check_updating(self):
-        response = requests.get(self.url+'/api/nav')
-        if response.status_code ==200:
-           updating = self.parse_updating(response)
-           while updating == '"NaN"' or '""':
-               response2 = requests.get(self.url+'/api/nav')
-               updating = self.parse_updating(response2)
-               if updating != '"NaN"' or '""':
-                   print("I am updating now!")
-                   break
-
-        return updating
+    
 
     # this should be equivalent to uploading a file through 
     # Boptest UI. See code here 
@@ -128,21 +117,24 @@ class Boptest:
         mutation = 'mutation { addSite(osmName: "%s", uploadID: "%s") }' % (filename, uid)
         response = requests.post(self.url + '/graphql', json={'query': mutation})
                 
-        status = self.init_check_stopped()
-        if status == "Stopped":
+        status = self.check_status_stopped()
+        
+        if 'Stopped' in status:
             siteref = uid
         else:
             siteref = ''
+        
         ''' 
         if status == "Stopped":
             response = requests.get(self.url+'/api/nav')
-            #print ('hey final response: ', response.text)
+            #print ('hey stopped response: ', response.text)
             siteref = self.get_siteid(response)            
         else:
             siteref = ''
-        
-        siteref = uid
         '''
+        #siteref = uid
+        print ('hey siteid ******: ', siteref )
+        
         return siteref
 
     # Start a simulation for model identified by id. The id should corrsespond to 
@@ -159,15 +151,15 @@ class Boptest:
         mutation = 'mutation {\n' + ' runSite(siteRef: "%s",\n startDatetime: "%s",\n endDatetime: "%s",\n timescale: "%s",\n realtime: "%s") \n}' % (site_id, start_datetime, end_datetime, time_scale, realtime)
           
         mutation = mutation.replace('timescale: "5"', 'timescale: 5')
-        #print (mutation)
+        print (mutation)
         
         payload = {'query': mutation}
         response = requests.post(self.url + '/graphql', data=payload )
-
-        if response.status_code == 200:
-            status = self.init_check_running()
-            #print ("****** status ******", status)
-            if status =='Running':
+        print ('i am here: ', type(response))
+        if 200 == response.status_code:
+            status = self.check_status_running()
+            print ("****** status ******", status)
+            if 'Running' in status:
                 print("The Model is running now!")
                 
         
@@ -287,8 +279,8 @@ class Boptest:
                           "cols": [ {"name":"id"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
                        }
                        )
-        updating = self.init_check_updating()
-        if updating !='"NaN"' or '""': 
+        running = self.check_status_running()
+        if running == "Running": 
             reading_response = requests.post(url=url, headers=header2, data=data)
             if reading_response.status_code==200:
                 print("Congratulations! Outputs were retrieved!")
