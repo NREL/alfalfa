@@ -6,14 +6,12 @@ import sys
 import os.path
 import datetime
 import time
-
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../client/')
 import boptest
 
-bop = boptest.Boptest()
+bop = boptest.Boptest(url='http://web')
 
 
-siteref = bop.submit('wrapped.fmu')
+siteref = bop.submit('test/wrapped.fmu')
 
 time_scale=5
 start_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
