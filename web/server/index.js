@@ -95,8 +95,13 @@ MongoClient.connect(process.env.MONGO_URL).then((db) => {
     client.presignedPostPolicy(policy, function(e, data) {
         if (e) throw e;
         if ( s3URL.hostname.indexOf("amazonaws") == -1 ) {
-          const postURL = 'http://' + req.hostname + ':9000/alfalfa';
-          data.postURL = postURL;
+          if (req.hostname.indexOf("web") == -1 ) {
+            const postURL = 'http://' + req.hostname + ':9000/alfalfa';
+            data.postURL = postURL;
+          } else {
+            const postURL = 'http://minio:9000/alfalfa';
+            data.postURL = postURL;
+          }
         }
         res.send(JSON.stringify(data));
         res.end();
