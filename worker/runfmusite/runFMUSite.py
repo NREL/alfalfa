@@ -23,220 +23,207 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
-from __future__ import print_function
 import os
-import glob
 import boto3
 import tarfile
 import shutil
 import time
-from pymongo import MongoClient
 import sys
-import subprocess
-import logging
-import re
-from datetime import date, datetime, timedelta
-import pytz
-import calendar
-import traceback
-from dateutil.parser import parse
-from pyfmi import load_fmu
-import copy
 import json
-
-
+import redis
+from pymongo import MongoClient
 from common import *
 
+class RunFMUSite:
+    def __init__(self, **kwargs):
+        self.s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
+        self.redis = redis.Redis(host=os.environ['REDIS_HOST'])
+        self.pubsub = self.redis.pubsub()
 
-def get_tag_data(tag_filepath):
-    '''
-     Purpose: retrieving the haystack tagged data, 
-              which are model-exchange variables in FMU. 
-     Inputs:  a json file containing all the tagged data.
-     Returns: a list for all the tagged data, with the tagging properties
-              like id, dis, site_ref, etc...
-    '''
-    with open( tag_filepath ) as json_data:
-        tag_data = json.load(json_data)
+        #Initiate Mongo Database
+        self.mongodb = MongoClient(os.environ['MONGO_URL'])['boptest']
+        self.recs = self.mongodb.recs
+        self.write_arrays = self.mongodb.writearrays
+
+        # get arguments from calling program
+        # which is the processMessage program
+        self.site_ref = kwargs['site_ref']
+        self.real_time_flag = kwargs['real_time_flag']
+        self.time_scale = kwargs['time_scale']
+        self.startTime = kwargs['startTime']
+        self.endTime = kwargs['endTime']
+        self.externalClock = kwargs['externalClock']
+
+        #build the path for zipped-file, fmu, json
+        sim_path = '/simulate'
+        self.directory = os.path.join(sim_path, self.site_ref)
+        tar_name = "%s.tar.gz" % self.site_ref
+        key = "parsed/%s" % tar_name
+        tarpath = os.path.join(self.directory, tar_name)
+        fmupath = os.path.join(self.directory, 'model.fmu')
+        tagpath = os.path.join(self.directory, 'tags.json')
+
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory)
         
-
-    return tag_data
-
-
-def create_DisToID_dictionary(tag_filepath):
-    '''
-    Purpose: matching the haystack display-name and IDs
-    Inputs:  a json file containing all the tagged data
-    Returns: a dictionary mathching all display-names and IDs
-             a dictionary matching all inputs and IDs
-             a dictionary matching all outputs and IDs 
-             a dictionary matching all IDs and display-names 
-    '''
-    dis_and_ID={}
-    inputs_and_ID = {}
-    outputs_and_ID = {}
-    id_and_dis={}
-    # default_input is a dictionay
-    # with keys for every "_enable" input, set to value 0
-    # in other words, disable everything
-    default_input={}
-
-    tag_data = get_tag_data(tag_filepath)
-
-    for point in tag_data:
-        var_name = point['dis'].replace('s:','')
-        var_id = point['id'].replace('r:','')
-
-        dis_and_ID[var_name] = var_id
-        id_and_dis[var_id] = var_name
+        #download the tar file and tag file
+        bucket = self.s3.Bucket('alfalfa')
+        bucket.download_file(key, tarpath)
         
-        if 'writable' in point.keys():
-            inputs_and_ID[var_name] = var_id
-            default_input[var_name.replace('_u', '_activate')] = 0;
+        tar = tarfile.open(tarpath)
+        tar.extractall(sim_path)
+        tar.close()
 
-        if 'writable' not in point.keys() and 'point' in point.keys():
-            outputs_and_ID[var_name] = var_id
-         
-    return (dis_and_ID, inputs_and_ID, outputs_and_ID, id_and_dis, default_input)
-        
-
-def query_var_byID(database, var_id):
-    '''
-    Purpose: query a variable by ID to the database
-    Inputs:  database (recs in this case), and the id of the variable
-    Returns: the details of the data, a dictionary with dictionary inside.
-    '''
-    myquery = {"_id": var_id}
-    mydoc = database.find_one(myquery)
-    if not mydoc:
-        print(")))))) hey the query is not in the database ((((((")
-    else:
-        print(")))))) hey i am querying:(((((( ", mydoc)
-
-    return mydoc
-        
-        
-def check_vars(var):
-   '''
-   Purpose: print the var details to the terminal for debugging purpose
-   Inputs:  variable 
-   Returns: print statement on the terminal
-   '''
-   print(')))))) Hey i am checking var: '+ str(var) + '((((((: ', var)
-
-
-
-####################   Entry for Main Program   #####################
-############################################################################
-
-
-
-try:
-    s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
-
-    #Initiate Mongo Database
-    mongo_client = MongoClient(os.environ['MONGO_URL'])
-    mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
-    recs = mongodb.recs
-    write_arrays = mongodb.writearrays
-
-    # get arguments from calling program
-    # which is the processMessage program
-    site_ref = sys.argv[1]
-    real_time_flag = sys.argv[2]
-    time_scale = int(sys.argv[3])
-    startTime = int(sys.argv[4])
-    endTime = int(sys.argv[5])
-
-    #build the path for zipped-file, fmu, json
-    sim_path = '/simulate'
-    directory = os.path.join(sim_path, site_ref)
-    tar_name = "%s.tar.gz" % site_ref
-    key = "parsed/%s" % tar_name
-    tarpath = os.path.join(directory, tar_name)
-    fmupath = os.path.join(directory, 'model.fmu')
-    tagpath = os.path.join(directory, 'tags.json')
-        
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    
-    #download the tar file and tag file
-    bucket = s3.Bucket('alfalfa')
-    bucket.download_file(key, tarpath)
-    
-    tar = tarfile.open(tarpath)
-    tar.extractall(sim_path)
-    tar.close()
-    
-    #get the tagging id, disp, etc......
-    #tag_data = get_tag_data(tagpath)
-
-    recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Running"}}, False)
-
-    # Load fmu
-    config = {
-        'fmupath'  : fmupath,                
-        'step'     : 60
-    }
-
-        
-    (dis_and_id, tagid_and_inputs, tagid_and_outputs, id_and_dis, default_input) = \
-            create_DisToID_dictionary(tagpath)
+        # Load fmu
+        config = {
+            'fmupath'  : fmupath,                
+            'step'     : 60
+        }
+            
+        (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
  
+        #initiate the testcase
+        self.tc = testcase.TestCase(config) 
+        
+        #run the FMU simulation
+        self.kstep=0 
+        self.stop = False
+        self.simtime = 0
 
-    #initiate the testcase
-    tc = testcase.TestCase(config) 
+        if self.externalClock:
+            self.pubsub.subscribe(self.site_ref)
+
+    def create_tag_dictionaries(self, tag_filepath):
+        '''
+        Purpose: matching the haystack display-name and IDs
+        Inputs:  a json file containing all the tagged data
+        Returns: a dictionary matching all outputs and IDs 
+                 a dictionary matching all IDs and display-names 
+                 a dictionary for every _enable input, set to value 0
+        '''
+        outputs_and_ID = {}
+        id_and_dis={}
+        # default_input is a dictionay
+        # with keys for every "_enable" input, set to value 0
+        # in other words, disable everything
+        default_input={}
     
-    #run the FMU simulation
-    kstep=0 
-    stop = False
-    simtime = 0
-    while simtime < endTime and not stop:
+        # Get Haystack tag data, from tag_filepath
+        tag_data = {}
+        with open( tag_filepath ) as json_data:
+            tag_data = json.load(json_data)
+    
+        for point in tag_data:
+            var_name = point['dis'].replace('s:','')
+            var_id = point['id'].replace('r:','')
+    
+            id_and_dis[var_id] = var_name
+            
+            if 'writable' in point.keys():
+                default_input[var_name.replace('_u', '_activate')] = 0
+    
+            if 'writable' not in point.keys() and 'point' in point.keys():
+                outputs_and_ID[var_name] = var_id
+             
+        return (outputs_and_ID, id_and_dis, default_input)
+
+    def run(self):
+        self.init_sim_status()
+
+        if self.externalClock:
+            while True:
+                message = self.pubsub.get_message()
+                if message:
+                    data = message['data']
+                    if data == 'advance':
+                        self.step()
+                        self.redis.publish(self.site_ref, 'complete')
+                        self.set_idle_state()
+                    elif data == 'stop':
+                        self.set_idle_state()
+                        break;
+        else:
+            while self.simtime < self.endTime:
+                if self.db_stop_set():
+                    break;
+                self.step()
+                # TODO: Make this respect time scale provided by user
+                time.sleep(5)
+
+        self.cleanup()
+
+    # Check the database for a stop signal
+    # and return true if stop is requested
+    def db_stop_set(self): 
+        # A client may have requested that the simulation stop early,
+        # look for a signal to stop from the database
+        site = self.recs.find_one({"_id": self.site_ref})
+        if site and (site.get("rec",{}).get("simStatus") == "s:Stopping") :
+            self.stop = True
+        return self.stop
+
+    # cleanup after the simulation is stopped
+    def cleanup(self):
+        # Clear all current values from the database when the simulation is no longer running
+        self.recs.update_one({"_id": self.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
+        self.recs.update_many({"site_ref": self.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
+        self.recs.update_many({"site_ref": self.site_ref, "rec.writable": "m:"}, {"$unset": {"rec.writeLevel": "","rec.writeVal": ""}, "$set": { "rec.writeStatus": "s:disabled" } }, False)
+
+        shutil.rmtree(self.directory)
+
+    def set_idle_state(self):
+        self.redis.hset(site_ref, 'control', 'idle')
+
+    def init_sim_status(self):
+        self.set_idle_state()
+        output_time_string = 's:%s' %(self.simtime)
+        self.recs.update_one( {"_id": self.site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:Running"} } )
+
+    def update_sim_status(self):
+        self.simtime = self.tc.final_time
+        output_time_string = 's:%s' %(self.simtime)
+        self.recs.update_one( {"_id": self.site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:Running"} } )
+        
+    def step(self):
         # u represents simulation input values
-        u=default_input.copy()
+        u=self.default_input.copy()
         # look in the database for current write arrays
         # for each write array there is an array of controller
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
         # convention
-        for array in write_arrays.find({"siteRef": site_ref}):
+        for array in self.write_arrays.find({"siteRef": self.site_ref}):
+            _id = array.get('_id')
             for val in array.get('val'):
                 if val is not None:
-                    _id = array.get('_id')
-                    dis = id_and_dis.get(_id)
+                    dis = self.id_and_dis.get(_id)
                     if dis:
                         u[dis] = val
                         u[dis.replace('_u', '_activate')] = 1
                         break
-
-        y_output = tc.advance(u)
-        simtime = tc.final_time
-        output_time_string = 's:%s' %(simtime)
-        recs.update_one( {"_id": site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:Running"} } )
-
-        # get each of the simulation output values and feed to the database
+        
+        y_output = self.tc.advance(u)
+        self.update_sim_status()
+        
+         get each of the simulation output values and feed to the database
         for key in y_output.keys():
-            value_y = y_output[key]
-            
             if key!='time': 
-                output_id = tagid_and_outputs[key]                          
-                recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
+                output_id = self.tagid_and_outputs[key]                          
+                value_y = y_output[key]
+                self.recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
 
-        time.sleep(5)
+####################   Entry for Main Program   #####################
+############################################################################
 
-        # A client may have requested that the simulation stop early,
-        # look for a signal to stop from the database
-        site = recs.find_one({"_id": site_ref})
-        if site and (site.get("rec",{}).get("simStatus") == "s:Stopping") :
-            stop = True;
-    
-    # Clear all current values from the database when the simulation is no longer running
-    recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
-    recs.update_many({"site_ref": site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
-    recs.update_many({"site_ref": site_ref, "rec.writable": "m:"}, {"$unset": {"rec.writeLevel": "","rec.writeVal": ""}, "$set": { "rec.writeStatus": "s:disabled" } }, False)
+# get arguments from calling program
+# which is the processMessage program
+site_ref = sys.argv[1]
+real_time_flag = (sys.argv[2] == 'true')
+time_scale = int(sys.argv[3])
+startTime = int(sys.argv[4])
+endTime = int(sys.argv[5])
+externalClock = (sys.argv[6] == 'true')
 
-    shutil.rmtree(directory)
-
-except Exception as e:
-    print('runFMU: %s' % e, file=sys.stderr)
+runFMUSite = RunFMUSite(site_ref=site_ref, real_time_flag=real_time_flag, time_scale=time_scale, startTime=startTime, endTime=endTime, externalClock=externalClock)
+runFMUSite.run()
     

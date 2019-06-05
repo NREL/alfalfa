@@ -31,8 +31,10 @@ import url from 'url';
 import bodyParser from 'body-parser';
 import alfalfaServer from './alfalfa-server';
 import {MongoClient} from 'mongodb';
+import node_redis from 'redis';
 import graphQLHTTP from 'express-graphql';
 import {Schema} from './schema';
+import {Advancer} from './advancer';
 import historyApiFallback from 'connect-history-api-fallback';
 import morgan from 'morgan';
 import * as Minio from 'minio';
@@ -40,7 +42,7 @@ import { URL } from "url";
 
 const s3URL = new URL(process.env.S3_URL);
 
-var client = new Minio.Client({
+const client = new Minio.Client({
     endPoint: s3URL.hostname,
     port: parseInt(s3URL.port),
     useSSL: s3URL.protocol == 'https:',
@@ -49,19 +51,35 @@ var client = new Minio.Client({
     region: 'us-west-1'
 });
 
-MongoClient.connect(process.env.MONGO_URL).then((db) => {
+const redis = node_redis.createClient({host: process.env.REDIS_HOST});
+const pub = redis.duplicate();
+const sub = redis.duplicate();
+const advancer = new Advancer(redis, pub, sub);
+
+MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   var app = express();
   
   if( process.env.NODE_ENV == "production" ) {
-    app.get('*.js', function (req, res, next) {
+    app.get('*.js', function(req, res, next) {
       req.url = req.url + '.gz';
       res.set('Content-Encoding', 'gzip');
+      res.set('Content-Type', 'text/javascript');
+      next();
+    });
+
+    app.get('*.css', function(req, res, next) {
+      req.url = req.url + '.gz';
+      res.set('Content-Encoding', 'gzip');
+      res.set('Content-Type', 'text/css');
       next();
     });
   } else {
     app.use(morgan('combined'))
   }
-  app.locals.alfalfaServer = new alfalfaServer(db);
+
+  const db = mongoClient.db('boptest');
+
+  app.locals.alfalfaServer = new alfalfaServer(db, redis, pub, sub);
 
   app.use('/graphql', (request, response) => {
       return graphQLHTTP({
@@ -70,7 +88,8 @@ MongoClient.connect(process.env.MONGO_URL).then((db) => {
         schema: Schema,
         context: {
           ...request,
-          db
+          db,
+          advancer
         }
       })(request,response)
     }

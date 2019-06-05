@@ -2,6 +2,7 @@ import uuid
 import requests
 import json
 import os
+import time
 from requests_toolbelt import MultipartEncoder
 
 class Boptest:
@@ -10,93 +11,33 @@ class Boptest:
     # default should be http://localhost/api
     def __init__(self, url='http://localhost'):
         self.url = url
-    
-
-    # check the initial response of http requests
-    # if it is good, then go further for other actions
-    def parse_response(self, response):
-        r = response.text
-        #print (r)
-        r = r.splitlines()
-        tmp = r[-1]
-        status_seek = tmp.split(',')
-        #print('%%% hey status %%% ', status_seek)
-        if 'empty' in status_seek:
-            status="Empty"
-        elif '"Stopped"' in status_seek:
-            status="Stopped"
-            #print("You catch me!!!")
-        elif '"Running"' in status_seek:
-            status="Running"
-        else:
-            status="Watchout"
-        
-        return status
-
-
-    def get_siteid(self, response):
-        r = response.text
-        #print (r)
-        r = r.splitlines()
-        line_seek = r[-1].split(',')
-        site_id = line_seek[-1].replace('@','')
-        print("%%%%% site-id %%%%%", site_id)
-        return site_id
-
          
-    def init_check_stopped(self):
-        response = requests.get(self.url+'/api/nav')
-        #print(response.text) 
-        if response.status_code ==200:
-           status = self.parse_response(response)
-           while status != "Stopped":
-               response2 = requests.get(self.url+'/api/nav')
-               status = self.parse_response(response2)
-               if status == "Stopped":
-                   break
+    def status(self, siteref):
+        status = ''
+
+        query = '{ viewer{ sites(siteRef: "%s") { simStatus } } }' % siteref
+        response = requests.post(self.url + '/graphql', json={'query': query})
+        j = json.loads(response.text)
+        sites = j["data"]["viewer"]["sites"]
+        if sites: 
+            status = sites[0]["simStatus"]
+
         return status   
 
+    def wait(self, siteref, desired_status):
+        sites = []
 
-    def init_check_running(self):
-        response = requests.get(self.url+'/api/nav')
-        #print(response.text) 
-        if response.status_code ==200:
-           status = self.parse_response(response)
-           while status != "Running":
-               response2 = requests.get(self.url+'/api/nav')
-               status = self.parse_response(response2)
-               if status == "Running":
-                   break
+        attempts = 0;
+        while attempts < 240:
+            attempts = attempts + 1
+            current_status = self.status(siteref)
 
-        return status
-
-    
-    
-
-    def parse_updating(self, response):    
-        r = response.text
-        #print (r)
-        r = r.splitlines()
-        tmp = r[-1]
-        tmp2 = tmp.split(',')
-        updating = tmp2[1]
-        print ('hey updating: ',updating)      
-
-        return updating
-    
-   
-    def init_check_updating(self):
-        response = requests.get(self.url+'/api/nav')
-        if response.status_code ==200:
-           updating = self.parse_updating(response)
-           while updating == '"NaN"' or '""':
-               response2 = requests.get(self.url+'/api/nav')
-               updating = self.parse_updating(response2)
-               if updating != '"NaN"' or '""':
-                   print("I am updating now!")
-                   break
-
-        return updating
+            if desired_status:
+                if current_status == desired_status:
+                    break
+            elif current_status:
+                break
+            time.sleep(0.1)
 
     # this should be equivalent to uploading a file through 
     # Boptest UI. See code here 
@@ -114,7 +55,6 @@ class Boptest:
         response = requests.post(self.url + '/upload-url', json=payload)
         
         json = response.json()
-        #print ('initial response: ', json)
         postURL = json['postURL']
         formData = json['formData']
         formData['file'] = open(path, 'rb')
@@ -127,62 +67,52 @@ class Boptest:
         # This is done not via the haystack api, but through a graphql api
         mutation = 'mutation { addSite(osmName: "%s", uploadID: "%s") }' % (filename, uid)
         response = requests.post(self.url + '/graphql', json={'query': mutation})
-                
-        status = self.init_check_stopped()
-        if status == "Stopped":
-            siteref = uid
-        else:
-            siteref = ''
-        ''' 
-        if status == "Stopped":
-            response = requests.get(self.url+'/api/nav')
-            #print ('hey final response: ', response.text)
-            siteref = self.get_siteid(response)            
-        else:
-            siteref = ''
-        
-        siteref = uid
-        '''
-        return siteref
+
+        self.wait(uid, "Stopped")
+
+        return uid
 
     # Start a simulation for model identified by id. The id should corrsespond to 
     # a return value from the submit method
     # sim_params should be parameters such as start_time, end_time, timescale,
     # and others. The details need to be further defined and documented
     def start(self,  **sim_params):
+        time_scale = 1.0
+        start_datetime = "0"
+        end_datetime = "100000"
+        realtime = "false";
+        externalClock = "true";
+
         site_id        = sim_params["site_id"] 
-        time_scale     = sim_params["time_scale"]
-        start_datetime = sim_params["start_datetime"]
-        end_datetime   = sim_params["end_datetime"]
-        realtime       = sim_params["realtime"]
+        if hasattr(sim_params, "time_scale"):
+            time_scale     = sim_params["time_scale"]
+        if hasattr(sim_params, "start_datetime"):
+            start_datetime = sim_params["start_datetime"]
+        if hasattr(sim_params, "end_datetime"):
+            end_datetime   = sim_params["end_datetime"]
+        if hasattr(sim_params, "realtime"):
+            realtime       = sim_params["realtime"]
+        if hasattr(sim_params, "externalClock"):
+            externalClock  = sim_params["externalClock"]
         
-        mutation = 'mutation {\n' + ' runSite(siteRef: "%s",\n startDatetime: "%s",\n endDatetime: "%s",\n timescale: "%s",\n realtime: "%s") \n}' % (site_id, start_datetime, end_datetime, time_scale, realtime)
+        mutation = 'mutation { runSite(siteRef: "%s", startDatetime: "%s", endDatetime: "%s", timescale: %s, realtime: %s, externalClock: %s) }' % (site_id, start_datetime, end_datetime, time_scale, realtime, externalClock)
+        response = requests.post(self.url + '/graphql', json={'query': mutation})
           
-        mutation = mutation.replace('timescale: "5"', 'timescale: 5')
-        #print (mutation)
-        
-        payload = {'query': mutation}
-        response = requests.post(self.url + '/graphql', data=payload )
+        print(response)
 
         if response.status_code == 200:
             status = self.init_check_running()
-            #print ("****** status ******", status)
-            if status =='Running':
-                print("The Model is running now!")
-                
-        
-      
 
+    def advance(self, siteid):
+        mutation = 'mutation { advance(siteRef: "%s") }' % (siteid)
+        payload = {'query': mutation}
+        response = requests.post(self.url + '/graphql', json=payload )
 
     # Stop a simulation for model identified by id
     def stop(self, id):    
         mutation = 'mutation { stopSite(siteRef: "%s") }' % (id)
-
         payload = {'query': mutation}
-        
         response = requests.post(self.url + '/graphql', json=payload )
-        print('stopping simu API response: \n')
-        print(response.text)
 
 
     # remove a site for model identified by id

@@ -231,9 +231,9 @@ class Sites extends React.Component {
     return (! stoppedItem);
   }
 
-  handleStartSimulation = (startDatetime,endDatetime,timescale,realtime) => {
+  handleStartSimulation = (startDatetime,endDatetime,timescale,realtime,externalClock) => {
     this.selectedSites().map((item) => {
-      this.props.startSimProp(item.siteRef,startDatetime,endDatetime,timescale,realtime);
+      this.props.startSimProp(item.siteRef,startDatetime,endDatetime,timescale,realtime,externalClock);
     })
   }
 
@@ -404,8 +404,8 @@ const sitesQL = gql`
 
 // TODO: make an input type
 const runSiteQL = gql`
-  mutation runSiteMutation($siteRef: String!, $startDatetime: String, $endDatetime: String, $timescale: Float, $realtime: String ) {
-    runSite(siteRef: $siteRef, startDatetime: $startDatetime, endDatetime: $endDatetime, timescale: $timescale, realtime: $realtime)
+  mutation runSiteMutation($siteRef: String!, $startDatetime: String, $endDatetime: String, $timescale: Float, $realtime: Boolean, $externalClock: Boolean ) {
+    runSite(siteRef: $siteRef, startDatetime: $startDatetime, endDatetime: $endDatetime, timescale: $timescale, realtime: $realtime, externalClock: $externalClock)
   }
 `;
 
@@ -425,7 +425,7 @@ const withStyle = withStyles(styles)(Sites);
 
 const withStart = graphql(runSiteQL, {
   props: ({ mutate }) => ({
-    startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
+    startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime, externalClock) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime, externalClock } }),
   })
 })(withStyle);
 

@@ -17,7 +17,9 @@ services:
      - MONGO_URL=mongodb://mongo:27017/
      - NODE_ENV
      - S3_URL
+     - REDIS_HOST
     depends_on:
+      - redis
       - mongo
       - goaws
       - worker
@@ -69,7 +71,9 @@ services:
      - LOGLEVEL=INFO
      - NODE_ENV
      - S3_URL
+     - REDIS_HOST
     depends_on:
+      - redis
       - mongo
       - goaws
       - mc
@@ -85,4 +89,9 @@ services:
       dockerfile: Dockerfile-test
     depends_on:
       - web
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
 
