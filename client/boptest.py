@@ -83,7 +83,7 @@ class Boptest:
         realtime = "false";
         externalClock = "true";
 
-        site_id        = sim_params["site_id"] 
+        site_id = sim_params["site_id"] 
         if hasattr(sim_params, "time_scale"):
             time_scale     = sim_params["time_scale"]
         if hasattr(sim_params, "start_datetime"):
@@ -98,10 +98,7 @@ class Boptest:
         mutation = 'mutation { runSite(siteRef: "%s", startDatetime: "%s", endDatetime: "%s", timescale: %s, realtime: %s, externalClock: %s) }' % (site_id, start_datetime, end_datetime, time_scale, realtime, externalClock)
         response = requests.post(self.url + '/graphql', json={'query': mutation})
           
-        print(response)
-
-        if response.status_code == 200:
-            status = self.init_check_running()
+        self.wait(site_id, "Running")
 
     def advance(self, siteid):
         mutation = 'mutation { advance(siteRef: "%s") }' % (siteid)
@@ -109,123 +106,125 @@ class Boptest:
         response = requests.post(self.url + '/graphql', json=payload )
 
     # Stop a simulation for model identified by id
-    def stop(self, id):    
-        mutation = 'mutation { stopSite(siteRef: "%s") }' % (id)
+    def stop(self, siteid):    
+        mutation = 'mutation { stopSite(siteRef: "%s") }' % (siteid)
         payload = {'query': mutation}
         response = requests.post(self.url + '/graphql', json=payload )
 
+        self.wait(siteid, "Stopped")
 
-    # remove a site for model identified by id
-    def remove(self, id):
-        mutation = 'mutation { removeSite(siteRef: "%s") }' % (id)
 
-        payload = {'query': mutation}
+    ### remove a site for model identified by id
+    ##def remove(self, id):
+    ##    mutation = 'mutation { removeSite(siteRef: "%s") }' % (id)
 
-        response = requests.post(self.url + '/graphql', json=payload )
-        print('remove site API response: \n')
-        print(response.text) 
-       
+    ##    payload = {'query': mutation}
+
+    ##    response = requests.post(self.url + '/graphql', json=payload )
+    ##    print('remove site API response: \n')
+    ##    print(response.text) 
+    ##   
  
-    # Return the input values for simulation identified by id,
-    # in the form of a dictionary. See setInputs method for dictionary format
-    def inputs(self, siteref):
-          
-        viewer = '{viewer {\n'+ ' sites(\n ' + ('  siteRef: "%s"') %(siteref) +'){\n ' + ' points {\n' + '  dis\n' + '  tags{\n' + '   key' +' '+ 'value' + '\n}}}}}'
+    ### Return the input values for simulation identified by id,
+    ### in the form of a dictionary. See setInputs method for dictionary format
+    ##def inputs(self, siteref):
+    ##      
+    ##    viewer = '{viewer {\n'+ ' sites(\n ' + ('  siteRef: "%s"') %(siteref) +'){\n ' + ' points {\n' + '  dis\n' + '  tags{\n' + '   key' +' '+ 'value' + '\n}}}}}'
 
-        payload = {'query': viewer}
-        
-        response = requests.post(self.url+'/graphql', json=payload)
-        response = response.json()
-        response = response["data"]
-        response = response["viewer"]
-        response = response["sites"]
-        response = response[0]
-        response = response["points"]
-        input_map={}
-        for x in response:
-            var_name = x['dis']
-            tags = x['tags']
-           
-            for y in tags: 
-                if y['key']=="id":
-                    var_id = y['value']
-                    if y['key']=="curVal":
-                        print ( y['value'] )
-                        #if y['key']=="writable":
-                        #    input_map[var_id] = var_name
-            input_map[var_id] = var_name
-        
-        self.inputs = input_map
-        print('hey input-map: ',input_map)
-        return self.inputs
+    ##    payload = {'query': viewer}
+    ##    
+    ##    response = requests.post(self.url+'/graphql', json=payload)
+    ##    response = response.json()
+    ##    response = response["data"]
+    ##    response = response["viewer"]
+    ##    response = response["sites"]
+    ##    response = response[0]
+    ##    response = response["points"]
+    ##    input_map={}
+    ##    for x in response:
+    ##        var_name = x['dis']
+    ##        tags = x['tags']
+    ##       
+    ##        for y in tags: 
+    ##            if y['key']=="id":
+    ##                var_id = y['value']
+    ##                if y['key']=="curVal":
+    ##                    print ( y['value'] )
+    ##                    #if y['key']=="writable":
+    ##                    #    input_map[var_id] = var_name
+    ##        input_map[var_id] = var_name
+    ##    
+    ##    self.inputs = input_map
+    ##    print('hey input-map: ',input_map)
+    ##    return self.inputs
 
-    # Set inne_sputs for model identified by id
-    # The inputs argument should be a dictionary of 
-    # with the form
-    # inputs = {
-    #  input_name: { level_1: value_1, level_2: value_2...},
-    #  input_name2: { level_1: value_1, level_2: value_2...}
-    # }
-    def setInputs(self, id, **user_inputs): 
-        url    = "http://localhost:80/api/pointWrite"
-        header = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
-        for var in user_inputs.keys():
-            value_inputs = user_inputs[var]
-            for level in value_inputs.keys():
-                the_value = value_inputs[level]
-                data = json.dumps(
-                       {
-                          "meta": {"ver":"2.0"},
-                          "rows": [ { "id" : id, \
-                          "level": "n:"+str(level), \
-                          "who" : "s:" , \
-                          "val" : "n:"+str(the_value),\
-                          "duration": "s:"
-                                    }
-                                  ],
-                          "cols": [ {"name":"id"}, {"name":"level"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
-                       }
-                       )
-                writing_response = requests.post(url=url, headers=header, data=data)
-        if writing_response.status_code==200:
-            print("Congratulations! Your inputs were applied!")
-            print (writing_response.text)                
-        else:
-            print("Poor Boy! You inputs have some issue!")        
+    ### Set inne_sputs for model identified by id
+    ### The inputs argument should be a dictionary of 
+    ### with the form
+    ### inputs = {
+    ###  input_name: { level_1: value_1, level_2: value_2...},
+    ###  input_name2: { level_1: value_1, level_2: value_2...}
+    ### }
+    ##def setInputs(self, id, **user_inputs): 
+    ##    url    = "http://localhost:80/api/pointWrite"
+    ##    header = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
+    ##    for var in user_inputs.keys():
+    ##        value_inputs = user_inputs[var]
+    ##        for level in value_inputs.keys():
+    ##            the_value = value_inputs[level]
+    ##            data = json.dumps(
+    ##                   {
+    ##                      "meta": {"ver":"2.0"},
+    ##                      "rows": [ { "id" : id, \
+    ##                      "level": "n:"+str(level), \
+    ##                      "who" : "s:" , \
+    ##                      "val" : "n:"+str(the_value),\
+    ##                      "duration": "s:"
+    ##                                }
+    ##                              ],
+    ##                      "cols": [ {"name":"id"}, {"name":"level"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
+    ##                   }
+    ##                   )
+    ##            writing_response = requests.post(url=url, headers=header, data=data)
+    ##    if writing_response.status_code==200:
+    ##        print("Congratulations! Your inputs were applied!")
+    ##        print (writing_response.text)                
+    ##    else:
+    ##        print("Poor Boy! You inputs have some issue!")        
 
 
-    # Return a dictionary of the output values
-    # result = {
-    # output_name1 : output_value1,
-    # output_name2 : output_value2
-    #}
-    def outputs(self, id):
-        
-        url    = "http://localhost:80/api/read"
-        header = { "Accept":"application/json", "Content-Type":"text/zinc" }
-        header2 = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
-        payload = 'ver:"2.0"\n' + 'filter,limit\n' + ('id==@"%s"')%(id) + '\,1000'
-        data = json.dumps(
-                       {
-                          "meta": {"ver":"2.0"},
-                          "rows": [ { "id" :  id, \
-                          "who" : "s:" , \
-                          "val" : "n:" , \
-                          "duration": "s:"
-                                    }
-                                  ],
-                          "cols": [ {"name":"id"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
-                       }
-                       )
-        updating = self.init_check_updating()
-        if updating !='"NaN"' or '""': 
-            reading_response = requests.post(url=url, headers=header2, data=data)
-            if reading_response.status_code==200:
-                print("Congratulations! Outputs were retrieved!")
-                print (reading_response.text)
-                return reading_response.text
+    ### Return a dictionary of the output values
+    ### result = {
+    ### output_name1 : output_value1,
+    ### output_name2 : output_value2
+    ###}
+    ##def outputs(self, id):
+    ##    
+    ##    url    = "http://localhost:80/api/read"
+    ##    header = { "Accept":"application/json", "Content-Type":"text/zinc" }
+    ##    header2 = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
+    ##    payload = 'ver:"2.0"\n' + 'filter,limit\n' + ('id==@"%s"')%(id) + '\,1000'
+    ##    data = json.dumps(
+    ##                   {
+    ##                      "meta": {"ver":"2.0"},
+    ##                      "rows": [ { "id" :  id, \
+    ##                      "who" : "s:" , \
+    ##                      "val" : "n:" , \
+    ##                      "duration": "s:"
+    ##                                }
+    ##                              ],
+    ##                      "cols": [ {"name":"id"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
+    ##                   }
+    ##                   )
+    ##    updating = self.init_check_updating()
+    ##    if updating !='"NaN"' or '""': 
+    ##        reading_response = requests.post(url=url, headers=header2, data=data)
+    ##        if reading_response.status_code==200:
+    ##            print("Congratulations! Outputs were retrieved!")
+    ##            print (reading_response.text)
+    ##            return reading_response.text
 
-            else:
-                print("Poor boy, outputs have issues!")
+    ##        else:
+    ##            print("Poor boy, outputs have issues!")
      
 

@@ -205,7 +205,7 @@ class RunFMUSite:
         y_output = self.tc.advance(u)
         self.update_sim_status()
         
-         get each of the simulation output values and feed to the database
+        # get each of the simulation output values and feed to the database
         for key in y_output.keys():
             if key!='time': 
                 output_id = self.tagid_and_outputs[key]                          
