@@ -100,8 +100,9 @@ class Boptest:
           
         self.wait(site_id, "Running")
 
-    def advance(self, siteid):
-        mutation = 'mutation { advance(siteRef: "%s") }' % (siteid)
+    def advance(self, siteids):
+        ids = ', '.join('"{0}"'.format(s) for s in siteids)
+        mutation = 'mutation { advance(siteRefs: [%s]) }' % (ids)
         payload = {'query': mutation}
         response = requests.post(self.url + '/graphql', json=payload )
 

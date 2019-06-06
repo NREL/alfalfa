@@ -29,69 +29,79 @@ class Advancer {
     });
   }
 
-  advance(siteRef) {
-    const channel = siteRef;
-
+  advance(siteRefs) {
     let promise = new Promise((resolve, reject) => {
-      // Cleanup the resrouces for advance and finalize the promise
-      let interval; 
-      const finalize = (success, message='') => {
-        clearInterval(interval);
-        this.sub.unsubscribe(channel);
-        if (success) {
-          resolve(message);
-        } else {
-          reject(message);
-        }
-      };
+      let response = {};
+      let pending = siteRefs.length;
 
-      const notify = () => {
-        this.handlers[channel] = () => {
-          finalize(true, 'success');
+      const advanceSite = (siteref) => {
+        const channel = siteref;
+
+        // Cleanup the resrouces for advance and finalize the promise
+        let interval; 
+        const finalize = (success, message='') => {
+          clearInterval(interval);
+          this.sub.unsubscribe(channel);
+          response[siteref] = { "status": success, "message": message };
+          pending = pending - 1;
+          if (pending == 0) {
+            resolve(response);
+          }
         };
 
-        this.sub.subscribe(channel);
-        this.pub.publish(channel, "advance");
-
-        // This is a failsafe if for some reason we miss a notification
-        // that the step is complete
-        // Check if the simulation has gone back to idle
-        let intervalCounts = 0;
-        interval = setInterval(() => {
-          const control = this.redis.hget(siteRef, 'control');
-          if (control == 'idle') {
-            // If the control state is idle, then assume the step has been made
-            // and reslve the advance promise, this might happen if we miss the notification for some reason
+        const notify = () => {
+          this.handlers[channel] = () => {
             finalize(true, 'success');
-          } else {
-            intervalCounts += 1;
-          }
-          if (intervalCounts > 4) {
-            finalize(false, 'no simulation reply');
-          }
-        }, 500);
+          };
+
+          this.sub.subscribe(channel);
+          this.pub.publish(channel, "advance");
+
+          // This is a failsafe if for some reason we miss a notification
+          // that the step is complete
+          // Check if the simulation has gone back to idle
+          let intervalCounts = 0;
+          interval = setInterval(() => {
+            const control = this.redis.hget(siteref, 'control');
+            if (control == 'idle') {
+              // If the control state is idle, then assume the step has been made
+              // and reslve the advance promise, this might happen if we miss the notification for some reason
+              finalize(true, 'success');
+            } else {
+              intervalCounts += 1;
+            }
+            if (intervalCounts > 4) {
+              finalize(false, 'no simulation reply');
+            }
+          }, 500);
+        };
+
+        // Put siteref:control key into "advance" state
+        this.redis.watch(siteref, (err) => {
+          if (err) throw err;
+
+          this.redis.hget(siteref, 'control', (err, control) => {
+            if (err) throw err;
+            // if control not equal idle then abort the request to advance and return to client
+            if (control == 'idle') {
+              // else proceed to advance state, this node has exclusive control over the simulation now
+              this.redis.multi()
+                .hset(siteref, "control", "advance")
+                .exec((err, results) => {
+                  if (err) throw err;
+                  notify();
+                })
+            } else {
+              finalize(true, 'busy');
+            }
+          });
+        });
       };
 
-      // Put siteRef:control key into "advance" state
-      this.redis.watch(siteRef, (err) => {
-        if (err) throw err;
-
-        this.redis.hget(siteRef, 'control', (err, control) => {
-          if (err) throw err;
-          // if control not equal idle then abort the request to advance and return to client
-          if (control == 'idle') {
-            // else proceed to advance state, this node has exclusive control over the simulation now
-            this.redis.multi()
-              .hset(siteRef, "control", "advance")
-              .exec((err, results) => {
-                if (err) throw err;
-                notify();
-              })
-          } else {
-            finalize(true, 'busy');
-          }
-        });
-      });
+      for (var site of siteRefs) {
+        console.log("advance site: " + site);
+        advanceSite(site);      
+      }
     });
 
     return promise;

@@ -258,10 +258,10 @@ const mutationType = new GraphQLObjectType({
       name: 'advance',
       type: GraphQLString,
       args: {
-        siteRef : { type: new GraphQLNonNull(GraphQLString) }
+        siteRefs : { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) }
       },
-      resolve: (_,{siteRef, time},{advancer}) => {
-        return resolvers.advanceResolver(advancer, siteRef);
+      resolve: (_,{siteRefs, time},{advancer}) => {
+        return resolvers.advanceResolver(advancer, siteRefs);
       },
     }
   })

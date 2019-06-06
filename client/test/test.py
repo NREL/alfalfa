@@ -6,20 +6,18 @@ import time
 
 bop = boptest.Boptest(url='http://web')
 
-#for _ in range(10):
-siteid = bop.submit('test/wrapped.fmu')
+siteids = []
+for _ in range(7):
+    site = bop.submit('test/wrapped.fmu')
+    siteids.append(site)
 
-input_params = { "site_id":  siteid }
-bop.start(**input_params)
-
-start = time.time()
+    input_params = { "site_id":  site }
+    bop.start(**input_params)
 
 for _ in range(5000):
-    bop.advance(siteid)
+    bop.advance(siteids)
+    time.sleep(1)
 
-end = time.time()
-
-print(end - start)
-
-bop.stop(siteid)
+for site in siteids:
+    bop.stop(site)
 
