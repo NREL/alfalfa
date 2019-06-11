@@ -42,12 +42,14 @@ import traceback
 from dateutil.parser import parse
 
 try:
-    sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
+    sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
     queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-    s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
+
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+
     # Mongo Database
     mongo_client = MongoClient(os.environ['MONGO_URL'])
-    mongodb = mongo_client['boptest']
+    mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
     sims = mongodb.sims
     
     upload_file_name = sys.argv[1]
@@ -61,7 +63,7 @@ try:
     if not os.path.exists(directory):
         os.makedirs(directory)
     
-    bucket = s3.Bucket('alfalfa')
+    bucket = s3.Bucket(os.environ['S3_BUCKET'])
     bucket.download_file(key, tarpath)
     
     tar = tarfile.open(tarpath)

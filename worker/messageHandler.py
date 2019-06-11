@@ -92,12 +92,12 @@ def process_message(message):
 # ======================================================= MAIN ========================================================
 if __name__ == '__main__':
     try:
-        sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
+        sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
         queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-        s3 = boto3.resource('s3', region_name='us-east-1')
+        s3 = boto3.resource('s3', region_name=os.environ['REGION'])
 
         mongo_client = MongoClient(os.environ['MONGO_URL'])
-        mongodb = mongo_client['boptest']
+        mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
         recs = mongodb.recs
 
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -124,18 +124,18 @@ if __name__ == '__main__':
             logger.info('Message Received with payload: %s' % msg.body)
             # Process Message
             process_message(msg)
-        else:
-            if "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" in os.environ:
-                ecsclient = boto3.client('ecs', region_name='us-east-1')
-                response = ecsclient.describe_services(cluster='worker_ecs_cluster',services=['worker-service'])['services'][0]
-                desiredCount = response['desiredCount']
-                runningCount = response['runningCount']
-                pendingCount = response['pendingCount']
-                minimumCount = 1
+        #else:
+        #    if "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" in os.environ:
+        #        ecsclient = boto3.client('ecs', region_name=os.environ['REGION'])
+        #        response = ecsclient.describe_services(cluster='worker_ecs_cluster',services=['worker-service'])['services'][0]
+        #        desiredCount = response['desiredCount']
+        #        runningCount = response['runningCount']
+        #        pendingCount = response['pendingCount']
+        #        minimumCount = 1
 
-                if ((runningCount > minimumCount) & (desiredCount > minimumCount)):
-                    ecsclient.update_service(cluster='worker_ecs_cluster',
-                        service='worker-service',
-                        desiredCount=(desiredCount - 1))
-                    sys.exit(0)
+        #        if ((runningCount > minimumCount) & (desiredCount > minimumCount)):
+        #            ecsclient.update_service(cluster='worker_ecs_cluster',
+        #                service='worker-service',
+        #                desiredCount=(desiredCount - 1))
+        #            sys.exit(0)
 

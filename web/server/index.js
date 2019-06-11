@@ -37,19 +37,10 @@ import {Schema} from './schema';
 import {Advancer} from './advancer';
 import historyApiFallback from 'connect-history-api-fallback';
 import morgan from 'morgan';
-import * as Minio from 'minio';
 import { URL } from "url";
+import AWS from 'aws-sdk';
 
-const s3URL = new URL(process.env.S3_URL);
-
-const client = new Minio.Client({
-    endPoint: s3URL.hostname,
-    port: parseInt(s3URL.port),
-    useSSL: s3URL.protocol == 'https:',
-    accessKey: process.env.AWS_ACCESS_KEY_ID,
-    secretKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: 'us-west-1'
-});
+var client = new AWS.S3({endpoint: process.env.S3_URL});
 
 const redis = node_redis.createClient({host: process.env.REDIS_HOST});
 const pub = redis.duplicate();
@@ -77,7 +68,7 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
     app.use(morgan('combined'))
   }
 
-  const db = mongoClient.db('boptest');
+  const db = mongoClient.db(process.env.MONGO_DB_NAME);
 
   app.locals.alfalfaServer = new alfalfaServer(db, redis, pub, sub);
 
@@ -102,30 +93,31 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   // from a browser
   app.post('/upload-url', (req, res) => {
     // Construct a new postPolicy.
-    var policy = client.newPostPolicy()
-    // Set the object name my-objectname.
-    policy.setKey(req.body.name);
-    // Set the bucket to my-bucketname.
-    policy.setBucket("alfalfa");
-    
-    var expires = new Date
-    expires.setSeconds(24 * 60 * 60 * 10) // 10 days expiry.
-    policy.setExpires(expires)
-    client.presignedPostPolicy(policy, function(e, data) {
-        if (e) throw e;
-        if ( s3URL.hostname.indexOf("amazonaws") == -1 ) {
+    const params = {
+      Bucket: process.env.S3_BUCKET,
+      Fields: {
+        key: req.body.name
+      }
+    };
+
+    client.createPresignedPost(params, function(err, data) {
+      if (err) {
+        throw err;
+      } else {
+        if ( process.env.S3_URL.indexOf("amazonaws") == -1 ) {
           if (req.hostname.indexOf("web") == -1 ) {
-            const postURL = 'http://' + req.hostname + ':9000/alfalfa';
-            data.postURL = postURL;
+            const url = 'http://' + req.hostname + ':9000/' + process.env.S3_BUCKET;
+            data.url = url;
           } else {
-            const postURL = 'http://minio:9000/alfalfa';
-            data.postURL = postURL;
+            const url = 'http://minio:9000/alfalfa';
+            data.url = url;
           }
         }
         res.send(JSON.stringify(data));
         res.end();
         return;
-    })
+      }
+    });
   });
   
   app.all('/api/*', function(req, res) {
