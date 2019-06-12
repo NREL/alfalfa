@@ -49,7 +49,7 @@ try:
 
     # Mongo Database
     mongo_client = MongoClient(os.environ['MONGO_URL'])
-    mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+    mongodb = mongo_client['boptest']
     sims = mongodb.sims
 
     upload_file_name = sys.argv[1]

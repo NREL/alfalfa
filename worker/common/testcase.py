@@ -69,6 +69,7 @@ class TestCase(object):
         self.start_time = 0
         self.initialize = True
         self.options['initialize'] = self.initialize
+        self.options['logging'] = False
         
     def advance(self,u):
         '''Advances the test case model simulation forward one step.

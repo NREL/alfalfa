@@ -20,7 +20,12 @@ tags = []
 fmu_upload_name = os.path.basename(fmu_upload_name) # without directories
 fmu_upload_name = os.path.splitext(fmu_upload_name)[0] # without extension
 
-siteid = uuid.uuid4()
+tmp = fmupath.split('/')
+upload_id = tmp[2]
+
+#siteid = uuid.uuid4() #old siteid
+siteid  = upload_id
+
 sitetag = {
     "dis": "s:%s" % fmu_upload_name,
     "id": "r:%s" % siteid,

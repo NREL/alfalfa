@@ -227,7 +227,8 @@ const mutationType = new GraphQLObjectType({
         startDatetime : { type: GraphQLString },
         endDatetime : { type: GraphQLString },
         timescale : { type: GraphQLFloat },
-        realtime : { type: GraphQLString },
+        realtime : { type: GraphQLBoolean },
+        externalClock : { type: GraphQLBoolean },
       },
       resolve: (_,args,request) => {
         resolvers.runSiteResolver(args);
@@ -251,6 +252,16 @@ const mutationType = new GraphQLObjectType({
       },
       resolve: (_,args,request) => {
         resolvers.removeSiteResolver(args);
+      },
+    },
+    advance: {
+      name: 'advance',
+      type: GraphQLString,
+      args: {
+        siteRefs : { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) }
+      },
+      resolve: (_,{siteRefs, time},{advancer}) => {
+        return resolvers.advanceResolver(advancer, siteRefs);
       },
     }
   })

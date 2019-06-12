@@ -47,7 +47,7 @@ try:
     s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
     # Mongo Database
     mongo_client = MongoClient(os.environ['MONGO_URL'])
-    mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+    mongodb = mongo_client['boptest']
     sims = mongodb.sims
     
     upload_file_name = sys.argv[1]
