@@ -1,6 +1,10 @@
 version: '3'
 
 services:
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
   web: # main haystack application
     build: ../web
     image: ${BT_DOCKER_REGISTRY_URI}bt-web-${BT_ENV}:latest
@@ -95,15 +99,11 @@ services:
     ports:
       - "27017:27017"
   
-  client-test:
-    build:
-      context: client
-      dockerfile: Dockerfile-test
-    depends_on:
-      - web
+  # client-test:
+  #   build:
+  #     context: ../client
+  #     dockerfile: Dockerfile-test
+  #   depends_on:
+  #     - web
 
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"
 
