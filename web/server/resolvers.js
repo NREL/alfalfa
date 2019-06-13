@@ -28,9 +28,8 @@ import request from 'superagent';
 import {MongoClient} from 'mongodb';
 import path from 'path';
 
-AWS.config.update({region: 'us-east-1'});
+AWS.config.update({region: process.env.REGION});
 var sqs = new AWS.SQS();
-var s3 = new AWS.S3({endpoint: "http://minio:9000"});
 
 function addSiteResolver(osmName, uploadID) {
   var params = {
@@ -209,7 +208,7 @@ function  simsResolver(user,args,context) {
         array.map( (sim) => {
           sim = (Object.assign(sim, {"simRef": sim._id}));
           if ( sim.s3Key ) {
-            var params = {Bucket: 'alfalfa', Key: sim.s3Key, Expires: 86400};
+            var params = {Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400};
             var url = s3.getSignedUrl('getObject', params);
             sim = (Object.assign(sim, {"url": url}));
           }

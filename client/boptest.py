@@ -55,8 +55,8 @@ class Boptest:
         response = requests.post(self.url + '/upload-url', json=payload)
         
         json = response.json()
-        postURL = json['postURL']
-        formData = json['formData']
+        postURL = json['url']
+        formData = json['fields']
         formData['file'] = open(path, 'rb')
 
         # Use the form data from the server to actually upload the file

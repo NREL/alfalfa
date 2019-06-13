@@ -43,8 +43,8 @@ import traceback
 import uuid
 from dateutil.parser import parse
 import math
+import redis
 from dateutil import parser
-
 
 # Time Zone
 def utc_to_local(utc_dt):
@@ -54,7 +54,6 @@ def utc_to_local(utc_dt):
     assert utc_dt.resolution >= timedelta(microseconds=1)
     return local_dt.replace(microsecond=utc_dt.microsecond)
 
-
 # Replace Date
 def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step, year_start, year_end, dayOfweek):
     # Parse Date
@@ -63,7 +62,6 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step, yea
     end_month = [int(s) for s in re.findall(r'\d+', date_end)][0]
     end_day = [int(s) for s in re.findall(r'\d+', date_end)][1]
     dates = (begin_month, begin_day, end_month, end_day)
-    print("*** debugging the actual dates here: ***", dates)
     # Generate Lines
     begin_month_line = '  {},                                      !- Begin Month\n'.format(begin_month)
     begin_day_line = '  {},                                      !- Begin Day of Month\n'.format(begin_day)
@@ -89,7 +87,6 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step, yea
             if pattern in line:
                 #RunPeriod block
                 line_runperiod = count
-                print("*** degugging for the runperiod *** ", line_runperiod)
             if 'Timestep,' in line:
                 line_timestep = count+1 
         
@@ -117,8 +114,6 @@ def replace_idf_settings(idf_file, pattern, date_start, date_end, time_step, yea
                else:
                   line = lines[i]
                f.write(line)
-           
-   
         
     return dates
 
@@ -155,12 +150,10 @@ class SimProcess:
         self.time_scale = 1
         self.real_time_flag = True
 
-
 def reset(tarinfo):
     tarinfo.uid = tarinfo.gid = 0
     tarinfo.uname = tarinfo.gname = "root"
     return tarinfo
-
 
 def finalize_simulation():
     # subprocess.call(['ReadVarsESO'])
@@ -170,8 +163,6 @@ def finalize_simulation():
     tar_file = tarfile.open(tar_name, "w:gz")
     tar_file.add(sp.workflow_directory, filter=reset, arcname=site_ref)
     tar_file.close()
-    
-    #subprocess.call(['ReadVarsESO'])
     
     s3_key = "simulated/%s/%s" % (sp.site_ref,tar_name)
     bucket.upload_file(tar_name, s3_key)
@@ -187,12 +178,6 @@ def finalize_simulation():
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": "","rec.step": "" } }, False)
     recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
     #sys.exit()
-
-
-def check_local_timezone():
-    #check the UTC time zone
-    print("****** Yanfei: time zone: ", time.tzname)
-
 
 def utc_to_local_datetime(utc_dt, time_zone):
     '''
@@ -220,8 +205,6 @@ def check_localtime(user_start_datetime, user_end_datetime, time_zone):
      
     #obtain the UTC time first
     datetime_utcnow = datetime.utcnow()
-    #print("****** Yanfei: datetime--utcnow: ", str(datetime_utcnow) )
-   
     
     #obtain the local timeie from user; here use Denver as a demo      
     start_datetime = utc_to_local_datetime(user_start_datetime, time_zone)
@@ -253,7 +236,6 @@ def check_localtime(user_start_datetime, user_end_datetime, time_zone):
 
     return (start_datetime, end_datetime, dayOFweek, year_start, year_end)
 
-
 def get_current_datetime_ep(ep_year, ep_month, ep_day, ep_hour, ep_minute, local_time_zone):
     '''Purpose: obtain the EP time outputs and parse it into DateTime object'''
     if int(ep_minute) == 60 and int(ep_hour)==23:
@@ -269,31 +251,31 @@ def get_current_datetime_ep(ep_year, ep_month, ep_day, ep_hour, ep_minute, local
     
     return current_datetime_ep
 
-
-
 ##################################################################################
 ##############     The Entry for the Main section of runsite.py      #############
 #########   The previous section contains all the functions to call  #############
 ##################################################################################
-#startDatetime = datetime.today()
 
 # Mongo Database
 mongo_client = MongoClient(os.environ['MONGO_URL'])
-mongodb = mongo_client['boptest']
+mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
 recs = mongodb.recs
 sims = mongodb.sims
 
-if len(sys.argv) == 6:
+redis_client = redis.Redis(host=os.environ['REDIS_HOST'])
+pubsub = redis_client.pubsub()
+
+if len(sys.argv) == 7:
     site_ref = sys.argv[1]
     real_time_flag = sys.argv[2]
     time_scale = int(sys.argv[3])
     if real_time_flag !='false':
         time_scale =1 
-       
     
     user_start_Datetime = parse(sys.argv[4])
     user_end_Datetime = parse(sys.argv[5])
-      
+
+    external_clock = (sys.argv[6] == 'true')
 
     local_time_zone = 'US/Mountain'
    
@@ -310,10 +292,6 @@ if len(sys.argv) == 6:
     end_date = "%02d/%02d" % (endDatetime.month,endDatetime.day)
     end_hour = endDatetime.hour
     end_minute = endDatetime.minute    
-
-    # time_zone = sys.argv[8]
-    # time_zone = 'America/Denver'
-    # sim_step_per_hour = sys.argv[9]
 
     if real_time_flag == 'false':
         if startDatetime >= endDatetime:
@@ -336,7 +314,6 @@ try:
     if not os.path.exists(directory):
         os.makedirs(directory)
 except:
-    print('error making simulation directory for site_ref: %s' % site_ref, file=sys.stderr)
     sys.exit(1)
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -348,15 +325,14 @@ fh = logging.FileHandler(log_file)
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-ch = logging.StreamHandler()
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+#ch = logging.StreamHandler()
+#ch.setFormatter(formatter)
+#logger.addHandler(ch)
 
-
-sqs = boto3.resource('sqs', region_name='us-east-1', endpoint_url=os.environ['JOB_QUEUE_URL'])
+sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-# TODO Configure this
-s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
+
+s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
 sp = SimProcess()
 ep = mlep.MlepProcess()
@@ -388,7 +364,7 @@ variables_path = os.path.join(directory, 'workflow/reports/export_bcvtb_report_v
 variables_new_path = os.path.join(directory, 'workflow/run/variables.cfg')
 
 try:
-    bucket = s3.Bucket('alfalfa')
+    bucket = s3.Bucket(os.environ['S3_BUCKET'])
     bucket.download_file(key, tarpath)
     
     tar = tarfile.open(tarpath)
@@ -406,31 +382,11 @@ try:
     bypass_flag = True
     sim_date = replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.start_date, sp.end_date, sp.sim_step_per_hour, year_start, year_end, dayOfweek)
     
-    
     try:
         sp.rt_step_time = sp.sim_step_time / sp.time_scale   # Seconds
     except:
         sp.rt_step_time = 10                                    # Seconds
         print("Note: the coupling of simulation might take some time for reading and writing, thus the minimum real-time step is 10 seconds")
-    
-     
-    logger.info('########################################################################')
-    logger.info('######################## INPUT VARIABLES ###############################')
-    logger.info('########################################################################')
-    logger.info('sp.start_date: %s' % sp.start_date)
-    logger.info('sp.end_date: %s' % sp.end_date)
-    logger.info('sp.start_hour: %s' % sp.start_hour)
-    logger.info('sp.end_hour: %s' % sp.end_hour)
-    logger.info('sp.start_minute: %s' % sp.start_minute)
-    logger.info('sp.end_minute: %s' % sp.end_minute)
-    logger.info('sp.sim_step_time: %s' % sp.sim_step_time)
-    logger.info('sp.rt_step_time: %s' % sp.rt_step_time)
-    logger.info('sp.real_time_flag: %s' % sp.real_time_flag)
-    logger.info('sp.time_scale: %s' % sp.time_scale)
-    logger.info('sp.startDatetime: %s' % sp.startDatetime)
-    logger.info('sp.endDatetime: %s' % sp.endDatetime)
-    logger.info('sp.start_minute: %s' % sp.start_minute)
-    logger.info('sp.end_minute: %s' % sp.end_minute)
     
     # Arguments
     ep.accept_timeout = sp.accept_timeout
@@ -452,8 +408,6 @@ try:
     if ep.status != 0:
         logger.error('Could not start EnergyPlus: %s.' % ep.msg)
         ep.flag = 1
-    else:
-        logger.info('EnergyPlus Started')
     
     # Accept Socket
     [ep.status, ep.msg] = ep.accept_socket()
@@ -473,68 +427,54 @@ try:
     delta = d1 - d0
     ep.MAX_STEPS = (24 * delta.days + sp.end_hour) * sp.sim_step_per_hour + sp.end_minute + 1# Max. Number of Steps
     
-    
-    logger.info('############# MAX STEPS:  {0} #############'.format(ep.MAX_STEPS))
-    logger.info('############# Days:       {0} #############'.format(delta.days))
-    logger.info('############# End Hour :  {0} #############'.format(sp.end_hour))
-    logger.info('############# End Minute: {0} #############'.format(sp.end_minute))
-    logger.info('############# Step/Hour:  {0} #############'.format(sp.sim_step_per_hour))
-    logger.info('############# Start Hour: {0} #############'.format(sp.start_hour))
-    
     # Simulation Status
     if ep.is_running == True:
         sp.sim_status = 1
     
     # Set next step
     utc_time = datetime.now(tz=pytz.UTC)
-    #t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone('US/Mountain'))
     t = utc_time.timestamp()
     next_t = t
+
+    # only used for external_clock
+    advance = False
+    if external_clock:
+        pubsub.subscribe(sp.site_ref)
      
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Starting"}}, False)
     real_time_step=0 
-    # probably need some kind of fail safe/timeout to ensure
-    # that this is not an infinite loop
-    # or maybe a timeout in the python call to this script
+
     while True:
         stop = False;
     
-        #sp.next_time = time.time()
         utc_time = datetime.now(tz=pytz.UTC)
-        #t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(local_time_zone))
         t = utc_time.timestamp()
 
         local_time = utc_to_local_datetime(utc_time, local_time_zone)
         output_time_string = 't:%s %s' % (local_time.isoformat(), local_time.tzname())
-         
+
+        if external_clock:
+            message = pubsub.get_message()
+            if message:
+                data = message['data']
+                if data == b'advance':
+                    advance = True
+                elif data == b'stop':
+                    stop = True
             
         # Iterating over timesteps
-        #   if (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and (sp.next_time - sp.start_time >= sp.rt_step_time)) or\
-        if (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and t >= next_t) or\
-                (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and bypass_flag):  # Bypass Time
-        #if (ep.is_running and (sp.sim_status == 1) and (t <= end_time_unix ) and t >= next_t) or\
-        #        (ep.is_running and (sp.sim_status == 1) and (t <= end_time_unix) and bypass_flag):  # Bypass Time
-
-            #logger.info('E+ Running: {0}, Sim Status: {1}, E+ Step: {2}, Elapsed step time: {3}, RT Step Time: {4}'.format(
-            #    ep.is_running, sp.sim_status, ep.kStep, sp.next_time - sp.start_time, sp.rt_step_time))
-            #logger.info('###### t: {0}'.format(t))
+        if ( ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and t >= next_t and (not external_clock) ) or \
+           ( (ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and bypass_flag) ) or \
+           ( ep.is_running and (sp.sim_status == 1) and (ep.kStep <= ep.MAX_STEPS) and (not bypass_flag) and external_clock and advance ):
             try:
                 # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
                 # Instead we only check the database for stopping at each simulation step
                 rec = recs.find_one({"_id": sp.site_ref})
                 if rec and (rec.get("rec",{}).get("simStatus") == "s:Stopping") :
-                    logger.info("Stopping")
                     stop = True;
                     
                 if stop == False:
-                    
-                    # Read packet
-                    # Get current time
-                    #utc_time = datetime.now(tz=pytz.UTC)
-                    #next_t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(time_zone)) + \
-                    #         timedelta(seconds=sp.rt_step_time)
                     packet = ep.read()
-                    # logger.info('Packet: {0}'.format(packet))
                     if packet == '':
                         raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
 
@@ -542,7 +482,6 @@ try:
                     [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
                     # Log Output Data
                     ep.outputs = outputs
-                    #print("***Yanfei Checking Outputs coming from EnergyPlus*** ", outputs)
 
                     variables = Variables(variables_new_path, sp.mapping)
                     month_index = variables.outputIndexFromTypeAndName("current_month","EMS")
@@ -550,51 +489,33 @@ try:
                     hour_index = variables.outputIndexFromTypeAndName("current_hour","EMS")
                     minute_index = variables.outputIndexFromTypeAndName("current_minute","EMS")
 
-
                     ep_current_day = outputs[ day_index ]
                     ep_current_hour= outputs[ hour_index ]
                     ep_current_minute= outputs[ minute_index ]
                     ep_current_month = outputs[ month_index ]
                     
-                    
                     current_datetime_ep = get_current_datetime_ep(2019, ep_current_month, ep_current_day, \
                                                                   ep_current_hour, ep_current_minute, local_time_zone )
                     
-
                     # Check BYPASS
                     if bypass_flag == True:
                         if real_time_flag == True:
                             utc_time = datetime.now(tz=pytz.UTC)
-                            logger.info('########### RealTime CHECK ###########')
-                            logger.info('{0}'.format(utc_time))
                             myrealtime = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(local_time_zone))
                             rt_hour = myrealtime.hour
                             rt_minute = myrealtime.minute
-                            #logger.info('RealTime HOUR: {0}, RealTime MINUTE: {1}'.format(rt_hour, rt_minute))
-                            #logger.info('Actual Time: {0}, Simulation Time: {1}'.format(rt_hour * 3600 + rt_minute * 60, ep.kStep * ep.deltaT))
-                            print ("actual real time: ", myrealtime)
 
                             if current_datetime_ep >= sp.startDatetime:  
-                            #if rt_hour * 3600 + rt_minute * 60 <= ep.kStep * ep.deltaT:                           
                                 bypass_flag = False  # Stop bypass
-                                logger.info('########### STOP BYPASS: Real Time ###########')
+                                redis_client.hset(site_ref, 'control', 'idle')
                             else:
-                                logger.info('################# RealTime-and-BYPASS #################')
                                 bypass_flag = True   # continue bypass
-                                #pass
                         else:
-                            #if sp.start_hour*3600+sp.start_minute*60 <= (ep.kStep-1)*ep.deltaT:
                             if current_datetime_ep >= sp.startDatetime:
                                 bypass_flag = False     # Stop bypass
-                                logger.info('########### STOP BYPASS: Hours ########')
+                                redis_client.hset(site_ref, 'control', 'idle')
                             else:
-                                logger.info('################# non-realtime and BYPASS #################')
                                 bypass_flag = True # continue bypass
-                                #pass
-                    else:
-                        logger.info('############### SIMULATION --no bypass ###############')
-                        #pass
-                    
                     
                     if ep.flag != 0:
                         break
@@ -610,7 +531,6 @@ try:
                             logger.info("write array: %s" % array)
                             for val in array.get('val'):
                                 if val:
-                                    logger.info("val: %s" % val)
                                     index = sp.variables.inputIndex(array.get('_id'))
                                     if index == -1:
                                         logger.error('bad input index for: %s' % array.get('_id'))
@@ -621,9 +541,6 @@ try:
     
                     # Convert to tuple
                     inputs = tuple(ep.inputs)
-    
-                    # Print
-                    logger.info('Time: {0}'.format((ep.kStep - 1) * ep.deltaT))
     
                     # Write to inputs of E+
                     ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
@@ -642,46 +559,19 @@ try:
                                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
     
                         real_time_step = real_time_step + 1
-                        # time computed for ouput purposes
-                        '''
-                        output_time = datetime.strptime(sp.start_date, "%m/%d").replace(year=startDatetime.year) \
-                                             + timedelta(seconds=(ep.kStep-1)*ep.deltaT)
-                        output_time = output_time.replace(tzinfo=pytz.utc)
-                        output_time = output_time.replace(tzinfo=pytz.timezone(time_zone))
-                        
-                        output_time = (pytz.timezone(local_time_zone)).localize(output_time)
-                        
-                        
-                        # Haystack uses ISO 8601 format like this "t:2015-06-08T15:47:41-04:00 New_York"
-                        # the database can only recgonize the time-zone with: UTC, Denver, ....
-                        # i will come back later with a function to parse the timezone 
-                        
-                        if 'Denver' in str(output_time.tzname()):
-                               output_time_string = 't:%s %s' % (output_time.isoformat(), 'Denver') 
-                        elif 'UTC' in str(output_time.tzname()):
-                               output_time_string = 't:%s %s' % (output_time.isoformat(),output_time.tzname())
-                        else:
-                               output_time_string = 't:%s %s' % (output_time.isoformat(), 'Denver')
-                        '''
-                        
                         
                         output_time_string = 't:%s %s' % (current_datetime_ep.isoformat(), 'Denver')
-
      
                         recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(real_time_step), "rec.simStatus": "s:Running"}}, False)
-    
-                    # Step
-                    logger.info('Step: {0}/{1}'.format(ep.kStep, ep.MAX_STEPS))
     
                     # Advance time
                     ep.kStep = ep.kStep + 1
 
-                    # Get current time
-                    #utc_time = datetime.now(tz=pytz.UTC)
-                    #next_t = utc_time.astimezone(pytz.utc).astimezone(pytz.timezone(local_time_zone)) + \
-                    #         timedelta(seconds=sp.rt_step_time)
                     next_t = t + sp.rt_step_time
-                    #next_t = ep_current_time + timedelta(seconds=sp.rt_step_time)
+                    if external_clock and not bypass_flag:
+                        advance = False
+                        redis_client.publish(sp.site_ref, 'complete')
+                        redis_client.hset(site_ref, 'control', 'idle')
                   
             except Exception as error:
                 logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
@@ -689,7 +579,7 @@ try:
                 finalize_simulation()
                 break
                 # TODO: Cleanup simulation, and reset everything
-         
+
         # Check Stop
         if ( ep.is_running == True and (ep.kStep > ep.MAX_STEPS) ) :
         #if ( ep.is_running == True and ( next_t >= end_time_unix) ) :
@@ -697,7 +587,6 @@ try:
             
         elif ( sp.sim_status == 3 and ep.is_running == True ) :
             stop = True;
-            
     
         if stop :
             try:
@@ -708,18 +597,12 @@ try:
 
                 ep.is_running = 0
                 sp.sim_status = 0
-                # TODO: Need to wait for a signal of some sort that E+ is done, before removing stuff
-                #finalize_simulation()
-                logger.info('Simulation Terminated: Status: {0}, Step: {1}/{2}'.
-                            format(sp.sim_status, ep.kStep, ep.MAX_STEPS))
                 break
             except:
                 logger.error("Error while attempting to stop / cleanup simulation")
                 finalize_simulation()
                 break
-        
-            # Done with simulation step
-            # print('ping')
+
 except:
     logger.error("Simulation error: %s", sys.exc_info()[0])
     traceback.print_exc()

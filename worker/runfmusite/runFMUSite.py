@@ -41,7 +41,8 @@ class RunFMUSite:
         self.pubsub = self.redis.pubsub()
 
         #Initiate Mongo Database
-        self.mongodb = MongoClient(os.environ['MONGO_URL'])['boptest']
+        mongo_client = MongoClient(os.environ['MONGO_URL'])
+        self.mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
         self.recs = self.mongodb.recs
         self.write_arrays = self.mongodb.writearrays
 
