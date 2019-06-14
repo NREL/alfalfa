@@ -355,21 +355,21 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
       haystack_json << floor_json      
     end
 
-    # Add tags to the time-variable outputs
-    #output_vars = model.getOutputVariables
-    output_vars = model.getEnergyManagementSystemOutputVariables
-    output_vars_sorted = output_vars.sort_by{ |m| [ m.nameString.downcase]}
-    output_vars_sorted.each do |outvar|
-      #if (outvar.keyValue.to_s == "*")
-        #print outvar
-        print "\n The haystack tag is beding added to time-variables!!!"
-        haystack_temp_json, temp_uuid = create_point_timevars(outvar, model.getBuilding.handle)
-        haystack_json << haystack_temp_json
-        temp_mapping = create_mapping_timevars(outvar,temp_uuid)
-        mapping_json << temp_mapping
-      #end
-     
-    end # end of do loop   
+    ## Add tags to the time-variable outputs
+    ##output_vars = model.getOutputVariables
+    #output_vars = model.getEnergyManagementSystemOutputVariables
+    #output_vars_sorted = output_vars.sort_by{ |m| [ m.nameString.downcase]}
+    #output_vars_sorted.each do |outvar|
+    #  #if (outvar.keyValue.to_s == "*")
+    #    #print outvar
+    #    print "\n The haystack tag is beding added to time-variables!!!"
+    #    haystack_temp_json, temp_uuid = create_point_timevars(outvar, model.getBuilding.handle)
+    #    haystack_json << haystack_temp_json
+    #    temp_mapping = create_mapping_timevars(outvar,temp_uuid)
+    #    mapping_json << temp_mapping
+    #  #end
+    # 
+    #end # end of do loop   
 
     # Export all user defined OutputVariable objects
     # as haystack sensor points
