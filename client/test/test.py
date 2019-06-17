@@ -7,14 +7,13 @@ import time
 bop = boptest.Boptest(url='http://web')
 
 siteids = []
-for _ in range(1):
+for _ in range(5):
     site = bop.submit('test/SmallOffice.osm')
     siteids.append(site)
 
-    input_params = { "site_id":  site }
-    bop.start(**input_params)
+    bop.start(site, external_clock = "true")
 
-for _ in range(5000):
+for _ in range(500):
     bop.advance(siteids)
     time.sleep(1)
 

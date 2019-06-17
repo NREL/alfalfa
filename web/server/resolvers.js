@@ -80,6 +80,7 @@ function runSiteResolver(args) {
     //  realtime : { type: GraphQLBoolean },
     //  externalClock : { type: GraphQLBoolean },
     //},
+  console.log("args: ", args)
   return new Promise( (resolve,reject) => {
     request
     .post('/api/invokeAction')

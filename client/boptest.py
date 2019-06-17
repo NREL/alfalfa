@@ -74,30 +74,25 @@ class Boptest:
 
     # Start a simulation for model identified by id. The id should corrsespond to 
     # a return value from the submit method
-    # sim_params should be parameters such as start_time, end_time, timescale,
-    # and others. The details need to be further defined and documented
-    def start(self,  **sim_params):
-        time_scale = 1.0
-        start_datetime = "0"
-        end_datetime = "100000"
-        realtime = "false";
-        externalClock = "true";
+    # kwargs are timescale, start_datetime, end_datetime, realtime, external_clock
+    def start(self,  site_id, **kwargs):
+        #mutation = 'mutation { runSite(siteRef: "%s", externalClock: true) }' % site_id
+        mutation = 'mutation { runSite(siteRef: "%s"' % site_id
 
-        site_id = sim_params["site_id"] 
-        if hasattr(sim_params, "time_scale"):
-            time_scale     = sim_params["time_scale"]
-        if hasattr(sim_params, "start_datetime"):
-            start_datetime = sim_params["start_datetime"]
-        if hasattr(sim_params, "end_datetime"):
-            end_datetime   = sim_params["end_datetime"]
-        if hasattr(sim_params, "realtime"):
-            realtime       = sim_params["realtime"]
-        if hasattr(sim_params, "externalClock"):
-            externalClock  = sim_params["externalClock"]
-        
-        mutation = 'mutation { runSite(siteRef: "%s", startDatetime: "%s", endDatetime: "%s", timescale: %s, realtime: %s, externalClock: %s) }' % (site_id, start_datetime, end_datetime, time_scale, realtime, externalClock)
+        if "timescale" in kwargs:
+            mutation = mutation + ', timescale: %s' % sim_params["timescale"]
+        if "start_datetime" in kwargs:
+            mutation = mutation + ', startDatetime: "%s"' % sim_params["start_datetime"]
+        if "end_datetime" in kwargs:
+            mutation = mutation + ', endDatetime: "%s"' % sim_params["end_datetime"]
+        if "realtime" in kwargs:
+            mutation = mutation + ', realtime: %s' % sim_params["realtime"]
+        if "external_clock" in kwargs:
+            mutation = mutation + ', externalClock: %s' % kwargs["external_clock"]
+
+        mutation = mutation + ') }'
+
         response = requests.post(self.url + '/graphql', json={'query': mutation})
-          
         self.wait(site_id, "Running")
 
     def advance(self, siteids):

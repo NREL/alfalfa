@@ -34,6 +34,7 @@ import time
 from subprocess import call
 import logging
 from common import *
+import tagutils
 
 '''
 if len(sys.argv) == 3:
@@ -79,20 +80,22 @@ s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.envi
 key = "uploads/%s/%s" % (upload_id, osm_name)
 seedpath = os.path.join(directory, 'seed.osm')
 workflowpath = os.path.join(directory, 'workflow/workflow.osw')
-jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
+points_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
+mapping_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
 
 tar = tarfile.open("workflow.tar.gz")
 tar.extractall(directory)
 tar.close()
-
-#time.sleep(5)
 
 bucket = s3.Bucket(os.environ['S3_BUCKET'])
 bucket.download_file(key, seedpath)
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
-upload_site_DB_Cloud(jsonpath, bucket, directory)
+tagutils.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
+tagutils.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
+
+upload_site_DB_Cloud(points_jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
 

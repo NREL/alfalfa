@@ -99,7 +99,6 @@ class Advancer {
       };
 
       for (var site of siteRefs) {
-        console.log("advance site: " + site);
         advanceSite(site);      
       }
     });
