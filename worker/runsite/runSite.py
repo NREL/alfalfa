@@ -36,7 +36,7 @@ import mlep
 import subprocess
 import logging
 import re
-from datetime import date, datetime, timedelta, timezone
+import datetime
 import pytz
 import calendar
 import traceback
@@ -48,11 +48,6 @@ from dateutil import parser
 
 # Replace Date
 def replace_idf_settings(idf_file, pattern, startDatetime, endDatetime, time_step):
-    # Parse Date
-    begin_month = [int(s) for s in re.findall(r'\d+', date_start)][0]
-    begin_day = [int(s) for s in re.findall(r'\d+', date_start)][1]
-    end_month = [int(s) for s in re.findall(r'\d+', date_end)][0]
-    end_day = [int(s) for s in re.findall(r'\d+', date_end)][1]
     # Generate Lines
     begin_month_line = '  {},                                      !- Begin Month\n'.format(startDatetime.month)
     begin_day_line = '  {},                                      !- Begin Day of Month\n'.format(startDatetime.day)
@@ -72,7 +67,6 @@ def replace_idf_settings(idf_file, pattern, startDatetime, endDatetime, time_ste
         lines = f.readlines()
         f.seek(0)
         f.truncate()
-        #print("*** debugging: i am checking here!!! ")
         for line in lines:
             count = count + 1             
             if pattern in line:
@@ -119,7 +113,7 @@ class SimProcess:
         self.sim_status = 0             # 0=init, 1=running, 2=pause, 3=stop
         self.rt_step_time = 20          # Real-time step - seconds
         self.sim_step_per_hour = 60     # Simulation steps per hour, ************* it is fixed for both realtime and non-realtime simulation *************
-        self.sim_step_time = 60   # Simulation time step - seconds
+        self.sim_step_time = 60.0   # Simulation time step - seconds
         self.start_time = 0             # Real-time step
         self.next_time = 0              # Real-time step
         self.start_date = '01/01'       # Start date for simulation (01/01)
@@ -144,11 +138,18 @@ def get_energyplus_datetime(variables, outputs):
     hour_index = variables.outputIndexFromTypeAndName("current_hour","EMS")
     minute_index = variables.outputIndexFromTypeAndName("current_minute","EMS")
     
-    day = outputs[ day_index ]
-    hour= outputs[ hour_index ]
-    minute= outputs[ minute_index ]
-    month = outputs[ month_index ]
+    day = int(round(outputs[ day_index ]))
+    hour= int(round(outputs[ hour_index ]))
+    minute= int(round(outputs[ minute_index ]))
+    month = int(round(outputs[ month_index ]))
     year = sp.startDatetime.year
+
+    if minute == 60 and hour == 23:
+        hour = 0
+        minute = 0
+    elif minute == 60 and hour != 23:
+        hour = hour + 1
+        minute = 0
 
     return datetime.datetime(year, month, day, hour, minute)
 
@@ -175,7 +176,7 @@ def finalize_simulation():
     site = recs.find_one({"_id": sp.site_ref})
     name = site.get("rec",{}).get("dis", "Unknown") if site else "Unknown"
     name = name.replace("s:","")
-    time = str(datetime.now(tz=pytz.UTC))
+    time = str(datetime.datetime.now(tz=pytz.UTC))
     sims.insert_one({"_id": sim_id, "siteRef": sp.site_ref, "s3Key": s3_key, "name": name, "timeCompleted": time})
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": "","rec.step": "" } }, False)
     recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
@@ -195,16 +196,38 @@ redis_client = redis.Redis(host=os.environ['REDIS_HOST'])
 pubsub = redis_client.pubsub()
 
 if len(sys.argv) == 7:
+    print(sys.argv)
+
     site_ref = sys.argv[1]
-    real_time_flag = sys.argv[2]
-    time_scale = int(sys.argv[3])
-    if real_time_flag !='false':
+
+    real_time_flag = (sys.argv[2] == 'true')
+
+    time_scale = sys.argv[3]
+    if time_scale == 'undefined':
+        time_scale = 5
+    else:
+        time_scale = int(time_scale)
+
+    if real_time_flag:
         time_scale = 1 
-    startDatetime = parse(sys.argv[4])
-    endDatetime = parse(sys.argv[5])
+
+    year = datetime.datetime.today().year
+
+    startDatetime = sys.argv[4]
+    if startDatetime == 'undefined':
+        startDatetime = datetime.datetime(year,1,1,0,0)
+    else:
+        startDatetime = parse(startDatetime, ignoretz=True)
+
+    endDatetime = sys.argv[5]
+    if endDatetime == 'undefined':
+        endDatetime = datetime.datetime(year,12,31,23,59)
+    else:
+        endDatetime = parse(endDatetime, ignoretz=True)
+
     external_clock = (sys.argv[6] == 'true')
 
-    if real_time_flag == 'false':
+    if not real_time_flag:
         if startDatetime >= endDatetime:
             print('End time occurs on or before start time', file=sys.stderr)
             recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
@@ -235,10 +258,6 @@ log_file = os.path.join(directory, 'simulation.log')
 fh = logging.FileHandler(log_file)
 fh.setFormatter(formatter)
 logger.addHandler(fh)
-
-#ch = logging.StreamHandler()
-#ch.setFormatter(formatter)
-#logger.addHandler(ch)
 
 sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
 queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
@@ -282,8 +301,6 @@ try:
     shutil.copyfile(variables_path, variables_new_path)
     
     ## Simulation Parameters
-    ##sp.sim_step_time = 60 / sp.sim_step_per_hour * 60  # Simulation time step - seconds
-    #bypass_flag = True
     replace_idf_settings(sp.idf + '.idf', 'RunPeriod,', sp.startDatetime, sp.endDatetime, sp.sim_step_per_hour)
     
     # Arguments
@@ -317,15 +334,14 @@ try:
     # The main simulation loop
     ep.deltaT = sp.sim_step_time    # time step - sec
     ep.kStep = 1                    # current simulation step
+    bypass_flag = True
     
     # Simulation Status
     if ep.is_running == True:
         sp.sim_status = 1
     
     # Set next step
-    utc_time = datetime.now(tz=pytz.UTC)
-    t = utc_time.timestamp()
-    next_t = t
+    next_t = datetime.datetime.now().timestamp() 
 
     # only used for external_clock
     advance = False
@@ -338,8 +354,7 @@ try:
     while True:
         stop = False;
     
-        utc_time = datetime.now(tz=pytz.UTC)
-        t = utc_time.timestamp()
+        t = datetime.datetime.now().timestamp()
 
         if external_clock:
             message = pubsub.get_message()
@@ -366,11 +381,12 @@ try:
                     if packet == '':
                         raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
 
+                    variables = Variables(variables_new_path, sp.mapping)
+
                     # Parse it to obtain building outputs
                     [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
                     # Log Output Data
                     ep.outputs = outputs
-                    variables = Variables(variables_new_path, sp.mapping)
 
                     energyplus_datetime = get_energyplus_datetime(variables, outputs)
                     
@@ -423,7 +439,7 @@ try:
     
                         real_time_step = real_time_step + 1
                         
-                        output_time_string = 't:%s %s' % (energyplus_datetime.isoformat(), 'Denver')
+                        output_time_string = "s:%s" % energyplus_datetime.isoformat()
                         recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(real_time_step), "rec.simStatus": "s:Running"}}, False)
 
                     # Check Stop
@@ -432,8 +448,8 @@ try:
     
                     # Advance time
                     ep.kStep = ep.kStep + 1
+                    next_t = t + sp.sim_step_time / sp.time_scale
 
-                    next_t = t + sp.rt_step_time
                     if external_clock and not bypass_flag:
                         advance = False
                         redis_client.publish(sp.site_ref, 'complete')

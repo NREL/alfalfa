@@ -42,12 +42,12 @@ def process_message(message):
         if op == 'InvokeAction':
             action = message_body.get('action')
             if action == 'runSite':
-                siteRef = message_body.get('id', 'None')
-                startDatetime = message_body.get('startDatetime', 'None')
-                endDatetime = message_body.get('endDatetime', 'None')
-                realtime = message_body.get('realtime', 'None')
-                timescale = str(message_body.get('timescale', 'None'))
-                externalClock = str(message_body.get('externalClock', 'None'))
+                siteRef = message_body.get('id', 'undefined')
+                startDatetime = message_body.get('startDatetime', 'undefined')
+                endDatetime = message_body.get('endDatetime', 'undefined')
+                realtime = message_body.get('realtime', 'undefined')
+                timescale = str(message_body.get('timescale', 'undefined'))
+                externalClock = str(message_body.get('externalClock', 'undefined'))
 
                 site = recs.find_one({"_id": siteRef})
                 simType = site.get("rec",{}).get("simType", "osm").replace("s:","")

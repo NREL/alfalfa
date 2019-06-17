@@ -110,7 +110,7 @@ function runSiteResolver(args) {
       ],
       "rows": [
         {
-          "timescale": `n:${args.timescale}`,
+          "timescale": `s:${args.timescale}`,
           "startDatetime": `s:${args.startDatetime}`,
           "endDatetime": `s:${args.endDatetime}`,
           "realtime": `s:${args.realtime}`,
