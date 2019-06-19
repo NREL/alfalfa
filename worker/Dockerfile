@@ -21,37 +21,25 @@ RUN apt-get update \
     && curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
     && apt-get install -y ca-certificates nodejs
 
-###  ENV OPENSTUDIO_VERSION 2.7.0
-###  ENV OPENSTUDIO_TAG v2.7.0
-###  ENV OPENSTUDIO_SHA 544f363db5
-###  
-###  #https://github.com/NREL/OpenStudio/releases/download/v2.7.0/OpenStudio-2.7.0.544f363db5-Linux.deb
-###  ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://github.com/NREL/OpenStudio/releases/download/$OPENSTUDIO_TAG
-###  #ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://s3.amazonaws.com/openstudio-builds/$OPENSTUDIO_VERSION
-###  ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-$OPENSTUDIO_VERSION.$OPENSTUDIO_SHA-Linux.deb
-###  ENV OPENSTUDIO_DOWNLOAD_URL $OPENSTUDIO_DOWNLOAD_BASE_URL/$OPENSTUDIO_DOWNLOAD_FILENAME
+ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-2.8.1.240bd7e1e8-Linux.deb
+ENV OPENSTUDIO_DOWNLOAD_URL https://openstudio-ci-builds.s3-us-west-2.amazonaws.com/alfalfa/OpenStudio-2.8.1.240bd7e1e8-Linux.deb
 
-ENV OPENSTUDIO_VERSION 2.7.2
-ENV OPENSTUDIO_TAG v2.7.2
-ENV OPENSTUDIO_SHA 5b35dd928c
+ENV ENERGYPLUS_VERSION 9.1.0
+ENV ENERGYPLUS_TAG v9.1.0
+ENV ENERGYPLUS_SHA 08d2e308bb
 
-ENV OPENSTUDIO_DOWNLOAD_BASE_URL https://openstudio-builds.s3.amazonaws.com/2.7.2
-ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-$OPENSTUDIO_VERSION.$OPENSTUDIO_SHA-Linux.deb
-ENV OPENSTUDIO_DOWNLOAD_URL $OPENSTUDIO_DOWNLOAD_BASE_URL/$OPENSTUDIO_DOWNLOAD_FILENAME
-
-ENV ENERGYPLUS_VERSION 9.0.1
-ENV ENERGYPLUS_TAG v9.0.1
-ENV ENERGYPLUS_SHA bb7ca4f0da
-
-#https://github.com/NREL/EnergyPlus/releases/download/v9.0.1/EnergyPlus-9.0.1-bb7ca4f0da-Linux-x86_64.sh
 ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/NREL/EnergyPlus/releases/download/$ENERGYPLUS_TAG
-#ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://s3-us-west-1.amazonaws.com/alfalfa/dependencies 
-ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-x86_64.sh
+ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-x86_64.tar.gz
 ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
 
+# We would rather use the self extracting tarball distribution of EnergyPlus, but there appears to 
+# be a bug in the installation script so using the tar.gz manually here and making our own links
 RUN curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
-    && chmod +x $ENERGYPLUS_DOWNLOAD_FILENAME \
-    && echo "y\r" | ./$ENERGYPLUS_DOWNLOAD_FILENAME \
+    && mkdir /usr/local/EnergyPlus-9-1-0 \
+    && tar -C /usr/local/EnergyPlus-9-1-0/ --strip-components=1 -xzf $ENERGYPLUS_DOWNLOAD_FILENAME \
+    && ln -s /usr/local/EnergyPlus-9-1-0/energyplus /usr/local/bin/ \
+    && ln -s /usr/local/EnergyPlus-9-1-0/ExpandObjects /usr/local/bin/ \
+    && ln -s /usr/local/EnergyPlus-9-1-0/runenergyplus /usr/local/bin/ \
     && rm $ENERGYPLUS_DOWNLOAD_FILENAME
 
 RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
