@@ -30,6 +30,7 @@ import path from 'path';
 
 AWS.config.update({region: process.env.REGION});
 var sqs = new AWS.SQS();
+var s3client = new AWS.S3({endpoint: process.env.S3_URL});
 
 function addSiteResolver(osmName, uploadID) {
   var params = {
@@ -210,7 +211,7 @@ function  simsResolver(user,args,context) {
           sim = (Object.assign(sim, {"simRef": sim._id}));
           if ( sim.s3Key ) {
             var params = {Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400};
-            var url = s3.getSignedUrl('getObject', params);
+            var url = s3client.getSignedUrl('getObject', params);
             sim = (Object.assign(sim, {"url": url}));
           }
           sims.push(sim)
