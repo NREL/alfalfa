@@ -407,7 +407,6 @@ try:
                         ep.inputs[master_index] = 1
                         write_arrays = mongodb.writearrays
                         for array in write_arrays.find({"siteRef": sp.site_ref}):
-                            logger.info("write array: %s" % array)
                             for val in array.get('val'):
                                 if val:
                                     index = sp.variables.inputIndex(array.get('_id'))
