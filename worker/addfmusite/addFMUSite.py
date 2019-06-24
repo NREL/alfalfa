@@ -33,9 +33,9 @@ import shutil
 import time
 from subprocess import call
 import logging
-from common import *
+import common
 
-(fmu_upload_name, upload_id, directory) = precheck_argus(sys.argv)
+(fmu_upload_name, upload_id, directory) = common.precheck_argus(sys.argv)
 
 s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
@@ -51,7 +51,7 @@ bucket.download_file(key, fmupath)
 
 call(['python', 'addfmusite/createFMUTags.py', fmupath, fmu_upload_name, jsonpath])
 
-upload_site_DB_Cloud( jsonpath, bucket, directory )
-
+common.upload_site_DB_Cloud( jsonpath, bucket, directory )
 
 shutil.rmtree(directory)
+

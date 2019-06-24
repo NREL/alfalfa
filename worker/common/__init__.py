@@ -1,4 +1,3 @@
-from .testcase import *
 from .precheck_argus import * 
 from .make_gzip_file import *
 from .obtain_id_siteref import *

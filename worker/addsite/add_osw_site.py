@@ -35,11 +35,10 @@ import shutil
 import time
 from subprocess import call
 import logging
-import precheck_argus
-import upload_site_DB_Cloud
 import tagutils
+import common
 
-(osw_zip_name, upload_id, directory) = precheck_argus.precheck_argus(sys.argv)
+(osw_zip_name, upload_id, directory) = common.precheck_argus(sys.argv)
 
 logger = logging.getLogger('addsite')
 logger.setLevel(logging.INFO)
@@ -103,7 +102,7 @@ call(['openstudio', 'run', '-m', '-w', workflowpath])
 tagutils.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
 tagutils.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 
-upload_site_DB_Cloud.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
+common.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
 

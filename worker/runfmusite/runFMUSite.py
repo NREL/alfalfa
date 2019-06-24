@@ -32,7 +32,8 @@ import sys
 import json
 import redis
 from pymongo import MongoClient
-from common import *
+import common
+import common.testcase
 
 class RunFMUSite:
     def __init__(self, **kwargs):
@@ -84,7 +85,7 @@ class RunFMUSite:
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
  
         #initiate the testcase
-        self.tc = testcase.TestCase(config) 
+        self.tc = common.testcase.TestCase(config) 
         
         #run the FMU simulation
         self.kstep=0 
