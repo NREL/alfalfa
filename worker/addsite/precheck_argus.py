@@ -23,58 +23,35 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
+
+
 from __future__ import print_function
-import sys
 import os
-import boto3
-import json
-import tarfile
-import shutil
-import time
-from subprocess import call
-import logging
-from common import *
-import tagutils
+import sys
 
 
-(osm_name, upload_id, directory) = precheck_argus(sys.argv)
+def precheck_argus(argu_vars):
 
-logger = logging.getLogger('addsite')
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    if len(argu_vars) == 3:
+        model_name = argu_vars[1]
+        upload_id = argu_vars[2]
+    else:
+        print('addSite called with incorrect number of arguments: %s.' % len(argu_vars), file=sys.stderr)
+        sys.exit(1)
 
-log_file = os.path.join(directory,'addsite.log')
-fh = logging.FileHandler(log_file)
-fh.setLevel(logging.INFO)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+    if not upload_id:
+        print('upload_id is empty', file=sys.stderr)
+        sys.exit(1)
 
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+    folderpath_cloud = os.path.join('/parse', upload_id)
 
-s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+    try:
+        if not os.path.exists(folderpath_cloud):
+            os.makedirs(folderpath_cloud)
+    except:
+        print('error making add site parsing directory for upload_id: %s' % upload_id, file=sys.stderr)
+        sys.exit(1)
 
-key = "uploads/%s/%s" % (upload_id, osm_name)
-seedpath = os.path.join(directory, 'seed.osm')
-workflowpath = os.path.join(directory, 'workflow/workflow.osw')
-points_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
-mapping_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
+    return (model_name, upload_id, folderpath_cloud)
 
-tar = tarfile.open("workflow.tar.gz")
-tar.extractall(directory)
-tar.close()
-
-bucket = s3.Bucket(os.environ['S3_BUCKET'])
-bucket.download_file(key, seedpath)
-
-call(['openstudio', 'run', '-m', '-w', workflowpath])
-
-tagutils.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
-tagutils.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
-
-upload_site_DB_Cloud(points_jsonpath, bucket, directory)
-
-shutil.rmtree(directory)
 

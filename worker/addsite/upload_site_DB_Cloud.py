@@ -1,3 +1,4 @@
+'''
 ########################################################################################################################
 #  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 #
@@ -23,58 +24,52 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
-from __future__ import print_function
+'''
+
+import json
 import sys
 import os
-import boto3
-import json
-import tarfile
-import shutil
-import time
 from subprocess import call
-import logging
-from common import *
-import tagutils
+import tarfile
 
 
-(osm_name, upload_id, directory) = precheck_argus(sys.argv)
+def upload_site_DB_Cloud(jsonpath, bucket, folderpath):
+    '''
+    Purpose: upload the tagged site to the database and cloud
+    Inputs: the S3-bucket
+    Returns: nothing
+    '''
+    # get the id of site tag(remove the 'r:')
+    site_ref = ''
+    with open(jsonpath) as json_file:
+        data = json.load(json_file)
+        for entity in data:
+            if 'site' in entity:
+                if entity['site'] == 'm:':
+                    site_ref = entity['id'].replace('r:', '')
+                    break
 
-logger = logging.getLogger('addsite')
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-log_file = os.path.join(directory,'addsite.log')
-fh = logging.FileHandler(log_file)
-fh.setLevel(logging.INFO)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+    if site_ref:
+        # This adds a new haystack site to the database
+        call(['npm', 'run', 'start', jsonpath, site_ref])
 
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+       
+        # Open the json file and get a site reference
+        # Store the results by site ref
+        def reset(tarinfo):
+            tarinfo.uid = tarinfo.gid = 0
+            tarinfo.uname = tarinfo.gname = "root"
+            
+            return tarinfo
 
-s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+        tarname = "%s.tar.gz" % site_ref
+        tar = tarfile.open(tarname, "w:gz")
+        tar.add(folderpath, filter=reset, arcname=site_ref)
+        tar.close()
+        
+        # This upload the tagged site to the cloud
+        bucket.upload_file(tarname, "parsed/%s" % tarname)
 
-key = "uploads/%s/%s" % (upload_id, osm_name)
-seedpath = os.path.join(directory, 'seed.osm')
-workflowpath = os.path.join(directory, 'workflow/workflow.osw')
-points_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
-mapping_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
-
-tar = tarfile.open("workflow.tar.gz")
-tar.extractall(directory)
-tar.close()
-
-bucket = s3.Bucket(os.environ['S3_BUCKET'])
-bucket.download_file(key, seedpath)
-
-call(['openstudio', 'run', '-m', '-w', workflowpath])
-
-tagutils.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
-tagutils.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
-
-upload_site_DB_Cloud(points_jsonpath, bucket, directory)
-
-shutil.rmtree(directory)
+        #os.remove(tarname)
 

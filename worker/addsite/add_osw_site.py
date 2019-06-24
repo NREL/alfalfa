@@ -26,18 +26,20 @@
 from __future__ import print_function
 import sys
 import os
+import glob
 import boto3
 import json
 import tarfile
+import zipfile
 import shutil
 import time
 from subprocess import call
 import logging
-from common import *
+import precheck_argus
+import upload_site_DB_Cloud
 import tagutils
 
-
-(osm_name, upload_id, directory) = precheck_argus(sys.argv)
+(osw_zip_name, upload_id, directory) = precheck_argus.precheck_argus(sys.argv)
 
 logger = logging.getLogger('addsite')
 logger.setLevel(logging.INFO)
@@ -56,8 +58,35 @@ logger.addHandler(ch)
 
 s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
-key = "uploads/%s/%s" % (upload_id, osm_name)
+# First download the osw and run the workflow to get an osm file
+key = "uploads/%s/%s" % (upload_id, osw_zip_name)
+osw_zip_path = os.path.join(directory, 'in.zip')
+
+bucket = s3.Bucket(os.environ['S3_BUCKET'])
+bucket.download_file(key, osw_zip_path)
+
+zzip = zipfile.ZipFile(osw_zip_path)
+zzip.extractall(directory)
+
+osws = glob.glob(("%s/**/*.osw" % directory), recursive=True)
+if osws:
+    oswpath = osws[0]
+    oswdir = os.path.dirname(oswpath)
+    # this is where the new osm will be after we run the workflow
+    osmpath = os.path.join(oswdir,'run/in.osm')
+    epws = glob.glob(("%s/files/*.epw" % oswdir), recursive=True)
+    if epws:
+        user_epwpath = epws[0]
+else:
+    sys.exit(1)
+
+call(['openstudio', 'run', '-m', '-w', oswpath])
+
+# Now take the osm produced by the osw and run 
+# it through another workflow to generate tags
+
 seedpath = os.path.join(directory, 'seed.osm')
+epwpath = os.path.join(directory, 'workflow/files/weather.epw')
 workflowpath = os.path.join(directory, 'workflow/workflow.osw')
 points_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
 mapping_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
@@ -66,15 +95,15 @@ tar = tarfile.open("workflow.tar.gz")
 tar.extractall(directory)
 tar.close()
 
-bucket = s3.Bucket(os.environ['S3_BUCKET'])
-bucket.download_file(key, seedpath)
+shutil.copyfile(osmpath, seedpath)
+shutil.copyfile(user_epwpath, epwpath)
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
 tagutils.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
 tagutils.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 
-upload_site_DB_Cloud(points_jsonpath, bucket, directory)
+upload_site_DB_Cloud.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
 

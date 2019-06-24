@@ -67,8 +67,10 @@ def process_message(message):
                 # is misleading because we are also handling FMUs
                 name, ext = os.path.splitext(osm_name)
                 if ext == '.osm':
-                    #subprocess.call(['python3.5', 'addsite/addSite.py', osm_name, upload_id])
                     subprocess.call(['python', 'addsite/addSite.py', osm_name, upload_id])
+                elif ext == '.zip':
+                    # assume it contains an osw
+                    subprocess.call(['python3.5', 'addsite/add_osw_site.py', osm_name, upload_id])
                 elif ext == '.fmu':
                     subprocess.call(['python', 'addfmusite/addFMUSite.py', osm_name, upload_id])
                 else:
