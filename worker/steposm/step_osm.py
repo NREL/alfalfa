@@ -297,7 +297,7 @@ try:
     
     sp.variables = Variables(variables_path, sp.mapping)
     
-    subprocess.call(['openstudio', 'runsite/translate_osm.rb', osmpath, sp.idf])
+    subprocess.call(['openstudio', 'steposm/translate_osm.rb', osmpath, sp.idf])
     shutil.copyfile(variables_path, variables_new_path)
     
     ## Simulation Parameters

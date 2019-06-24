@@ -24,34 +24,67 @@
 ########################################################################################################################
 
 from __future__ import print_function
-import sys
 import os
+import glob
 import boto3
-import json
 import tarfile
 import shutil
 import time
-from subprocess import call
+from pymongo import MongoClient
+import sys
+import subprocess
 import logging
-import common
+import re
+from datetime import date, datetime, timedelta
+import pytz
+import calendar
+import traceback
+from dateutil.parser import parse
+from pyfmi import load_fmu
+import copy
+import common.testcase
 
-(fmu_upload_name, upload_id, directory) = common.precheck_argus(sys.argv)
+try:
+    s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
-s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+    # Mongo Database
+    mongo_client = MongoClient(os.environ['MONGO_URL'])
+    mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
+    sims = mongodb.sims
 
-key = "uploads/%s/%s" % (upload_id, fmu_upload_name)
-# fmu files gets uploaded with user defined names, but here we rename
-# to model.fmu to avoid keeping track of the (unreliable, non unique) user upload name
-# createFMUTags will however use the original fmu upload name for the display name of the site
-fmupath = os.path.join(directory, 'model.fmu')
-jsonpath = os.path.join(directory, 'tags.json')
+    upload_file_name = sys.argv[1]
+    upload_id = sys.argv[2]
+    
+    key = "uploads/%s/%s" % (upload_id, upload_file_name)
+    directory = os.path.join('/simulate', upload_id)
+    rootname = os.path.splitext(upload_file_name)[0]
+    downloadpath = os.path.join(directory, upload_file_name)
+    
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    bucket = s3.Bucket(os.environ['S3_BUCKET'])
+    bucket.download_file(key, downloadpath)
 
-bucket = s3.Bucket(os.environ['S3_BUCKET'])
-bucket.download_file(key, fmupath)
+    sims.update_one({"_id": upload_id}, {"$set": {"simStatus": "Running"}}, False)
 
-call(['python', 'addfmusite/createFMUTags.py', fmupath, fmu_upload_name, jsonpath])
+    # Load fmu
+    config = {
+        'fmupath'  : downloadpath,                
+        'step'     : 60
+    }
 
-common.upload_site_DB_Cloud( jsonpath, bucket, directory )
+    tc = common.testcase.TestCase(config)
 
-shutil.rmtree(directory)
+    u = {}
+    while tc.start_time < 10000:
+        tc.advance(u)
+
+    #shutil.rmtree(directory)
+    
+    time = str(datetime.now(tz=pytz.UTC))
+    sims.update_one({"_id": upload_id}, {"$set": {"simStatus": "Complete", "timeCompleted": time, "s3Key": ''}}, False)
+
+except Exception as e:
+    print('runFMU: %s' % e, file=sys.stderr)
 

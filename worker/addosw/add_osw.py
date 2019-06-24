@@ -35,7 +35,6 @@ import shutil
 import time
 from subprocess import call
 import logging
-import tagutils
 import common
 
 (osw_zip_name, upload_id, directory) = common.precheck_argus(sys.argv)
@@ -99,8 +98,8 @@ shutil.copyfile(user_epwpath, epwpath)
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
-tagutils.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
-tagutils.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
+common.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
+common.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 
 common.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
 

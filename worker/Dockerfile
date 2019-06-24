@@ -58,7 +58,7 @@ COPY package.json package-lock.json /root/
 RUN npm install
 
 COPY . /root
-RUN cd addsite && tar -czf ../workflow.tar.gz workflow
+RUN tar -czf workflow.tar.gz workflow
 
 ENV ROOT_DIR /usr/local
 ENV JMODELICA_HOME $ROOT_DIR/JModelica
@@ -68,5 +68,5 @@ ENV SEPARATE_PROCESS_JVM /usr/lib/jvm/java-8-openjdk-amd64/
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 ENV PYTHONPATH $PYTHONPATH:$JMODELICA_HOME/Python:$JMODELICA_HOME/Python/pymodelica
 
-CMD [ "python3.5", "-u", "messageHandler.py" ]
+CMD [ "python3.5", "-u", "message_handler.py" ]
 
