@@ -279,61 +279,28 @@ function  sitesResolver(user,siteRef) {
   });
 }
 
-function sitePointResolver(siteRef) {
-  return new Promise( (resolve,reject) => {
-    request
-    .post('/api/read')
-    .set('Accept', 'application/json')
-    .send({
-      "meta": {
-        "ver": "2.0"
-      },
-      "cols": [
-        {
-          "name": "filter"
+function sitePointResolver(siteRef, args, context) {
+  return new Promise((resolve, reject) => {
+    const recs = context.db.collection('recs');
+    let query = {site_ref: siteRef, "rec.point": "m:"};
+    if (args.writable) {query["rec.writable"] = "m:"};
+    if (args.cur) {query["rec.cur"] = "m:"};
+    recs.find(query).toArray().then((array) => {
+      let points = [];
+      array.map( (rec) => {
+        let point = {};
+        point.tags = [];
+        point.dis = rec.rec.dis
+        for (const reckey in rec.rec) {
+            const tag = {key: reckey, value: rec.rec[reckey]};
+            point.tags.push(tag);
         }
-      ],
-      "rows": [
-        {
-          "filter": `s:point and siteRef==@${siteRef}`,
-        }
-      ]
-    })
-    .end((err, res) => {
-      if( err ) {
-        reject(err);
-      } else {
-        let points = [];
-        let dis = 'Haystack Point';
-        res.body.rows.map( (row) => {
-          let tags = [];
-          Object.keys(row).map((key) => {
-            if( key == 'dis' ) {
-              dis = row[key];
-              if( dis ) {
-                dis = dis.replace(/[a-z]\:/,'');
-              }
-            }
-            let tag = {
-              key: key,
-              value: row[key]
-            };
-            tags.push(tag);
-          });
-          //let site = {
-          //  name: row.dis.replace(/[a-z]\:/,''),
-          //  siteRef: row.id.replace(/[a-z]\:/,''),
-          //  simStatus: 'Stopped',
-          //};
-          let point = {
-            dis: dis,
-            tags: tags
-          };
-          points.push(point);
-        });
-        resolve(points);
-      }
-    })
+        points.push(point);
+      });
+      resolve(points)
+    }).catch((err) => {
+      reject(err);
+    });
   });
 }
 
