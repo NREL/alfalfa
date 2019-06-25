@@ -8,5 +8,5 @@ ENV PYTHONPATH /usr/src/app
 
 COPY . .
 
-CMD [ "/usr/local/bin/python", "./test/test.py" ]
+CMD [ "/usr/local/bin/python", "./test/test2.py" ]
 
