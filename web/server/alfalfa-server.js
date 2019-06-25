@@ -29,6 +29,7 @@ import fs from 'fs';
 import hs from 'nodehaystack';
 import HDict from 'nodehaystack/HDict';
 import uuid from 'uuid/v1';
+import dbops from './dbops';
 
 var HBool = hs.HBool,
     HDateTime = hs.HDateTime,
@@ -38,6 +39,9 @@ var HBool = hs.HBool,
     HWatch = hs.HWatch,
     HHisItem = hs.HHisItem,
     HMarker = hs.HMarker,
+  // The purpose of this file is to consolidate operations to the database
+  // in a single place. Clients may transform the data into and out of 
+  // these functions for their own api purposes. ie Haystack api, GraphQL api.
     HNum = hs.HNum,
     HRef = hs.HRef,
     HStr = hs.HStr,
@@ -515,74 +519,12 @@ class AlfalfaServer extends HServer {
   };
   
   onPointWrite(rec, level, val, who, dur, opts, callback) {
-    let writeArray = null;
-
-    const setOrNullArray = (array, val, level, who) => {
-      if( val && (val.val || (val.val === 0) ) ) {
-        array.val[level - 1] = val.val;
-        array.who[level - 1] = who;
-      } else {
-        array.val[level - 1] = null;
-        array.who[level - 1] = null;
-      }
-    };
-
-    this.writearrays.findOne({_id: rec.id().val}).then((array) => {
-      if( array ) {
-        // In this case the array already exists because it has been written to before
-        setOrNullArray(array, val, level, who);
-        this.writearrays.updateOne(
-          { "_id": array._id },
-          { $set: { "val": array.val, "who": array.who } }
-        ).then( () => {
-          const current = this.currentWinningValue(array);
-          if( current ) {
-            return this.mrecs.updateOne(
-              { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
-            )
-          } else {
-            return this.mrecs.updateOne(
-              { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:disabled" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
-            )
-          }
-        }).then( () => {
-          const b = this.writeArrayToGrid(array);
-          callback(null, b.toGrid());
-        }).catch( (err) => {
-          callback(err);
-        });
-      } else {
-        // In this case the point has never been written to and there is no
-        // existing write array in the db so we create a new one
-        let array = new WriteArray();
-        array._id = rec.id().val;
-        let siteRef = rec.get('siteRef',false);
-        if( siteRef ) {
-          array.siteRef = siteRef.val;
-        }
-        setOrNullArray(array, val, level, who);
-        this.writearrays.insertOne(array).then( () => {
-          const current = this.currentWinningValue(array);
-          if( current ) {
-            return this.mrecs.updateOne(
-              { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
-            )
-          } else {
-            return this.mrecs.updateOne(
-              { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:disabled" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
-            )
-          }
-        }).then(() => {
-          const b = this.writeArrayToGrid(array);
-          callback(null, b.toGrid());
-        }).catch((err) => {
-          callback(err);
-        });
-      }
+    const value = val ? val.val : null;
+    const id = rec.id().val;
+    const siteRef = rec.siteRef;
+    dbops.writePoint(id, siteRef, level, value, who, dur, this.db).then((array) => {
+      const b = this.writeArrayToGrid(array);
+      callback(null, b.toGrid());
     }).catch((err) => {
       callback(err);
     });

@@ -6,13 +6,14 @@ RUN cd /root
 
 WORKDIR /root
 
-COPY package.json package-lock.json /root/
+COPY web/package.json web/package-lock.json /root/
 
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
     && apt-get install -y ca-certificates nodejs \
     && npm install
 
-COPY . /root
+COPY web /root
+COPY lib/dbops.js /root/server/
 
 ARG NODE_ENV
 RUN npm run build

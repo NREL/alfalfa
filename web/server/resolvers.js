@@ -27,6 +27,7 @@ import AWS from 'aws-sdk';
 import request from 'superagent';
 import {MongoClient} from 'mongodb';
 import path from 'path';
+import dbops from './dbops';
 
 AWS.config.update({region: process.env.REGION});
 var sqs = new AWS.SQS();
@@ -308,5 +309,24 @@ function advanceResolver(advancer, siteRef) {
   return advancer.advance(siteRef);
 }
 
-module.exports = { runSimResolver, addSiteResolver, sitesResolver, runSiteResolver, stopSiteResolver, removeSiteResolver, sitePointResolver, simsResolver, advanceResolver };
+function writePointResolver(context,siteRef, pointName, value, level) {
+  return dbops.getPoint(siteRef, pointName, context.db).then( point => {
+    return dbops.writePoint(point._id, siteRef, level, value, null, null, context.db);
+  }).then( array => {
+    return array;
+  });
+}
+
+module.exports = { 
+  runSimResolver, 
+  addSiteResolver, 
+  sitesResolver, 
+  runSiteResolver, 
+  stopSiteResolver, 
+  removeSiteResolver, 
+  sitePointResolver, 
+  simsResolver, 
+  advanceResolver,
+  writePointResolver 
+};
 

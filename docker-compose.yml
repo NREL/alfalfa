@@ -3,7 +3,10 @@ version: '2'
 services:
   web: # main haystack application
     build: 
-      context: web
+      # the purpose of context one level above dockerfile
+      # is to utilize shared code, specifically in db
+      dockerfile: web/Dockerfile
+      context: .
       args:
         - NODE_ENV
     image: ${WEB_REGISTRY_URI}:latest
