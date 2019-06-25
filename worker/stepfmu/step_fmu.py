@@ -32,7 +32,8 @@ import sys
 import json
 import redis
 from pymongo import MongoClient
-from common import *
+import common
+import common.testcase
 
 class RunFMUSite:
     def __init__(self, **kwargs):
@@ -84,7 +85,7 @@ class RunFMUSite:
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
  
         #initiate the testcase
-        self.tc = testcase.TestCase(config) 
+        self.tc = common.testcase.TestCase(config) 
         
         #run the FMU simulation
         self.kstep=0 
@@ -218,11 +219,26 @@ class RunFMUSite:
 
 # get arguments from calling program
 # which is the processMessage program
+
 site_ref = sys.argv[1]
 real_time_flag = (sys.argv[2] == 'true')
-time_scale = int(sys.argv[3])
-startTime = int(sys.argv[4])
-endTime = int(sys.argv[5])
+time_scale = sys.argv[3]
+if time_scale == 'undefined':
+    time_scale = 5
+else:
+    time_scale = int(time_scale)
+if real_time_flag:
+    time_scale = 1 
+startTime = sys.argv[4]
+if startTime == 'undefined':
+    startTime = 0;
+else:
+    starTime = int(sys.argv[4])
+endTime = sys.argv[5]
+if endTime == 'undefined':
+    endTime = 86400;
+else:
+    endTime = int(sys.argv[5])
 externalClock = (sys.argv[6] == 'true')
 
 runFMUSite = RunFMUSite(site_ref=site_ref, real_time_flag=real_time_flag, time_scale=time_scale, startTime=startTime, endTime=endTime, externalClock=externalClock)

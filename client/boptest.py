@@ -74,30 +74,24 @@ class Boptest:
 
     # Start a simulation for model identified by id. The id should corrsespond to 
     # a return value from the submit method
-    # sim_params should be parameters such as start_time, end_time, timescale,
-    # and others. The details need to be further defined and documented
-    def start(self,  **sim_params):
-        time_scale = 1.0
-        start_datetime = "0"
-        end_datetime = "100000"
-        realtime = "false";
-        externalClock = "true";
+    # kwargs are timescale, start_datetime, end_datetime, realtime, external_clock
+    def start(self,  site_id, **kwargs):
+        mutation = 'mutation { runSite(siteRef: "%s"' % site_id
 
-        site_id = sim_params["site_id"] 
-        if hasattr(sim_params, "time_scale"):
-            time_scale     = sim_params["time_scale"]
-        if hasattr(sim_params, "start_datetime"):
-            start_datetime = sim_params["start_datetime"]
-        if hasattr(sim_params, "end_datetime"):
-            end_datetime   = sim_params["end_datetime"]
-        if hasattr(sim_params, "realtime"):
-            realtime       = sim_params["realtime"]
-        if hasattr(sim_params, "externalClock"):
-            externalClock  = sim_params["externalClock"]
-        
-        mutation = 'mutation { runSite(siteRef: "%s", startDatetime: "%s", endDatetime: "%s", timescale: %s, realtime: %s, externalClock: %s) }' % (site_id, start_datetime, end_datetime, time_scale, realtime, externalClock)
+        if "timescale" in kwargs:
+            mutation = mutation + ', timescale: %s' % sim_params["timescale"]
+        if "start_datetime" in kwargs:
+            mutation = mutation + ', startDatetime: "%s"' % sim_params["start_datetime"]
+        if "end_datetime" in kwargs:
+            mutation = mutation + ', endDatetime: "%s"' % sim_params["end_datetime"]
+        if "realtime" in kwargs:
+            mutation = mutation + ', realtime: %s' % sim_params["realtime"]
+        if "external_clock" in kwargs:
+            mutation = mutation + ', externalClock: %s' % kwargs["external_clock"]
+
+        mutation = mutation + ') }'
+
         response = requests.post(self.url + '/graphql', json={'query': mutation})
-          
         self.wait(site_id, "Running")
 
     def advance(self, siteids):
@@ -125,39 +119,6 @@ class Boptest:
     ##    print('remove site API response: \n')
     ##    print(response.text) 
     ##   
- 
-    ### Return the input values for simulation identified by id,
-    ### in the form of a dictionary. See setInputs method for dictionary format
-    ##def inputs(self, siteref):
-    ##      
-    ##    viewer = '{viewer {\n'+ ' sites(\n ' + ('  siteRef: "%s"') %(siteref) +'){\n ' + ' points {\n' + '  dis\n' + '  tags{\n' + '   key' +' '+ 'value' + '\n}}}}}'
-
-    ##    payload = {'query': viewer}
-    ##    
-    ##    response = requests.post(self.url+'/graphql', json=payload)
-    ##    response = response.json()
-    ##    response = response["data"]
-    ##    response = response["viewer"]
-    ##    response = response["sites"]
-    ##    response = response[0]
-    ##    response = response["points"]
-    ##    input_map={}
-    ##    for x in response:
-    ##        var_name = x['dis']
-    ##        tags = x['tags']
-    ##       
-    ##        for y in tags: 
-    ##            if y['key']=="id":
-    ##                var_id = y['value']
-    ##                if y['key']=="curVal":
-    ##                    print ( y['value'] )
-    ##                    #if y['key']=="writable":
-    ##                    #    input_map[var_id] = var_name
-    ##        input_map[var_id] = var_name
-    ##    
-    ##    self.inputs = input_map
-    ##    print('hey input-map: ',input_map)
-    ##    return self.inputs
 
     ### Set inne_sputs for model identified by id
     ### The inputs argument should be a dictionary of 
@@ -199,33 +160,57 @@ class Boptest:
     ### output_name1 : output_value1,
     ### output_name2 : output_value2
     ###}
-    ##def outputs(self, id):
-    ##    
-    ##    url    = "http://localhost:80/api/read"
-    ##    header = { "Accept":"application/json", "Content-Type":"text/zinc" }
-    ##    header2 = { "Accept":"application/json", "Content-Type":"application/json; charset=utf-8" }
-    ##    payload = 'ver:"2.0"\n' + 'filter,limit\n' + ('id==@"%s"')%(id) + '\,1000'
-    ##    data = json.dumps(
-    ##                   {
-    ##                      "meta": {"ver":"2.0"},
-    ##                      "rows": [ { "id" :  id, \
-    ##                      "who" : "s:" , \
-    ##                      "val" : "n:" , \
-    ##                      "duration": "s:"
-    ##                                }
-    ##                              ],
-    ##                      "cols": [ {"name":"id"}, {"name":"val"}, {"name":"who"}, {"name":"duration"} ]
-    ##                   }
-    ##                   )
-    ##    updating = self.init_check_updating()
-    ##    if updating !='"NaN"' or '""': 
-    ##        reading_response = requests.post(url=url, headers=header2, data=data)
-    ##        if reading_response.status_code==200:
-    ##            print("Congratulations! Outputs were retrieved!")
-    ##            print (reading_response.text)
-    ##            return reading_response.text
+    def outputs(self, siteid):
+        query = 'query { viewer { sites(siteRef: "%s") { points(cur: true) { dis tags { key value } } } } }' % (siteid)
+        payload = {'query': query}
+        response = requests.post(self.url + '/graphql', json=payload )
 
-    ##        else:
-    ##            print("Poor boy, outputs have issues!")
+        j = json.loads(response.text)
+        points = j["data"]["viewer"]["sites"][0]["points"]
+        result = {}
+
+        for point in points:
+            tags = point["tags"]
+            for tag in tags:
+                if tag["key"] == "curVal":
+                    result[convert(point["dis"])] = convert(tag["value"])
+                    break
+
+        return result
+
+    ### Return a dictionary of the current input values
+    ### result = {
+    ### input_name1 : input_value1,
+    ### input_name2 : input_value2
+    ###}
+    def inputs(self, siteid):
+        query = 'query { viewer { sites(siteRef: "%s") { points(writable: true) { dis tags { key value } } } } }' % (siteid)
+        payload = {'query': query}
+        response = requests.post(self.url + '/graphql', json=payload )
+
+        j = json.loads(response.text)
+        points = j["data"]["viewer"]["sites"][0]["points"]
+        result = {}
+
+        for point in points:
+            tags = point["tags"]
+            for tag in tags:
+                if tag["key"] == "writeVal":
+                    result[convert(point["dis"])] = convert(tag["value"])
+                    break
+
+        return result
+
+# remove any hastack type info from value and convert numeric strings
+# to python float. ie s: maps to python string n: maps to python float,
+# other values are simply returned unchanged, thus retaining any haystack type prefix
+def convert(value):
+    if value[0:2] == 's:':
+        return value[2:]
+    elif value[0:2] == 'n:':
+        return float(value[2:])
+    else:
+        return value
+        
      
 

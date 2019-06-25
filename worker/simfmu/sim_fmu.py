@@ -42,7 +42,7 @@ import traceback
 from dateutil.parser import parse
 from pyfmi import load_fmu
 import copy
-import testcase
+import common.testcase
 
 try:
     s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
@@ -74,7 +74,7 @@ try:
         'step'     : 60
     }
 
-    tc = testcase.TestCase(config)
+    tc = common.testcase.TestCase(config)
 
     u = {}
     while tc.start_time < 10000:

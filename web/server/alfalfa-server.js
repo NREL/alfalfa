@@ -465,7 +465,7 @@ class AlfalfaServer extends HServer {
     b.addCol("who");
     
     for (var i = 0; i < array.val.length; ++i) {
-      if( array.val[i] ) {
+      if( array.val[i] || array.val[i] === 0 ) {
         b.addRow([
           HNum.make(i + 1),
           HStr.make("" + (i + 1)),
@@ -517,21 +517,26 @@ class AlfalfaServer extends HServer {
   onPointWrite(rec, level, val, who, dur, opts, callback) {
     let writeArray = null;
 
+    const setOrNullArray = (array, val, level, who) => {
+      if( val && (val.val || (val.val === 0) ) ) {
+        array.val[level - 1] = val.val;
+        array.who[level - 1] = who;
+      } else {
+        array.val[level - 1] = null;
+        array.who[level - 1] = null;
+      }
+    };
+
     this.writearrays.findOne({_id: rec.id().val}).then((array) => {
       if( array ) {
-        if( val && val.val ) {
-          array.val[level - 1] = val.val;
-          array.who[level - 1] = who;
-        } else {
-          array.val[level - 1] = null;
-          array.who[level - 1] = null;
-        }
+        // In this case the array already exists because it has been written to before
+        setOrNullArray(array, val, level, who);
         this.writearrays.updateOne(
           { "_id": array._id },
           { $set: { "val": array.val, "who": array.who } }
         ).then( () => {
-          if( val && val.val ) {
-            const current = this.currentWinningValue(array);
+          const current = this.currentWinningValue(array);
+          if( current ) {
             return this.mrecs.updateOne(
               { "_id": array._id },
               { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
@@ -549,19 +554,15 @@ class AlfalfaServer extends HServer {
           callback(err);
         });
       } else {
+        // In this case the point has never been written to and there is no
+        // existing write array in the db so we create a new one
         let array = new WriteArray();
         array._id = rec.id().val;
         let siteRef = rec.get('siteRef',false);
         if( siteRef ) {
           array.siteRef = siteRef.val;
         }
-        if( val ) {
-          array.val[level - 1] = val.val;
-          array.who[level - 1] = who;
-        } else {
-          array.val[level - 1] = null;
-          array.who[level - 1] = null;
-        }
+        setOrNullArray(array, val, level, who);
         this.writearrays.insertOne(array).then( () => {
           const current = this.currentWinningValue(array);
           if( current ) {

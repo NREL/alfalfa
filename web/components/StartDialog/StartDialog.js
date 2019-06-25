@@ -36,6 +36,7 @@ import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import * as moment from 'moment';
 
 const styles = theme => ({
   label: {
@@ -65,8 +66,8 @@ class StartDialog extends React.Component {
   componentWillMount = () => {
     console.log(this.props);
     if ( this.props.type == 'osm' ) {
-      this.state.selectedStartTime = new Date();
-      this.state.selectedEndTime = new Date();
+      this.state.selectedStartTime = moment().format();
+      this.state.selectedEndTime = moment().format();
     } else {
       this.state.selectedStartSeconds = 0;
       this.state.selectedEndSeconds = 86400;
@@ -74,7 +75,7 @@ class StartDialog extends React.Component {
   }
 
   handleStartTimeChange = time => {
-    this.setState({ selectedStartTime: time })
+    this.setState({ selectedStartTime: time.format() })
   }
 
   handleTimescaleChange = event => {
@@ -82,7 +83,7 @@ class StartDialog extends React.Component {
   }
 
   handleEndTimeChange = time => {
-    this.setState({ selectedEndTime: time })
+    this.setState({ selectedEndTime: time.format() })
   }
 
   handleStartSecondChange = second => {

@@ -99,8 +99,12 @@ var siteType = new GraphQLObjectType({
     points: {
       type: new GraphQLList(pointType),
       description: 'A list of the Haystack points associated with the site',
-      resolve: (site,args,request) => {
-        return resolvers.sitePointResolver(site.siteRef);
+      args: {
+        writable: { type: GraphQLBoolean },
+        cur: { type: GraphQLBoolean }
+      },
+      resolve: (site,args,context) => {
+        return resolvers.sitePointResolver(site.siteRef, args, context);
       }
     }
   })

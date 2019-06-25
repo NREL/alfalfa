@@ -3,19 +3,22 @@
 
 import boptest
 import time
+import sys
 
 bop = boptest.Boptest(url='http://web')
 
 siteids = []
-for _ in range(7):
-    site = bop.submit('test/wrapped.fmu')
+for _ in range(1):
+    site = bop.submit('test/SmallOffice.osm')
     siteids.append(site)
 
-    input_params = { "site_id":  site }
-    bop.start(**input_params)
+    bop.start(site, external_clock = "true")
 
-for _ in range(5000):
+for _ in range(500):
     bop.advance(siteids)
+    print(bop.outputs(siteids[0]))
+    print(bop.inputs(siteids[0]))
+    sys.stdout.flush()
     time.sleep(1)
 
 for site in siteids:
