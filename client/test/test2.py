@@ -14,7 +14,8 @@ u = pid.initialize()
 
 print(u)
 
-site = bop.submit('test/wrapped.fmu')
+site = bop.submit('test/simple_1_zone_heating.fmu')
+sys.stdout.flush()
 bop.start(site, external_clock = "true")
 
 for i in range(int(length/step)):

@@ -57,11 +57,11 @@ class Boptest:
         json = response.json()
         postURL = json['url']
         formData = json['fields']
-        formData['file'] = open(path, 'rb')
+        formData['file'] = ('filename', open(path, 'rb'))
 
         # Use the form data from the server to actually upload the file
         encoder = MultipartEncoder(fields=formData)
-        requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
+        response = requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
 
         # After the file has been uploaded, then tell BOPTEST to process the site
         # This is done not via the haystack api, but through a graphql api
