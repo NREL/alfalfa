@@ -364,10 +364,10 @@ class Sites extends React.Component {
                 <StartDialog type={this.state.startDialogType} disabled={isStartDisabled} onStartSimulation={this.handleStartSimulation}></StartDialog>
               </Grid>
               <Grid item>
-                <Button variant="contained" className={classes.button} disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Simulation</Button>
+                <Button variant="contained" className={classes.button} disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Test</Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" className={classes.button} disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Site</Button>
+                <Button variant="contained" className={classes.button} disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Test Case</Button>
               </Grid>
             </Grid>
           </Grid>

@@ -168,7 +168,7 @@ class StartDialog extends React.Component {
 
     return (
       <div>
-        <Button className={classes.button} variant="contained" disabled={this.props.disabled} onClick={this.handleShowDialogClick}>Start Simulation</Button>
+        <Button className={classes.button} variant="contained" disabled={this.props.disabled} onClick={this.handleShowDialogClick}>Start Test</Button>
         <Dialog fullWidth={true} open={this.state.open}>
           <DialogTitle>Simulation Parameters</DialogTitle>
           <DialogContent>

@@ -70,12 +70,12 @@ class App extends React.Component {
                 <Grid container justify='flex-end'>
                   <Grid item>
                     <Link to={'/sites'} style={{ textDecoration: 'none', color: 'unset' }}>
-                      <Typography className={classes.button} variant="button" color="inherit">Tags</Typography>
+                      <Typography className={classes.button} variant="button" color="inherit">Test-Cases</Typography>
                     </Link>
                   </Grid>
                   <Grid item>
                     <Link to={'/sims'} style={{ textDecoration: 'none', color: 'unset' }}>
-                      <Typography className={classes.button} variant="button" color="inherit">Simulations</Typography>
+                      <Typography className={classes.button} variant="button" color="inherit">Completed-Tests</Typography>
                     </Link>
                   </Grid>
                 </Grid>
