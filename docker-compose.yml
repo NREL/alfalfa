@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
   web: # main haystack application
@@ -87,13 +87,6 @@ services:
     image: mongo
     ports:
       - "27017:27017"
-  
-  client-test:
-    build:
-      context: client
-      dockerfile: Dockerfile-test
-    depends_on:
-      - web
 
   redis:
     image: redis
