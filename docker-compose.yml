@@ -1,4 +1,4 @@
-version: '3'
+version: '3.2'
 
 services:
   web: # main haystack application
@@ -6,9 +6,12 @@ services:
       context: web
       args:
         - NODE_ENV
-    image: ${WEB_REGISTRY_URI}:latest
+    image: ic-docker-registry.nrel.gov:5000/alfalfa-web:latest
     ports:
-     - "80:80"
+     - target: 80
+       published: 80
+       protocol: tcp
+       mode: host
      - "29043:29043"
     environment:
      - NODE_ENV
@@ -64,7 +67,7 @@ services:
 
   worker:
     build: worker
-    image: ${WORKER_REGISTRY_URI}:latest
+    image: ic-docker-registry.nrel.gov:5000/alfalfa-worker:latest
     environment:
      - AWS_ACCESS_KEY_ID
      - AWS_SECRET_ACCESS_KEY
