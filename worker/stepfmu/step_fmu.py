@@ -31,9 +31,12 @@ import time
 import sys
 import json
 import redis
+import uuid
 from pymongo import MongoClient
 import common
 import common.testcase
+from datetime import date, datetime, timedelta
+import pytz
 
 class RunFMUSite:
     def __init__(self, **kwargs):
@@ -46,6 +49,7 @@ class RunFMUSite:
         self.mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
         self.recs = self.mongodb.recs
         self.write_arrays = self.mongodb.writearrays
+        self.sims = self.mongodb.sims
 
         # get arguments from calling program
         # which is the processMessage program
@@ -55,6 +59,8 @@ class RunFMUSite:
         self.startTime = kwargs['startTime']
         self.endTime = kwargs['endTime']
         self.externalClock = kwargs['externalClock']
+
+        self.site = self.recs.find_one({"_id": self.site_ref})
 
         #build the path for zipped-file, fmu, json
         sim_path = '/simulate'
@@ -69,8 +75,8 @@ class RunFMUSite:
             os.makedirs(self.directory)
         
         #download the tar file and tag file
-        bucket = self.s3.Bucket('alfalfa')
-        bucket.download_file(key, tarpath)
+        self.bucket = self.s3.Bucket('alfalfa')
+        self.bucket.download_file(key, tarpath)
         
         tar = tarfile.open(tarpath)
         tar.extractall(sim_path)
@@ -159,10 +165,14 @@ class RunFMUSite:
     def db_stop_set(self): 
         # A client may have requested that the simulation stop early,
         # look for a signal to stop from the database
-        site = self.recs.find_one({"_id": self.site_ref})
-        if site and (site.get("rec",{}).get("simStatus") == "s:Stopping") :
+        if self.site and (self.site.get("rec",{}).get("simStatus") == "s:Stopping") :
             self.stop = True
         return self.stop
+
+    def reset(self,tarinfo):
+        tarinfo.uid = tarinfo.gid = 0
+        tarinfo.uname = tarinfo.gname = "root"
+        return tarinfo
 
     # cleanup after the simulation is stopped
     def cleanup(self):
@@ -170,6 +180,20 @@ class RunFMUSite:
         self.recs.update_one({"_id": self.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
         self.recs.update_many({"site_ref": self.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
         self.recs.update_many({"site_ref": self.site_ref, "rec.writable": "m:"}, {"$unset": {"rec.writeLevel": "","rec.writeVal": ""}, "$set": { "rec.writeStatus": "s:disabled" } }, False)
+        
+        self.sim_id = str(uuid.uuid4())
+        tarname = "%s.tar.gz" % self.sim_id
+        tar = tarfile.open(tarname, "w:gz")
+        tar.add(self.directory, filter=self.reset, arcname=self.sim_id)
+        tar.close()
+        
+        uploadkey = "simulated/%s" % tarname
+        self.bucket.upload_file(tarname, uploadkey)
+        os.remove(tarname)
+
+        time = str(datetime.now(tz=pytz.UTC))
+        name = self.site.get("rec",{}).get("dis","Test Case").replace('s:','')
+        self.sims.insert_one({"_id": self.sim_id, "name": name, "siteRef": self.site_ref, "simStatus": "Complete", "timeCompleted": time, "s3Key": uploadkey})
 
         shutil.rmtree(self.directory)
 
