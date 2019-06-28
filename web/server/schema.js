@@ -141,6 +141,10 @@ var simType = new GraphQLObjectType({
     timeCompleted: {
       type: GraphQLString,
       description: 'The date and time when the simulation was completed.'
+    },
+    results: {
+      type: GraphQLString,
+      description: 'Key simulation results, Can be interpreted as json, html, plain text depending on job type and use case.'
     }
   })
 });

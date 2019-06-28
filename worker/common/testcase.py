@@ -27,39 +27,36 @@ information, and calculating and reporting results.
 from pyfmi import load_fmu
 import numpy as np
 import copy
-import json
 from scipy.integrate import trapz
+from data.data_manager import Data_Manager
 
 class TestCase(object):
     '''Class that implements the test case.
     
     '''
     
-    def __init__(self, config):
+    def __init__(self, con):
         '''Constructor.
         
         '''
         
         # Define simulation model
-        self.fmupath = config['fmupath']
+        self.fmupath = con['fmupath']
         # Load fmu
         self.fmu = load_fmu(self.fmupath, enable_logging=True)
         # Get version and check is 2.0
         self.fmu_version = self.fmu.get_version()
         if self.fmu_version != '2.0':
             raise ValueError('FMU must be version 2.0.')
+        # Load data and the kpis_json for the test case
+        data_manager = Data_Manager(testcase=self)
+        data_manager.load_data_and_kpisjson()
         # Get available control inputs and outputs
         input_names = self.fmu.get_model_variables(causality = 2).keys()
         output_names = self.fmu.get_model_variables(causality = 3).keys()
         # Get input and output meta-data
         self.inputs_metadata = self._get_var_metadata(self.fmu, input_names, inputs=True)
         self.outputs_metadata = self._get_var_metadata(self.fmu, output_names)
-        ## Define KPIs
-        self.kpipath = config['kpipath']
-        # Load kpi json
-        with open(self.kpipath, 'r') as f:
-            json_str = f.read()
-            self.kpi_json = json.loads(json_str)
         # Define outputs data
         self.y = {'time':[]}
         for key in output_names:
@@ -74,7 +71,7 @@ class TestCase(object):
         self.options = self.fmu.simulate_options()
         self.options['CVode_options']['rtol'] = 1e-6 
         # Set default communication step
-        self.set_step(config['step'])
+        self.set_step(con['step'])
         # Set initial simulation start
         self.start_time = 0
         self.initialize = True
@@ -258,14 +255,16 @@ class TestCase(object):
         # Calculate each KPI using json for signalsand save in dictionary
         for kpi in self.kpi_json.keys():
             print(kpi, type(kpi))
-            if kpi == 'energy':
+            if 'Power' in kpi:
                 # Calculate total energy [KWh - assumes measured in J]
                 E = 0
                 for signal in self.kpi_json[kpi]:
-                    E = E + self.y_store[signal][-1]
+                    time = self.y_store['time']
+                    power = self.y_store[signal]
+                    E = E + np.trapz(power, time)
                 # Store result in dictionary
-                kpis[kpi] = E*2.77778e-7 # Convert to kWh
-            elif kpi == 'comfort':
+                kpis['energy'] = E*2.77778e-7 # Convert to kWh
+            elif kpi == 'AirZoneTemperature':
                 # Calculate total discomfort [K-h = assumes measured in K]
                 tot_dis = 0
                 heat_setpoint = 273.15+20
@@ -275,7 +274,7 @@ class TestCase(object):
                     dT_heating[dT_heating<0]=0
                     tot_dis = tot_dis + trapz(dT_heating,self.y_store['time'])/3600
                 # Store result in dictionary
-                kpis[kpi] = tot_dis
+                kpis['comfort'] = tot_dis
             else:
                 print('No calculation for KPI named "{0}".'.format(kpi))
 

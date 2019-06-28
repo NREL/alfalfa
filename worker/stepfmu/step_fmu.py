@@ -32,6 +32,7 @@ import sys
 import json
 import redis
 import uuid
+import zipfile
 from pymongo import MongoClient
 import common
 import common.testcase
@@ -82,10 +83,14 @@ class RunFMUSite:
         tar.extractall(sim_path)
         tar.close()
 
+        zzip = zipfile.ZipFile(fmupath)
+        zzip.extract('resources/kpis.json', self.directory)
+
         # Load fmu
         config = {
             'fmupath'  : fmupath,                
-            'step'     : 60
+            'step'     : 300,
+            'kpipath' : self.directory + '/resources/kpis.json'
         }
             
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
@@ -193,7 +198,8 @@ class RunFMUSite:
 
         time = str(datetime.now(tz=pytz.UTC))
         name = self.site.get("rec",{}).get("dis","Test Case").replace('s:','')
-        self.sims.insert_one({"_id": self.sim_id, "name": name, "siteRef": self.site_ref, "simStatus": "Complete", "timeCompleted": time, "s3Key": uploadkey})
+        kpis = json.dumps(self.tc.get_kpis())
+        self.sims.insert_one({"_id": self.sim_id, "name": name, "siteRef": self.site_ref, "simStatus": "Complete", "timeCompleted": time, "s3Key": uploadkey, "results": str(kpis)})
 
         shutil.rmtree(self.directory)
 
