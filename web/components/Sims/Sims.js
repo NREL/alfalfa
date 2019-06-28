@@ -51,6 +51,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import downloadjs from 'downloadjs'
+import * as moment from 'moment';
 
 class ResultsDialog extends React.Component {
 
@@ -59,6 +60,11 @@ class ResultsDialog extends React.Component {
 
     const items = (content) => {
       return (Object.entries(content).map( ([key, value]) => {
+          if (key == "energy") {
+            key = key + " [kWh]";
+          } else if (key == "comfort") {
+            key = key + " [K-h]";
+          }
           return (<ListItem>
             <ListItemText
               primary={key}
@@ -72,7 +78,7 @@ class ResultsDialog extends React.Component {
       const content = JSON.parse(sim.results);
       return (
       <Dialog open={true} onBackdropClick={this.props.onBackdropClick}>
-        <DialogTitle>{`Results for ${sim.name}`}</DialogTitle>
+        <DialogTitle>{`Results for "${sim.name}"`}</DialogTitle>
         <DialogContent>
            <List>
             {items(content)}
@@ -178,9 +184,9 @@ class Sims extends React.Component {
                 <TableRow>
                   <TableCell padding="checkbox"></TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Status</TableCell>
                   <TableCell>Completed Time</TableCell>
-                  <TableCell></TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>KPIs</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -196,8 +202,8 @@ class Sims extends React.Component {
                        />
                      </TableCell>
                      <TableCell padding="none">{sim.name}</TableCell>
+                     <TableCell>{moment(sim.timeCompleted).format('MMMM Do YYYY, h:mm a')}</TableCell>
                      <TableCell padding="none">{sim.simStatus}</TableCell>
-                     <TableCell>{sim.timeCompleted}</TableCell>
                      <TableCell><IconButton onClick={event => this.handleShowResults(event, sim)}><MoreVert/></IconButton></TableCell>
                    </TableRow>
                   );
@@ -208,10 +214,10 @@ class Sims extends React.Component {
           <Grid item>
             <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
               <Grid item>
-                <Button className={classes.button} variant="contained" disabled={true} onClick={this.handleRemove}>Remove Simulation</Button>
+                <Button className={classes.button} variant="contained" disabled={true} onClick={this.handleRemove}>Remove Test Results</Button>
               </Grid>
               <Grid item>
-                <Button className={classes.button} variant="contained" disabled={buttonsDisabled} onClick={this.handleDownload}>Download Simulation</Button>
+                <Button className={classes.button} variant="contained" disabled={buttonsDisabled} onClick={this.handleDownload}>Download Test Results</Button>
               </Grid>
             </Grid>
           </Grid>
