@@ -170,6 +170,7 @@ class RunFMUSite:
     def db_stop_set(self): 
         # A client may have requested that the simulation stop early,
         # look for a signal to stop from the database
+        self.site = self.recs.find_one({"_id": self.site_ref})
         if self.site and (self.site.get("rec",{}).get("simStatus") == "s:Stopping") :
             self.stop = True
         return self.stop
