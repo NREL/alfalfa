@@ -36,7 +36,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const MinifyPlugin = require("babel-minify-webpack-plugin");
 const CompressionPlugin = require('compression-webpack-plugin');
 
-const title = 'Alfalfa';
+const title = 'BOPTEST';
 const template = './index.html';
 let devtool = '';
 let plugins = [];
