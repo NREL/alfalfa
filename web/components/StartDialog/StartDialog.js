@@ -86,12 +86,12 @@ class StartDialog extends React.Component {
     this.setState({ selectedEndTime: time.format() })
   }
 
-  handleStartSecondChange = second => {
-    this.setState({ selectedStartSeconds: second })
+  handleStartSecondChange = event => {
+    this.setState({ selectedStartSeconds: event.target.value })
   }
 
-  handleEndSecondChange = second => {
-    this.setState({ selectedEndSeconds: second })
+  handleEndSecondChange = event => {
+    this.setState({ selectedEndSeconds: event.target.value })
   }
 
   handleShowDialogClick = () => {
@@ -161,7 +161,7 @@ class StartDialog extends React.Component {
           onChange={this.handleEndSecondChange}
           InputLabelProps={{shrink: true, className: this.props.classes.label}}
           disabled={realtime || externalClock}
-          inputProps={{type: 'number', min: selectedEndSeconds}}
+          inputProps={{type: 'number', min: selectedStartSeconds}}
         />
       </Grid>;
     }
