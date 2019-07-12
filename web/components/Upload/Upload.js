@@ -218,7 +218,7 @@ class Upload extends React.Component {
       <div className={styles.root}>
         <LinearProgress variant="determinate" value={this.state.completed} />
         <div className={styles.center}>
-          <Grid container spacing={16}>
+          <Grid container spacing={3}>
             <Grid item xs={12}>
               <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
             </Grid>
@@ -234,7 +234,7 @@ class Upload extends React.Component {
 
 const localstyles = theme => ({
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(1),
   },
 });
 

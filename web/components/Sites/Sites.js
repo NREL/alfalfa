@@ -118,7 +118,7 @@ class PointDialogComponent extends React.Component {
     if( this.props.site ) {
       return(
         <div>
-          <Dialog open={true} onBackdropClick={this.props.onBackdropClick}>
+          <Dialog fullWidth={true} maxWidth='lg' open={true} onBackdropClick={this.props.onBackdropClick}>
             <DialogTitle>{this.props.site.name + ' Points'}</DialogTitle>
             <DialogContent>
               {this.table()}
@@ -380,7 +380,7 @@ const styles = theme => ({
     marginLeft: 16,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(1),
   },
 });
 
