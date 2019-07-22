@@ -267,6 +267,19 @@ const mutationType = new GraphQLObjectType({
       resolve: (_,{siteRefs, time},{advancer}) => {
         return resolvers.advanceResolver(advancer, siteRefs);
       },
+    },
+    writePoint: {
+      name: 'WritePoint',
+      type: GraphQLString,
+      args: {
+        siteRef : { type: new GraphQLNonNull(GraphQLString) },
+        pointName : { type: new GraphQLNonNull(GraphQLString) },
+        value : { type: GraphQLFloat },
+        level : { type: GraphQLInt }
+      },
+      resolve: (_,{siteRef, pointName, value, level},context) => {
+        return resolvers.writePointResolver(context, siteRef, pointName, value, level);
+      }
     }
   })
 });
