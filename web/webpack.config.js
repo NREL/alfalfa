@@ -36,7 +36,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const MinifyPlugin = require("babel-minify-webpack-plugin");
 const CompressionPlugin = require('compression-webpack-plugin');
 
-const title = 'Alfalfa';
+const title = 'BOPTEST';
 const template = './index.html';
 let devtool = '';
 let plugins = [];
@@ -45,7 +45,7 @@ if (process.env.NODE_ENV === 'production') {
 
   plugins = [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+      'process.env.NODE_ENV': JSON.stringify('production')
     }),
     new MinifyPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
@@ -64,6 +64,9 @@ if (process.env.NODE_ENV === 'production') {
   devtool = 'eval';
 } else {
   plugins = [
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('development')
+    }),
     new HtmlWebpackPlugin({
       title: title,
       template: template
@@ -75,6 +78,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = {
+  mode: process.env.NODE_ENV,
   entry: { 
     app: ["./app.js"]
   },

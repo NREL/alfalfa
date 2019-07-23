@@ -29,7 +29,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { DateTimePicker } from 'material-ui-pickers';
+import { DateTimePicker } from '@material-ui/pickers';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
@@ -43,7 +43,7 @@ const styles = theme => ({
    whiteSpace: 'nowrap' 
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(1),
   },
 });
 
@@ -56,8 +56,8 @@ class StartDialog extends React.Component {
       realtime: false,
       externalClock: false,
       timescale: 5,
-      selectedStartTime: 0,
-      selectedEndTime: 86400,
+      selectedStartTime: "",
+      selectedEndTime: "",
       selectedStartSeconds: 0,
       selectedEndSeconds: 86400,
     };
@@ -86,12 +86,12 @@ class StartDialog extends React.Component {
     this.setState({ selectedEndTime: time.format() })
   }
 
-  handleStartSecondChange = second => {
-    this.setState({ selectedStartSeconds: second })
+  handleStartSecondChange = event => {
+    this.setState({ selectedStartSeconds: event.target.value })
   }
 
-  handleEndSecondChange = second => {
-    this.setState({ selectedEndSeconds: second })
+  handleEndSecondChange = event => {
+    this.setState({ selectedEndSeconds: event.target.value })
   }
 
   handleShowDialogClick = () => {
@@ -107,7 +107,7 @@ class StartDialog extends React.Component {
       this.props.onStartSimulation(this.state.selectedStartTime,this.state.selectedEndTime,this.state.timescale,this.state.realtime,this.state.externalClock);
       this.setState({open: false});
     } else {
-      this.props.onStartSimulation(this.state.selectedStartSeconds,this.state.selectedEndSeconds,this.state.timescale,this.state.realtime,this.state.externalClock);
+      this.props.onStartSimulation(this.state.selectedStartSeconds.toString(),this.state.selectedEndSeconds.toString(),this.state.timescale,this.state.realtime,this.state.externalClock);
       this.setState({open: false});
     }
   }
@@ -161,18 +161,18 @@ class StartDialog extends React.Component {
           onChange={this.handleEndSecondChange}
           InputLabelProps={{shrink: true, className: this.props.classes.label}}
           disabled={realtime || externalClock}
-          inputProps={{type: 'number', min: selectedEndSeconds}}
+          inputProps={{type: 'number', min: selectedStartSeconds}}
         />
       </Grid>;
     }
 
     return (
       <div>
-        <Button className={classes.button} variant="contained" disabled={this.props.disabled} onClick={this.handleShowDialogClick}>Start Simulation</Button>
-        <Dialog fullWidth={true} open={this.state.open}>
+        <Button className={classes.button} variant="contained" disabled={this.props.disabled} onClick={this.handleShowDialogClick}>Start Test</Button>
+        <Dialog fullWidth={true} maxWidth='sm' open={this.state.open}>
           <DialogTitle>Simulation Parameters</DialogTitle>
           <DialogContent>
-            <Grid container spacing={16}>
+            <Grid container spacing={2}>
               {start}
               {stop}
               <Grid item xs={12}>

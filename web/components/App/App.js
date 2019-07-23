@@ -29,7 +29,7 @@ import { Component } from 'react';
 import { Link, Route, Switch } from 'react-router-dom';
 import IconButton from '@material-ui/core/IconButton';
 import {FileCloudQueue, FileCloudDone, ActionAccountCircle} from '@material-ui/icons';
-import { MuiPickersUtilsProvider } from 'material-ui-pickers';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import Toolbar from '@material-ui/core/Toolbar';
 import AppBar from '@material-ui/core/AppBar';
@@ -51,7 +51,7 @@ const styles = theme => ({
     flex: 1,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(1),
   },
 });
 
@@ -60,22 +60,22 @@ class App extends React.Component {
     const { classes } = this.props;
 
     return (
-      <MuiPickersUtilsProvider utils={MomentUtils}>
+        <MuiPickersUtilsProvider utils={MomentUtils}>
           <div className={this.props.classes.root}>
             <AppBar position="static">
               <Toolbar>
                 <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}> 
-                  <Typography variant="title" color="inherit">BOPTEST</Typography>
+                  <Typography variant="h5" color="inherit">BOPTEST</Typography>
                 </Link>
                 <Grid container justify='flex-end'>
                   <Grid item>
                     <Link to={'/sites'} style={{ textDecoration: 'none', color: 'unset' }}>
-                      <Typography className={classes.button} variant="button" color="inherit">Tags</Typography>
+                      <Typography className={classes.button} variant="button" color="inherit">Test-Cases</Typography>
                     </Link>
                   </Grid>
                   <Grid item>
                     <Link to={'/sims'} style={{ textDecoration: 'none', color: 'unset' }}>
-                      <Typography className={classes.button} variant="button" color="inherit">Simulations</Typography>
+                      <Typography className={classes.button} variant="button" color="inherit">Completed-Tests</Typography>
                     </Link>
                   </Grid>
                 </Grid>
@@ -85,9 +85,9 @@ class App extends React.Component {
               <Route path="/sites" component={Sites}/>
               <Route path="/sims" component={Sims}/>
               <Route component={Upload}/>
-            </Switch>
+            </Switch>       
           </div>
-      </MuiPickersUtilsProvider>
+        </MuiPickersUtilsProvider>
     );
   }
 };

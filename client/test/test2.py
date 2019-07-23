@@ -9,7 +9,7 @@ from controllers import pid
 bop = boptest.Boptest(url='http://web')
 
 length = 48*3600
-step = 60
+step = 300
 u = pid.initialize()
 
 print(u)

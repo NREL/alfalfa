@@ -80,7 +80,7 @@ class FileInput extends React.Component {
     return (
       <div>
         <input className={styles.hidden} type="file" ref={this.fileInputRef} onInput={this.handleFileChange} />
-        <TextField fullWidth={true} label='Select Model' onClick={this.handleTextInputClick} value={this.state.filename}
+        <TextField fullWidth={true} label='Select Test Case' onClick={this.handleTextInputClick} value={this.state.filename}
           InputLabelProps={{
             shrink: this.state.filename != ""
           }}
@@ -218,15 +218,12 @@ class Upload extends React.Component {
       <div className={styles.root}>
         <LinearProgress variant="determinate" value={this.state.completed} />
         <div className={styles.center}>
-          <Grid container spacing={16}>
+          <Grid container spacing={3}>
             <Grid item xs={12}>
               <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
             </Grid>
             <Grid item xs>
-              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.addJobProp)} }>Create Tags</Button>
-            </Grid>
-            <Grid item xs>
-              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.runSimProp)} }>Simulate</Button>
+              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.addJobProp)} }>Upload Test Case</Button>
             </Grid>
           </Grid>
         </div>
@@ -237,7 +234,7 @@ class Upload extends React.Component {
 
 const localstyles = theme => ({
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(1),
   },
 });
 

@@ -39,7 +39,58 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Checkbox from '@material-ui/core/Checkbox';
 import { withStyles } from '@material-ui/core/styles';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
 import downloadjs from 'downloadjs'
+import * as moment from 'moment';
+
+class ResultsDialog extends React.Component {
+
+  render = () => {
+    var sim = this.props.sim;
+
+    const items = (content) => {
+      return (Object.entries(content).map( ([key, value]) => {
+          if (key == "energy") {
+            key = key + " [kWh]";
+          } else if (key == "comfort") {
+            key = key + " [K-h]";
+          }
+          return (<ListItem>
+            <ListItemText
+              primary={key}
+              secondary={value.toFixed(3)}
+            />
+          </ListItem>)
+      }))
+    };
+
+    if (sim) {
+      const content = JSON.parse(sim.results);
+      return (
+      <Dialog open={true} onBackdropClick={this.props.onBackdropClick}>
+        <DialogTitle>{`Results for "${sim.name}"`}</DialogTitle>
+        <DialogContent>
+           <List>
+            {items(content)}
+           </List>
+        </DialogContent>
+      </Dialog>
+      );
+    } else {
+      return null;
+    }
+  };
+}
 
 class Sims extends React.Component {
 
@@ -106,22 +157,36 @@ class Sims extends React.Component {
     })
   }
 
+  handleShowResults = (e, sim) => {
+    this.setState({ showResults: sim });
+    e.stopPropagation();
+  }
+
+  handleCloseResults = (e, sim) => {
+    this.setState({ showResults: null });
+    e.stopPropagation();
+  }
+
   render = () => {
     const { classes } = this.props;
 
-    if( ! this.props.data.loading ) {
+    if( this.props.data.networkStatus === 1 ) { // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
+      return null;
+    } else {
       const sims = this.props.data.viewer.sims;
       const buttonsDisabled = this.buttonsDisabled();
       return (
         <Grid container direction="column">
+          <ResultsDialog sim={this.state.showResults} onBackdropClick={this.handleCloseResults} />
           <Grid item>
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell padding="checkbox"></TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Status</TableCell>
                   <TableCell>Completed Time</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>KPIs</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -137,8 +202,9 @@ class Sims extends React.Component {
                        />
                      </TableCell>
                      <TableCell padding="none">{sim.name}</TableCell>
+                     <TableCell>{moment(sim.timeCompleted).format('MMMM Do YYYY, h:mm a')}</TableCell>
                      <TableCell padding="none">{sim.simStatus}</TableCell>
-                     <TableCell>{sim.timeCompleted}</TableCell>
+                     <TableCell><IconButton onClick={event => this.handleShowResults(event, sim)}><MoreVert/></IconButton></TableCell>
                    </TableRow>
                   );
                 })}
@@ -148,17 +214,15 @@ class Sims extends React.Component {
           <Grid item>
             <Grid className={classes.controls} container justify="flex-start" alignItems="center" >
               <Grid item>
-                <Button className={classes.button} variant="contained" disabled={true} onClick={this.handleRemove}>Remove Simulation</Button>
+                <Button className={classes.button} variant="contained" disabled={true} onClick={this.handleRemove}>Remove Test Results</Button>
               </Grid>
               <Grid item>
-                <Button className={classes.button} variant="contained" disabled={buttonsDisabled} onClick={this.handleDownload}>Download Simulation</Button>
+                <Button className={classes.button} variant="contained" disabled={buttonsDisabled} onClick={this.handleDownload}>Download Test Results</Button>
               </Grid>
             </Grid>
           </Grid>
         </Grid>
       );
-    } else {
-      return null;
     }
   }
 }
@@ -172,7 +236,8 @@ const simsQL = gql`
         simStatus,
         siteRef,
         url,
-        timeCompleted
+        timeCompleted,
+        results
       }
     }
   }
@@ -189,7 +254,7 @@ const styles = theme => ({
     marginLeft: 16,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(1),
   },
 });
 
