@@ -79,7 +79,7 @@ class StartDialog extends React.Component {
   }
 
   handleTimescaleChange = event => {
-    this.setState({ timescale: event.target.value })
+    this.setState({ timescale: Number(event.target.value) })
   }
 
   handleEndTimeChange = time => {
