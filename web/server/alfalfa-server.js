@@ -497,10 +497,7 @@ class AlfalfaServer extends HServer {
       } else {
         let array = new WriteArray();
         array._id = rec.id().val;
-        let siteRef = rec.get('siteRef',false);
-        if( siteRef ) {
-          array.siteRef = siteRef.val;
-        }
+        array.siteRef = rec.get('siteRef',{}).val;
         this.writearrays.insertOne(array).then( () => {
           return this.mrecs.updateOne(
             { "_id": array._id },
@@ -521,7 +518,7 @@ class AlfalfaServer extends HServer {
   onPointWrite(rec, level, val, who, dur, opts, callback) {
     const value = val ? val.val : null;
     const id = rec.id().val;
-    const siteRef = rec.siteRef;
+    const siteRef = rec.get('siteRef',{}).val;
     dbops.writePoint(id, siteRef, level, value, who, dur, this.db).then((array) => {
       const b = this.writeArrayToGrid(array);
       callback(null, b.toGrid());
