@@ -181,6 +181,28 @@ def finalize_simulation():
     recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": "","rec.step": "" } }, False)
     recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
 
+def getInputs(bypass_flag):
+    master_index = sp.variables.inputIndexFromVariableName("MasterEnable")
+    if bypass_flag:
+        ep.inputs[master_index] = 0
+    else:
+        ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)
+        ep.inputs[master_index] = 1
+        write_arrays = mongodb.writearrays
+        for array in write_arrays.find({"siteRef": sp.site_ref}):
+            for val in array.get('val'):
+                if val:
+                    index = sp.variables.inputIndex(array.get('_id'))
+                    if index == -1:
+                        logger.error('bad input index for: %s' % array.get('_id'))
+                    else:
+                        ep.inputs[index] = val
+                        ep.inputs[index + 1] = 1
+                        break
+    # Convert to tuple
+    inputs = tuple(ep.inputs)
+    return inputs
+
 ##################################################################################
 ##############     The Entry for the Main section of runsite.py      #############
 #########   The previous section contains all the functions to call  #############
@@ -218,12 +240,14 @@ if len(sys.argv) == 7:
         startDatetime = datetime.datetime(year,1,1,0,0)
     else:
         startDatetime = parse(startDatetime, ignoretz=True)
+        startDatetime = startDatetime.replace(second=0, microsecond=0)
 
     endDatetime = sys.argv[5]
     if endDatetime == 'undefined':
         endDatetime = datetime.datetime(year,12,31,23,59)
     else:
         endDatetime = parse(endDatetime, ignoretz=True)
+        endDatetime = endDatetime.replace(second=0, microsecond=0)
 
     external_clock = (sys.argv[6] == 'true')
 
@@ -353,7 +377,6 @@ try:
 
     while True:
         stop = False;
-    
         t = datetime.datetime.now().timestamp()
 
         if external_clock:
@@ -369,113 +392,66 @@ try:
         if ( ep.is_running and (sp.sim_status == 1) and (not stop) and t >= next_t and (not external_clock) ) or \
            ( (ep.is_running and (sp.sim_status == 1) and (not stop) and bypass_flag) ) or \
            ( ep.is_running and (sp.sim_status == 1) and (not stop) and (not bypass_flag) and external_clock and advance ):
-            try:
-                # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
-                # Instead we only check the database for stopping at each simulation step
-                rec = recs.find_one({"_id": sp.site_ref})
-                if rec and (rec.get("rec",{}).get("simStatus") == "s:Stopping") :
-                    stop = True;
-                    
-                if stop == False:
-                    packet = ep.read()
-                    if packet == '':
-                        raise mlep.InputError('packet', 'Message Empty: %s.' % ep.msg)
 
-                    variables = Variables(variables_new_path, sp.mapping)
+            # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
+            # Instead we only check the database for stopping at each simulation step
+            rec = recs.find_one({"_id": sp.site_ref})
+            if rec and (rec.get("rec",{}).get("simStatus") == "s:Stopping") :
+                stop = True;
+                
+            if stop == False:
+                # Write user inputs to E+
+                inputs = getInputs(bypass_flag)
+                ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
 
-                    # Parse it to obtain building outputs
-                    [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
-                    # Log Output Data
-                    ep.outputs = outputs
+                # Read outputs
+                packet = ep.read()
+                [ep.flag, eptime, outputs] = mlep.mlep_decode_packet(packet)
+                ep.outputs = outputs
+                energyplus_datetime = get_energyplus_datetime(sp.variables, outputs)
+                ep.kStep = ep.kStep + 1
 
-                    energyplus_datetime = get_energyplus_datetime(variables, outputs)
-                    
-                    # Check BYPASS
-                    if bypass_flag == True:
-                        if energyplus_datetime >= sp.startDatetime:  
-                            bypass_flag = False  # Stop bypass
-                            redis_client.hset(site_ref, 'control', 'idle')
-                    
-                    if ep.flag != 0:
-                        break
+                if energyplus_datetime >= sp.startDatetime:  
+                    bypass_flag = False  # Stop bypass
+                    redis_client.hset(site_ref, 'control', 'idle')
+            
+                if bypass_flag == False:
+                    for output_id in sp.variables.outputIds():
+                        output_index = sp.variables.outputIndex(output_id)
+                        if output_index == -1:
+                            logger.error('bad output index for: %s' % output_id)
+                        else:
+                            output_value = ep.outputs[output_index]
+                            
+                            # TODO: Make this better with a bulk update
+                            # Also at some point consider removing curVal and related fields after sim ends
+                            recs.update_one({"_id": output_id}, {
+                                "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
     
-                    master_index = sp.variables.inputIndexFromVariableName("MasterEnable")
-                    if bypass_flag:
-                        ep.inputs[master_index] = 0
-                    else:
-                        ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)
-                        ep.inputs[master_index] = 1
-                        write_arrays = mongodb.writearrays
-                        for array in write_arrays.find({"siteRef": sp.site_ref}):
-                            for val in array.get('val'):
-                                if val:
-                                    index = sp.variables.inputIndex(array.get('_id'))
-                                    if index == -1:
-                                        logger.error('bad input index for: %s' % array.get('_id'))
-                                    else:
-                                        ep.inputs[index] = val
-                                        ep.inputs[index + 1] = 1
-                                        break
-    
-                    # Convert to tuple
-                    inputs = tuple(ep.inputs)
-    
-                    # Write to inputs of E+
-                    ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
-        
-                    if bypass_flag == False:
-                        for output_id in sp.variables.outputIds():
-                            output_index = sp.variables.outputIndex(output_id)
-                            if output_index == -1:
-                                logger.error('bad output index for: %s' % output_id)
-                            else:
-                                output_value = ep.outputs[output_index]
-                                
-                                # TODO: Make this better with a bulk update
-                                # Also at some point consider removing curVal and related fields after sim ends
-                                recs.update_one({"_id": output_id}, {
-                                    "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok", "rec.cur": "m:"}}, False)
-    
-                        real_time_step = real_time_step + 1
-                        
-                        output_time_string = "s:%s" % energyplus_datetime.isoformat()
-                        recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(real_time_step), "rec.simStatus": "s:Running"}}, False)
-
-                    # Check Stop
-                    if ( ep.is_running == True and (energyplus_datetime > sp.endDatetime) ) :
-                        stop = True; 
+                    real_time_step = real_time_step + 1
+                    output_time_string = "s:%s" % energyplus_datetime.isoformat()
+                    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(real_time_step), "rec.simStatus": "s:Running"}}, False)
     
                     # Advance time
-                    ep.kStep = ep.kStep + 1
-                    next_t = t + sp.sim_step_time / sp.time_scale
+                    next_t = next_t + sp.sim_step_time / sp.time_scale
 
-                    if external_clock and not bypass_flag:
-                        advance = False
-                        redis_client.publish(sp.site_ref, 'complete')
-                        redis_client.hset(site_ref, 'control', 'idle')
-                  
-            except Exception as error:
-                logger.error("Error while advancing simulation: %s", sys.exc_info()[0])
-                traceback.print_exc()
-                finalize_simulation()
-                break
-                # TODO: Cleanup simulation, and reset everything
+                # Check Stop
+                if ( ep.is_running == True and (energyplus_datetime > sp.endDatetime) ) :
+                    stop = True
+                elif ( sp.sim_status == 3 and ep.is_running == True ) :
+                    stop = True
 
-        elif ( sp.sim_status == 3 and ep.is_running == True ) :
-            stop = True;
+                if external_clock and not bypass_flag:
+                    advance = False
+                    redis_client.publish(sp.site_ref, 'complete')
+                    redis_client.hset(site_ref, 'control', 'idle')
     
-        if stop :
-            try:
-                finalize_simulation()
-                ep.stop(True)      
-
-                ep.is_running = 0
-                sp.sim_status = 0
-                break
-            except:
-                logger.error("Error while attempting to stop / cleanup simulation")
-                finalize_simulation()
-                break
+        if stop:
+            finalize_simulation()
+            ep.stop(True)      
+            ep.is_running = 0
+            sp.sim_status = 0
+            break
 
 except:
     logger.error("Simulation error: %s", sys.exc_info()[0])
