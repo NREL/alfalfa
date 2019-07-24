@@ -4,6 +4,9 @@ import json
 import os
 import time
 from requests_toolbelt import MultipartEncoder
+from multiprocessing import Pool
+from functools import partial
+import copy
 
 class Boptest:
 
@@ -13,86 +16,37 @@ class Boptest:
         self.url = url
          
     def status(self, siteref):
-        status = ''
-
-        query = '{ viewer{ sites(siteRef: "%s") { simStatus } } }' % siteref
-        response = requests.post(self.url + '/graphql', json={'query': query})
-        j = json.loads(response.text)
-        sites = j["data"]["viewer"]["sites"]
-        if sites: 
-            status = sites[0]["simStatus"]
-
-        return status   
+        return status(self.url, siteref)
 
     def wait(self, siteref, desired_status):
-        sites = []
+        return wait(self.url, siteref, desired_status)
 
-        attempts = 0;
-        while attempts < 240:
-            attempts = attempts + 1
-            current_status = self.status(siteref)
-
-            if desired_status:
-                if current_status == desired_status:
-                    break
-            elif current_status:
-                break
-            time.sleep(0.1)
-
-    # this should be equivalent to uploading a file through 
-    # Boptest UI. See code here 
-    # https://github.com/NREL/alfalfa/blob/develop/web/components/Upload/Upload.js#L127
-    # return value should be a string unique identifier for the model
     def submit(self, path):
-        filename = os.path.basename(path)
-        uid = str(uuid.uuid1())
-        
-        key = 'uploads/' + uid + '/' + filename
-        payload = {'name': key}
+        args = {"url": self.url, "path": path}
+        return submit_one(args)
 
-        # Get a template for the file upload form data
-        # The server has an api to give this to us
-        response = requests.post(self.url + '/upload-url', json=payload)
-        
-        json = response.json()
-        postURL = json['url']
-        formData = json['fields']
-        formData['file'] = ('filename', open(path, 'rb'))
+    def submit_many(self, paths):
+        args = []
+        for path in paths:
+            args.append({"url": self.url, "path": path})
+        p = Pool(10)
+        result = p.map(submit_one, args)
+        return result
 
-        # Use the form data from the server to actually upload the file
-        encoder = MultipartEncoder(fields=formData)
-        response = requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
-
-        # After the file has been uploaded, then tell BOPTEST to process the site
-        # This is done not via the haystack api, but through a graphql api
-        mutation = 'mutation { addSite(osmName: "%s", uploadID: "%s") }' % (filename, uid)
-        response = requests.post(self.url + '/graphql', json={'query': mutation})
-
-        self.wait(uid, "Stopped")
-
-        return uid
+    def start(self, siteid, **kwargs):
+        args = {"url": self.url, "siteid": siteid, "kwargs": kwargs}
+        return start_one(args)
 
     # Start a simulation for model identified by id. The id should corrsespond to 
     # a return value from the submit method
     # kwargs are timescale, start_datetime, end_datetime, realtime, external_clock
-    def start(self,  site_id, **kwargs):
-        mutation = 'mutation { runSite(siteRef: "%s"' % site_id
-
-        if "timescale" in kwargs:
-            mutation = mutation + ', timescale: %s' % sim_params["timescale"]
-        if "start_datetime" in kwargs:
-            mutation = mutation + ', startDatetime: "%s"' % sim_params["start_datetime"]
-        if "end_datetime" in kwargs:
-            mutation = mutation + ', endDatetime: "%s"' % sim_params["end_datetime"]
-        if "realtime" in kwargs:
-            mutation = mutation + ', realtime: %s' % sim_params["realtime"]
-        if "external_clock" in kwargs:
-            mutation = mutation + ', externalClock: %s' % kwargs["external_clock"]
-
-        mutation = mutation + ') }'
-
-        response = requests.post(self.url + '/graphql', json={'query': mutation})
-        self.wait(site_id, "Running")
+    def start_many(self,  site_ids, **kwargs):
+        args = []
+        for siteid in site_ids:
+            args.append({"url": self.url, "siteid": siteid, "kwargs": kwargs})
+        p = Pool(10)
+        result = p.map(start_one, args)
+        return result
 
     def advance(self, siteids):
         ids = ', '.join('"{0}"'.format(s) for s in siteids)
@@ -100,14 +54,18 @@ class Boptest:
         payload = {'query': mutation}
         response = requests.post(self.url + '/graphql', json=payload )
 
+    def stop(self, siteid):
+        args = {"url": self.url, "siteid": siteid}
+        return stop_one(args)
+
     # Stop a simulation for model identified by id
-    def stop(self, siteid):    
-        mutation = 'mutation { stopSite(siteRef: "%s") }' % (siteid)
-        payload = {'query': mutation}
-        response = requests.post(self.url + '/graphql', json=payload )
-
-        self.wait(siteid, "Stopped")
-
+    def stop_many(self, siteids):    
+        args = []
+        for siteid in siteids:
+            args.append({"url": self.url, "siteid": siteid})
+        p = Pool(10)
+        result = p.map(stop_one, args)
+        return result
 
     ### remove a site for model identified by id
     ##def remove(self, id):
@@ -191,6 +149,97 @@ def convert(value):
         return float(value[2:])
     else:
         return value
+
+def status(url, siteref):
+    status = ''
+
+    query = '{ viewer{ sites(siteRef: "%s") { simStatus } } }' % siteref
+    response = requests.post(url + '/graphql', json={'query': query})
+    j = json.loads(response.text)
+    sites = j["data"]["viewer"]["sites"]
+    if sites: 
+        status = sites[0]["simStatus"]
+
+    return status   
+
+def wait(url, siteref, desired_status):
+    sites = []
+
+    attempts = 0;
+    while attempts < 240:
+        attempts = attempts + 1
+        current_status = status(url, siteref)
+
+        if desired_status:
+            if current_status == desired_status:
+                break
+        elif current_status:
+            break
+        time.sleep(0.1)
+
+def submit_one(args):
+    url = args["url"]
+    path = args["path"]
+    filename = os.path.basename(path)
+    uid = str(uuid.uuid1())
+    
+    key = 'uploads/' + uid + '/' + filename
+    payload = {'name': key}
+
+    # Get a template for the file upload form data
+    # The server has an api to give this to us
+    response = requests.post(url + '/upload-url', json=payload)
+    
+    json = response.json()
+    postURL = json['url']
+    formData = json['fields']
+    formData['file'] = ('filename', open(path, 'rb'))
+
+    # Use the form data from the server to actually upload the file
+    encoder = MultipartEncoder(fields=formData)
+    response = requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
+
+    # After the file has been uploaded, then tell BOPTEST to process the site
+    # This is done not via the haystack api, but through a graphql api
+    mutation = 'mutation { addSite(osmName: "%s", uploadID: "%s") }' % (filename, uid)
+    response = requests.post(url + '/graphql', json={'query': mutation})
+
+    wait(url, uid, "Stopped")
+
+    return uid
+
+def start_one(args):
+    url = args["url"]
+    site_id = args["siteid"]
+    kwargs = args["kwargs"]
+
+    mutation = 'mutation { runSite(siteRef: "%s"' % site_id
+
+    if "timescale" in kwargs:
+        mutation = mutation + ', timescale: %s' % sim_params["timescale"]
+    if "start_datetime" in kwargs:
+        mutation = mutation + ', startDatetime: "%s"' % sim_params["start_datetime"]
+    if "end_datetime" in kwargs:
+        mutation = mutation + ', endDatetime: "%s"' % sim_params["end_datetime"]
+    if "realtime" in kwargs:
+        mutation = mutation + ', realtime: %s' % sim_params["realtime"]
+    if "external_clock" in kwargs:
+        mutation = mutation + ', externalClock: %s' % kwargs["external_clock"]
+
+    mutation = mutation + ') }'
+
+    response = requests.post(url + '/graphql', json={'query': mutation})
+    wait(url, site_id, "Running")
+
+def stop_one(args):    
+    url = args["url"]
+    siteid = args["siteid"]
+
+    mutation = 'mutation { stopSite(siteRef: "%s") }' % (siteid)
+    payload = {'query': mutation}
+    response = requests.post(url + '/graphql', json=payload )
+
+    wait(url, siteid, "Stopped")
         
      
 

@@ -1,21 +1,18 @@
-# Execute this file from the test directory
-# python test2.py
-
+import sys
+import os
+thispath = os.path.dirname(os.path.abspath(__file__)) 
+sys.path.append(thispath + '/../')
 import boptest
 import time
-import sys
 from controllers import pid
 
-bop = boptest.Boptest(url='http://web')
+bop = boptest.Boptest(url='http://localhost')
 
 length = 48*3600
 step = 300
 u = pid.initialize()
 
-print(u)
-
-site = bop.submit('test/simple_1_zone_heating.fmu')
-sys.stdout.flush()
+site = bop.submit(thispath + '/simple_1_zone_heating.fmu')
 bop.start(site, external_clock = "true")
 
 for i in range(int(length/step)):
