@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose --file docker-compose-prod.yml convert
+    kompose.version: 1.18.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: worker
+  name: worker
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: worker
+    spec:
+      containers:
+      - env:
+        - name: AWS_ACCESS_KEY_ID
+          value: user
+        - name: AWS_SECRET_ACCESS_KEY
+          value: password
+        - name: JOB_QUEUE_URL
+          value: http://goaws:4100/queue/local-queue1
+        - name: LOGLEVEL
+          value: INFO
+        - name: MONGO_DB_NAME
+          value: alfalfa
+        - name: MONGO_URL
+          value: mongodb://mongo:27017/
+        - name: NODE_ENV
+          value: production
+        - name: REDIS_HOST
+          value: redis
+        - name: REGION
+          value: us-west-1
+        - name: S3_BUCKET
+          value: alfalfa
+        - name: S3_URL
+          value: http://minio:9000
+        image: ic-docker-registry.nrel.gov:5000/alfalfa-worker:latest
+        name: worker
+        resources: {}
+      restartPolicy: Always
+status: {}
