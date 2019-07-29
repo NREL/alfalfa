@@ -7,6 +7,7 @@ from requests_toolbelt import MultipartEncoder
 from multiprocessing import Pool
 from functools import partial
 import copy
+from collections import OrderedDict
 
 class Boptest:
 
@@ -31,6 +32,8 @@ class Boptest:
             args.append({"url": self.url, "path": path})
         p = Pool(10)
         result = p.map(submit_one, args)
+        p.close()
+        p.join()
         return result
 
     def start(self, siteid, **kwargs):
@@ -46,6 +49,8 @@ class Boptest:
             args.append({"url": self.url, "siteid": siteid, "kwargs": kwargs})
         p = Pool(10)
         result = p.map(start_one, args)
+        p.close()
+        p.join()
         return result
 
     def advance(self, siteids):
@@ -65,6 +70,8 @@ class Boptest:
             args.append({"url": self.url, "siteid": siteid})
         p = Pool(10)
         result = p.map(stop_one, args)
+        p.close()
+        p.join()
         return result
 
     ### remove a site for model identified by id
@@ -154,7 +161,13 @@ def status(url, siteref):
     status = ''
 
     query = '{ viewer{ sites(siteRef: "%s") { simStatus } } }' % siteref
-    response = requests.post(url + '/graphql', json={'query': query})
+    for i in range(3):
+        response = requests.post(url + '/graphql', json={'query': query})
+        if response.status_code == 200:
+            break
+    if response.status_code != 200:
+        print("Could not get status")
+
     j = json.loads(response.text)
     sites = j["data"]["viewer"]["sites"]
     if sites: 
@@ -166,7 +179,7 @@ def wait(url, siteref, desired_status):
     sites = []
 
     attempts = 0;
-    while attempts < 240:
+    while attempts < 6000:
         attempts = attempts + 1
         current_status = status(url, siteref)
 
@@ -175,7 +188,7 @@ def wait(url, siteref, desired_status):
                 break
         elif current_status:
             break
-        time.sleep(0.1)
+        time.sleep(2)
 
 def submit_one(args):
     url = args["url"]
@@ -188,21 +201,36 @@ def submit_one(args):
 
     # Get a template for the file upload form data
     # The server has an api to give this to us
-    response = requests.post(url + '/upload-url', json=payload)
+    for i in range(3):
+        response = requests.post(url + '/upload-url', json=payload)
+        if response.status_code == 200:
+            break
+    if response.status_code != 200:
+        print("Could not get upload-url")
     
     json = response.json()
     postURL = json['url']
-    formData = json['fields']
+    formData = OrderedDict(json['fields'])
     formData['file'] = ('filename', open(path, 'rb'))
 
     # Use the form data from the server to actually upload the file
     encoder = MultipartEncoder(fields=formData)
-    response = requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
+    for _ in range(3):
+        response = requests.post(postURL, data=encoder, headers={'Content-Type': encoder.content_type})
+        if response.status_code == 204:
+            break
+    if response.status_code != 204:
+        print("Could not post file")
 
     # After the file has been uploaded, then tell BOPTEST to process the site
     # This is done not via the haystack api, but through a graphql api
     mutation = 'mutation { addSite(osmName: "%s", uploadID: "%s") }' % (filename, uid)
-    response = requests.post(url + '/graphql', json={'query': mutation})
+    for _ in range(3):
+        response = requests.post(url + '/graphql', json={'query': mutation})
+        if response.status_code == 200:
+            break
+    if response.status_code != 200:
+        print("Could not addSite")
 
     wait(url, uid, "Stopped")
 
@@ -228,7 +256,11 @@ def start_one(args):
 
     mutation = mutation + ') }'
 
-    response = requests.post(url + '/graphql', json={'query': mutation})
+    for _ in range(3):
+        response = requests.post(url + '/graphql', json={'query': mutation})
+        if response.status_code == 200:
+            break
+
     wait(url, site_id, "Running")
 
 def stop_one(args):    
