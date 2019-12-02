@@ -8,7 +8,7 @@ WORKDIR /root
 
 COPY web/package.json web/package-lock.json /root/
 
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get install -y ca-certificates nodejs \
     && npm install
 

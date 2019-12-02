@@ -74,11 +74,11 @@ class RunFMUSite:
 
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-        
+
         #download the tar file and tag file
         self.bucket = self.s3.Bucket('alfalfa')
         self.bucket.download_file(key, tarpath)
-        
+
         tar = tarfile.open(tarpath)
         tar.extractall(sim_path)
         tar.close()
@@ -88,18 +88,19 @@ class RunFMUSite:
 
         # Load fmu
         config = {
-            'fmupath'  : fmupath,                
+            'fmupath'  : fmupath,
+            'start_time': self.startTime,
             'step'     : 300,
-            'kpipath' : self.directory + '/resources/kpis.json'
+            'kpipath'  : self.directory + '/resources/kpis.json',
         }
-            
+
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
- 
-        #initiate the testcase
-        self.tc = common.testcase.TestCase(config) 
-        
+
+        #initiate the testcase. Pass the config dict as arguments to use the kwargs in the initializer.
+        self.tc = common.testcase.TestCase(**config)
+
         #run the FMU simulation
-        self.kstep=0 
+        self.kstep = 0
         self.stop = False
         self.simtime = 0
 
@@ -110,8 +111,8 @@ class RunFMUSite:
         '''
         Purpose: matching the haystack display-name and IDs
         Inputs:  a json file containing all the tagged data
-        Returns: a dictionary matching all outputs and IDs 
-                 a dictionary matching all IDs and display-names 
+        Returns: a dictionary matching all outputs and IDs
+                 a dictionary matching all IDs and display-names
                  a dictionary for every _enable input, set to value 0
         '''
         outputs_and_ID = {}
@@ -120,24 +121,24 @@ class RunFMUSite:
         # with keys for every "_enable" input, set to value 0
         # in other words, disable everything
         default_input={}
-    
+
         # Get Haystack tag data, from tag_filepath
         tag_data = {}
         with open( tag_filepath ) as json_data:
             tag_data = json.load(json_data)
-    
+
         for point in tag_data:
             var_name = point['dis'].replace('s:','')
             var_id = point['id'].replace('r:','')
-    
+
             id_and_dis[var_id] = var_name
-            
+
             if 'writable' in point.keys():
                 default_input[var_name.replace('_u', '_activate')] = 0
-    
+
             if 'writable' not in point.keys() and 'point' in point.keys():
                 outputs_and_ID[var_name] = var_id
-             
+
         return (outputs_and_ID, id_and_dis, default_input)
 
     def run(self):
@@ -154,11 +155,11 @@ class RunFMUSite:
                         self.set_idle_state()
                     elif data == 'stop':
                         self.set_idle_state()
-                        break;
+                        break
         else:
             while self.simtime < self.endTime:
                 if self.db_stop_set():
-                    break;
+                    break
                 self.step()
                 # TODO: Make this respect time scale provided by user
                 time.sleep(5)
@@ -167,7 +168,7 @@ class RunFMUSite:
 
     # Check the database for a stop signal
     # and return true if stop is requested
-    def db_stop_set(self): 
+    def db_stop_set(self):
         # A client may have requested that the simulation stop early,
         # look for a signal to stop from the database
         self.site = self.recs.find_one({"_id": self.site_ref})
@@ -186,13 +187,13 @@ class RunFMUSite:
         self.recs.update_one({"_id": self.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""} }, False)
         self.recs.update_many({"site_ref": self.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": { "rec.curStatus": "s:disabled" } }, False)
         self.recs.update_many({"site_ref": self.site_ref, "rec.writable": "m:"}, {"$unset": {"rec.writeLevel": "","rec.writeVal": ""}, "$set": { "rec.writeStatus": "s:disabled" } }, False)
-        
+
         self.sim_id = str(uuid.uuid4())
         tarname = "%s.tar.gz" % self.sim_id
         tar = tarfile.open(tarname, "w:gz")
         tar.add(self.directory, filter=self.reset, arcname=self.sim_id)
         tar.close()
-        
+
         uploadkey = "simulated/%s" % tarname
         self.bucket.upload_file(tarname, uploadkey)
         os.remove(tarname)
@@ -216,10 +217,10 @@ class RunFMUSite:
         self.simtime = self.tc.final_time
         output_time_string = 's:%s' %(self.simtime)
         self.recs.update_one( {"_id": self.site_ref}, { "$set": {"rec.datetime": output_time_string, "rec.simStatus":"s:Running"} } )
-        
+
     def step(self):
         # u represents simulation input values
-        u=self.default_input.copy()
+        u = self.default_input.copy()
         # look in the database for current write arrays
         # for each write array there is an array of controller
         # input values, the first element in the array with a value
@@ -234,16 +235,16 @@ class RunFMUSite:
                         u[dis] = val
                         u[dis.replace('_u', '_activate')] = 1
                         break
-        
+
         y_output = self.tc.advance(u)
         self.update_sim_status()
-        
+
         # get each of the simulation output values and feed to the database
         for key in y_output.keys():
-            if key!='time': 
-                output_id = self.tagid_and_outputs[key]                          
+            if key!='time':
+                output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-                self.recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
+                self.recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )
 
 ####################   Entry for Main Program   #####################
 ############################################################################
@@ -259,19 +260,19 @@ if time_scale == 'undefined':
 else:
     time_scale = int(time_scale)
 if real_time_flag:
-    time_scale = 1 
+    time_scale = 1
 startTime = sys.argv[4]
 if startTime == 'undefined':
-    startTime = 0;
+    startTime = 0
 else:
-    starTime = int(sys.argv[4])
+    startTime = int(sys.argv[4])
 endTime = sys.argv[5]
 if endTime == 'undefined':
-    endTime = 86400;
+    endTime = 86400
 else:
     endTime = int(sys.argv[5])
 externalClock = (sys.argv[6] == 'true')
 
 runFMUSite = RunFMUSite(site_ref=site_ref, real_time_flag=real_time_flag, time_scale=time_scale, startTime=startTime, endTime=endTime, externalClock=externalClock)
 runFMUSite.run()
-    
+
