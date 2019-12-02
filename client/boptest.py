@@ -15,7 +15,7 @@ class Boptest:
     # default should be http://localhost/api
     def __init__(self, url='http://localhost'):
         self.url = url
-         
+
     def status(self, siteref):
         return status(self.url, siteref)
 
@@ -40,7 +40,7 @@ class Boptest:
         args = {"url": self.url, "siteid": siteid, "kwargs": kwargs}
         return start_one(args)
 
-    # Start a simulation for model identified by id. The id should corrsespond to 
+    # Start a simulation for model identified by id. The id should corrsespond to
     # a return value from the submit method
     # kwargs are timescale, start_datetime, end_datetime, realtime, external_clock
     def start_many(self,  site_ids, **kwargs):
@@ -64,7 +64,7 @@ class Boptest:
         return stop_one(args)
 
     # Stop a simulation for model identified by id
-    def stop_many(self, siteids):    
+    def stop_many(self, siteids):
         args = []
         for siteid in siteids:
             args.append({"url": self.url, "siteid": siteid})
@@ -82,17 +82,17 @@ class Boptest:
 
     ##    response = requests.post(self.url + '/graphql', json=payload )
     ##    print('remove site API response: \n')
-    ##    print(response.text) 
-    ##   
+    ##    print(response.text)
+    ##
 
     # Set inputs for model identified by display name
-    # The inputs argument should be a dictionary of 
+    # The inputs argument should be a dictionary of
     # with the form
     # inputs = {
     #  input_name: value1,
     #  input_name2: value2
     # }
-    def setInputs(self, siteid, inputs): 
+    def setInputs(self, siteid, inputs):
         for key,value in inputs.items():
             if value or (value == 0):
                 mutation = 'mutation { writePoint(siteRef: "%s", pointName: "%s", value: %s, level: 1 ) }' % (siteid, key, value)
@@ -170,10 +170,10 @@ def status(url, siteref):
 
     j = json.loads(response.text)
     sites = j["data"]["viewer"]["sites"]
-    if sites: 
+    if sites:
         status = sites[0]["simStatus"]
 
-    return status   
+    return status
 
 def wait(url, siteref, desired_status):
     sites = []
@@ -193,9 +193,10 @@ def wait(url, siteref, desired_status):
 def submit_one(args):
     url = args["url"]
     path = args["path"]
+
     filename = os.path.basename(path)
     uid = str(uuid.uuid1())
-    
+
     key = 'uploads/' + uid + '/' + filename
     payload = {'name': key}
 
@@ -207,7 +208,7 @@ def submit_one(args):
             break
     if response.status_code != 200:
         print("Could not get upload-url")
-    
+
     json = response.json()
     postURL = json['url']
     formData = OrderedDict(json['fields'])
@@ -263,7 +264,7 @@ def start_one(args):
 
     wait(url, site_id, "Running")
 
-def stop_one(args):    
+def stop_one(args):
     url = args["url"]
     siteid = args["siteid"]
 
@@ -272,6 +273,6 @@ def stop_one(args):
     response = requests.post(url + '/graphql', json=payload )
 
     wait(url, siteid, "Stopped")
-        
-     
+
+
 
