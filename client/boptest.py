@@ -1,13 +1,12 @@
-import uuid
-import requests
 import json
 import os
 import time
-from requests_toolbelt import MultipartEncoder
-from multiprocessing import Pool
-from functools import partial
-import copy
+import uuid
 from collections import OrderedDict
+from multiprocessing import Pool
+
+import requests
+from requests_toolbelt import MultipartEncoder
 
 
 class Boptest:
@@ -146,6 +145,7 @@ class Boptest:
                     break
 
         return result
+
 
 # remove any hastack type info from value and convert numeric strings
 # to python float. ie s: maps to python string n: maps to python float,
