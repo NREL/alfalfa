@@ -9,6 +9,7 @@ from functools import partial
 import copy
 from collections import OrderedDict
 
+
 class Boptest:
 
     # The url argument is the address of the Boptest server
@@ -43,7 +44,7 @@ class Boptest:
     # Start a simulation for model identified by id. The id should corrsespond to
     # a return value from the submit method
     # kwargs are timescale, start_datetime, end_datetime, realtime, external_clock
-    def start_many(self,  site_ids, **kwargs):
+    def start_many(self, site_ids, **kwargs):
         args = []
         for siteid in site_ids:
             args.append({"url": self.url, "siteid": siteid, "kwargs": kwargs})
@@ -57,7 +58,7 @@ class Boptest:
         ids = ', '.join('"{0}"'.format(s) for s in siteids)
         mutation = 'mutation { advance(siteRefs: [%s]) }' % (ids)
         payload = {'query': mutation}
-        response = requests.post(self.url + '/graphql', json=payload )
+        response = requests.post(self.url + '/graphql', json=payload)
 
     def stop(self, siteid):
         args = {"url": self.url, "siteid": siteid}
@@ -74,15 +75,15 @@ class Boptest:
         p.join()
         return result
 
-    ### remove a site for model identified by id
-    ##def remove(self, id):
+    # remove a site for model identified by id
+    # def remove(self, id):
     ##    mutation = 'mutation { removeSite(siteRef: "%s") }' % (id)
 
     ##    payload = {'query': mutation}
 
     ##    response = requests.post(self.url + '/graphql', json=payload )
     ##    print('remove site API response: \n')
-    ##    print(response.text)
+    # print(response.text)
     ##
 
     # Set inputs for model identified by display name
@@ -93,7 +94,7 @@ class Boptest:
     #  input_name2: value2
     # }
     def setInputs(self, siteid, inputs):
-        for key,value in inputs.items():
+        for key, value in inputs.items():
             if value or (value == 0):
                 mutation = 'mutation { writePoint(siteRef: "%s", pointName: "%s", value: %s, level: 1 ) }' % (siteid, key, value)
             else:
@@ -104,11 +105,11 @@ class Boptest:
     # result = {
     # output_name1 : output_value1,
     # output_name2 : output_value2
-    #}
+    # }
     def outputs(self, siteid):
         query = 'query { viewer { sites(siteRef: "%s") { points(cur: true) { dis tags { key value } } } } }' % (siteid)
         payload = {'query': query}
-        response = requests.post(self.url + '/graphql', json=payload )
+        response = requests.post(self.url + '/graphql', json=payload)
 
         j = json.loads(response.text)
         points = j["data"]["viewer"]["sites"][0]["points"]
@@ -127,11 +128,11 @@ class Boptest:
     # result = {
     # input_name1 : input_value1,
     # input_name2 : input_value2
-    #}
+    # }
     def inputs(self, siteid):
         query = 'query { viewer { sites(siteRef: "%s") { points(writable: true) { dis tags { key value } } } } }' % (siteid)
         payload = {'query': query}
-        response = requests.post(self.url + '/graphql', json=payload )
+        response = requests.post(self.url + '/graphql', json=payload)
 
         j = json.loads(response.text)
         points = j["data"]["viewer"]["sites"][0]["points"]
@@ -149,6 +150,8 @@ class Boptest:
 # remove any hastack type info from value and convert numeric strings
 # to python float. ie s: maps to python string n: maps to python float,
 # other values are simply returned unchanged, thus retaining any haystack type prefix
+
+
 def convert(value):
     if value[0:2] == 's:':
         return value[2:]
@@ -156,6 +159,7 @@ def convert(value):
         return float(value[2:])
     else:
         return value
+
 
 def status(url, siteref):
     status = ''
@@ -175,10 +179,11 @@ def status(url, siteref):
 
     return status
 
+
 def wait(url, siteref, desired_status):
     sites = []
 
-    attempts = 0;
+    attempts = 0
     while attempts < 6000:
         attempts = attempts + 1
         current_status = status(url, siteref)
@@ -189,6 +194,7 @@ def wait(url, siteref, desired_status):
         elif current_status:
             break
         time.sleep(2)
+
 
 def submit_one(args):
     url = args["url"]
@@ -237,6 +243,7 @@ def submit_one(args):
 
     return uid
 
+
 def start_one(args):
     url = args["url"]
     site_id = args["siteid"]
@@ -264,15 +271,13 @@ def start_one(args):
 
     wait(url, site_id, "Running")
 
+
 def stop_one(args):
     url = args["url"]
     siteid = args["siteid"]
 
     mutation = 'mutation { stopSite(siteRef: "%s") }' % (siteid)
     payload = {'query': mutation}
-    response = requests.post(url + '/graphql', json=payload )
+    response = requests.post(url + '/graphql', json=payload)
 
     wait(url, siteid, "Stopped")
-
-
-
