@@ -140,7 +140,7 @@ class Boptest:
         for point in points:
             tags = point["tags"]
             for tag in tags:
-                if tag["key"] == "writeVal":
+                if tag["key"] == "writeStatus":
                     result[convert(point["dis"])] = convert(tag["value"])
                     break
 
@@ -245,13 +245,13 @@ def start_one(args):
     mutation = 'mutation { runSite(siteRef: "%s"' % site_id
 
     if "timescale" in kwargs:
-        mutation = mutation + ', timescale: %s' % sim_params["timescale"]
+        mutation = mutation + ', timescale: %s' % kwargs["timescale"]
     if "start_datetime" in kwargs:
-        mutation = mutation + ', startDatetime: "%s"' % sim_params["start_datetime"]
+        mutation = mutation + ', startDatetime: "%s"' % kwargs["start_datetime"]
     if "end_datetime" in kwargs:
-        mutation = mutation + ', endDatetime: "%s"' % sim_params["end_datetime"]
+        mutation = mutation + ', endDatetime: "%s"' % kwargs["end_datetime"]
     if "realtime" in kwargs:
-        mutation = mutation + ', realtime: %s' % sim_params["realtime"]
+        mutation = mutation + ', realtime: %s' % kwargs["realtime"]
     if "external_clock" in kwargs:
         mutation = mutation + ', externalClock: %s' % kwargs["external_clock"]
 
