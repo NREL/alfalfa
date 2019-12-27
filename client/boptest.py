@@ -124,6 +124,24 @@ class Boptest:
 
         return result
 
+    def point_units(self, siteid):
+        query = 'query { viewer { sites(siteRef: "%s") { points(cur: true) { dis tags { key value } } } } }' % (siteid)
+        payload = {'query': query}
+        response = requests.post(self.url + '/graphql', json=payload)
+
+        j = json.loads(response.text)
+        points = j["data"]["viewer"]["sites"][0]["points"]
+        result = {}
+
+        for point in points:
+            tags = point["tags"]
+            for tag in tags:
+                if tag["key"] == "unit":
+                    result[convert(point["dis"])] = convert(tag["value"])
+                    break
+
+        return result
+
     # Return a dictionary of the current input values
     # result = {
     # input_name1 : input_value1,
