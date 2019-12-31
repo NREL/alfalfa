@@ -96,7 +96,8 @@ class Boptest:
     def setInputs(self, siteid, inputs):
         for key, value in inputs.items():
             if value or (value == 0):
-                mutation = 'mutation { writePoint(siteRef: "%s", pointName: "%s", value: %s, level: 1 ) }' % (siteid, key, value)
+                mutation = 'mutation { writePoint(siteRef: "%s", pointName: "%s", value: %s, level: 1 ) }' % (
+                siteid, key, value)
             else:
                 mutation = 'mutation { writePoint(siteRef: "%s", pointName: "%s", level: 1 ) }' % (siteid, key)
             response = requests.post(self.url + '/graphql', json={'query': mutation})
@@ -124,7 +125,30 @@ class Boptest:
 
         return result
 
-    def point_units(self, siteid):
+    # Return a list of all of the points in the
+    # model which have the 'cur' tag.
+    # result = [output_name1, output_name2, ...]
+    def all_cur_points(self, siteid):
+        query = 'query { viewer { sites(siteRef: "%s") { points(cur: true) { dis tags { key value } } } } }' % (siteid)
+        payload = {'query': query}
+        response = requests.post(self.url + '/graphql', json=payload)
+
+        j = json.loads(response.text)
+        points = j["data"]["viewer"]["sites"][0]["points"]
+        result = []
+
+        for point in points:
+            result.append(convert(point["dis"]))
+
+        return result
+
+    # Return a dictionary of the units for each
+    # of the points.  Only points with units are returned.
+    # result = {
+    # output_name1 : unit1,
+    # output_name2 : unit12
+    # }
+    def all_cur_points_with_units(self, siteid):
         query = 'query { viewer { sites(siteRef: "%s") { points(cur: true) { dis tags { key value } } } } }' % (siteid)
         payload = {'query': query}
         response = requests.post(self.url + '/graphql', json=payload)
@@ -142,13 +166,25 @@ class Boptest:
 
         return result
 
+    # Return the current time, as understood by the simulation
+    # result = String(%Y-%m-%dT%H:%M:%S
+    def get_sim_time(self, siteid):
+        query = 'query { viewer { sites(siteRef: "%s") { datetime } } }' % (siteid)
+        payload = {'query': query}
+        response = requests.post(self.url + '/graphql', json=payload)
+
+        j = json.loads(response.text)
+        dt = j["data"]["viewer"]["sites"][0]["datetime"]
+        return dt
+
     # Return a dictionary of the current input values
     # result = {
     # input_name1 : input_value1,
     # input_name2 : input_value2
     # }
     def inputs(self, siteid):
-        query = 'query { viewer { sites(siteRef: "%s") { points(writable: true) { dis tags { key value } } } } }' % (siteid)
+        query = 'query { viewer { sites(siteRef: "%s") { points(writable: true) { dis tags { key value } } } } }' % (
+            siteid)
         payload = {'query': query}
         response = requests.post(self.url + '/graphql', json=payload)
 
@@ -164,6 +200,7 @@ class Boptest:
                     break
 
         return result
+
 
 # remove any hastack type info from value and convert numeric strings
 # to python float. ie s: maps to python string n: maps to python float,
@@ -205,6 +242,9 @@ def wait(url, siteref, desired_status):
     while attempts < 6000:
         attempts = attempts + 1
         current_status = status(url, siteref)
+
+        if attempts % 100 == 0:
+            print("In boptest.wait, attempt: {}".format(attempts))
 
         if desired_status:
             if current_status == desired_status:
