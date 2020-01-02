@@ -97,7 +97,7 @@ class Boptest:
         for key, value in inputs.items():
             if value or (value == 0):
                 mutation = 'mutation { writePoint(siteRef: "%s", pointName: "%s", value: %s, level: 1 ) }' % (
-                siteid, key, value)
+                    siteid, key, value)
             else:
                 mutation = 'mutation { writePoint(siteRef: "%s", pointName: "%s", level: 1 ) }' % (siteid, key)
             response = requests.post(self.url + '/graphql', json={'query': mutation})
@@ -167,7 +167,7 @@ class Boptest:
         return result
 
     # Return the current time, as understood by the simulation
-    # result = String(%Y-%m-%dT%H:%M:%S
+    # result = String(%Y-%m-%dT%H:%M:%S)
     def get_sim_time(self, siteid):
         query = 'query { viewer { sites(siteRef: "%s") { datetime } } }' % (siteid)
         payload = {'query': query}
@@ -176,6 +176,24 @@ class Boptest:
         j = json.loads(response.text)
         dt = j["data"]["viewer"]["sites"][0]["datetime"]
         return dt
+
+    # Return a list of all the points in the model which
+    # have the 'writable' tag.
+    # result = [output_name1, output_name2, ...]
+    def all_writable_points(self, siteid):
+        query = 'query { viewer { sites(siteRef: "%s") { points(writable: true) { dis tags { key value } } } } }' % (
+            siteid)
+        payload = {'query': query}
+        response = requests.post(self.url + '/graphql', json=payload)
+
+        j = json.loads(response.text)
+        points = j["data"]["viewer"]["sites"][0]["points"]
+        result = []
+
+        for point in points:
+            result.append(convert(point["dis"]))
+
+        return result
 
     # Return a dictionary of the current input values
     # result = {
