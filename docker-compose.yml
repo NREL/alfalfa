@@ -84,12 +84,13 @@ services:
     image: mongo
     ports:
       - "27017:27017"
-  client-test:
-    build:
-      context: client
-      dockerfile: client/Dockerfile-test
-    depends_on:
-      - web
+  #client-test:
+  #  build:
+  #    context: client
+  #    # Dockerfile is missing
+  #    dockerfile: client/Dockerfile-test
+  #  depends_on:
+  #    - web
   redis:
     image: redis
     ports:
