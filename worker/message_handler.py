@@ -124,6 +124,8 @@ if __name__ == '__main__':
         if len(messages) > 0:
             msg = messages[0]
             logger.info('Message Received with payload: %s' % msg.body)
+            logger.info('CORY TEST')
+            logger.info('CORY TEST 2')
             # Process Message
             process_message(msg)
         #else:
