@@ -42,7 +42,7 @@ services:
     build:
       args:
         NODE_ENV: development
-      context: /Users/apeterse/projects/cbi/alfalfa
+      context: /Users/cmosiman/Github/alfalfa
       dockerfile: web/Dockerfile
     depends_on:
     - goaws
@@ -61,7 +61,7 @@ services:
       REGION: us-west-1
       S3_BUCKET: alfalfa
       S3_URL: http://minio:9000
-    image: 1lv11inten05.nrel.gov:5000/alfalfa-web:latest
+    image: cbilab.nrel.gov:5000/alfalfa-web:latest
     ports:
     - mode: host
       protocol: tcp
@@ -71,7 +71,7 @@ services:
       target: 29043
   worker:
     build:
-      context: /Users/apeterse/projects/cbi/alfalfa/worker
+      context: /Users/cmosiman/Github/alfalfa/worker
     depends_on:
     - goaws
     - mc
@@ -89,6 +89,6 @@ services:
       REGION: us-west-1
       S3_BUCKET: alfalfa
       S3_URL: http://minio:9000
-    image: 1lv11inten05.nrel.gov:5000/alfalfa-worker:latest
+    image: cbilab.nrel.gov:5000/alfalfa-worker:latest
 version: '3.2'
 
