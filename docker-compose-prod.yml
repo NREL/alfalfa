@@ -1,0 +1,94 @@
+services:
+  goaws:
+    image: pafortin/goaws
+    ports:
+    - published: 4100
+      target: 4100
+  mc:
+    depends_on:
+    - minio
+    entrypoint: '/bin/sh -c " sleep 5; /usr/bin/mc config host add myminio http://minio:9000
+      $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY}; /usr/bin/mc mb myminio/alfalfa; /usr/bin/mc
+      policy public myminio/alfalfa; "
+
+      '
+    environment:
+      MINIO_ACCESS_KEY: user
+      MINIO_SECRET_KEY: password
+    image: minio/mc
+  minio:
+    entrypoint:
+    - minio
+    - server
+    - /data
+    environment:
+      MINIO_ACCESS_KEY: user
+      MINIO_SECRET_KEY: password
+    image: minio/minio
+    ports:
+    - published: 9000
+      target: 9000
+  mongo:
+    image: mongo
+    ports:
+    - published: 27017
+      target: 27017
+  redis:
+    image: redis
+    ports:
+    - published: 6379
+      target: 6379
+  web:
+    build:
+      args:
+        NODE_ENV: development
+      context: /Users/apeterse/projects/cbi/alfalfa
+      dockerfile: web/Dockerfile
+    depends_on:
+    - goaws
+    - mc
+    - mongo
+    - redis
+    - worker
+    environment:
+      AWS_ACCESS_KEY_ID: user
+      AWS_SECRET_ACCESS_KEY: password
+      JOB_QUEUE_URL: http://goaws:4100/queue/local-queue1
+      MONGO_DB_NAME: alfalfa
+      MONGO_URL: mongodb://mongo:27017/
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REGION: us-west-1
+      S3_BUCKET: alfalfa
+      S3_URL: http://minio:9000
+    image: 1lv11inten05.nrel.gov:5000/alfalfa-web:latest
+    ports:
+    - mode: host
+      protocol: tcp
+      published: 80
+      target: 80
+    - published: 29043
+      target: 29043
+  worker:
+    build:
+      context: /Users/apeterse/projects/cbi/alfalfa/worker
+    depends_on:
+    - goaws
+    - mc
+    - mongo
+    - redis
+    environment:
+      AWS_ACCESS_KEY_ID: user
+      AWS_SECRET_ACCESS_KEY: password
+      JOB_QUEUE_URL: http://goaws:4100/queue/local-queue1
+      LOGLEVEL: INFO
+      MONGO_DB_NAME: alfalfa
+      MONGO_URL: mongodb://mongo:27017/
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REGION: us-west-1
+      S3_BUCKET: alfalfa
+      S3_URL: http://minio:9000
+    image: 1lv11inten05.nrel.gov:5000/alfalfa-worker:latest
+version: '3.2'
+
