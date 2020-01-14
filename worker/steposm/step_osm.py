@@ -218,6 +218,29 @@ def getInputs(bypass_flag):
     inputs = tuple(ep.inputs)
     return inputs
 
+def process_times(startDatetime, endDatetime):
+    """
+    Parse the provided times.  If none provided:
+        - startDatetime = Jan 1st, 00:00:00 of current year
+        - endDatetime = Dec 31st, 23:59:00 of current year
+    :param startDatetime: str()
+    :param endDatetime: str()
+    :return: tuple(datetime.datetime object, datetime.datetime object)
+    """
+    year = datetime.datetime.today().year
+    if startDatetime == 'undefined':
+        startDatetime = datetime.datetime(year, 1, 1, 0, 0)
+    else:
+        startDatetime = parse(startDatetime, ignoretz=True)
+        startDatetime = startDatetime.replace(second=0, microsecond=0)
+
+    if endDatetime == 'undefined':
+        endDatetime = datetime.datetime(year, 12, 31, 23, 59)
+    else:
+        endDatetime = parse(endDatetime, ignoretz=True)
+        endDatetime = endDatetime.replace(second=0, microsecond=0)
+
+    return(startDatetime, endDatetime)
 
 ##################################################################################
 ##############     The Entry for the Main section of runsite.py      #############
@@ -249,21 +272,10 @@ if len(sys.argv) == 7:
     if real_time_flag:
         time_scale = 1
 
-    year = datetime.datetime.today().year
-
+    # Process time
     startDatetime = sys.argv[4]
-    if startDatetime == 'undefined':
-        startDatetime = datetime.datetime(year, 1, 1, 0, 0)
-    else:
-        startDatetime = parse(startDatetime, ignoretz=True)
-        startDatetime = startDatetime.replace(second=0, microsecond=0)
-
     endDatetime = sys.argv[5]
-    if endDatetime == 'undefined':
-        endDatetime = datetime.datetime(year, 12, 31, 23, 59)
-    else:
-        endDatetime = parse(endDatetime, ignoretz=True)
-        endDatetime = endDatetime.replace(second=0, microsecond=0)
+    startDatetime, endDatetime = process_times(startDatetime, endDatetime)
 
     external_clock = (sys.argv[6] == 'true')
 
