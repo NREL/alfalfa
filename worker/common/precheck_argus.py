@@ -24,7 +24,6 @@
 ########################################################################################################################
 
 
-
 from __future__ import print_function
 import os
 import sys
@@ -48,10 +47,8 @@ def precheck_argus(argu_vars):
     try:
         if not os.path.exists(folderpath_cloud):
             os.makedirs(folderpath_cloud)
-    except:
+    except BaseException:
         print('error making add site parsing directory for upload_id: %s' % upload_id, file=sys.stderr)
         sys.exit(1)
 
     return (model_name, upload_id, folderpath_cloud)
-
-

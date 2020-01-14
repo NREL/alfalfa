@@ -218,6 +218,7 @@ def getInputs(bypass_flag):
     inputs = tuple(ep.inputs)
     return inputs
 
+
 def process_times(startDatetime, endDatetime):
     """
     Parse the provided times.  If none provided:
@@ -246,6 +247,7 @@ def process_times(startDatetime, endDatetime):
 ##############     The Entry for the Main section of runsite.py      #############
 #########   The previous section contains all the functions to call  #############
 ##################################################################################
+
 
 # Mongo Database
 mongo_client = MongoClient(os.environ['MONGO_URL'])
@@ -299,7 +301,7 @@ directory = os.path.join(sim_path, site_ref)
 try:
     if not os.path.exists(directory):
         os.makedirs(directory)
-except:
+except BaseException:
     sys.exit(1)
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -352,7 +354,7 @@ try:
     subprocess.call(['openstudio', 'steposm/translate_osm.rb', osmpath, sp.idf])
     shutil.copyfile(variables_path, variables_new_path)
 
-    ## Simulation Parameters
+    # Simulation Parameters
     replace_timestep_and_run_period_idf_settings(sp.idf + '.idf', sp.startDatetime, sp.endDatetime,
                                                  sp.sim_step_per_hour)
 
@@ -390,7 +392,7 @@ try:
     bypass_flag = True
 
     # Simulation Status
-    if ep.is_running == True:
+    if ep.is_running:
         sp.sim_status = 1
 
     # Set next step
@@ -405,7 +407,7 @@ try:
     real_time_step = 0
 
     while True:
-        stop = False;
+        stop = False
         t = datetime.datetime.now().timestamp()
 
         if external_clock:
@@ -421,15 +423,15 @@ try:
         if (ep.is_running and (sp.sim_status == 1) and (not stop) and t >= next_t and (not external_clock)) or \
                 ((ep.is_running and (sp.sim_status == 1) and (not stop) and bypass_flag)) or \
                 (ep.is_running and (sp.sim_status == 1) and (not stop) and (
-                        not bypass_flag) and external_clock and advance):
+                    not bypass_flag) and external_clock and advance):
 
             # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
             # Instead we only check the database for stopping at each simulation step
             rec = recs.find_one({"_id": sp.site_ref})
             if rec and (rec.get("rec", {}).get("simStatus") == "s:Stopping"):
-                stop = True;
+                stop = True
 
-            if stop == False:
+            if not stop:
                 # Write user inputs to E+
                 inputs = getInputs(bypass_flag)
                 ep.write(mlep.mlep_encode_real_data(2, 0, (ep.kStep - 1) * ep.deltaT, inputs))
@@ -445,7 +447,7 @@ try:
                     bypass_flag = False  # Stop bypass
                     redis_client.hset(site_ref, 'control', 'idle')
 
-                if bypass_flag == False:
+                if not bypass_flag:
                     for output_id in sp.variables.outputIds():
                         output_index = sp.variables.outputIndex(output_id)
                         if output_index == -1:
@@ -469,9 +471,9 @@ try:
                     next_t = next_t + sp.sim_step_time / sp.time_scale
 
                 # Check Stop
-                if (ep.is_running == True and (energyplus_datetime > sp.endDatetime)):
+                if (ep.is_running and (energyplus_datetime > sp.endDatetime)):
                     stop = True
-                elif (sp.sim_status == 3 and ep.is_running == True):
+                elif (sp.sim_status == 3 and ep.is_running):
                     stop = True
 
                 if external_clock and not bypass_flag:
@@ -486,7 +488,7 @@ try:
             sp.sim_status = 0
             break
 
-except:
+except BaseException:
     logger.error("Simulation error: %s", sys.exc_info()[0])
     traceback.print_exc()
     finalize_simulation()

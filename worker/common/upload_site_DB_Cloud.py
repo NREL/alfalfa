@@ -49,27 +49,25 @@ def upload_site_DB_Cloud(jsonpath, bucket, folderpath):
                     site_ref = entity['id'].replace('r:', '')
                     break
 
-
     if site_ref:
         # This adds a new haystack site to the database
         call(['npm', 'run', 'start', jsonpath, site_ref])
 
-       
         # Open the json file and get a site reference
         # Store the results by site ref
+
         def reset(tarinfo):
             tarinfo.uid = tarinfo.gid = 0
             tarinfo.uname = tarinfo.gname = "root"
-            
+
             return tarinfo
 
         tarname = "%s.tar.gz" % site_ref
         tar = tarfile.open(tarname, "w:gz")
         tar.add(folderpath, filter=reset, arcname=site_ref)
         tar.close()
-        
+
         # This upload the tagged site to the cloud
         bucket.upload_file(tarname, "parsed/%s" % tarname)
 
-        #os.remove(tarname)
-
+        # os.remove(tarname)

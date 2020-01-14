@@ -76,17 +76,17 @@ Note that if f is non-zero, other values after it will not be processed.
 import mlep
 
 
-def mlep_encode_real_data (vernumber, flag, time_value, real_values):
+def mlep_encode_real_data(vernumber, flag, time_value, real_values):
     # Check Inputs
-    if type(real_values) is not tuple:
+    if not isinstance(real_values, tuple):
         raise mlep.InputError('real_values', 'Real Value not a tuple')
 
     # Prepare Packet
     if vernumber <= 2:
         if flag == 0:
-            real_values_string = ('%d 0 %d 0 0 %20.15e ' %(vernumber, len(real_values), time_value),)
+            real_values_string = ('%d 0 %d 0 0 %20.15e ' % (vernumber, len(real_values), time_value),)
             for i in range(0, len(real_values)):
-                real_values_string = real_values_string + ('%20.15e'%real_values[i],)
+                real_values_string = real_values_string + ('%20.15e' % real_values[i],)
                 packet = ' '.join(real_values_string) + ' \n'
         else:
             # flag != 0

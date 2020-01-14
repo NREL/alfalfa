@@ -13,13 +13,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 You are under no obligation whatsoever to provide any bug fixes, patches, or upgrades to the features, functionality or performance of the source code ("Enhancements") to anyone; however, if you choose to make your Enhancements available either publicly, or directly to its copyright holders, without imposing a separate written license agreement for such Enhancements, then you hereby grant the following license: a non-exclusive, royalty-free perpetual license to install, use, modify, prepare derivative works, incorporate into other computer software, distribute, and sublicense such enhancements or derivative works thereof, in binary and source code form.
 
-Note: The license is a revised 3 clause BSD license with an ADDED paragraph at the end that makes it easy to accept improvements.       
-           
+Note: The license is a revised 3 clause BSD license with an ADDED paragraph at the end that makes it easy to accept improvements.
+
 '''
 
 """
-This module defines the API to the test case used by the REST requests to 
-perform functions such as advancing the simulation, retreiving test case 
+This module defines the API to the test case used by the REST requests to
+perform functions such as advancing the simulation, retreiving test case
 information, and calculating and reporting results.
 
 """
@@ -30,16 +30,17 @@ import copy
 from scipy.integrate import trapz
 from data.data_manager import Data_Manager
 
+
 class TestCase(object):
     '''Class that implements the test case.
-    
+
     '''
-    
+
     def __init__(self, con):
         '''Constructor.
-        
+
         '''
-        
+
         # Define simulation model
         self.fmupath = con['fmupath']
         # Load fmu
@@ -52,48 +53,48 @@ class TestCase(object):
         data_manager = Data_Manager(testcase=self)
         data_manager.load_data_and_kpisjson()
         # Get available control inputs and outputs
-        input_names = self.fmu.get_model_variables(causality = 2).keys()
-        output_names = self.fmu.get_model_variables(causality = 3).keys()
+        input_names = self.fmu.get_model_variables(causality=2).keys()
+        output_names = self.fmu.get_model_variables(causality=3).keys()
         # Get input and output meta-data
         self.inputs_metadata = self._get_var_metadata(self.fmu, input_names, inputs=True)
         self.outputs_metadata = self._get_var_metadata(self.fmu, output_names)
         # Define outputs data
-        self.y = {'time':[]}
+        self.y = {'time': []}
         for key in output_names:
             self.y[key] = []
         self.y_store = copy.deepcopy(self.y)
         # Define inputs data
-        self.u = {'time':[]}
+        self.u = {'time': []}
         for key in input_names:
             self.u[key] = []
         self.u_store = copy.deepcopy(self.u)
         # Set default options
         self.options = self.fmu.simulate_options()
-        self.options['CVode_options']['rtol'] = 1e-6 
+        self.options['CVode_options']['rtol'] = 1e-6
         # Set default communication step
         self.set_step(con['step'])
         # Set initial simulation start
         self.start_time = 0
         self.initialize = True
         self.options['initialize'] = self.initialize
-        
-    def advance(self,u):
+
+    def advance(self, u):
         '''Advances the test case model simulation forward one step.
-        
+
         Parameters
         ----------
         u : dict
             Defines the control input data to be used for the step.
             {<input_name> : <input_value>}
-            
+
         Returns
         -------
         y : dict
             Contains the measurement data at the end of the step.
             {<measurement_name> : <measurement_value>}
-            
+
         '''
-        
+
         # Set final time
         self.final_time = self.start_time + self.step
         # Set control inputs if they exist and are written
@@ -123,15 +124,15 @@ class TestCase(object):
                 input_object = (u_list, np.transpose(u_trajectory))
             # Otherwise, input object is None
             else:
-                input_object = None    
+                input_object = None
         # Otherwise, input object is None
         else:
             input_object = None
         # Simulate
         self.options['initialize'] = self.initialize
-        res = self.fmu.simulate(start_time=self.start_time, 
-                                final_time=self.final_time, 
-                                options=self.options, 
+        res = self.fmu.simulate(start_time=self.start_time,
+                                final_time=self.final_time,
+                                options=self.options,
                                 input=input_object)
         # Get result and store measurement
         for key in self.y.keys():
@@ -139,19 +140,19 @@ class TestCase(object):
             self.y_store[key] = self.y_store[key] + res[key].tolist()[1:]
         # Store control inputs
         for key in self.u.keys():
-            self.u_store[key] = self.u_store[key] + res[key].tolist()[1:] 
+            self.u_store[key] = self.u_store[key] + res[key].tolist()[1:]
         # Advance start time
         self.start_time = self.final_time
         # Prevent inialize
         self.initialize = False
-        
+
         return self.y
 
     def reset(self):
         '''Reset the test.
-        
+
         '''
-        
+
         self.__init__()
 
     def get_step(self):
@@ -159,98 +160,98 @@ class TestCase(object):
 
         return self.step
 
-    def set_step(self,step):
+    def set_step(self, step):
         '''Sets the simulation step in seconds.
-        
+
         Parameters
         ----------
         step : int
             Simulation step in seconds.
-            
+
         Returns
         -------
         None
-        
+
         '''
-        
+
         self.step = float(step)
-        
+
         return None
-        
+
     def get_inputs(self):
         '''Returns a dictionary of control inputs and their meta-data.
-        
+
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         inputs : dict
             Dictionary of control inputs and their meta-data.
-            
+
         '''
 
         inputs = self.inputs_metadata
-        
+
         return inputs
-        
+
     def get_measurements(self):
         '''Returns a dictionary of measurements and their meta-data.
-        
+
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         measurements : dict
             Dictionary of measurements and their meta-data.
-            
+
         '''
 
         measurements = self.outputs_metadata
-        
+
         return measurements
-        
+
     def get_results(self):
         '''Returns measurement and control input trajectories.
-        
+
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         Y : dict
-            Dictionary of measurement and control input names and their 
+            Dictionary of measurement and control input names and their
             trajectories as lists.
             {'y':{<measurement_name>:<measurement_trajectory>},
              'u':{<input_name>:<input_trajectory>}
             }
-        
+
         '''
-        
-        Y = {'y':self.y_store, 'u':self.u_store}
-        
+
+        Y = {'y': self.y_store, 'u': self.u_store}
+
         return Y
-        
+
     def get_kpis(self):
         '''Returns KPI data.
-        
+
         Requires standard sensor signals.
-        
+
         Parameters
         ----------
         None
-        
+
         Returns
         kpis : dict
             Dictionary containing KPI names and values.
             {<kpi_name>:<kpi_value>}
-        
+
         '''
-        
+
         kpis = dict()
         # Calculate each KPI using json for signalsand save in dictionary
         for kpi in self.kpi_json.keys():
@@ -263,51 +264,51 @@ class TestCase(object):
                     power = self.y_store[signal]
                     E = E + np.trapz(power, time)
                 # Store result in dictionary
-                kpis['energy'] = E*2.77778e-7 # Convert to kWh
+                kpis['energy'] = E * 2.77778e-7  # Convert to kWh
             elif kpi == 'AirZoneTemperature':
                 # Calculate total discomfort [K-h = assumes measured in K]
                 tot_dis = 0
-                heat_setpoint = 273.15+20
+                heat_setpoint = 273.15 + 20
                 for signal in self.kpi_json[kpi]:
                     data = np.array(self.y_store[signal])
                     dT_heating = heat_setpoint - data
-                    dT_heating[dT_heating<0]=0
-                    tot_dis = tot_dis + trapz(dT_heating,self.y_store['time'])/3600
+                    dT_heating[dT_heating < 0] = 0
+                    tot_dis = tot_dis + trapz(dT_heating, self.y_store['time']) / 3600
                 # Store result in dictionary
                 kpis['comfort'] = tot_dis
             else:
                 print('No calculation for KPI named "{0}".'.format(kpi))
 
         return kpis
-        
+
     def get_name(self):
         '''Returns the name of the test case fmu.
-        
+
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         name : str
             Name of test case fmu.
-            
+
         '''
-        
+
         name = self.fmupath[7:-4]
-        
+
         return name
-        
+
     def _get_var_metadata(self, fmu, var_list, inputs=False):
         '''Build a dictionary of variables and their metadata.
-        
+
         Parameters
         ----------
         fmu : pyfmi fmu object
             FMU from which to get variable metadata
         var_list : list of str
             List of variable names
-            
+
         Returns
         -------
         var_metadata : dict
@@ -318,12 +319,12 @@ class TestCase(object):
                 "Minimum" : float,
                 "Maximum" : float
             }
-            
+
         '''
-        
+
         # Inititalize
         var_metadata = dict()
-        # Get metadata        
+        # Get metadata
         for var in var_list:
             # Units
             if var == 'time':
@@ -345,32 +346,32 @@ class TestCase(object):
                 else:
                     mini = None
                     maxi = None
-            var_metadata[var] = {'Unit':unit,
-                                 'Description':description,
-                                 'Minimum':mini,
-                                 'Maximum':maxi}
+            var_metadata[var] = {'Unit': unit,
+                                 'Description': description,
+                                 'Minimum': mini,
+                                 'Maximum': maxi}
 
         return var_metadata
-        
+
     def _check_value_min_max(self, var, value):
         '''Check that the input value does not violate the min or max.
-        
+
         Note that if it does, the value is truncated to the minimum or maximum.
-        
+
         Parameters
         ----------
         var : str
             Name of variable
         value : numeric
             Specified value of variable
-            
+
         Return
         ------
         checked_value : float
             Value of variable truncated by min and max.
-            
+
         '''
-        
+
         # Get minimum and maximum for variable
         mini = self.inputs_metadata[var]['Minimum']
         maxi = self.inputs_metadata[var]['Maximum']
@@ -385,4 +386,3 @@ class TestCase(object):
             checked_value = value
 
         return checked_value
-            

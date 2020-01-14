@@ -329,11 +329,11 @@ class Worker:
 if __name__ == '__main__':
     try:
         worker = Worker()
-    except:  # TODO: what exceptions to catch?
+    except BaseException:  # TODO: what exceptions to catch?
         print('Exception while starting up worker', file=sys.stderr)
         sys.exit(1)
 
     try:
         worker.run()  # run the worker
-    except:  # TODO: what exceptions to catch?
+    except BaseException:  # TODO: what exceptions to catch?
         pass

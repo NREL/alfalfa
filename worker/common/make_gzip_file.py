@@ -35,7 +35,7 @@ def make_gzip_file(site_ref, folderpath):
     Purpose: make a new gzipped file with desired inputs
     Inputs: site_ref --- the uuid to be added to the gzip filename
             folderpath   --- the folderpath where to add the new gzip file
-    Outputs: a gzip file, for examle, d0f1cc38-764f-4655-870b-c74d80567986.tar.gz 
+    Outputs: a gzip file, for examle, d0f1cc38-764f-4655-870b-c74d80567986.tar.gz
     '''
     # Open the json file and get a site reference
     # Store the results by site ref
@@ -51,6 +51,5 @@ def make_gzip_file(site_ref, folderpath):
     tar = tarfile.open(tarname, "w:gz")
     tar.add(folderpath, filter=reset, arcname=site_ref)
     tar.close()
-   
+
     return tarname
-    

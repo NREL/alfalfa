@@ -43,7 +43,7 @@ logger = logging.getLogger('addsite')
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-log_file = os.path.join(directory,'addsite.log')
+log_file = os.path.join(directory, 'addsite.log')
 fh = logging.FileHandler(log_file)
 fh.setLevel(logging.INFO)
 fh.setFormatter(formatter)
@@ -71,7 +71,7 @@ if osws:
     oswpath = osws[0]
     oswdir = os.path.dirname(oswpath)
     # this is where the new osm will be after we run the workflow
-    osmpath = os.path.join(oswdir,'run/in.osm')
+    osmpath = os.path.join(oswdir, 'run/in.osm')
     epws = glob.glob(("%s/files/*.epw" % oswdir), recursive=True)
     if epws:
         user_epwpath = epws[0]
@@ -80,7 +80,7 @@ else:
 
 call(['openstudio', 'run', '-m', '-w', oswpath])
 
-# Now take the osm produced by the osw and run 
+# Now take the osm produced by the osw and run
 # it through another workflow to generate tags
 
 seedpath = os.path.join(directory, 'seed.osm')
@@ -104,4 +104,3 @@ common.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 common.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
-

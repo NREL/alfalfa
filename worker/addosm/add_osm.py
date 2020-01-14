@@ -41,7 +41,7 @@ logger = logging.getLogger('addsite')
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-log_file = os.path.join(directory,'addsite.log')
+log_file = os.path.join(directory, 'addsite.log')
 fh = logging.FileHandler(log_file)
 fh.setLevel(logging.INFO)
 fh.setFormatter(formatter)
@@ -75,4 +75,3 @@ common.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 common.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
-

@@ -200,7 +200,7 @@ def mlep_create(program_name, arguments, work_dir, timeout, port, host, bcvtb_di
                 fid.write(socket_config[4])
                 fid.write(socket_config[5])
 
-            except:
+            except BaseException:
                 print('Error while writing socket config file: %s', config_file)
 
         fid.close()

@@ -4,7 +4,7 @@ import uuid
 
 #replace_ids.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 def replace_siteid(uploadid, points_jsonpath, mapping_jsonpath):
-    #step-1: find the siteid from jsonfile
+    # step-1: find the siteid from jsonfile
     with open(points_jsonpath, 'r') as jsonfile:
         data = json.load(jsonfile)
         for x in data:
@@ -14,19 +14,20 @@ def replace_siteid(uploadid, points_jsonpath, mapping_jsonpath):
                 else:
                     pass
 
-    #step-2: replace the siteid with uploadid
+    # step-2: replace the siteid with uploadid
     for x in data:
         for y in x.keys():
-            if 'siteRef'== y:
+            if 'siteRef' == y:
                 x['siteRef'] = 'r:' + uploadid
             elif 'site' == y:
                 x['id'] = 'r:' + uploadid
             else:
                 pass
 
-    #step-3: replace the old json file with updated jsonfile
-    with open(points_jsonpath,'w') as jsonfile:
+    # step-3: replace the old json file with updated jsonfile
+    with open(points_jsonpath, 'w') as jsonfile:
         json.dump(data, jsonfile)
+
 
 def make_ids_unique(uploadid, points_jsonpath, mapping_jsonpath):
     # map of old id to new id
@@ -44,7 +45,7 @@ def make_ids_unique(uploadid, points_jsonpath, mapping_jsonpath):
 
         # now use map to update all references to old id
         for point in points:
-            for tag,oldvalue in point.items():
+            for tag, oldvalue in point.items():
                 if oldvalue in idmap:
                     point[tag] = idmap[oldvalue]
 
@@ -61,5 +62,3 @@ def make_ids_unique(uploadid, points_jsonpath, mapping_jsonpath):
 
     with open(mapping_jsonpath, 'w') as jsonfile:
         json.dump(points, jsonfile)
-
-

@@ -30,6 +30,7 @@
 
 import json
 
+
 def obtain_id_siteref(jsonpath):
     '''
     Purpose: remove the r: from the site id in json file

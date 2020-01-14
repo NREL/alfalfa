@@ -71,6 +71,7 @@ import mlep
 import socket
 import time
 
+
 class MlepProcess:
     def __init__(self):
         self.description = 'mlepProcess Object'
@@ -140,7 +141,7 @@ class MlepProcess:
             [self.server_socket, self.comm_socket, status, msg] = \
                 mlep.mlep_create(self.program, self.arguments, self.workDir, self.accept_timeout, the_port,
                                  self.host, self.bcvtbDir, the_config_file, self.env, self.exe_cmd)
-        except:
+        except BaseException:
             import traceback
             traceback.print_exc()
             print('Throw Error/Close Socket')
@@ -183,10 +184,10 @@ class MlepProcess:
 
             # Close connection
             if self.comm_socket:
-                #self.comm_socket.stop() #original way of terminating a socket connection
-                #time.sleep(10) # add some extra time for buffer to finish energyplus post-processing
-                #pass
-                self.comm_socket.close() #the correct way by Yanfei
+                # self.comm_socket.stop() #original way of terminating a socket connection
+                # time.sleep(10) # add some extra time for buffer to finish energyplus post-processing
+                # pass
+                self.comm_socket.close()  # the correct way by Yanfei
                 self.comm_socket = None
 
         except Exception as e:

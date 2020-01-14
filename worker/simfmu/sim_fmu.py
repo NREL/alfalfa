@@ -54,15 +54,15 @@ try:
 
     upload_file_name = sys.argv[1]
     upload_id = sys.argv[2]
-    
+
     key = "uploads/%s/%s" % (upload_id, upload_file_name)
     directory = os.path.join('/simulate', upload_id)
     rootname = os.path.splitext(upload_file_name)[0]
     downloadpath = os.path.join(directory, upload_file_name)
-    
+
     if not os.path.exists(directory):
         os.makedirs(directory)
-    
+
     bucket = s3.Bucket(os.environ['S3_BUCKET'])
     bucket.download_file(key, downloadpath)
 
@@ -70,8 +70,8 @@ try:
 
     # Load fmu
     config = {
-        'fmupath'  : downloadpath,                
-        'step'     : 60
+        'fmupath': downloadpath,
+        'step': 60
     }
 
     tc = common.testcase.TestCase(config)
@@ -80,11 +80,10 @@ try:
     while tc.start_time < 10000:
         tc.advance(u)
 
-    #shutil.rmtree(directory)
-    
+    # shutil.rmtree(directory)
+
     time = str(datetime.now(tz=pytz.UTC))
     sims.update_one({"_id": upload_id}, {"$set": {"simStatus": "Complete", "timeCompleted": time, "s3Key": ''}}, False)
 
 except Exception as e:
     print('runFMU: %s' % e, file=sys.stderr)
-

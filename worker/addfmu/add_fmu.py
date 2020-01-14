@@ -51,7 +51,6 @@ bucket.download_file(key, fmupath)
 
 call(['python', 'addfmu/create_tags.py', fmupath, fmu_upload_name, jsonpath])
 
-common.upload_site_DB_Cloud( jsonpath, bucket, directory )
+common.upload_site_DB_Cloud(jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
-
