@@ -204,12 +204,12 @@ class Worker:
             #  is misleading because we are also handling FMUs
             name, ext = os.path.splitext(osm_name)
             if ext == '.osm':
-                subprocess.call(['python', 'addosm/add_osm.py', osm_name, upload_id])
+                subprocess.call(['python', 'add_site/add osm/add_osm.py', osm_name, upload_id])
             elif ext == '.zip':
                 # assume it contains an osw
-                subprocess.call(['python3.5', 'addosw/add_osw.py', osm_name, upload_id])
+                subprocess.call(['python3.5', 'add_site/add_osw/add_osw.py', osm_name, upload_id])
             elif ext == '.fmu':
-                subprocess.call(['python', 'addfmu/add_fmu.py', osm_name, upload_id])
+                subprocess.call(['python', 'add_site/add_fmu/add_fmu.py', osm_name, upload_id])
             else:
                 self.worker_logger.logger.info('Unsupported file type was uploaded')
 
@@ -238,11 +238,11 @@ class Worker:
             self.worker_logger.logger.info('Start step_sim for site_id: %s, and sim_type: %s' % (site_id, sim_type))
             if sim_type == 'fmu':
                 subprocess.call(
-                    ['python', 'stepfmu/step_fmu.py', site_id, step_sim_type, step_sim_value, start_datetime,
+                    ['python', 'step_sim/step_fmu/step_fmu.py', site_id, step_sim_type, step_sim_value, start_datetime,
                      end_datetime])
             elif sim_type == 'osm':
                 subprocess.call(
-                    ['python3.5', 'steposm/step_osm.py', site_id, step_sim_type, step_sim_value, start_datetime,
+                    ['python3.5', 'step_sim/step_osm/step_osm.py', site_id, step_sim_type, step_sim_value, start_datetime,
                      end_datetime])
             else:
                 self.worker_logger.logger.info(
@@ -272,9 +272,9 @@ class Worker:
 
             name, ext = os.path.splitext(upload_filename)
             if ext == '.gz':
-                subprocess.call(['python3.5', 'simosm/sim_osm.py', upload_filename, upload_id])
+                subprocess.call(['python3.5', 'run_sim/sim_osm/sim_osm.py', upload_filename, upload_id])
             elif ext == '.fmu':
-                subprocess.call(['python', 'simfmu/sim_fmu.py', upload_filename, upload_id])
+                subprocess.call(['python', 'run_sim/sim_fmu/sim_fmu.py', upload_filename, upload_id])
             else:
                 self.worker_logger.logger.info('Unsupported file type was uploaded')
 

@@ -45,7 +45,7 @@ jsonpath = os.path.join(directory, 'tags.json')
 bucket = s3.Bucket(os.environ['S3_BUCKET'])
 bucket.download_file(key, fmupath)
 
-call(['python', 'addfmu/create_tags.py', fmupath, fmu_upload_name, jsonpath])
+call(['python', 'add_site/add_fmu/create_tags.py', fmupath, fmu_upload_name, jsonpath])
 
 common.upload_site_DB_Cloud(jsonpath, bucket, directory)
 
