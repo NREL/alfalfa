@@ -29,7 +29,7 @@ import boto3
 import tarfile
 import shutil
 from pymongo import MongoClient
-from parsevariables import Variables
+from parse_variables import Variables
 import sys
 import mlep
 import subprocess
