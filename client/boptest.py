@@ -5,8 +5,6 @@ import os
 import time
 from requests_toolbelt import MultipartEncoder
 from multiprocessing import Pool
-from functools import partial
-import copy
 from collections import OrderedDict
 
 
@@ -58,7 +56,7 @@ class Boptest:
         ids = ', '.join('"{0}"'.format(s) for s in siteids)
         mutation = 'mutation { advance(siteRefs: [%s]) }' % (ids)
         payload = {'query': mutation}
-        response = requests.post(self.url + '/graphql', json=payload)
+        requests.post(self.url + '/graphql', json=payload)
 
     def stop(self, siteid):
         args = {"url": self.url, "siteid": siteid}
@@ -77,14 +75,12 @@ class Boptest:
 
     # remove a site for model identified by id
     # def remove(self, id):
-    ##    mutation = 'mutation { removeSite(siteRef: "%s") }' % (id)
-
-    ##    payload = {'query': mutation}
-
-    ##    response = requests.post(self.url + '/graphql', json=payload )
-    ##    print('remove site API response: \n')
+    #    mutation = 'mutation { removeSite(siteRef: "%s") }' % (id)
+    #    payload = {'query': mutation}
+    #    response = requests.post(self.url + '/graphql', json=payload )
+    #    print('remove site API response: \n')
     # print(response.text)
-    ##
+    #
 
     # Set inputs for model identified by display name
     # The inputs argument should be a dictionary of
@@ -100,7 +96,7 @@ class Boptest:
                     siteid, key, value)
             else:
                 mutation = 'mutation { writePoint(siteRef: "%s", pointName: "%s", level: 1 ) }' % (siteid, key)
-            response = requests.post(self.url + '/graphql', json={'query': mutation})
+            requests.post(self.url + '/graphql', json={'query': mutation})
 
     # Return a dictionary of the output values
     # result = {
@@ -254,7 +250,7 @@ def status(url, siteref):
 
 
 def wait(url, siteref, desired_status):
-    sites = []
+    pass
 
     attempts = 0
     while attempts < 6000:
@@ -354,6 +350,6 @@ def stop_one(args):
 
     mutation = 'mutation { stopSite(siteRef: "%s") }' % (siteid)
     payload = {'query': mutation}
-    response = requests.post(url + '/graphql', json=payload)
+    requests.post(url + '/graphql', json=payload)
 
     wait(url, siteid, "Stopped")

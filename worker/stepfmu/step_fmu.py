@@ -36,7 +36,7 @@ import zipfile
 from pymongo import MongoClient
 import common
 import common.testcase
-from datetime import date, datetime, timedelta
+from datetime import datetime
 import pytz
 
 
@@ -246,8 +246,7 @@ class RunFMUSite:
                 value_y = y_output[key]
                 self.recs.update_one({"_id": output_id}, {"$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
 
-####################   Entry for Main Program   #####################
-############################################################################
+# Main Program Entry
 
 # get arguments from calling program
 # which is the processMessage program

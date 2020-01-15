@@ -29,17 +29,11 @@ import glob
 import boto3
 import tarfile
 import shutil
-import time
 from pymongo import MongoClient
 import sys
 import subprocess
-import logging
-import re
-from datetime import date, datetime, timedelta
+from datetime import datetime
 import pytz
-import calendar
-import traceback
-from dateutil.parser import parse
 
 try:
     sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])

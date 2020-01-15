@@ -36,7 +36,6 @@ This module contains the custom error classes for mlep
 
 class Error(Exception):
     """Base class for exceptions in this module."""
-    pass
 
 
 class InputError(Error):

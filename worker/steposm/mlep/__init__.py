@@ -42,10 +42,10 @@ Modules:
 :copyright: (c) 2016 by The Alliance for Sustainable Energy
 :lice
 """
-from .mlep_process import MlepProcess
-from .mlep_create import mlep_create
-from .mlep_decode_packet import mlep_decode_packet
-from .mlep_encode_real_data import mlep_encode_real_data
-from .mlep_encode_status import mlep_encode_status
-from .mlep_error import *
-from .mlep_parse_json import mlep_parse_json
+from .mlep_process import MlepProcess  # noqa
+from .mlep_create import mlep_create  # noqa
+from .mlep_decode_packet import mlep_decode_packet  # noqa
+from .mlep_encode_real_data import mlep_encode_real_data  # noqa
+from .mlep_encode_status import mlep_encode_status  # noqa
+from .mlep_error import *  # noqa
+from .mlep_parse_json import mlep_parse_json  # noqa

@@ -69,7 +69,6 @@ Note that if f is non-zero, other values after it will not be processed.
 
 import mlep
 import socket
-import time
 
 
 class MlepProcess:

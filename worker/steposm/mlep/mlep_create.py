@@ -134,7 +134,7 @@ def mlep_create(program_name, arguments, work_dir, timeout, port, host, bcvtb_di
 
     # Save current directory and change directory if necessary
     if work_dir is not None:
-        old_cur_dir = os.getcwd()
+        os.getcwd()
         os.chdir(work_dir)
     # Get the correct directory
     work_dir = os.getcwd()
@@ -167,9 +167,8 @@ def mlep_create(program_name, arguments, work_dir, timeout, port, host, bcvtb_di
         server_address = ('127.0.0.1', port)
         print('Server started on %s:%s' % server_address)
         # Host name
-        host_name = host
     else:
-        host_name = gethostbyname(gethostname())
+        gethostbyname(gethostname())
 
     # Set Timeout
     server_sock.settimeout(timeout / 1000)
@@ -234,7 +233,7 @@ def start_process(program_name, args, env, work_dir):
     cmd = [program_name]
     for kk in range(0, len(args)):
         cmd.append(args[kk])
-    #print ("\n*** Yanfei *** cmd: ", cmd)
+    # print ("\n*** Yanfei *** cmd: ", cmd)
     # Process and set env variables
     for kk in range(0, len(env)):
         os.environ[list(env.keys())[kk]] = env[list(env.keys())[kk]]

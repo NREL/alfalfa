@@ -1,3 +1,7 @@
+import requests
+import json
+
+
 def send_reading_requests(point_id_readable):
     '''
     Purpose: receive responses of http-reading-requests for Haystack point

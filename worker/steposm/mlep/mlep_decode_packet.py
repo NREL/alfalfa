@@ -88,8 +88,6 @@ def mlep_decode_packet(packet):
     flag = 0
     time_value = 0
     real_values = 0
-    int_values = 0
-    bool_values = 0
 
     # Remove non-printable characters from packet
     packet = packet.decode("utf-8")
@@ -117,8 +115,6 @@ def mlep_decode_packet(packet):
         flag = data[1]
 
         real_values = ()
-        int_values = ()
-        bool_values = ()
 
         # Read on
         if flag == 0:
@@ -134,8 +130,6 @@ def mlep_decode_packet(packet):
             # Now read data to vectors
             time_value = data[5]
             real_values = data[6:6 + numReal]
-            int_values = data[6 + numReal:6 + numReal + numInt]
-            bool_values = data[6 + numReal + numInt:6 + numReal + numInt + numBool]
 
         else:
             # Non-zero flag --> don't need to read on

@@ -42,9 +42,6 @@ def make_gzip_file(site_ref, folderpath):
     def reset(tarinfo):
         tarinfo.uid = tarinfo.gid = 0
         tarinfo.uname = tarinfo.gname = "root"
-        #print ("))))))(((((: tarinfo: ", tarinfo)
-        #print ("))))))tar uid: ", tarinfo.uid)
-        #print ("))))))tar uname: ", tarinfo.uname)
         return tarinfo
 
     tarname = "%s.tar.gz" % site_ref

@@ -28,23 +28,18 @@ import os
 import boto3
 import tarfile
 import shutil
-import time
 from pymongo import MongoClient
 from parsevariables import Variables
 import sys
 import mlep
 import subprocess
 import logging
-import re
 import datetime
 import pytz
-import calendar
 import traceback
 import uuid
 from dateutil.parser import parse
-import math
 import redis
-from dateutil import parser
 
 
 # Replace Date
@@ -66,7 +61,6 @@ def replace_timestep_and_run_period_idf_settings(idf_file, startDatetime, endDat
     # the basic idea is to locate the pattern first (e.g. Timestep, RunPeriod)
     # then find the relavant lines by couting how many lines away from the patten.
     count = -1
-    count_ts = 0
     with open(idf_file, 'r+') as f:
         lines = f.readlines()
         f.seek(0)
@@ -243,10 +237,7 @@ def process_times(startDatetime, endDatetime):
 
     return(startDatetime, endDatetime)
 
-##################################################################################
-##############     The Entry for the Main section of runsite.py      #############
-#########   The previous section contains all the functions to call  #############
-##################################################################################
+# Main Section
 
 
 # Mongo Database

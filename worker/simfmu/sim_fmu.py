@@ -25,23 +25,11 @@
 
 from __future__ import print_function
 import os
-import glob
 import boto3
-import tarfile
-import shutil
-import time
 from pymongo import MongoClient
 import sys
-import subprocess
-import logging
-import re
-from datetime import date, datetime, timedelta
+from datetime import datetime
 import pytz
-import calendar
-import traceback
-from dateutil.parser import parse
-from pyfmi import load_fmu
-import copy
 import common.testcase
 
 try:

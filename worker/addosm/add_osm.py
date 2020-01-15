@@ -27,10 +27,8 @@ from __future__ import print_function
 import sys
 import os
 import boto3
-import json
 import tarfile
 import shutil
-import time
 from subprocess import call
 import logging
 import common

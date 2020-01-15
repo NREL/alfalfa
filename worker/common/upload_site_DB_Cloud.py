@@ -27,8 +27,6 @@
 '''
 
 import json
-import sys
-import os
 from subprocess import call
 import tarfile
 

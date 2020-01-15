@@ -28,11 +28,9 @@ import sys
 import os
 import glob
 import boto3
-import json
 import tarfile
 import zipfile
 import shutil
-import time
 from subprocess import call
 import logging
 import common
