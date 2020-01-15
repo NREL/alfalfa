@@ -5,7 +5,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "start": "babel-node ./addosm/add-site.js"
+    "start": "babel-node ./add_site/add_osm/add-site.js"
   },
   "dependencies": {
     "babel-cli": "^6.24.1",

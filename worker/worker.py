@@ -81,7 +81,7 @@ class Worker:
         :return: formatted time string
         """
         try:
-            dt = datetime.strptime("%Y-%m-%d %H:%M:%S")
+            dt = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
             return (dt.strftime("%Y-%m-%d %H:%M:%S"))
         except ValueError:
             self.worker_logger.logger.info("Invalid datetime string passed: {}".format(dt))
@@ -119,9 +119,15 @@ class Worker:
                                         end)  # TODO change server side message: endDatetime to end_datetime
         realtime = message_body.get('realtime', False) == 'true'
         timescale = message_body.get('timescale', False)  # type checking below in if statement
+        timescale = False if timescale == 'undefined' else timescale
         external_clock = message_body.get('externalClock',
                                           False) == 'true'  # TODO change server side message: externalClock to external_clock
 
+        # TODO remove after tests written
+        self.worker_logger.logger.info("realtime type: {}\trealtime: {}".format(type(realtime), realtime))
+        self.worker_logger.logger.info("timescale type: {}\ttimescale: {}".format(type(timescale), timescale))
+        self.worker_logger.logger.info(
+            "external_clock type: {}\texternal_clock: {}".format(type(external_clock), external_clock))
         # Only want one of: realtime, timescale, or external_clock.  Else, reject configuration.
         if (realtime and timescale) or (realtime and external_clock) or (timescale and external_clock):
             self.worker_logger.logger.info(
@@ -156,27 +162,94 @@ class Worker:
 
         return (step_sim_type, step_sim_value, start_datetime, end_datetime)
 
-    def check_message_body(self, message_body, type):
+    def check_message_body(self, message_body, message_type):
         """
         Check that the message body contains minimum necessary keys before next step is processed.
 
         :param message_body: Body of a single message from a boto3 Queue resource
         :type message_body: dict
-        :param str type: One of 'add_site', 'step_sim', 'run_sim'
+        :param str message_type: One of 'add_site', 'step_sim', 'run_sim'
         :return:
         """
-        if type == 'add_site':
+        self.worker_logger.logger.info("Checking message_body for: {}".format(message_type))
+        self.worker_logger.logger.info("message_body: {}".format(message_body))
+        if message_type == 'add_site':
             osm_name = message_body.get('osm_name', False)
             upload_id = message_body.get('upload_id', False)
             to_return = False if not osm_name or not upload_id else True
-        elif type == 'step_sim':
+        elif message_type == 'step_sim':
             site_id = message_body.get('id', False)
             to_return = False if not site_id else True
-        elif type == 'run_sim':
+        elif message_type == 'run_sim':
             upload_filename = message_body.get('upload_filename', False)
             upload_id = message_body.get('upload_id', False)
             to_return = False if not upload_filename or not upload_id else True
         return (to_return)
+
+    def check_subprocess_call(self, rc, file_name, message_type):
+        """
+        Simple wrapper to check and log subprocess calls
+
+        :param rc: return code as returned by subprocess.call() method
+        :param file_name:
+        :return:
+        """
+        if rc == 0:
+            self.worker_logger.logger.info("{} successful for: {}".format(message_type, file_name))
+        else:
+            self.worker_logger.logger.info("{} unsuccessful for: {}".format(message_type, file_name))
+            self.worker_logger.logger.info("{} return code: {}".format(message_type, rc))
+
+    def add_site_type(self, p, file_name, upload_id):
+        """
+        Simple wrapper for the add_site subprocess call given the path for python file to call
+
+        :param p: path of file to call
+        :param file_name: name of file to run with extension
+        :param upload_id:
+        :return:
+        """
+        if not os.path.isfile(p):
+            self.worker_logger.logger.info("No file: {}".format(p))
+        else:
+            return_code = subprocess.call(['python', p, file_name, upload_id])
+            self.check_subprocess_call(return_code, file_name, 'add_site')
+
+    def step_sim_type(self, p, site_id, step_sim_type, step_sim_value, start_datetime,
+                      end_datetime):
+        """
+        Simple wrapper for the step_sim subprocess call given required params
+
+        :param p:
+        :param site_id:
+        :param step_sim_type:
+        :param step_sim_value:
+        :param start_datetime:
+        :param end_datetime:
+        :return:
+        """
+        if not os.path.isfile(p):
+            self.worker_logger.logger.info("No file: {}".format(p))
+        else:
+            return_code = subprocess.call(
+                ['python', p, site_id, step_sim_type, step_sim_value, start_datetime,
+                 end_datetime])
+            self.check_subprocess_call(return_code, site_id, 'step_sim')
+
+    def run_sim_type(self, p, file_name, upload_id):
+        """
+        Simple wrapper for the run_sim subprocess call given the path for python file to call
+
+        :param p: path of file to call
+        :param file_name: name of file to run with extension
+        :param upload_id:
+        :return:
+        """
+        if not os.path.isfile(p):
+            self.worker_logger.logger.info("No file: {}".format(p))
+        else:
+            return_code = subprocess.call(['python', p, file_name, upload_id])
+            self.check_subprocess_call(return_code, file_name, 'run_sim')
 
     def add_site(self, message_body):
         """
@@ -196,22 +269,25 @@ class Worker:
                 'message_body for add_site does not have correct keys.  Site will not be added.')
             # TODO insert sys.exit(1)?
         else:
-            osm_name = message_body.get('osm_name')
+            file_name = message_body.get('osm_name')  # TODO: change message body to file_name (for fmu)
             upload_id = message_body.get('upload_id')
-            self.worker_logger.logger.info('Add site for osm_name: %s, and upload_id: %s' % (osm_name, upload_id))
+            self.worker_logger.logger.info('Add site for file_name: %s, and upload_id: %s' % (file_name, upload_id))
 
             # TODO reorganize the message names, because now "osm_name"
             #  is misleading because we are also handling FMUs
-            name, ext = os.path.splitext(osm_name)
+            name, ext = os.path.splitext(file_name)
             if ext == '.osm':
-                subprocess.call(['python', 'add_site/add osm/add_osm.py', osm_name, upload_id])
+                p = 'add_site/add_osm/add_osm.py'
+                self.add_site_type(p, file_name, upload_id)
             elif ext == '.zip':
-                # assume it contains an osw
-                subprocess.call(['python3.5', 'add_site/add_osw/add_osw.py', osm_name, upload_id])
+                p = 'add_site/add_osw/add_osw.py'
+                self.add_site_type(p, file_name, upload_id)
             elif ext == '.fmu':
-                subprocess.call(['python', 'add_site/add_fmu/add_fmu.py', osm_name, upload_id])
+                p = 'add_site/add_fmu/add_fmu.py'
+                self.add_site_type(p, file_name, upload_id)
             else:
-                self.worker_logger.logger.info('Unsupported file type was uploaded')
+                self.worker_logger.logger.info(
+                    "Unsupported file type: {}.  Valid extensions: .osm, .zip, .fmu".format(ext))
 
     def step_sim(self, message_body):
         """
@@ -232,18 +308,17 @@ class Worker:
         else:
             site_id = message_body.get('id')
             site_rec = self.ac.recs.find_one({"_id": site_id})
-            sim_type = site_rec.get("rec", {}).get("sim_type", "osm").replace("s:",
-                                                                              "")  # TODO: do we still want default to be 'osm'?
+
+            # TODO: do we still want default to be 'osm'?
+            sim_type = site_rec.get("rec", {}).get("sim_type", "osm").replace("s:", "")
             step_sim_type, step_sim_value, start_datetime, end_datetime = self.check_step_sim_config(message_body)
             self.worker_logger.logger.info('Start step_sim for site_id: %s, and sim_type: %s' % (site_id, sim_type))
             if sim_type == 'fmu':
-                subprocess.call(
-                    ['python', 'step_sim/step_fmu/step_fmu.py', site_id, step_sim_type, step_sim_value, start_datetime,
-                     end_datetime])
+                p = 'step_sim/step_fmu/step_fmu.py'
+                self.step_sim_type(p, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime)
             elif sim_type == 'osm':
-                subprocess.call(
-                    ['python3.5', 'step_sim/step_osm/step_osm.py', site_id, step_sim_type, step_sim_value, start_datetime,
-                     end_datetime])
+                p = 'step_sim/step_osm/step_osm.py'
+                self.step_sim_type(p, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime)
             else:
                 self.worker_logger.logger.info(
                     "Invalid simulation type: {}.  Only 'fmu' and 'osm' are currently supported".format(sim_type))
@@ -272,9 +347,11 @@ class Worker:
 
             name, ext = os.path.splitext(upload_filename)
             if ext == '.gz':
-                subprocess.call(['python3.5', 'run_sim/sim_osm/sim_osm.py', upload_filename, upload_id])
+                p = 'run_sim/sim_osm/sim_osm.py'
+                self.run_sim_type(p, upload_filename, upload_id)
             elif ext == '.fmu':
-                subprocess.call(['python', 'run_sim/sim_fmu/sim_fmu.py', upload_filename, upload_id])
+                p = 'run_sim/sim_fmu/sim_fmu.py'
+                self.run_sim_type(p, upload_filename, upload_id)
             else:
                 self.worker_logger.logger.info('Unsupported file type was uploaded')
 
@@ -315,20 +392,25 @@ class Worker:
 
         :return:
         """
+        self.worker_logger.logger.info("Enter worker run")
         while True:
             # WaitTimeSeconds triggers long polling that will wait for events to enter queue
             # Receive Message
-            messages = self.ac.queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20)
-            if len(messages) > 0:
-                message = messages[0]
-                self.worker_logger.info('Message Received with payload: %s' % message.body)
-                # Process Message
-                self.process_message(message)
+            try:
+                messages = self.ac.queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20)
+                if len(messages) > 0:
+                    message = messages[0]
+                    self.worker_logger.logger.info('Message Received with payload: %s' % message.body)
+                    # Process Message
+                    self.process_message(message)
+            except BaseException as e:
+                self.worker_logger.logger.info("Exception caught in worker.run: {}".format(e))
 
 
 if __name__ == '__main__':
     try:
         worker = Worker()
+        worker.worker_logger.logger.info("Worker initialized")
     except BaseException:  # TODO: what exceptions to catch?
         print('Exception while starting up worker', file=sys.stderr)
         sys.exit(1)
@@ -336,4 +418,4 @@ if __name__ == '__main__':
     try:
         worker.run()  # run the worker
     except BaseException:  # TODO: what exceptions to catch?
-        pass
+        print('Exception while running worker', file=sys.stderr)
