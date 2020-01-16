@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# fanlaunch: common code for unix scripts
+# fanlaunch: lib code for unix scripts
 #
 
 # Operating system

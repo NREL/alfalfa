@@ -30,7 +30,7 @@ from pymongo import MongoClient
 import sys
 from datetime import datetime
 import pytz
-import common.testcase
+import lib.testcase
 
 try:
     s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
@@ -62,7 +62,7 @@ try:
         'step': 60
     }
 
-    tc = common.testcase.TestCase(config)
+    tc = lib.testcase.TestCase(config)
 
     u = {}
     while tc.start_time < 10000:

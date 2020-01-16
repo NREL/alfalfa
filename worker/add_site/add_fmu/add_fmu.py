@@ -29,9 +29,9 @@ import os
 import boto3
 import shutil
 from subprocess import call
-import common
+import lib
 
-(fmu_upload_name, upload_id, directory) = common.precheck_argus(sys.argv)
+(fmu_upload_name, upload_id, directory) = lib.precheck_argus(sys.argv)
 
 s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
@@ -47,6 +47,6 @@ bucket.download_file(key, fmupath)
 
 call(['python', 'add_site/add_fmu/create_tags.py', fmupath, fmu_upload_name, jsonpath])
 
-common.upload_site_DB_Cloud(jsonpath, bucket, directory)
+lib.upload_site_DB_Cloud(jsonpath, bucket, directory)
 
 shutil.rmtree(directory)

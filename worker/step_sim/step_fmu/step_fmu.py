@@ -34,8 +34,8 @@ import redis
 import uuid
 import zipfile
 from pymongo import MongoClient
-import common
-import common.testcase
+import lib
+import lib.testcase
 from datetime import datetime
 import pytz
 
@@ -97,7 +97,7 @@ class RunFMUSite:
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
 
         # initiate the testcase
-        self.tc = common.testcase.TestCase(config)
+        self.tc = lib.testcase.TestCase(config)
 
         # run the FMU simulation
         self.kstep = 0

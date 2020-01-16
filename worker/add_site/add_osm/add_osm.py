@@ -31,9 +31,9 @@ import tarfile
 import shutil
 from subprocess import call
 import logging
-import common
+import lib
 
-(osm_name, upload_id, directory) = common.precheck_argus(sys.argv)
+(osm_name, upload_id, directory) = lib.precheck_argus(sys.argv)
 
 logger = logging.getLogger('addsite')
 logger.setLevel(logging.INFO)
@@ -67,9 +67,9 @@ bucket.download_file(key, seedpath)
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
-common.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
-common.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
+lib.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
+lib.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 
-common.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
+lib.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
