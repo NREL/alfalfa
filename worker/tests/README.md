@@ -13,7 +13,7 @@ For defining tests to be written and tracking progress
 1. json.loads(message.body) doesn't work - how to handle?
 2. In general, where are the valid values defined for (this validation should be made server side, correct?):
     - realtime, external_clock: 'true', 'undefined', no key, others...?
-    - timescale: 'undefined', integer value wrapped as str, others...?
+    - timescale: 'undefined', integer value wrapped as str, no key, others...?
     - start_datetime, end_datetime: 'undefined', datetime string format, no key, others...?
 
 ### check_message_body
@@ -60,3 +60,8 @@ For defining tests to be written and tracking progress
 
 ## General
 1. For add_site, step_sim, run_sim, want a test to kill subprocess & make sure gets logged when incorrect return codes?
+2. In the underlying add_site, step_sim, run_sim, will they all have the same environment variables avaialble to them, i.e. so they can use that AlfalfaConnections class?
+
+# add_site
+
+# step_sim

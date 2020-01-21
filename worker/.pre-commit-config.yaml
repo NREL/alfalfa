@@ -12,4 +12,4 @@
   rev: 3.7.9
   hooks:
     - id: flake8
-      args: ['--ignore=E501,E402,W503,E731']
+      args: ['--ignore=E501,E402,W503,E731,F401']

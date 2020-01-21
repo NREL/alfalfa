@@ -48,10 +48,10 @@ class RunFMUSite:
 
         # Initiate Mongo Database
         mongo_client = MongoClient(os.environ['MONGO_URL'])
-        self.mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
-        self.recs = self.mongodb.recs
-        self.write_arrays = self.mongodb.writearrays
-        self.sims = self.mongodb.sims
+        self.mongo_db = mongo_client[os.environ['MONGO_DB_NAME']]
+        self.recs = self.mongo_db.recs
+        self.write_arrays = self.mongo_db.writearrays
+        self.sims = self.mongo_db.sims
 
         # get arguments from calling program
         # which is the processMessage program

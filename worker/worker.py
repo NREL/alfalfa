@@ -32,6 +32,7 @@ import subprocess
 import sys
 import logging
 from pymongo import MongoClient
+from redis import Redis
 from datetime import datetime
 
 
@@ -41,11 +42,15 @@ class AlfalfaConnections:
     def __init__(self):
         self.sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
         self.queue = self.sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
-        self.s3 = boto3.resource('s3', region_name=os.environ['REGION'])
-
+        self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+        self.redis = Redis(host=os.environ['REDIS_HOST'])
+        self.pubsub = self.redis.pubsub()
         self.mongo_client = MongoClient(os.environ['MONGO_URL'])
-        self.mongodb = self.mongo_client[os.environ['MONGO_DB_NAME']]
-        self.recs = self.mongodb.recs
+        self.mongo_db = self.mongo_client[os.environ['MONGO_DB_NAME']]
+        self.recs = self.mongo_db.recs
+        self.write_arrays = self.mongo_db.writearrays
+        self.sims = self.mongo_db.sims
+        self.bucket = self.s3.Bucket(os.environ['S3_BUCKET'])
 
 
 class WorkerLogger:
@@ -143,8 +148,7 @@ class Worker:
 
         if realtime:
             step_sim_type = "realtime"
-            step_sim_value = "true"
-            start_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # TODO: epoch time?
+            step_sim_value = "1"
         elif timescale:
             if str(timescale).isdigit():
                 step_sim_type = "timescale"
@@ -212,11 +216,11 @@ class Worker:
         if not os.path.isfile(p):
             self.worker_logger.logger.info("No file: {}".format(p))
         else:
-            return_code = subprocess.call(['python', p, file_name, upload_id])
+            return_code = subprocess.call(['python3.5', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'add_site')
 
     def step_sim_type(self, p, site_id, step_sim_type, step_sim_value, start_datetime,
-                      end_datetime):
+                      end_datetime, model_type):
         """
         Simple wrapper for the step_sim subprocess call given required params
 
@@ -228,12 +232,28 @@ class Worker:
         :param end_datetime:
         :return:
         """
+
         if not os.path.isfile(p):
             self.worker_logger.logger.info("No file: {}".format(p))
         else:
-            return_code = subprocess.call(
-                ['python', p, site_id, step_sim_type, step_sim_value, start_datetime,
-                 end_datetime])
+            if step_sim_type == 'external_clock':
+                if model_type == 'fmu':
+                    return_code = subprocess.call(
+                        ['python', p, site_id, step_sim_type, start_datetime,
+                         end_datetime])
+                else:
+                    return_code = subprocess.call(
+                        ['python3.5', p, site_id, step_sim_type, start_datetime,
+                         end_datetime])
+            else:
+                if model_type == 'fmu':
+                    return_code = subprocess.call(
+                        ['python', p, site_id, step_sim_type, start_datetime,
+                         end_datetime, '--step_sim_value {}'.format(step_sim_value)])
+                else:
+                    return_code = subprocess.call(
+                        ['python3.5', p, site_id, step_sim_type, start_datetime,
+                         end_datetime])
             self.check_subprocess_call(return_code, site_id, 'step_sim')
 
     def run_sim_type(self, p, file_name, upload_id):
@@ -248,7 +268,7 @@ class Worker:
         if not os.path.isfile(p):
             self.worker_logger.logger.info("No file: {}".format(p))
         else:
-            return_code = subprocess.call(['python', p, file_name, upload_id])
+            return_code = subprocess.call(['python3.5', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'run_sim')
 
     def add_site(self, message_body):
@@ -313,12 +333,14 @@ class Worker:
             sim_type = site_rec.get("rec", {}).get("sim_type", "osm").replace("s:", "")
             step_sim_type, step_sim_value, start_datetime, end_datetime = self.check_step_sim_config(message_body)
             self.worker_logger.logger.info('Start step_sim for site_id: %s, and sim_type: %s' % (site_id, sim_type))
+
+            # TODO: do we need to have two versions of python?
             if sim_type == 'fmu':
-                p = 'step_sim/step_fmu/step_fmu.py'
-                self.step_sim_type(p, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime)
+                p = 'step_sim/step_fmu.py'
+                self.step_sim_type(p, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, 'fmu')
             elif sim_type == 'osm':
-                p = 'step_sim/step_osm/step_osm.py'
-                self.step_sim_type(p, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime)
+                p = 'step_sim/step_osm.py'
+                self.step_sim_type(p, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, 'osm')
             else:
                 self.worker_logger.logger.info(
                     "Invalid simulation type: {}.  Only 'fmu' and 'osm' are currently supported".format(sim_type))

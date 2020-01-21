@@ -23,15 +23,12 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
+# Standard library imports
 from __future__ import print_function
 import os
-import boto3
+import sys
 import tarfile
 import shutil
-from pymongo import MongoClient
-from parse_variables import Variables
-import sys
-import mlep
 import subprocess
 import logging
 import datetime
@@ -39,11 +36,26 @@ import pytz
 import traceback
 import uuid
 from dateutil.parser import parse
+
+# Third party imports
+import boto3
+from pymongo import MongoClient
 import redis
+
+# Local imports
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+import mlep
+from parse_variables import Variables
+from ...step_sim import OSMModelAdvancer
+
+if __name__ == "__main__":
+    osm_model = OSMModelAdvancer()
+    print(vars(osm_model))
 
 
 # Replace Date
 def replace_timestep_and_run_period_idf_settings(idf_file, startDatetime, endDatetime, time_step):
+    """Function handled in OSMModelAdvancer"""
     # Generate Lines
     begin_month_line = '  {},                                      !- Begin Month\n'.format(startDatetime.month)
     begin_day_line = '  {},                                      !- Begin Day of Month\n'.format(startDatetime.day)
@@ -127,17 +139,18 @@ class SimProcess:
         self.start_minute = 0  # Start minute for simulation (0-59)
         self.end_minute = 0  # End minute for simulation (0-59)
         self.accept_timeout = 30000  # Accept timeout for simulation (ms)
-        self.idf = None  # EnergyPlus file path (/path/to/energyplus/file)
-        self.mapping = None
-        self.weather = None  # Weather file path (/path/to/weather/file)
-        self.site_ref = None
-        self.workflow_directory = None
-        self.variables = None
-        self.time_scale = 1
+        self.idf = None  # EnergyPlus file path (/path/to/energyplus/file)  ## covered
+        self.mapping = None  # covered
+        self.weather = None  # Weather file path (/path/to/weather/file)  ## covered
+        self.site_ref = None  # covered
+        self.workflow_directory = None  # covered
+        self.variables = None  # covered
+        self.time_scale = 1  # covered
         self.real_time_flag = True
 
 
 def get_energyplus_datetime(variables, outputs):
+    """Function handled by OSMModelAdvancer.get_energyplus_datetime"""
     month_index = variables.outputIndexFromTypeAndName("current_month", "EMS")
     day_index = variables.outputIndexFromTypeAndName("current_day", "EMS")
     hour_index = variables.outputIndexFromTypeAndName("current_hour", "EMS")
@@ -160,12 +173,14 @@ def get_energyplus_datetime(variables, outputs):
 
 
 def reset(tarinfo):
+    """Function handled by OSMModelAdvancer.reset()"""
     tarinfo.uid = tarinfo.gid = 0
     tarinfo.uname = tarinfo.gname = "root"
     return tarinfo
 
 
 def finalize_simulation():
+    """Function handled by OSMModelAdvancer.cleanup()"""
     sim_id = str(uuid.uuid4())
     tar_name = "%s.tar.gz" % sim_id
 
@@ -213,6 +228,11 @@ def getInputs(bypass_flag):
     return inputs
 
 
+"""
+Below function handled by step_sim_arg_parser
+"""
+
+
 def process_times(startDatetime, endDatetime):
     """
     Parse the provided times.  If none provided:
@@ -235,20 +255,24 @@ def process_times(startDatetime, endDatetime):
         endDatetime = parse(endDatetime, ignoretz=True)
         endDatetime = endDatetime.replace(second=0, microsecond=0)
 
-    return(startDatetime, endDatetime)
+    return (startDatetime, endDatetime)
+
 
 # Main Section
 
 
 # Mongo Database
-mongo_client = MongoClient(os.environ['MONGO_URL'])
-mongodb = mongo_client[os.environ['MONGO_DB_NAME']]
-recs = mongodb.recs
-sims = mongodb.sims
+mongo_client = MongoClient(os.environ['MONGO_URL'])  # AlfalfaConnections
+mongodb = mongo_client[os.environ['MONGO_DB_NAME']]  # AlfalfaConnections
+recs = mongodb.recs  # AlfalfaConnections
+sims = mongodb.sims  # AlfalfaConnections
 
-redis_client = redis.Redis(host=os.environ['REDIS_HOST'])
-pubsub = redis_client.pubsub()
+redis_client = redis.Redis(host=os.environ['REDIS_HOST'])  # AlfalfaConnections
+pubsub = redis_client.pubsub()  # AlfalfaConnections
 
+"""
+Below handled by step_sim_arg_parser
+"""
 if len(sys.argv) == 7:
     print(sys.argv)
 
@@ -285,9 +309,12 @@ else:
 if not site_ref:
     print('site_ref is empty', file=sys.stderr)
     sys.exit(1)
+"""
+Above handled by step_sim_arg_parser
+"""
 
-sim_path = '/simulate'
-directory = os.path.join(sim_path, site_ref)
+sim_path = '/simulate'  # ModelAdvancer as self.sim_path
+directory = os.path.join(sim_path, site_ref)  # ModelAdvancer as self.sim_path_site
 
 try:
     if not os.path.exists(directory):
@@ -295,72 +322,78 @@ try:
 except BaseException:
     sys.exit(1)
 
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
-logger = logging.getLogger('simulation')
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))  # ModelLogger
+logger = logging.getLogger('simulation')  # ModelLogger
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # ModelLogger
 
-log_file = os.path.join(directory, 'simulation.log')
-fh = logging.FileHandler(log_file)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+log_file = os.path.join(directory, 'simulation.log')  # ModelLogger
+fh = logging.FileHandler(log_file)  # ModelLogger
+fh.setFormatter(formatter)  # ModelLogger
+logger.addHandler(fh)  # ModelLogger
 
-sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
-queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
+sqs = boto3.resource('sqs', region_name=os.environ['REGION'],
+                     endpoint_url=os.environ['JOB_QUEUE_URL'])  # AlfalfaConnections
+queue = sqs.Queue(url=os.environ['JOB_QUEUE_URL'])  # AlfalfaConnections
 
-s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])  # AlfalfaConnections
 
 sp = SimProcess()
-ep = mlep.MlepProcess()
+ep = mlep.MlepProcess()  # set in OSMModelAdvancer
 
-ep.bcvtbDir = '/root/bcvtb/'
-ep.env = {'BCVTB_HOME': '/root/bcvtb'}
+ep.bcvtbDir = '/root/bcvtb/'  # set in OSMModelAdvancer
+ep.env = {'BCVTB_HOME': '/root/bcvtb'}  # set in OSMModelAdvancer
 
-sp.site_ref = site_ref
-sp.startDatetime = startDatetime
-sp.endDatetime = endDatetime
-sp.time_scale = time_scale
-sp.real_time_flag = real_time_flag
+sp.site_ref = site_ref  # set in ModelAdvancer
+sp.startDatetime = startDatetime  # set in ModelAdvancer
+sp.endDatetime = endDatetime  # set in ModelAdvancer
+sp.time_scale = time_scale  # set in OSMModelAdvancer
+sp.real_time_flag = real_time_flag  # set by ModelAdvancer.step_sim_type
 
-tar_name = "%s.tar.gz" % sp.site_ref
-key = "parsed/%s" % tar_name
-tarpath = os.path.join(directory, tar_name)
-osmpath = os.path.join(directory, 'workflow/run/in.osm')
-sp.idf = os.path.join(directory, "workflow/run/%s" % sp.site_ref)
-sp.weather = os.path.join(directory, 'workflow/files/weather.epw')
-sp.mapping = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
-sp.workflow_directory = directory
-variables_path = os.path.join(directory, 'workflow/reports/export_bcvtb_report_variables.cfg')
-variables_new_path = os.path.join(directory, 'workflow/run/variables.cfg')
+tar_name = "%s.tar.gz" % sp.site_ref  # set by ModelAdvancer.tar_name
+key = "parsed/%s" % tar_name  # ModelAdvancer.bucket_key
+tarpath = os.path.join(directory, tar_name)  # set by ModelAdvancer.tar_path
+osmpath = os.path.join(directory, 'workflow/run/in.osm')  # set by OSMModelAdvancer.osm_file
+sp.idf = os.path.join(directory, "workflow/run/%s" % sp.site_ref)  # set by OSMModelAdvancer.idf
+sp.weather = os.path.join(directory, 'workflow/files/weather.epw')  # set by OSMModelAdvancer.weather_file
+sp.mapping = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')   # set by OSMModelAdvancer.mapping_file
+sp.workflow_directory = directory  # same as ModelAdvancer.sim_path_site
+variables_path = os.path.join(directory, 'workflow/reports/export_bcvtb_report_variables.cfg')  # set by OSMModelAdvancer.variables_file_old
+variables_new_path = os.path.join(directory, 'workflow/run/variables.cfg')  # set by OSMModelAdvancer.variables_file_new
 
 try:
-    bucket = s3.Bucket(os.environ['S3_BUCKET'])
-    bucket.download_file(key, tarpath)
+    bucket = s3.Bucket(os.environ['S3_BUCKET'])  # AlfalfaConnections.bucket
+    bucket.download_file(key, tarpath)   # AlfalfaConnections.__init__
 
-    tar = tarfile.open(tarpath)
-    tar.extractall(sim_path)
-    tar.close()
+    tar = tarfile.open(tarpath)  # AlfalfaConnections.__init__
+    tar.extractall(sim_path)  # AlfalfaConnections.__init__
+    tar.close()  # AlfalfaConnections.__init__
 
-    sp.variables = Variables(variables_path, sp.mapping)
+    sp.variables = Variables(variables_path, sp.mapping)  # OSMModelAdvancer.variables
 
+    """
+    Below functions captured in: OSMModelAdvancer.osm_idf_files_prep
+    """
     subprocess.call(['openstudio', 'steposm/translate_osm.rb', osmpath, sp.idf])
     shutil.copyfile(variables_path, variables_new_path)
-
     # Simulation Parameters
     replace_timestep_and_run_period_idf_settings(sp.idf + '.idf', sp.startDatetime, sp.endDatetime,
                                                  sp.sim_step_per_hour)
+    """
+    Above
+    """
 
     # Arguments
-    ep.accept_timeout = sp.accept_timeout
-    ep.mapping = sp.mapping
-    ep.flag = 0
+    ep.accept_timeout = sp.accept_timeout  # OSMModelAdvancer.__init__
+    ep.mapping = sp.mapping  # OSMModelAdvancer.__init__
+    ep.flag = 0  # OSMModelAdvancer.__init__
 
     # Parse directory
-    idf_file_details = os.path.split(sp.idf)
-    ep.workDir = idf_file_details[0]
-    ep.arguments = (sp.idf, sp.weather)
+    idf_file_details = os.path.split(sp.idf)  # OSMModelAdvancer.__init__
+    ep.workDir = idf_file_details[0]  # OSMModelAdvancer.__init__
+    ep.arguments = (sp.idf, sp.weather)  # OSMModelAdvancer.__init__
 
     # Initialize input tuplet
-    ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)
+    ep.inputs = [0] * ((len(sp.variables.inputIds())) + 1)  # OSMModelAdvancer.__init__
 
     # Start EnergyPlus co-simulation
     (ep.status, ep.msg) = ep.start()
