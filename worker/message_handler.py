@@ -55,9 +55,9 @@ def process_message(message):
                 logger.info('Start simulation for site_ref: %s, and simType: %s' % (siteRef, simType))
 
                 if simType == 'fmu':
-                    subprocess.call(['python', 'stepfmu/step_fmu.py', siteRef, realtime, timescale, startDatetime, endDatetime, externalClock])
+                    subprocess.Popen(['python', 'stepfmu/step_fmu.py', siteRef, realtime, timescale, startDatetime, endDatetime, externalClock])
                 else:
-                    subprocess.call(['python3.5', 'steposm/step_osm.py', siteRef, realtime, timescale, startDatetime, endDatetime, externalClock])
+                    subprocess.Popen(['python3.5', 'steposm/step_osm.py', siteRef, realtime, timescale, startDatetime, endDatetime, externalClock])
             elif action == 'addSite':
                 osm_name = message_body.get('osm_name')
                 upload_id = message_body.get('upload_id')
@@ -67,12 +67,12 @@ def process_message(message):
                 # is misleading because we are also handling FMUs
                 name, ext = os.path.splitext(osm_name)
                 if ext == '.osm':
-                    subprocess.call(['python', 'addosm/add_osm.py', osm_name, upload_id])
+                    subprocess.Popen(['python', 'addosm/add_osm.py', osm_name, upload_id])
                 elif ext == '.zip':
                     # assume it contains an osw
-                    subprocess.call(['python3.5', 'addosw/add_osw.py', osm_name, upload_id])
+                    subprocess.Popen(['python3.5', 'addosw/add_osw.py', osm_name, upload_id])
                 elif ext == '.fmu':
-                    subprocess.call(['python', 'addfmu/add_fmu.py', osm_name, upload_id])
+                    subprocess.Popen(['python', 'addfmu/add_fmu.py', osm_name, upload_id])
                 else:
                     logger.info('Unsupported file type was uploaded')
             elif action == 'runSim':
@@ -82,9 +82,9 @@ def process_message(message):
 
                 name, ext = os.path.splitext(upload_filename)
                 if ext == '.gz':
-                    subprocess.call(['python3.5', 'simosm/sim_osm.py', upload_filename, upload_id])
+                    subprocess.Popen(['python3.5', 'simosm/sim_osm.py', upload_filename, upload_id])
                 elif ext == '.fmu':
-                    subprocess.call(['python', 'simfmu/sim_fmu.py', upload_filename, upload_id])
+                    subprocess.Popen(['python', 'simfmu/sim_fmu.py', upload_filename, upload_id])
                 else:
                     logger.info('Unsupported file type was uploaded')
 
@@ -124,8 +124,7 @@ if __name__ == '__main__':
         if len(messages) > 0:
             msg = messages[0]
             logger.info('Message Received with payload: %s' % msg.body)
-            logger.info('CORY TEST')
-            logger.info('CORY TEST 2')
+
             # Process Message
             process_message(msg)
         #else:
