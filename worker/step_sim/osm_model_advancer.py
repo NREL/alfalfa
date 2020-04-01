@@ -12,8 +12,8 @@ import subprocess
 import mlep
 
 # Local imports
-from model_advancer import ModelAdvancer
-from step_osm.parse_variables import ParseVariables
+from worker.step_sim.model_advancer import ModelAdvancer
+from worker.step_sim.step_osm.parse_variables import ParseVariables
 
 
 class OSMModelAdvancer(ModelAdvancer):

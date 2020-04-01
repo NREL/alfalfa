@@ -1,13 +1,11 @@
 # Standard library imports
-import sys
 import os
 import time
 from datetime import datetime
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from worker import AlfalfaConnections
-from model_logger import ModelLogger
-from step_sim_utils import step_sim_arg_parser
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from worker.worker import AlfalfaConnections
+from worker.step_sim.model_logger import ModelLogger
 
 
 class ModelAdvancer(object):
@@ -15,6 +13,9 @@ class ModelAdvancer(object):
 
     def __init__(self):
         # Parse args and extract to class variables
+
+        # Having an arg parser here is a bit strange. Maybe just a partial to the argparser?
+        from worker.step_sim.step_sim_utils import step_sim_arg_parser
         self.args = step_sim_arg_parser()
         self.site_id = self.args.site_id
         self.step_sim_type = self.args.step_sim_type

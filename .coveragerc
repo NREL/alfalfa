@@ -1,7 +1,7 @@
 # .coveragerc to control coverage.py
 [run]
 branch = True
-source = alfalfa_new
+source = alfalfa
 # omit = bad_file.py
 
 [paths]

@@ -1,7 +1,7 @@
 # TODO
 
 # Local imports
-from model_advancer import ModelAdvancer
+from worker.step_sim.model_advancer import ModelAdvancer
 
 
 class FMUModelAdvancer(ModelAdvancer):

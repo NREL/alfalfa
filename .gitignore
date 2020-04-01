@@ -40,6 +40,7 @@ htmlcov/*
 junit.xml
 coverage.xml
 .pytest_cache/
+/tests/**/output/
 
 # Build and docs folder/files
 build/*
@@ -82,3 +83,4 @@ fort.6
 
 # Custom
 client/__pycache__/*
+

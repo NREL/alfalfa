@@ -24,7 +24,7 @@
 ########################################################################################################################
 
 
-from osm_model_advancer import OSMModelAdvancer
+from worker.step_sim.osm_model_advancer import OSMModelAdvancer
 
 if __name__ == "__main__":
     m = OSMModelAdvancer()
