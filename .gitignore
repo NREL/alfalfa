@@ -1,18 +1,63 @@
-# IDEs
-.idea
-
-# Python
-.python-version
+# Temporary and binary files
+*~
+*.py[cod]
 *~$*
-*.pyc
 *.swp
 *.swo
 *.swn
+*.so
+*.cfg
+!.isort.cfg
+!setup.cfg
+*.orig
+*.log
+*.pot
+__pycache__/*
+.cache/*
+.*.swp
+*/.ipynb_checkpoints/*
+.DS_Store
+*.autosave
 
-# Simulations
+# Project files
+.ropeproject
+.project
+.pydevproject
+.settings
+.idea
+tags
+
+# Package files
+*.egg
+*.eggs/
+.installed.cfg
+*.egg-info
+
+# Unittest and coverage
+htmlcov/*
+.coverage
+.tox
+junit.xml
+coverage.xml
+.pytest_cache/
+
+# Build and docs folder/files
+build/*
+dist/*
+sdist/*
+../modelica-builder/docs/api/*
+../modelica-builder/docs/_rst/*
+../modelica-builder/docs/_build/*
+cover/*
+MANIFEST
+
+# Per-project virtualenvs
+.venv*/
+.python-version
+
+# Simulations / E+
 /worker/test/output
 /s3/*
-# E+
 *.audit
 *.bnd
 *.edd
@@ -25,7 +70,6 @@
 *.rdd
 *.rvaudit
 *.sql
-*.log
 *.svg
 *Zsz.csv
 *Ssz.csv
@@ -35,13 +79,6 @@
 *.idd
 socket.cfg
 fort.6
-
-# Mac
-*.DS_Store
-
-# Autosave
-*.autosave
-*~
 
 # Custom
 client/__pycache__/*
