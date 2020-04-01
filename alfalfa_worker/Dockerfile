@@ -49,7 +49,7 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
   && python3.5 get-pip.py
 
-COPY requirements/production.txt /root/
+COPY requirements/production.txt /alfalfa_worker/
 RUN  python3.5 -m pip install --ignore-installed -r production.txt
 RUN  python -m pip install --ignore-installed -r production.txt
 
