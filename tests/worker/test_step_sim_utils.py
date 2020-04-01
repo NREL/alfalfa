@@ -1,4 +1,3 @@
-import os
 from unittest import TestCase
 
 from alfalfa.worker.step_sim.step_sim_utils import valid_date
@@ -18,6 +17,3 @@ class TestStepSimUtils(TestCase):
         with self.assertRaises(Exception) as exc:
             valid_date(date)
         self.assertEqual(f"Not a valid date: '{date}'", str(exc.exception))
-
-
-
