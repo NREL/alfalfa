@@ -49,9 +49,9 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
   && python3.5 get-pip.py
 
-COPY requirements.txt /root/
-RUN  python3.5 -m pip install --ignore-installed -r requirements.txt
-RUN  python -m pip install --ignore-installed -r requirements.txt
+COPY requirements/production.txt /root/
+RUN  python3.5 -m pip install --ignore-installed -r production.txt
+RUN  python -m pip install --ignore-installed -r production.txt
 
 COPY package.json package-lock.json /root/
 

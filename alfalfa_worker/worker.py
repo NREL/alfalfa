@@ -32,8 +32,8 @@ import subprocess
 import sys
 from datetime import datetime
 
-from worker.lib.alfalfa_connections import AlfalfaConnections
-from worker.worker_logger import WorkerLogger
+from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
+from alfalfa_worker.worker_logger import WorkerLogger
 
 
 class Worker:
