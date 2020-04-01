@@ -56,7 +56,7 @@ let mrecs = null;
 function addFile(json_file, site_ref) {
   fs.readFile(json_file, 'utf8', (err, data) => {
       if (err) {
-        console.log('Error parsing json points file: ',err); 
+        console.log('Error parsing json points file: ',err);
       } else {
         try {
           let recs = JSON.parse(data);
@@ -91,5 +91,3 @@ MongoClient.connect(process.env.MONGO_URL).then((client) => {
   console.log(err);
   process.exit(1);
 });
-
-

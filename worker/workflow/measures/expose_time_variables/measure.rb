@@ -62,31 +62,31 @@ class ExposeTimeVariable240 < OpenStudio::Measure::ModelMeasure
 	ems_global_day = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "cur_day")
 	ems_global_hour = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "cur_hour")
 	ems_global_minute = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "cur_minute")
-	
+
 	# Add EMS-Subroutines-Month
 	ems_subroutine_month = OpenStudio::Model::EnergyManagementSystemSubroutine.new(model)
 	ems_subroutine_month.setName("set_Month")
 	month_body = "set cur_month=Month"
 	ems_subroutine_month.setBody(month_body)
-	
+
 	# Add EMS-Subroutines-Day
 	ems_subroutine_day = OpenStudio::Model::EnergyManagementSystemSubroutine.new(model)
 	ems_subroutine_day.setName("set_Day")
 	month_body = "set cur_day=DayOfMonth"
 	ems_subroutine_day.setBody(month_body)
-	
+
 	# Add EMS-Subroutines-hour
 	ems_subroutine_hour = OpenStudio::Model::EnergyManagementSystemSubroutine.new(model)
 	ems_subroutine_hour.setName("set_Hour")
 	month_body = "set cur_hour=Hour"
 	ems_subroutine_hour.setBody(month_body)
-	
+
 	# Add EMS-Subroutines-minute
 	ems_subroutine_minute = OpenStudio::Model::EnergyManagementSystemSubroutine.new(model)
 	ems_subroutine_minute.setName("set_Minute")
 	month_body = "set cur_minute=Minute"
 	ems_subroutine_minute.setBody(month_body)
-	
+
 	# Add EMS-Program
 	ems_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
 	ems_program.setName("ems_main")
@@ -95,13 +95,13 @@ class ExposeTimeVariable240 < OpenStudio::Measure::ModelMeasure
 				  run set_Hour
 				  run set_Minute"
 	ems_program.setBody(program_body)
-	
+
 	# Add EMS-CallingManager
 	ems_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
 	ems_program_calling_manager.addProgram(ems_program)
 	ems_program_calling_manager.setName("callingpoint_main")
 	ems_program_calling_manager.setCallingPoint("EndOfSystemTimestepAfterHVACReporting")
-	
+
 	# Add EMS-OutputVariable
 	ems_output_variable_month = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, ems_global_month)
 	ems_output_variable_month.setName("current_month")
@@ -109,13 +109,13 @@ class ExposeTimeVariable240 < OpenStudio::Measure::ModelMeasure
 	ems_output_variable_month.setTypeOfDataInVariable("Averaged")
 	ems_output_variable_month.setUpdateFrequency("ZoneTimeStep")
         ems_output_variable_month.setExportToBCVTB(true)
-	
+
 	ems_output_variable_day = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, ems_global_day)
 	ems_output_variable_day.setName("current_day")
         ems_output_variable_day.setEMSVariableName(ems_global_day)
 	ems_output_variable_day.setTypeOfDataInVariable("Averaged")
 	ems_output_variable_day.setUpdateFrequency("ZoneTimeStep")
-        ems_output_variable_day.setExportToBCVTB(true)	
+        ems_output_variable_day.setExportToBCVTB(true)
 
 	ems_output_variable_hour = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, ems_global_hour)
 	ems_output_variable_hour.setName("current_hour")
@@ -130,40 +130,40 @@ class ExposeTimeVariable240 < OpenStudio::Measure::ModelMeasure
 	ems_output_variable_minute.setTypeOfDataInVariable("Averaged")
 	ems_output_variable_minute.setUpdateFrequency("ZoneTimeStep")
         ems_output_variable_minute.setExportToBCVTB(true)
-	
+
 	##Add the EMS:Output variables to the Output:Variables to output
 	#output_variable_month = OpenStudio::Model::OutputVariable.new("current_month",model)
 	#output_variable_month.setVariableName("current_month")
   #  output_variable_month.setKeyValue("*")
-  #  output_variable_month.setReportingFrequency("TimeStep") 
+  #  output_variable_month.setReportingFrequency("TimeStep")
 	#output_variable_month.setExportToBCVTB(true)
 	#
-  #  
+  #
 	#output_variable_day = OpenStudio::Model::OutputVariable.new("current_day",model)
 	#output_variable_day.setVariableName("current_day")
   #  output_variable_day.setKeyValue("*")
   #  output_variable_day.setReportingFrequency("TimeStep")
 	#output_variable_day.setExportToBCVTB(true)
 	#
-  #  
+  #
 	#output_variable_hour = OpenStudio::Model::OutputVariable.new("current_hour",model)
 	#output_variable_hour.setVariableName("current_hour")
   #  output_variable_hour.setKeyValue("*")
   #  output_variable_hour.setReportingFrequency("TimeStep")
 	#output_variable_hour.setExportToBCVTB(true)
 	#
-  #  
+  #
 	#output_variable_minute = OpenStudio::Model::OutputVariable.new("current_minute",model)
 	#output_variable_minute.setVariableName("current_minute")
   #  output_variable_minute.setKeyValue("*")
-  #  output_variable_minute.setReportingFrequency("TimeStep") 
-	#output_variable_minute.setExportToBCVTB(true) 
-	
+  #  output_variable_minute.setReportingFrequency("TimeStep")
+	#output_variable_minute.setExportToBCVTB(true)
+
 
     return true
 
   end
-  
+
 end
 
 # register the measure to be used by the application

@@ -21,7 +21,7 @@ For defining tests to be written and tracking progress
     - add_site: no osm_name or no upload_id
     - step_sim: no site_id
     - run_sim: no upload_filename or no upload_id
-    
+
 ### check_subprocess_call
 1. Message logged for:
     - success
@@ -45,7 +45,7 @@ For defining tests to be written and tracking progress
 ```
 {
   'realtime': 'undefined',
-  'endDatetime': '2019-11-23 23:59:00', 
+  'endDatetime': '2019-11-23 23:59:00',
   'id': '5fa2f208-37d5-11ea-9461-644bf0128e04',
   'timescale': 'undefined',
   'op': 'InvokeAction',

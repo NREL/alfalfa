@@ -14,9 +14,9 @@ This is a local implementation of Amazon S3 for bulk file storage during develop
 
 ## Running Worker Tests
 
-1. Run ```docker-compose up worker-test``` 
-1. Test output should be located in worker/test/output. 
-1. See worker/test/test.py for an example. 
+1. Run ```docker-compose up worker-test```
+1. Test output should be located in worker/test/output.
+1. See worker/test/test.py for an example.
 
 ## Making changes
 
@@ -24,9 +24,9 @@ This is a local implementation of Amazon S3 for bulk file storage during develop
 1. Verify that the Docker services are stopped with ```docker-compose down```.
 1. Recreate the containers and restart services with ```docker-compose up```.
 
-This is a basic workflow that is sure to work, other docker and docker-compose commands can be used to start / stop services without rebuilding. 
+This is a basic workflow that is sure to work, other docker and docker-compose commands can be used to start / stop services without rebuilding.
 
-## Project Organization 
+## Project Organization
 
 Development of this project is setup to happen in a handful of docker containers. This makes it easy to do ```docker-compose up```, and get a fully working development environment.  There are currently separate containers for web (The Haystack API server), worker (The thing that runs the simulation, aka master algorithm), database (mongo, the thing that holds a model's point dictionary and current / historical values), and queue (The thing where API requests go when they need to trigger something in the master algorithm). In this project there is one top level directory for each docker container.
 
@@ -39,7 +39,7 @@ https://docs.google.com/presentation/d/1fYtwXvS4jlrhTdHJxPUPpbZZ8PwIM8sGCdLsG_6h
 1. Set environment variables, WEB_REGISTRY_URI, and WORKER_REGISTRY_URI.
 These variables are only used for cloud deployment, but docker-compose will require a value
 ```
-export WEB_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web 
+export WEB_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web
 export WORKER_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/worker
 ```
 1. Export the NODE_ENV variable
@@ -83,16 +83,16 @@ export NODE_ENV="production"
 1. Enter "us-east-1" for the region
 1. Accept the default "None" for output, which will fallback to Json format
 
-## Create an S3 bucket 
+## Create an S3 bucket
 
 1. aws s3 mb s3://acmesafe
 1. Edit the runBRICR.py script to push to the s3 bucket. Bucket names are unique in a region, therefore
-you have to pick a unique name. The is not currently a configuration mechanism for this so you have to edit the 
+you have to pick a unique name. The is not currently a configuration mechanism for this so you have to edit the
 source. TODO: fix that.
 
 ## Create a virtual private cloud
 
-This step is probably already done for a new aws account, but if not the following steps 
+This step is probably already done for a new aws account, but if not the following steps
 come from here: https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-subnets-commands-example.html
 
 1. Create the vpc and record the VpcID that is returned ```
@@ -124,7 +124,7 @@ aws elbv2 create-target-group --name alfalfa-web-targets --protocol HTTP --port 
 aws elbv2 create-listener --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:431265468707:loadbalancer/app/alfalfa-load-balancer/81957ac367b321fb --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:431265468707:targetgroup/alfalfa-web-targets/9b10c67fcdd458a4
 ```
 
-## Create new container registries 
+## Create new container registries
 
 Create two new container registries, one to hold the "web" app container,
 and another to hold the "worker" app container.
@@ -239,4 +239,3 @@ aws cloudwatch put-metric-alarm --alarm-name WorkerServiceScaleOutAlarm --metric
 1. Build current containers with, ```docker-compose build```.
 1. Use ```docker-compose push``` to push new images to the aws container registry.
 1. ```./deploy/deploy create```
-

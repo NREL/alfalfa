@@ -228,4 +228,3 @@ end #end the measure
 
 # register the measure to be used by the application
 ExportBCVTB.new.registerWithApplication
-

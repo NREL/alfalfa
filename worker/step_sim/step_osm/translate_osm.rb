@@ -34,4 +34,3 @@ if not m.empty?
   ws = ft.translateModel m.get
   ws.save(idf,true)
 end
-
