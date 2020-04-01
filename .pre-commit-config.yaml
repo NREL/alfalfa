@@ -1,11 +1,11 @@
 exclude: |
   (?x)(
     ^docs/conf.py|
-    ^worker/step_sim/step_fmu.py|
-    ^resources|
+    ^alfalfa_worker/step_sim/step_fmu.py|
+    ^docs/resources|
     ^lib|
     ^deploy|
-    ^web|
+    ^alfalfa_web|
     ^.*osm$
   )
 

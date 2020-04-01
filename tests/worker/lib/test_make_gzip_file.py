@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from worker.lib.make_gzip_file import make_gzip_file
+from alfalfa_worker.lib.make_gzip_file import make_gzip_file
 
 import os
 

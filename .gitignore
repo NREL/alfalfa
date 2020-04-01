@@ -57,7 +57,7 @@ MANIFEST
 .python-version
 
 # Simulations / E+
-/worker/test/output
+/alfalfa_worker/test/output
 /s3/*
 *.audit
 *.bnd

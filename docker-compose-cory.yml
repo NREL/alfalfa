@@ -4,7 +4,7 @@ services:
     build:
       # the purpose f context one level above dockerfile
       # is to utilize shared code, specifically in db
-      dockerfile: web/Dockerfile
+      dockerfile: alfalfa_web/Dockerfile
       context: .
       args:
         - NODE_ENV
@@ -63,7 +63,7 @@ services:
   worker:
     build:
       dockerfile: Dockerfile
-      context: worker
+      context: alflafa_worker
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
