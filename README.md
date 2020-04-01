@@ -12,11 +12,16 @@ This is a Haystack implementation backed by a virtual building. Virtual building
 This is a local implementation of Amazon S3 for bulk file storage during development.
 1. Use ```Ctrl-C``` to stop the services.
 
-## Running Worker Tests
+## Running Worker Integration Tests
 
 1. Run ```docker-compose up worker-test```
 1. Test output should be located in worker/test/output.
 1. See worker/test/test.py for an example.
+
+## Running Unit Tests
+
+1. Run ```pip install -r requirements.txt```
+1. Run `py.test`
 
 ## Making changes
 
