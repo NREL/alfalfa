@@ -6,10 +6,8 @@ result = client.submit('/test/SmallOffice_Unitary_1.osm')
 
 # Replace with test framework
 if result:
-  print("success")
-  sys.exit(0);
+    print("success")
+    sys.exit(0)
 else:
-  print("failure")
-  sys.exit(1);
-
-
+    print("failure")
+    sys.exit(1)
