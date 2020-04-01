@@ -50,8 +50,8 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
   && python3.5 get-pip.py
 
 COPY requirements/production.txt /alfalfa_worker/
-RUN  python3.5 -m pip install --ignore-installed -r production.txt
-RUN  python -m pip install --ignore-installed -r production.txt
+RUN  python3.5 -m pip install --ignore-installed -r /alfalfa_worker/production.txt
+RUN  python -m pip install --ignore-installed -r /alfalfa_worker/production.txt
 
 COPY package.json package-lock.json /root/
 
