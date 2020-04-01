@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 
-from step_sim.step_sim_utils import valid_date
+from alfalfa.worker.step_sim.step_sim_utils import valid_date
 from datetime import datetime
 
 
