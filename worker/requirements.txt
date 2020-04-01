@@ -30,8 +30,8 @@ docutils==0.15.2
 
 # Testing and code syntax packages
 autopep8==1.4.4
-#pre-commit==1.21.0
-pre-commit==2.1.0
+pre-commit==1.21.0
+# Do not upgrade to pre-commit 2.1.0 until Python 3.6 is in the container.
 pytest==5.3.5
 pytest-cov==2.8.1
 pycodestyle==2.5.0
