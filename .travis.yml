@@ -8,7 +8,9 @@ matrix:
   fast_finish: true
   include:
     - python: 3.6
-      env: DISTRIB="ubuntu" TOX_PYTHON_VERSION="py36" COVERAGE="true"
+      env: TOX_ENV=python DISTRIB="ubuntu" TOX_PYTHON_VERSION="py36" COVERAGE="true"
+    - python: 3.6
+      env: TOX_ENV=integration DISTRIB="ubuntu" TOX_PYTHON_VERSION="py36" COVERAGE="false"
 install:
   - source tests/travis_install.sh
   - pip install -r requirements.txt
@@ -17,7 +19,7 @@ before_script:
   - git config --global user.name "kbenne"
 script:
   - python setup.py develop
-  - tox
+  - tox -e $TOX_ENV
   - |
     if [[ "$COVERAGE" == "true" ]]; then
       pre-commit install
