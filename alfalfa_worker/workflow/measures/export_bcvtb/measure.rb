@@ -126,7 +126,7 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #print outvar.emsVariableName.to_s
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml
       if (outvar.exportToBCVTB)
-        print "\n Watchout Here!!!  "
+#         print "\n Watchout Here!!!  "
         print outvar.emsVariableName.to_s
         print outvar.nameString
         bcvtb.add_element add_xml_output(outvar.nameString, "EMS")
