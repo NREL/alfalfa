@@ -3,7 +3,7 @@
 1. Set environment variables, WEB_REGISTRY_URI, and WORKER_REGISTRY_URI.
 These variables are only used for cloud deployment, but docker-compose will require a value
 ```
-export WEB_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web 
+export WEB_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web
 export WORKER_REGISTRY_URI=313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/worker
 ```
 1. Export the NODE_ENV variable
@@ -47,16 +47,16 @@ export NODE_ENV="production"
 1. Enter "us-east-1" for the region
 1. Accept the default "None" for output, which will fallback to Json format
 
-## Create an S3 bucket 
+## Create an S3 bucket
 
 1. aws s3 mb s3://acmesafe
 1. Edit the runBRICR.py script to push to the s3 bucket. Bucket names are unique in a region, therefore
-you have to pick a unique name. The is not currently a configuration mechanism for this so you have to edit the 
+you have to pick a unique name. The is not currently a configuration mechanism for this so you have to edit the
 source. TODO: fix that.
 
 ## Create a virtual private cloud
 
-This step is probably already done for a new aws account, but if not the following steps 
+This step is probably already done for a new aws account, but if not the following steps
 come from here: https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-subnets-commands-example.html
 
 1. Create the vpc and record the VpcID that is returned ```
@@ -88,7 +88,7 @@ aws elbv2 create-target-group --name alfalfa-web-targets --protocol HTTP --port 
 aws elbv2 create-listener --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:431265468707:loadbalancer/app/alfalfa-load-balancer/81957ac367b321fb --protocol HTTP --port 80 --default-actions Type=forward,TargetGroupArn=arn:aws:elasticloadbalancing:us-east-1:431265468707:targetgroup/alfalfa-web-targets/9b10c67fcdd458a4
 ```
 
-## Create new container registries 
+## Create new container registries
 
 Create two new container registries, one to hold the "web" app container,
 and another to hold the "worker" app container.
@@ -203,4 +203,3 @@ aws cloudwatch put-metric-alarm --alarm-name WorkerServiceScaleOutAlarm --metric
 1. Build current containers with, ```docker-compose build```.
 1. Use ```docker-compose push``` to push new images to the aws container registry.
 1. ```./deploy/deploy create```
-
