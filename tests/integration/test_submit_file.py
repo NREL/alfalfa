@@ -1,7 +1,7 @@
 import subprocess
 from unittest import TestCase
 import pytest
-from alfalfaclient import AlfalfaClient
+from alfalfa_client import AlfalfaClient
 import os
 
 
