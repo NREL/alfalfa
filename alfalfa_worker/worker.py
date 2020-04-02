@@ -42,6 +42,8 @@ class Worker:
     def __init__(self):
         self.ac = AlfalfaConnections()
         self.worker_logger = WorkerLogger()
+        os.chdir('alfalfa_worker')
+        self.alfalfa_worker_dir = os.getcwd()
 
     def process_datetime_string(self, dt):
         """
