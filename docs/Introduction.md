@@ -15,9 +15,9 @@ A few important caveats to understand about Alfalfa:
 
 ## OpenStudio Objects into Haystack Points
 Currently, the [haystack-measure](../worker/workflow/measures/haystack/measure.rb), when run after creating a typical OpenStudio model (via Create DOE Prototype), will generate the following:
-- model.getBuilding -> 'site' entity 
+- model.getBuilding -> 'site' entity
 - model.weatherFile.get -> 'weather' entity
-- airloop = model.getAirLoopHVACs -> 'ahu' entity 
+- airloop = model.getAirLoopHVACs -> 'ahu' entity
 	- discharge_air_node = airloop.supplyOutletNode -> Node Points added to 'ahu'
 	- sc = airloop.supplyComponents
 		- If not UnitarySystem:
@@ -37,7 +37,7 @@ Currently, the [haystack-measure](../worker/workflow/measures/haystack/measure.r
 			- Similar to if not UnitarySystem
 	- dc = airloop.demandComponents
 		- tz = dc.to_ThermalZone -> 'zone' entity created, zone points created
-		- equip = tz.equipment -> 
+		- equip = tz.equipment ->
 			- equip.to_AirTerminalSingleDuctVAVReheat -> 'vav' entity created, 'ahu' typed as 'vavZone', equipRef to 'ahu' created
 			- rc = equip.to_AirTerminalSingleDuctVAVReheat.get.reheatCoil
 				- if rc.to_CoilHeatingWater -> 'vav' typed as 'hotWaterReheat'
@@ -53,7 +53,7 @@ Currently, the [haystack-measure](../worker/workflow/measures/haystack/measure.r
 ### Outdoor Air Points
 - Outside Air Damper CMD (WRITE)
 - Outdoor Air Damper Sensor Position (READ)
-- Outside Air Mass Flow Rate 
+- Outside Air Mass Flow Rate
 
 ### Zone Points
 - Zone Air Temp Sensor (READ)
@@ -85,7 +85,7 @@ While the Modelica Buildings Library is currently being built up, there is signi
 4.	It will stop if the model has advanced enough times such that the end datetime has passed or if it is specifically told to stop.
 
 ## Advance at a specified timescale
-1.	In this scenario, the timescale parameter is used to control the rate at which the internal clock advances through the simulation.  It represents the integer ratio of model_time:real_time.  For example, a value of 5 means that the simulation will advance at 5x the rate of real time.  In other words, one minute of simulation time will occur every 12 seconds of real time.  
+1.	In this scenario, the timescale parameter is used to control the rate at which the internal clock advances through the simulation.  It represents the integer ratio of model_time:real_time.  For example, a value of 5 means that the simulation will advance at 5x the rate of real time.  In other words, one minute of simulation time will occur every 12 seconds of real time.
 2.	Regardless of the start time specified for the run, the simulation will begin running.
 3.	Upon reaching the time to advance, Alfalfa will look for any points from external sources, write these into the simulation, and advance the simulation one time step (1-minute in model time).
 4.	It then waits X time in real time before advancing through the next time step.
@@ -100,7 +100,7 @@ While the Modelica Buildings Library is currently being built up, there is signi
 5.	All external calls to advance the simulation are ignored.
 
 # Alfalfa Control
-One of the more important aspects to understand about Alfalfa is that the actual control implementation is completely dependent on the underlying simulation engine used.  While time delays, PID loops, etc. can be exposed if running a simulation with a Modelica model, these do not exist in EnergyPlus.  As EnergyPlus’ default run logic is to meet loads at all times within capacity constraints, this is not necessarily how control would be implemented in the real world and generally deviates from expectations, especially for those familiar with real world controls and limited background with simulation tools.  This isn’t to say that writing to a point exposed by Alfalfa can’t have the desired effect in simulation, rather, EnergyPlus experience is needed to: 
+One of the more important aspects to understand about Alfalfa is that the actual control implementation is completely dependent on the underlying simulation engine used.  While time delays, PID loops, etc. can be exposed if running a simulation with a Modelica model, these do not exist in EnergyPlus.  As EnergyPlus’ default run logic is to meet loads at all times within capacity constraints, this is not necessarily how control would be implemented in the real world and generally deviates from expectations, especially for those familiar with real world controls and limited background with simulation tools.  This isn’t to say that writing to a point exposed by Alfalfa can’t have the desired effect in simulation, rather, EnergyPlus experience is needed to:
 1. Understand the underlying simulation calculation and run order
 2. Design Energy Management System (EMS) logic that works behind the scenes of Alfalfa, such that writing to an exposed point has the intended effects.
 
@@ -115,7 +115,7 @@ Therefore, it is best practice to provide pseudocode or a narration document of 
 
 At the end of this task, project teams should have developed a comprehensive equipment and points list, while also identifying whether those points will be read or write points.  An example of this is shown below:
 ![](./img/Picture1.png)
- 
+
 # OpenStudio Models
 
 ## Setting up an OSM
@@ -127,7 +127,7 @@ The following steps should be taken in the OpenStudio model in order to expose r
 3.	Set the exportToBCVTB method to true
 
 ### Writeable Points
-The following steps should be taken in the OpenStudio model in order to expose writeable points in simulation to Alfalfa in order to acquire ExternalInterface objects needed for co-simulation, as well as Project Haystack points and tags associated with the writeable points. 
+The following steps should be taken in the OpenStudio model in order to expose writeable points in simulation to Alfalfa in order to acquire ExternalInterface objects needed for co-simulation, as well as Project Haystack points and tags associated with the writeable points.
 1.	Create two (2) EnergyManagementSystemGlobalVariable objects for the simulation actuator point you wish to expose
 2.	Set the name of the first object (e.g. “Fan_Mass_Flow”)
 3.	Set the name of the second object the same as the first but include “_enable” (e.g. “Fan_Mass_Flow_enable”)
@@ -138,7 +138,7 @@ The following steps should be taken in the OpenStudio model EnergyManagementSyst
 IF Fan_Mass_Flow_enable ==1
 	SET EMS_fanmassflow_actuator = Fan_Mass_Flow
 ELSE,
-	SET EMS_fanmassflow_actuator = Null 
+	SET EMS_fanmassflow_actuator = Null
 ENDIF,
 ```
 Where 1 is True and 0 is False.
