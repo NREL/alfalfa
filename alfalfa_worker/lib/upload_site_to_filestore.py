@@ -31,7 +31,7 @@ from subprocess import call
 import tarfile
 
 
-def upload_site_DB_Cloud(jsonpath, bucket, folderpath):
+def upload_site_to_filestore(jsonpath, bucket, folderpath):
     '''
     Purpose: upload the tagged site to the database and cloud
     Inputs: the S3-bucket

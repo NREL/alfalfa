@@ -24,42 +24,30 @@
 ########################################################################################################################
 
 from __future__ import print_function
-import sys
-import os
+
 import glob
-import boto3
+import os
+import shutil
+import sys
 import tarfile
 import zipfile
-import shutil
 from subprocess import call
-import logging
-import lib
 
-(osw_zip_name, upload_id, directory) = lib.precheck_argus(sys.argv)
+# Local
+from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
+from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid, upload_site_to_filestore, \
+    alfalfa_connections
 
-logger = logging.getLogger('addsite')
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+(osw_zip_name, upload_id, directory) = precheck_argus(sys.argv)
 
-log_file = os.path.join(directory, 'addsite.log')
-fh = logging.FileHandler(log_file)
-fh.setLevel(logging.INFO)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
-s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+ac = alfalfa_connections.AlfalfaConnections()
+add_site_logger = AddSiteLogger(directory)
 
 # First download the osw and run the workflow to get an osm file
 key = "uploads/%s/%s" % (upload_id, osw_zip_name)
 osw_zip_path = os.path.join(directory, 'in.zip')
 
-bucket = s3.Bucket(os.environ['S3_BUCKET'])
-bucket.download_file(key, osw_zip_path)
+ac.download_file(key, osw_zip_path)
 
 zzip = zipfile.ZipFile(osw_zip_path)
 zzip.extractall(directory)
@@ -76,6 +64,7 @@ if osws:
 else:
     sys.exit(1)
 
+# Run initial workflow from zip file
 call(['openstudio', 'run', '-m', '-w', oswpath])
 
 # Now take the osm produced by the osw and run
@@ -87,18 +76,24 @@ workflowpath = os.path.join(directory, 'workflow/workflow.osw')
 points_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
 mapping_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
 
+# Extract workflow tarball into this directory
 tar = tarfile.open("workflow.tar.gz")
 tar.extractall(directory)
 tar.close()
 
+# Copy .osm into seed.osm
 shutil.copyfile(osmpath, seedpath)
+
+# Copy epw file into weather.epw
 shutil.copyfile(user_epwpath, epwpath)
 
+# Rerun model through workflow for alfalfa specific workflow
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
-lib.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
-lib.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
+# TODO: Why exactly are the following two needed?
+make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
+replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 
-lib.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
-
+# Upload the files back to filestore and clean local directory
+upload_site_to_filestore(points_jsonpath, ac.bucket, directory)
 shutil.rmtree(directory)

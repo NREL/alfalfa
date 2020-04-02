@@ -1,4 +1,5 @@
 ########################################################################################################################
+#
 #  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -36,40 +37,38 @@ from subprocess import call
 
 # Local
 from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
-from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid, upload_site_DB_Cloud, \
+from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid, upload_site_to_filestore, \
     alfalfa_connections
 
 
-(osm_name, upload_id, directory) = precheck_argus(sys.argv)
+def add_osm(osm_name, upload_id, directory, ac, add_site_logger):
+    # download osm from filestore. rename to seed.osm
+    key = "uploads/%s/%s" % (upload_id, osm_name)
+    seedpath = os.path.join(directory, 'seed.osm')
+    ac.bucket.download_file(key, seedpath)
+
+    # Extract workflow tarball into this directory
+    tar = tarfile.open("workflow.tar.gz")
+    tar.extractall(directory)
+    tar.close()
+
+    workflowpath = os.path.join(directory, 'workflow/workflow.osw')
+    points_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
+    mapping_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
+    call(['openstudio', 'run', '-m', '-w', workflowpath])
+
+    # TODO: Why exactly are the following two needed?
+    make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
+    replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
+
+    # Upload the files back to filestore and clean local directory
+    upload_site_to_filestore(points_jsonpath, ac.bucket, directory)
+    shutil.rmtree(directory)
 
 
-ac = alfalfa_connections.AlfalfaConnections()
-add_site_logger = AddSiteLogger(directory)
+if __name__ == "__main__":
+    (osm_name, upload_id, directory) = precheck_argus(sys.argv)
+    ac = alfalfa_connections.AlfalfaConnections()
+    add_site_logger = AddSiteLogger(directory)
 
-
-key = "uploads/%s/%s" % (upload_id, osm_name)
-seedpath = os.path.join(directory, 'seed.osm')
-workflowpath = os.path.join(directory, 'workflow/workflow.osw')
-points_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
-mapping_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
-
-
-tar = tarfile.open("workflow.tar.gz")
-tar.extractall(directory)
-tar.close()
-
-
-ac.bucket.download_file(key, seedpath)
-
-
-call(['openstudio', 'run', '-m', '-w', workflowpath])
-
-
-make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
-replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
-
-
-upload_site_DB_Cloud(points_jsonpath, ac.bucket, directory)
-
-
-shutil.rmtree(directory)
+    add_osm(osm_name, upload_id, directory, ac, add_site_logger)
