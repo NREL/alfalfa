@@ -3,3 +3,4 @@
 dist
 tests
 docs
+tox.ini

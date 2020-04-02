@@ -23,6 +23,27 @@ This is a local implementation of Amazon S3 for bulk file storage during develop
 1. Run ```pip install -r requirements.txt```
 1. Run `py.test`
 
+## Running Integration Tests
+
+1. To run integration tests, then you must first launch the docker compose in the root directory of this repository
+
+    ```bash
+    docker-compose up
+    ```
+
+1. After the service has launched (successfully?) then run
+
+    ```bash
+    py.test -m 'integration'
+    ```
+
+These tests have been added to the tox running framework and run on travis as needed. You can also test locally by
+simply calling:
+
+    ```bash
+    tox -e integration
+    ```
+
 ## Making changes
 
 1. Make source code changes as needed.
@@ -38,4 +59,3 @@ Development of this project is setup to happen in a handful of docker containers
 ## Design
 
 https://docs.google.com/presentation/d/1fYtwXvS4jlrhTdHJxPUPpbZZ8PwIM8sGCdLsG_6hwwo/edit#slide=id.p
-
