@@ -6,3 +6,4 @@ pre-commit==2.1.0
 pycodestyle==2.5.0
 pytest==5.3.5
 pytest-cov==2.8.1
+tox==3.14.6
