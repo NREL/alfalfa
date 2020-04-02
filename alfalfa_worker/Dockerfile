@@ -1,10 +1,9 @@
 FROM michaelwetter/ubuntu-1604_jmodelica_trunk
 
 USER root
-ENV HOME /home/root
+ENV HOME /home/alfalfa_worker
 
-RUN cd /root
-WORKDIR /root
+WORKDIR /alfalfa_worker
 
 RUN apt-get update -y && apt-get install -y \
     ca-certificates curl libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python3.5 python3-pip
@@ -53,11 +52,11 @@ COPY requirements/production.txt /alfalfa_worker/
 RUN  python3.5 -m pip install --ignore-installed -r /alfalfa_worker/production.txt
 RUN  python -m pip install --ignore-installed -r /alfalfa_worker/production.txt
 
-COPY package.json package-lock.json /root/
+COPY package.json package-lock.json /alfalfa_worker/
 
 RUN npm install
 
-COPY . /root
+COPY . /alfalfa_worker
 RUN tar -czf workflow.tar.gz workflow
 
 ENV ROOT_DIR /usr/local
