@@ -23,34 +23,29 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
+
 from __future__ import print_function
-import sys
+
+
 import os
-import boto3
-import tarfile
 import shutil
+import sys
+import tarfile
 from subprocess import call
-import logging
-import lib
 
-(osm_name, upload_id, directory) = lib.precheck_argus(sys.argv)
 
-logger = logging.getLogger('addsite')
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# Local
+from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
+from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid, upload_site_DB_Cloud, \
+    alfalfa_connections
 
-log_file = os.path.join(directory, 'addsite.log')
-fh = logging.FileHandler(log_file)
-fh.setLevel(logging.INFO)
-fh.setFormatter(formatter)
-logger.addHandler(fh)
 
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+(osm_name, upload_id, directory) = precheck_argus(sys.argv)
 
-s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+
+ac = alfalfa_connections.AlfalfaConnections()
+add_site_logger = AddSiteLogger(directory)
+
 
 key = "uploads/%s/%s" % (upload_id, osm_name)
 seedpath = os.path.join(directory, 'seed.osm')
@@ -58,18 +53,23 @@ workflowpath = os.path.join(directory, 'workflow/workflow.osw')
 points_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_haystack.json')
 mapping_jsonpath = os.path.join(directory, 'workflow/reports/haystack_report_mapping.json')
 
+
 tar = tarfile.open("workflow.tar.gz")
 tar.extractall(directory)
 tar.close()
 
-bucket = s3.Bucket(os.environ['S3_BUCKET'])
-bucket.download_file(key, seedpath)
+
+ac.bucket.download_file(key, seedpath)
+
 
 call(['openstudio', 'run', '-m', '-w', workflowpath])
 
-lib.make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
-lib.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 
-lib.upload_site_DB_Cloud(points_jsonpath, bucket, directory)
+make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
+replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
+
+
+upload_site_DB_Cloud(points_jsonpath, ac.bucket, directory)
+
 
 shutil.rmtree(directory)
