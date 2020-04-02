@@ -61,7 +61,11 @@ services:
     depends_on:
       - minio
   worker:
-    build: alfalfa_worker
+    build:
+      # the purpose of context one level above is to install the entire alfalfa package
+      # and to copy the wait-for-it.sh file in deploy
+      dockerfile: alfalfa_worker/Dockerfile
+      context: .
     image: ${WORKER_REGISTRY_URI}:latest
     environment:
       - AWS_ACCESS_KEY_ID

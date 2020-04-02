@@ -1,0 +1,5 @@
+.pytest_cache
+.tox
+dist
+tests
+docs

@@ -1,9 +1,9 @@
 FROM michaelwetter/ubuntu-1604_jmodelica_trunk
 
 USER root
-ENV HOME /home/alfalfa_worker
+ENV HOME /home/alfalfa
 
-WORKDIR /alfalfa_worker
+WORKDIR /alfalfa
 
 RUN apt-get update -y && apt-get install -y \
     ca-certificates curl libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python3.5 python3-pip
@@ -48,15 +48,19 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
   && python3.5 get-pip.py
 
-COPY requirements/production.txt /alfalfa_worker/
-RUN  python3.5 -m pip install --ignore-installed -r /alfalfa_worker/production.txt
-RUN  python -m pip install --ignore-installed -r /alfalfa_worker/production.txt
+COPY alfalfa_worker/requirements/production.txt /alfalfa/
+RUN  python3.5 -m pip install --ignore-installed -r /alfalfa/production.txt
+RUN  python -m pip install --ignore-installed -r /alfalfa/production.txt
 
-COPY package.json package-lock.json /alfalfa_worker/
-
+COPY alfalfa_worker/package.json /alfalfa/
+COPY alfalfa_worker/package-lock.json /alfalfa/
 RUN npm install
 
-COPY . /alfalfa_worker
+COPY . /alfalfa
+COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
+COPY ./deploy/start_worker.sh start_worker.sh
+
+WORKDIR /alfalfa/alfalfa_worker
 RUN tar -czf workflow.tar.gz workflow
 
 ENV ROOT_DIR /usr/local
@@ -67,4 +71,4 @@ ENV SEPARATE_PROCESS_JVM /usr/lib/jvm/java-8-openjdk-amd64/
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 ENV PYTHONPATH $PYTHONPATH:$JMODELICA_HOME/Python:$JMODELICA_HOME/Python/pymodelica
 
-CMD [ "python3.5", "-u", "worker.py" ]
+CMD [ "/alfalfa/start_worker.sh" ]
