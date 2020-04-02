@@ -2,7 +2,7 @@ version: '3'
 services:
   web: # main haystack application
     build:
-      # the purpose of context one level above dockerfile
+      # the purpose f context one level above dockerfile
       # is to utilize shared code, specifically in db
       dockerfile: alfalfa_web/Dockerfile
       context: .
@@ -62,11 +62,8 @@ services:
       - minio
   worker:
     build:
-      # the purpose of context one level above is to install the entire alfalfa package
-      # and to copy the wait-for-it.sh file in deploy
-      dockerfile: alfalfa_worker/Dockerfile
-      context: .
-    image: ${WORKER_REGISTRY_URI}:latest
+      dockerfile: Dockerfile
+      context: alflafa_worker
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -88,13 +85,12 @@ services:
     image: mongo
     ports:
       - "27017:27017"
-  #client-test:
-  #  build:
-  #    context: client
-  #    # Dockerfile is missing
-  #    dockerfile: client/Dockerfile-test
-  #  depends_on:
-  #    - alfalfa_web
+  client-test:
+    build:
+      context: client
+      dockerfile: client/Dockerfile-test
+    depends_on:
+      - web
   redis:
     image: redis
     ports:
