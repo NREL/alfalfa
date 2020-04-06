@@ -40,7 +40,7 @@ class AddSite:
         self.fmu_key = "uploads/%s/%s" % (self.fmu_upload_id, self.fmu_upload_name)
         self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
-        # Seemingly Shared variables
+        # Seemingly Shared variables - but depends on directory?
         self.ac = alfalfa_connections.AlfalfaConnections()
 
     def add_osm(self):
