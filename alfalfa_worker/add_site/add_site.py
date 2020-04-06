@@ -11,16 +11,14 @@ import tarfile
 from subprocess import call
 
 # Local
-from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
-from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid, upload_site_to_filestore, \
-    alfalfa_connections
+from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid
+from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 
 
 class AddSite:
     """A wrapper class around adding sites"""
 
     def __init__(self):
-
         """Are we able to define:
                 - upload_ID
                 - directory
@@ -41,7 +39,7 @@ class AddSite:
         self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
         # Seemingly Shared variables
-        self.ac = alfalfa_connections.AlfalfaConnections()
+        self.ac = AlfalfaConnections()
 
     def add_osm(self):
 
@@ -65,7 +63,7 @@ class AddSite:
         replace_siteid(self.osm_upload_id, points_jsonpath, mapping_jsonpath)
 
         # Upload the files back to filestore and clean local directory
-        upload_site_to_filestore(points_jsonpath, self.ac.bucket, self.osm_directory)
+        self.ac.upload_site_to_filestore(points_jsonpath, self.ac.bucket, self.osm_directory)
         shutil.rmtree(self.osm_directory)
 
     def add_osw(self):
@@ -127,7 +125,7 @@ class AddSite:
         replace_siteid(self.osw_upload_id, points_jsonpath, mapping_jsonpath)
 
         # Upload the files back to filestore and clean local directory
-        upload_site_to_filestore(points_jsonpath, self.ac.bucket, self.osw_directory)
+        self.ac.upload_site_to_filestore(points_jsonpath, self.ac.bucket, self.osw_directory)
         shutil.rmtree(self.osw_directory)
 
     def add_fmu(self):
@@ -143,6 +141,6 @@ class AddSite:
 
         call(['python', 'add_site/add_fmu/create_tags.py', fmupath, self.fmu_upload_name, jsonpath])
 
-        lib.upload_site_to_filestore(jsonpath, bucket, self.fmu_directory)
+        self.ac.upload_site_to_filestore(jsonpath, bucket, self.fmu_directory)
 
         shutil.rmtree(self.fmu_directory)

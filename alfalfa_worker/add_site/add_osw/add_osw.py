@@ -35,12 +35,12 @@ from subprocess import call
 
 # Local
 from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
-from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid, upload_site_to_filestore, \
-    alfalfa_connections
+from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid
+from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 
 (osw_zip_name, upload_id, directory) = precheck_argus(sys.argv)
 
-ac = alfalfa_connections.AlfalfaConnections()
+ac = AlfalfaConnections()
 add_site_logger = AddSiteLogger(directory)
 
 # First download the osw and run the workflow to get an osm file
@@ -95,5 +95,5 @@ make_ids_unique(upload_id, points_jsonpath, mapping_jsonpath)
 replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 
 # Upload the files back to filestore and clean local directory
-upload_site_to_filestore(points_jsonpath, ac.bucket, directory)
+ac.upload_site_to_filestore(points_jsonpath, ac.bucket, directory)
 shutil.rmtree(directory)

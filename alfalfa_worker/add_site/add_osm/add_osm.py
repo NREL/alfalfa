@@ -37,8 +37,8 @@ from subprocess import call
 
 # Local
 from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
-from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid, upload_site_to_filestore, \
-    alfalfa_connections
+from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid
+from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 
 
 def add_osm(osm_name, upload_id, directory, ac, add_site_logger):
@@ -62,13 +62,14 @@ def add_osm(osm_name, upload_id, directory, ac, add_site_logger):
     replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
 
     # Upload the files back to filestore and clean local directory
-    upload_site_to_filestore(points_jsonpath, ac.bucket, directory)
+    # upload_site_to_filestore(points_jsonpath, ac.bucket, directory)
+    ac.upload_site_to_filestore(points_jsonpath, directory)
     shutil.rmtree(directory)
 
 
 if __name__ == "__main__":
     (osm_name, upload_id, directory) = precheck_argus(sys.argv)
-    ac = alfalfa_connections.AlfalfaConnections()
+    ac = AlfalfaConnections()
     add_site_logger = AddSiteLogger(directory)
 
     add_osm(osm_name, upload_id, directory, ac, add_site_logger)

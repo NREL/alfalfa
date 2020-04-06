@@ -60,10 +60,6 @@ COPY ./deploy/start_worker.sh start_worker.sh
 WORKDIR /alfalfa
 RUN pip3 install .
 
-COPY alfalfa_worker/package.json /alfalfa/
-COPY alfalfa_worker/package-lock.json /alfalfa/
-RUN npm install
-
 WORKDIR /alfalfa/alfalfa_worker
 RUN tar -czf workflow.tar.gz workflow
 

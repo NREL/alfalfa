@@ -31,8 +31,10 @@ import shutil
 from subprocess import call
 import lib
 
-(fmu_upload_name, upload_id, directory) = lib.precheck_argus(sys.argv)
+from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 
+(fmu_upload_name, upload_id, directory) = lib.precheck_argus(sys.argv)
+ac = AlfalfaConnections()
 s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
 key = "uploads/%s/%s" % (upload_id, fmu_upload_name)
@@ -47,6 +49,6 @@ bucket.download_file(key, fmupath)
 
 call(['python', 'add_site/add_fmu/create_tags.py', fmupath, fmu_upload_name, jsonpath])
 
-lib.upload_site_to_filestore(jsonpath, bucket, directory)
+ac.upload_site_to_filestore(jsonpath, bucket, directory)
 
 shutil.rmtree(directory)
