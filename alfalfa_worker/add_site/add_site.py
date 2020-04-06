@@ -1,16 +1,16 @@
 from __future__ import print_function
 
 import glob
-import boto3
-import lib
-import zipfile
 import os
 import shutil
 import sys
 import tarfile
+import zipfile
 from subprocess import call
+import json
 
 # Local
+from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
 from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 
@@ -18,129 +18,169 @@ from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 class AddSite:
     """A wrapper class around adding sites"""
 
-    def __init__(self):
+    def __init__(self, file_name, upload_id, directory):
         """Are we able to define:
                 - upload_ID
                 - directory
                 - ac
             at the class level or do all of these have unique values to each funciton"""
+        self.add_site_logger = AddSiteLogger()
+        self.add_site_logger.logger.info("AddSite called with args: {} {} {}".format(file_name, upload_id, directory))
+        self.file_name = file_name
+        self.upload_id = upload_id
+        self.directory = directory
+        _, self.file_ext = os.path.splitext(self.file_name)
+        self.key = "uploads/%s/%s" % (self.upload_id, self.file_name)
 
-        # add_osm variables
-        (self.osm_name, self.osm_upload_id, self.osm_directory) = precheck_argus(sys.argv)
-        self.osm_key = "uploads/%s/%s" % (self.upload_id, self.osm_name)
+        # Define OSM and OSW specific attributes
+        self.seed_osm_path = os.path.join(self.directory, 'seed.osm')
+        self.workflow_osw_path = os.path.join(self.directory, 'workflow/workflow.osw')
+        self.epw_path = os.path.join(self.directory, 'workflow/files/weather.epw')  # mainly only used for add_osw
+        self.report_haystack_json = os.path.join(self.directory, 'workflow/reports/haystack_report_haystack.json')
+        self.report_mapping_json = os.path.join(self.directory, 'workflow/reports/haystack_report_mapping.json')
 
-        # add_osw varaibles
-        (self.osw_zip_name, self.osw_upload_id, self.osw_directory) = precheck_argus(sys.argv)
-        self.osw_key = "uploads/%s/%s" % (self.osw_upload_id, self.osw_zip_name)
+        # Define FMU specific attributes
+        self.fmu_path = os.path.join(self.directory, 'model.fmu')
+        self.fmu_json = os.path.join(self.directory, 'tags.json')
 
-        # add_fmu varibales
-        (self.fmu_upload_name, self.fmu_upload_id, self.fmu_directory) = lib.precheck_argus(sys.argv)
-        self.fmu_key = "uploads/%s/%s" % (self.fmu_upload_id, self.fmu_upload_name)
-        self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
-
-        # Seemingly Shared variables
+        # Create connections
         self.ac = AlfalfaConnections()
+
+        self.site_ref = None
+
+    def main(self):
+        if self.file_ext == '.osm':
+            self.add_osm()
+        elif self.file_ext == '.zip':
+            self.add_osw()
+        elif self.file_ext == '.fmu':
+            self.add_fmu()
+
+    def extract_workflow_tar(self):
+        # Extract workflow tarball into this directory
+        tar = tarfile.open("workflow.tar.gz")
+        tar.extractall(self.directory)
+        tar.close()
+
+    def get_site_ref(self, fh):
+        site_ref = ''
+        with open(fh) as json_file:
+            data = json.load(json_file)
+            for entity in data:
+                if 'site' in entity:
+                    if entity['site'] == 'm:':
+                        site_ref = entity['id'].replace('r:', '')
+                        break
+        return site_ref
+
+    def os_files_final_touches_and_upload(self):
+        # TODO: Why exactly are the following two needed?
+        make_ids_unique(self.upload_id, self.report_haystack_json, self.report_mapping_json)
+        replace_siteid(self.upload_id, self.report_haystack_json, self.report_mapping_json)
+
+        # Upload to mongo & filestore, clean local directory
+        self.add_to_mongo_and_filestore()
+
+    def add_to_mongo_and_filestore(self):
+        if self.file_ext != '.fmu':
+            f = self.report_haystack_json
+            self.site_ref = self.get_site_ref(self.report_haystack_json)
+        else:
+            f = self.fmu_json
+            self.site_ref = self.get_site_ref(self.fmu_json)
+        # Check mongo upload works correctly
+        mongo_response = self.ac.add_site_to_mongo(f, self.site_ref)
+        if len(mongo_response.inserted_ids) > 0:
+            self.add_site_logger.logger.info('added {} ids to MongoDB under site_ref: {}'.format(len(mongo_response.inserted_ids), self.site_ref))
+        else:
+            self.add_site_logger.logger.warning('site not added to MongoDB under site_ref: {}'.format(self.site_ref))
+            sys.exit(1)
+
+        # Check filestore upload works correctly
+        filestore_response, output = self.ac.add_site_to_filestore(self.directory, self.site_ref)
+
+        # Clean local directory
+        shutil.rmtree(self.directory)
+        if filestore_response:
+            self.add_site_logger.logger.info(
+                'added to filestore: {}'.format(output))
+        else:
+            self.add_site_logger.logger.warning('site not added to filestore - exception: {}'.format(output))
+            sys.exit(1)
 
     def add_osm(self):
 
-        # download osm from filestore. rename to seed.osm
-        # key = "uploads/%s/%s" % (upload_id, osm_name)
-        seedpath = os.path.join(self.osm_directory, 'seed.osm')
-        self.ac.bucket.download_file(self.osm_key, seedpath)
+        self.add_site_logger.logger.info("add_osm for {}".format(self.key))
+        self.ac.bucket.download_file(self.key, self.seed_osm_path)
 
         # Extract workflow tarball into this directory
-        tar = tarfile.open("workflow.tar.gz")
-        tar.extractall(self.osm_directory)
-        tar.close()
+        self.extract_workflow_tar()
 
-        workflowpath = os.path.join(self.osm_directory, 'workflow/workflow.osw')
-        points_jsonpath = os.path.join(self.osm_directory, 'workflow/reports/haystack_report_haystack.json')
-        mapping_jsonpath = os.path.join(self.osm_directory, 'workflow/reports/haystack_report_mapping.json')
-        call(['openstudio', 'run', '-m', '-w', workflowpath])
+        # Run OS Workflow on uploaded file to apply afalfa necessary measures
+        call(['openstudio', 'run', '-m', '-w', self.workflow_osw_path])
 
-        # TODO: Why exactly are the following two needed?
-        make_ids_unique(self.osm_upload_id, points_jsonpath, mapping_jsonpath)
-        replace_siteid(self.osm_upload_id, points_jsonpath, mapping_jsonpath)
-
-        # Upload the files back to filestore and clean local directory
-        self.ac.upload_site_to_filestore(points_jsonpath, self.ac.bucket, self.osm_directory)
-        shutil.rmtree(self.osm_directory)
+        self.os_files_final_touches_and_upload()
 
     def add_osw(self):
+        self.add_site_logger.logger.info("add_osw for {}".format(self.key))
+        osw_zip_path = os.path.join(self.directory, 'in.zip')
 
-        # (osw_zip_name, upload_id, directory) = precheck_argus(sys.argv)
-        #
-        # ac = alfalfa_connections.AlfalfaConnections()
-        # add_site_logger = AddSiteLogger(directory)
-
-        # First download the osw and run the workflow to get an osm file
-        # key = "uploads/%s/%s" % (upload_id, osw_zip_name)
-        osw_zip_path = os.path.join(self.osw_directory, 'in.zip')
-
-        self.ac.download_file(self.osw_key, osw_zip_path)
+        self.ac.bucket.download_file(self.key, osw_zip_path)
 
         zzip = zipfile.ZipFile(osw_zip_path)
-        zzip.extractall(self.osw_directory)
+        zzip.extractall(self.directory)
 
-        osws = glob.glob(("%s/**/*.osw" % self.osw_directory), recursive=True)
+        osws = glob.glob(("%s/**/*.osw" % self.directory), recursive=True)
         if osws:
-            oswpath = osws[0]
-            oswdir = os.path.dirname(oswpath)
+            osw_path = osws[0]
+            osw_dir = os.path.dirname(osw_path)
             # this is where the new osm will be after we run the workflow
-            osmpath = os.path.join(oswdir, 'run/in.osm')
-            epws = glob.glob(("%s/files/*.epw" % oswdir), recursive=True)
+            osm_path = os.path.join(osw_dir, 'run/in.osm')
+            epws = glob.glob(("%s/files/*.epw" % osw_dir), recursive=True)
             if epws:
-                user_epwpath = epws[0]
+                user_epw_path = epws[0]
         else:
             sys.exit(1)
 
         # Run initial workflow from zip file
-        call(['openstudio', 'run', '-m', '-w', oswpath])
+        call(['openstudio', 'run', '-m', '-w', osw_path])
 
         # Now take the osm produced by the osw and run
         # it through another workflow to generate tags
 
-        seedpath = os.path.join(self.osw_directory, 'seed.osm')
-        epwpath = os.path.join(self.osw_directory, 'workflow/files/weather.epw')
-        workflowpath = os.path.join(self.osw_directory, 'workflow/workflow.osw')
-        points_jsonpath = os.path.join(self.osw_directory, 'workflow/reports/haystack_report_haystack.json')
-        mapping_jsonpath = os.path.join(self.osw_directory, 'workflow/reports/haystack_report_mapping.json')
-
         # Extract workflow tarball into this directory
-        tar = tarfile.open("workflow.tar.gz")
-        tar.extractall(self.osw_directory)
-        tar.close()
+        self.extract_workflow_tar()
 
         # Copy .osm into seed.osm
-        shutil.copyfile(osmpath, seedpath)
+        shutil.copyfile(osm_path, self.seed_osm_path)
 
-        # Copy epw file into weather.epw
-        shutil.copyfile(user_epwpath, epwpath)
+        # Copy user specified epw file into weather.epw
+        shutil.copyfile(user_epw_path, self.epw_path)
 
         # Rerun model through workflow for alfalfa specific workflow
-        call(['openstudio', 'run', '-m', '-w', workflowpath])
+        call(['openstudio', 'run', '-m', '-w', self.workflow_osw_path])
 
-        # TODO: Why exactly are the following two needed?
-        make_ids_unique(self.osw_upload_id, points_jsonpath, mapping_jsonpath)
-        replace_siteid(self.osw_upload_id, points_jsonpath, mapping_jsonpath)
-
-        # Upload the files back to filestore and clean local directory
-        self.ac.upload_site_to_filestore(points_jsonpath, self.ac.bucket, self.osw_directory)
-        shutil.rmtree(self.osw_directory)
+        self.os_files_final_touches_and_upload()
 
     def add_fmu(self):
 
         # fmu files gets uploaded with user defined names, but here we rename
         # to model.fmu to avoid keeping track of the (unreliable, non unique) user upload name
         # createFMUTags will however use the original fmu upload name for the display name of the site
-        fmupath = os.path.join(self.fmu_directory, 'model.fmu')
-        jsonpath = os.path.join(self.fmu_directory, 'tags.json')
+        # fmu_path = os.path.join(self.directory, 'model.fmu')
+        # json_path = os.path.join(self.fmu_directory, 'tags.json')
+        self.add_site_logger.logger.info("add_fmu for {}".format(self.key))
 
-        bucket = self.s3.Bucket(os.environ['S3_BUCKET'])
-        bucket.download_file(self.fmu_key, fmupath)
+        self.ac.bucket.download_file(self.key, self.fmu_path)
 
-        call(['python', 'add_site/add_fmu/create_tags.py', fmupath, self.fmu_upload_name, jsonpath])
+        # External call to python2 to create FMU tags
+        call(['python', 'lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
 
-        self.ac.upload_site_to_filestore(jsonpath, bucket, self.fmu_directory)
+        self.add_to_mongo_and_filestore()
 
-        shutil.rmtree(self.fmu_directory)
+
+if __name__ == "__main__":
+    args = sys.argv
+    file_name, upload_id, directory = precheck_argus(args)
+    adder = AddSite(file_name, upload_id, directory)
+    adder.main()

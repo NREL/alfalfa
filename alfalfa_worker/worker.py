@@ -264,14 +264,8 @@ class Worker:
             # TODO reorganize the message names, because now "osm_name"
             #  is misleading because we are also handling FMUs
             name, ext = os.path.splitext(file_name)
-            if ext == '.osm':
-                p = 'add_site/add_osm/add_osm.py'
-                self.add_site_type(p, file_name, upload_id)
-            elif ext == '.zip':
-                p = 'add_site/add_osw/add_osw.py'
-                self.add_site_type(p, file_name, upload_id)
-            elif ext == '.fmu':
-                p = 'add_site/add_fmu/add_fmu.py'
+            if ext in ['.osm', '.zip', '.fmu']:
+                p = 'add_site/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
             else:
                 self.worker_logger.logger.info(

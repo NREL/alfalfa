@@ -19,6 +19,7 @@ class AlfalfaConnections:
         self.sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
         self.queue = self.sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
         self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
+        # self.s3_client = boto3.client('s3', os.environ['REGION'])
         self.redis = Redis(host=os.environ['REDIS_HOST'])
         self.pubsub = self.redis.pubsub()
         self.mongo_client = MongoClient(os.environ['MONGO_URL'])
@@ -28,22 +29,11 @@ class AlfalfaConnections:
         self.sims = self.mongo_db.sims
         self.bucket = self.s3.Bucket(os.environ['S3_BUCKET'])
 
-    def upload_site_to_filestore(self, json_path, folder_path):
-        '''
-        Purpose: upload the tagged site to the database and cloud
-        Inputs: the S3-bucket
-        Returns: nothing
-        '''
-        # get the id of site tag(remove the 'r:')
-        site_ref = ''
+    def add_site_to_mongo(self, json_path, site_ref):
         with open(json_path) as json_file:
             data = json.load(json_file)
-            for entity in data:
-                if 'site' in entity:
-                    if entity['site'] == 'm:':
-                        site_ref = entity['id'].replace('r:', '')
-                        break
 
+        # print(data)
         if site_ref:
             array_to_insert = []
             for entity in data:
@@ -52,10 +42,17 @@ class AlfalfaConnections:
                     'site_ref': site_ref,
                     'rec': entity
                 })
-            self.recs.insert_many(array_to_insert)
-            print("past insert!")
-            # print(result)
+            response = self.recs.insert_many(array_to_insert)
+            return response
 
+    def add_site_to_filestore(self, folder_path, site_ref):
+        '''
+        Purpose: upload the tagged site to the database and cloud
+        Inputs: the S3-bucket
+        Returns: nothing
+        '''
+        # get the id of site tag(remove the 'r:')
+        if site_ref:
             def reset(tarinfo):
                 tarinfo.uid = tarinfo.gid = 0
                 tarinfo.uname = tarinfo.gname = "root"
@@ -67,5 +64,11 @@ class AlfalfaConnections:
             tar.add(folder_path, filter=reset, arcname=site_ref)
             tar.close()
 
-            # This upload the tagged site to the cloud
-            self.bucket.upload_file(tarname, "parsed/%s" % tarname)
+            upload_location = "parsed/%s" % tarname
+            try:
+                self.bucket.upload_file(tarname, upload_location)
+                return True, upload_location
+            except boto3.exceptions.S3UploadFailedError as e:
+                return False, e
+            except FileNotFoundError as e:
+                return False, e
