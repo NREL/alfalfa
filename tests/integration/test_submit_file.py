@@ -19,6 +19,6 @@ class TestSubmitFile(TestCase):
         file = os.path.join(os.path.dirname(__file__), 'SmallOffice_Unitary_1.osm')
         self.assertTrue(os.path.exists(file))
         # It looks like this command hangs...
-        # site = self.client.submit(file)
-        # print(site)
-        # self.assertIsNotNone(site)
+        site = self.client.submit(file)
+        print(site)
+        self.assertIsNotNone(site)
