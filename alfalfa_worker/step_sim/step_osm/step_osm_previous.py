@@ -194,15 +194,15 @@ def finalize_simulation():
     os.remove(tar_name)
     shutil.rmtree(sp.workflow_directory)
 
-    site = recs.find_one({"_id": sp.site_ref})
+    site = mongo_db_recs.find_one({"_id": sp.site_ref})
     name = site.get("rec", {}).get("dis", "Unknown") if site else "Unknown"
     name = name.replace("s:", "")
     time = str(datetime.datetime.now(tz=pytz.UTC))
     sims.insert_one({"_id": sim_id, "siteRef": sp.site_ref, "s3Key": s3_key, "name": name, "timeCompleted": time})
-    recs.update_one({"_id": sp.site_ref},
-                    {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
-    recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"},
-                     {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": {"rec.curStatus": "s:disabled"}}, False)
+    mongo_db_recs.update_one({"_id": sp.site_ref},
+                             {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
+    mongo_db_recs.update_many({"_id": sp.site_ref, "rec.cur": "m:"},
+                              {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": {"rec.curStatus": "s:disabled"}}, False)
 
 
 def getInputs(bypass_flag):
@@ -264,11 +264,11 @@ def process_times(startDatetime, endDatetime):
 # Mongo Database
 mongo_client = MongoClient(os.environ['MONGO_URL'])  # AlfalfaConnections
 mongodb = mongo_client[os.environ['MONGO_DB_NAME']]  # AlfalfaConnections
-recs = mongodb.recs  # AlfalfaConnections
+mongo_db_recs = mongodb.recs  # AlfalfaConnections
 sims = mongodb.sims  # AlfalfaConnections
 
 redis_client = redis.Redis(host=os.environ['REDIS_HOST'])  # AlfalfaConnections
-pubsub = redis_client.pubsub()  # AlfalfaConnections
+redis_pubsub = redis_client.pubsub()  # AlfalfaConnections
 
 """
 Below handled by step_sim_arg_parser
@@ -299,7 +299,7 @@ if len(sys.argv) == 7:
     if not real_time_flag:
         if startDatetime >= endDatetime:
             print('End time occurs on or before start time', file=sys.stderr)
-            recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
+            mongo_db_recs.update_one({"_id": site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}}, False)
             sys.exit(1)
 
 else:
@@ -425,9 +425,9 @@ try:
     # only used for external_clock
     advance = False
     if external_clock:
-        pubsub.subscribe(sp.site_ref)
+        redis_pubsub.subscribe(sp.site_ref)
 
-    recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Starting"}}, False)
+    mongo_db_recs.update_one({"_id": sp.site_ref}, {"$set": {"rec.simStatus": "s:Starting"}}, False)
     real_time_step = 0
 
     while True:
@@ -435,7 +435,7 @@ try:
         t = datetime.datetime.now().timestamp()
 
         if external_clock:
-            message = pubsub.get_message()
+            message = redis_pubsub.get_message()
             if message:
                 data = message['data']
                 if data == b'advance':
@@ -451,7 +451,7 @@ try:
 
             # Check for "Stopping" here so we don't hit the database as fast as the event loop will run
             # Instead we only check the database for stopping at each simulation step
-            rec = recs.find_one({"_id": sp.site_ref})
+            rec = mongo_db_recs.find_one({"_id": sp.site_ref})
             if rec and (rec.get("rec", {}).get("simStatus") == "s:Stopping"):
                 stop = True
 
@@ -481,13 +481,13 @@ try:
 
                             # TODO: Make this better with a bulk update
                             # Also at some point consider removing curVal and related fields after sim ends
-                            recs.update_one({"_id": output_id}, {
+                            mongo_db_recs.update_one({"_id": output_id}, {
                                 "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
                                          "rec.cur": "m:"}}, False)
 
                     real_time_step = real_time_step + 1
                     output_time_string = "s:%s" % energyplus_datetime.isoformat()
-                    recs.update_one({"_id": sp.site_ref}, {
+                    mongo_db_recs.update_one({"_id": sp.site_ref}, {
                         "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(real_time_step),
                                  "rec.simStatus": "s:Running"}}, False)
 

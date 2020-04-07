@@ -11,60 +11,81 @@ import json
 
 # Local
 from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
-from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_siteid
+from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_site_id
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 
 
 class AddSite:
     """A wrapper class around adding sites"""
 
-    def __init__(self, file_name, upload_id, directory):
-        """Are we able to define:
-                - upload_ID
-                - directory
-                - ac
-            at the class level or do all of these have unique values to each funciton"""
+    def __init__(self, fn, up_id, f_dir):
+        """
+        Initialize.
+        :param fn: name of file to submit
+        :param up_id: upload_id as first created by Upload.js when sending file to file s3 bucket (addSiteResolver)
+        :param f_dir: directory to upload to on s3 bucket after parsing: parsed/{site_id}/.  Also used locally during this process.
+        """
         self.add_site_logger = AddSiteLogger()
-        self.add_site_logger.logger.info("AddSite called with args: {} {} {}".format(file_name, upload_id, directory))
-        self.file_name = file_name
-        self.upload_id = upload_id
-        self.directory = directory
+        self.add_site_logger.logger.info("AddSite called with args: {} {} {}".format(fn, up_id, f_dir))
+        self.file_name = fn
+        self.upload_id = up_id
+        self.bucket_parsed_site_id_dir = f_dir
         _, self.file_ext = os.path.splitext(self.file_name)
         self.key = "uploads/%s/%s" % (self.upload_id, self.file_name)
 
         # Define OSM and OSW specific attributes
-        self.seed_osm_path = os.path.join(self.directory, 'seed.osm')
-        self.workflow_osw_path = os.path.join(self.directory, 'workflow/workflow.osw')
-        self.epw_path = os.path.join(self.directory, 'workflow/files/weather.epw')  # mainly only used for add_osw
-        self.report_haystack_json = os.path.join(self.directory, 'workflow/reports/haystack_report_haystack.json')
-        self.report_mapping_json = os.path.join(self.directory, 'workflow/reports/haystack_report_mapping.json')
+        self.seed_osm_path = os.path.join(self.bucket_parsed_site_id_dir, 'seed.osm')
+        self.workflow_osw_path = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/workflow.osw')
+        self.epw_path = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/files/weather.epw')  # mainly only used for add_osw
+        self.report_haystack_json = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/reports/haystack_report_haystack.json')
+        self.report_mapping_json = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/reports/haystack_report_mapping.json')
 
         # Define FMU specific attributes
-        self.fmu_path = os.path.join(self.directory, 'model.fmu')
-        self.fmu_json = os.path.join(self.directory, 'tags.json')
+        self.fmu_path = os.path.join(self.bucket_parsed_site_id_dir, 'model.fmu')
+        self.fmu_json = os.path.join(self.bucket_parsed_site_id_dir, 'tags.json')
 
         # Create connections
         self.ac = AlfalfaConnections()
 
+        # Needs to be set after files are uploaded / parsed.
         self.site_ref = None
 
     def main(self):
+        """
+        Main entry point after init.  Adds site based on file ext.  Worfklow is generally as follows:
+        1. Download file from s3 bucket
+        2. Ingest model file and add tags
+        3. Send data to mongo and s3 bucket
+        4. Remove files generated during this process
+        :return:
+        """
         if self.file_ext == '.osm':
             self.add_osm()
         elif self.file_ext == '.zip':
             self.add_osw()
         elif self.file_ext == '.fmu':
             self.add_fmu()
+        else:
+            self.add_site_logger.logger.error("Unsupported file extension: {}".format(self.file_ext))
+            os.exit(1)
 
     def extract_workflow_tar(self):
-        # Extract workflow tarball into this directory
+        """
+        Extract workflow tarball into this directory
+        :return:
+        """
         tar = tarfile.open("workflow.tar.gz")
-        tar.extractall(self.directory)
+        tar.extractall(self.bucket_parsed_site_id_dir)
         tar.close()
 
-    def get_site_ref(self, fh):
+    def get_site_ref(self, haystack_json):
+        """
+        Find the site given the haystack JSON file
+        :param haystack_json: json serialized Haystack document
+        :return: site_ref: id of site
+        """
         site_ref = ''
-        with open(fh) as json_file:
+        with open(haystack_json) as json_file:
             data = json.load(json_file)
             for entity in data:
                 if 'site' in entity:
@@ -74,20 +95,30 @@ class AddSite:
         return site_ref
 
     def os_files_final_touches_and_upload(self):
+        """
+        Make unique ids and replace site_id.  Upload to mongo and filestore.
+        :return:
+        """
         # TODO: Why exactly are the following two needed?
         make_ids_unique(self.upload_id, self.report_haystack_json, self.report_mapping_json)
-        replace_siteid(self.upload_id, self.report_haystack_json, self.report_mapping_json)
+        replace_site_id(self.upload_id, self.report_haystack_json, self.report_mapping_json)
 
         # Upload to mongo & filestore, clean local directory
         self.add_to_mongo_and_filestore()
 
     def add_to_mongo_and_filestore(self):
+        """
+        Attempt upload to mongo and filestore.  Function exits if not uploaded correctly
+        based on expected return values from methods in AlfalfaConnections.
+        :return:
+        """
         if self.file_ext != '.fmu':
             f = self.report_haystack_json
             self.site_ref = self.get_site_ref(self.report_haystack_json)
         else:
             f = self.fmu_json
             self.site_ref = self.get_site_ref(self.fmu_json)
+
         # Check mongo upload works correctly
         mongo_response = self.ac.add_site_to_mongo(f, self.site_ref)
         if len(mongo_response.inserted_ids) > 0:
@@ -97,10 +128,10 @@ class AddSite:
             sys.exit(1)
 
         # Check filestore upload works correctly
-        filestore_response, output = self.ac.add_site_to_filestore(self.directory, self.site_ref)
+        filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.site_ref)
 
         # Clean local directory
-        shutil.rmtree(self.directory)
+        shutil.rmtree(self.bucket_parsed_site_id_dir)
         if filestore_response:
             self.add_site_logger.logger.info(
                 'added to filestore: {}'.format(output))
@@ -109,9 +140,12 @@ class AddSite:
             sys.exit(1)
 
     def add_osm(self):
-
+        """
+        Workflow for osm.
+        :return:
+        """
         self.add_site_logger.logger.info("add_osm for {}".format(self.key))
-        self.ac.bucket.download_file(self.key, self.seed_osm_path)
+        self.ac.s3_bucket.download_file(self.key, self.seed_osm_path)
 
         # Extract workflow tarball into this directory
         self.extract_workflow_tar()
@@ -122,15 +156,21 @@ class AddSite:
         self.os_files_final_touches_and_upload()
 
     def add_osw(self):
+        """
+        Workflow for osw.  The osm is run through 2x workflows:
+        1. Original workflow defined by upload
+        2. Alfalfa specific workflow
+        :return:
+        """
         self.add_site_logger.logger.info("add_osw for {}".format(self.key))
-        osw_zip_path = os.path.join(self.directory, 'in.zip')
+        osw_zip_path = os.path.join(self.bucket_parsed_site_id_dir, 'in.zip')
 
-        self.ac.bucket.download_file(self.key, osw_zip_path)
+        self.ac.s3_bucket.download_file(self.key, osw_zip_path)
 
         zzip = zipfile.ZipFile(osw_zip_path)
-        zzip.extractall(self.directory)
+        zzip.extractall(self.bucket_parsed_site_id_dir)
 
-        osws = glob.glob(("%s/**/*.osw" % self.directory), recursive=True)
+        osws = glob.glob(("%s/**/*.osw" % self.bucket_parsed_site_id_dir), recursive=True)
         if osws:
             osw_path = osws[0]
             osw_dir = os.path.dirname(osw_path)
@@ -163,15 +203,14 @@ class AddSite:
         self.os_files_final_touches_and_upload()
 
     def add_fmu(self):
-
-        # fmu files gets uploaded with user defined names, but here we rename
-        # to model.fmu to avoid keeping track of the (unreliable, non unique) user upload name
-        # createFMUTags will however use the original fmu upload name for the display name of the site
-        # fmu_path = os.path.join(self.directory, 'model.fmu')
-        # json_path = os.path.join(self.fmu_directory, 'tags.json')
+        """
+        Workflow for fmu.  External call to python2 must be made since currently we are using an
+        old version of the Modelica Buildings Library and JModelica.
+        :return:
+        """
         self.add_site_logger.logger.info("add_fmu for {}".format(self.key))
 
-        self.ac.bucket.download_file(self.key, self.fmu_path)
+        self.ac.s3_bucket.download_file(self.key, self.fmu_path)
 
         # External call to python2 to create FMU tags
         call(['python', 'lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
