@@ -1,0 +1,6 @@
+.pytest_cache
+.tox
+dist
+tests
+docs
+tox.ini

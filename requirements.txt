@@ -1,0 +1,3 @@
+# This file simply calls the worker/requirements but is here as it is a convention to
+# have the requirements.txt in the root.
+-r alfalfa_worker/requirements/test.txt
