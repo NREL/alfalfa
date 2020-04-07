@@ -176,8 +176,8 @@ class Worker:
         """
         Simple wrapper for the add_site subprocess call given the path for python file to call
 
-        :param p: path of file to call
-        :param file_name: name of file to run with extension
+        :param p: path of add_site/add_site.py file to call
+        :param file_name: name of file to add with extension, excludes full path
         :param upload_id:
         :return:
         """
@@ -264,14 +264,8 @@ class Worker:
             # TODO reorganize the message names, because now "osm_name"
             #  is misleading because we are also handling FMUs
             name, ext = os.path.splitext(file_name)
-            if ext == '.osm':
-                p = 'add_site/add_osm/add_osm.py'
-                self.add_site_type(p, file_name, upload_id)
-            elif ext == '.zip':
-                p = 'add_site/add_osw/add_osw.py'
-                self.add_site_type(p, file_name, upload_id)
-            elif ext == '.fmu':
-                p = 'add_site/add_fmu/add_fmu.py'
+            if ext in ['.osm', '.zip', '.fmu']:
+                p = 'add_site/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
             else:
                 self.worker_logger.logger.info(
@@ -295,7 +289,7 @@ class Worker:
             # TODO insert sys.exit(1)?
         else:
             site_id = message_body.get('id')
-            site_rec = self.ac.recs.find_one({"_id": site_id})
+            site_rec = self.ac.mongo_db_recs.find_one({"_id": site_id})
 
             # TODO: do we still want default to be 'osm'?
             sim_type = site_rec.get("rec", {}).get("sim_type", "osm").replace("s:", "")
@@ -387,7 +381,7 @@ class Worker:
             # WaitTimeSeconds triggers long polling that will wait for events to enter queue
             # Receive Message
             try:
-                messages = self.ac.queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20)
+                messages = self.ac.sqs_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20)
                 if len(messages) > 0:
                     message = messages[0]
                     self.worker_logger.logger.info('Message Received with payload: %s' % message.body)

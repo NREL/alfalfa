@@ -3,7 +3,7 @@ import uuid
 
 
 # replace_ids.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
-def replace_siteid(uploadid, points_jsonpath, mapping_jsonpath):
+def replace_site_id(uploadid, points_jsonpath, mapping_jsonpath):
     # step-1: find the siteid from jsonfile
     with open(points_jsonpath, 'r') as jsonfile:
         data = json.load(jsonfile)

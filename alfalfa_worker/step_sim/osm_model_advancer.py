@@ -21,7 +21,7 @@ class OSMModelAdvancer(ModelAdvancer):
         super(OSMModelAdvancer, self).__init__()
         # Download file from bucket and extract
         self.bucket_key = os.path.join(self.parsed_path, self.tar_name)
-        self.ac.bucket.download_file(self.bucket_key, self.tar_path)
+        self.ac.s3_bucket.download_file(self.bucket_key, self.tar_path)
         tar = tarfile.open(self.tar_path)
         tar.extractall(self.sim_path)
         tar.close()
@@ -138,7 +138,7 @@ class OSMModelAdvancer(ModelAdvancer):
         tar_file.close()
 
         s3_key = "simulated/%s/%s" % (self.site_id, tar_name)
-        self.ac.bucket.upload_file(tar_name, s3_key)
+        self.ac.s3_bucket.upload_file(tar_name, s3_key)
 
         os.remove(tar_name)
         shutil.rmtree(self.sim_path_site)
@@ -146,21 +146,21 @@ class OSMModelAdvancer(ModelAdvancer):
         name = self.site.get("rec", {}).get("dis", "Unknown") if self.site else "Unknown"
         name = name.replace("s:", "")
         t = str(datetime.now(tz=pytz.UTC))
-        self.ac.sims.insert_one(
+        self.ac.mongo_db_sims.insert_one(
             {"_id": sim_id, "siteRef": self.site_id, "s3Key": s3_key, "name": name, "timeCompleted": t})
-        self.ac.recs.update_one({"_id": self.site_id},
-                                {"$set": {"rec.simStatus": "s:Stopped"},
-                                 "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
-        self.ac.recs.update_many({"_id": self.site_id, "rec.cur": "m:"},
-                                 {"$unset": {"rec.curVal": "", "rec.curErr": ""},
-                                  "$set": {"rec.curStatus": "s:disabled"}},
-                                 False)
+        self.ac.mongo_db_recs.update_one({"_id": self.site_id},
+                                         {"$set": {"rec.simStatus": "s:Stopped"},
+                                          "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
+        self.ac.mongo_db_recs.update_many({"_id": self.site_id, "rec.cur": "m:"},
+                                          {"$unset": {"rec.curVal": "", "rec.curErr": ""},
+                                           "$set": {"rec.curStatus": "s:disabled"}},
+                                          False)
         self.ep.stop(True)
         self.ep.is_running = 0
 
     def run_external_clock(self):
         """Placeholder for running using an external_clock"""
-        self.ac.pubsub.subscribe(self.site_id)
+        self.ac.redis_pubsub.subscribe(self.site_id)
         self.model_logger.logger.info('In: run_external_clock')
         # TODO: Figure out why model doesn't advance
         while True:
@@ -307,7 +307,7 @@ class OSMModelAdvancer(ModelAdvancer):
 
         :return:
         """
-        message = self.ac.pubsub.get_message()
+        message = self.ac.redis_pubsub.get_message()
         if message:
             self.model_logger.logger.info('CDM message: {}'.format(message))
             data = message['data']
@@ -328,7 +328,7 @@ class OSMModelAdvancer(ModelAdvancer):
         else:
             self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
             self.ep.inputs[master_index] = 1
-            for array in self.ac.write_arrays.find({"siteRef": self.site_id}):
+            for array in self.ac.mongo_db_write_arrays.find({"siteRef": self.site_id}):
                 for val in array.get('val'):
                     if val:
                         index = self.variables.get_input_index(array.get('_id'))
@@ -353,7 +353,7 @@ class OSMModelAdvancer(ModelAdvancer):
 
                 # TODO: Make this better with a bulk update
                 # Also at some point consider removing curVal and related fields after sim ends
-                self.ac.recs.update_one({"_id": output_id}, {
+                self.ac.mongo_db_recs.update_one({"_id": output_id}, {
                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
                              "rec.cur": "m:"}}, False)
 

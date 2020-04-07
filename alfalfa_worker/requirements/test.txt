@@ -1,7 +1,7 @@
 -r production.txt
 
 # For testing the API
-alfalfaclient
+alfalfa-client
 
 # Testing and code syntax packages
 autopep8==1.4.4

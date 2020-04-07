@@ -33,7 +33,7 @@ class ModelAdvancer(object):
 
         # Setup connections
         self.ac = AlfalfaConnections()
-        self.site = self.ac.recs.find_one({"_id": self.site_id})
+        self.site = self.ac.mongo_db_recs.find_one({"_id": self.site_id})
 
         # Setup tar file for downloading from s3
         self.parsed_path = '/parsed'
@@ -55,8 +55,8 @@ class ModelAdvancer(object):
         :return:
         """
         output_time_string = 's:{}'.format(self.start_datetime.strftime("%Y-%m-%d %H:%M"))
-        self.ac.recs.update_one({"_id": self.site_id},
-                                {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
+        self.ac.mongo_db_recs.update_one({"_id": self.site_id},
+                                         {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
 
     def check_sim_status_stop(self):
         """

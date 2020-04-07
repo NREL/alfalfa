@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Usage
 
-To be filled out later. 
+To be filled out later.
 
 ## TODO
 
