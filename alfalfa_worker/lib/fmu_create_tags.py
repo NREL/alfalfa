@@ -1,7 +1,8 @@
-import sys
-import os
 import json
+import os
+import sys
 import uuid
+
 from pyfmi import load_fmu
 
 # 1.0 setup the inputs

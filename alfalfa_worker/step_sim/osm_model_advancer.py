@@ -1,15 +1,15 @@
 # Standard library imports
 import os
-import sys
 import shutil
-import uuid
-import tarfile
-from datetime import datetime, timedelta
-import pytz
 import subprocess
+import sys
+import tarfile
+import uuid
+from datetime import datetime, timedelta
 
 # Third party library imports
 import mlep
+import pytz
 
 # Local imports
 from alfalfa_worker.step_sim.model_advancer import ModelAdvancer

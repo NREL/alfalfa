@@ -1,5 +1,5 @@
-from datetime import datetime
 import argparse
+from datetime import datetime
 
 
 def valid_date(s):

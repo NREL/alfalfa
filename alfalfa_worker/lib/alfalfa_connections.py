@@ -3,8 +3,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-import os
 import json
+import os
 import tarfile
 
 import boto3

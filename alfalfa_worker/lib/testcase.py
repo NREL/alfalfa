@@ -24,11 +24,12 @@ information, and calculating and reporting results.
 
 """
 
-from pyfmi import load_fmu
-import numpy as np
 import copy
-from scipy.integrate import trapz
+
+import numpy as np
 from data.data_manager import Data_Manager
+from pyfmi import load_fmu
+from scipy.integrate import trapz
 
 
 class TestCase(object):
@@ -36,13 +37,27 @@ class TestCase(object):
 
     '''
 
-    def __init__(self, con):
-        '''Constructor.
+    def __init__(self, **kwargs):
+        """
+        Constructor
 
-        '''
+        :param kwargs:
+        """
+        # ensure the fmupath and step are defined in kwargs
+        if kwargs.get('fmupath', None) is None:
+            raise Exception('fmupath is required in TestCase initializer')
+
+        if kwargs.get('step', None) is None:
+            raise Exception('step is required in TestCase initializer')
+
+        # default the remaining kwarg arguments
+        init_options = {
+            'start_time': 0
+        }
+        init_options.update(kwargs)
 
         # Define simulation model
-        self.fmupath = con['fmupath']
+        self.fmupath = init_options['fmupath']
         # Load fmu
         self.fmu = load_fmu(self.fmupath, enable_logging=True)
         # Get version and check is 2.0
@@ -72,9 +87,9 @@ class TestCase(object):
         self.options = self.fmu.simulate_options()
         self.options['CVode_options']['rtol'] = 1e-6
         # Set default communication step
-        self.set_step(con['step'])
+        self.set_step(init_options['step'])
         # Set initial simulation start
-        self.start_time = 0
+        self.start_time = init_options['start_time']
         self.initialize = True
         self.options['initialize'] = self.initialize
 

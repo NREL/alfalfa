@@ -27,8 +27,8 @@
 '''
 
 import json
-from subprocess import call
 import tarfile
+from subprocess import call
 
 
 def upload_site_to_filestore(jsonpath, bucket, folderpath):

@@ -23,21 +23,22 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
-import os
-import boto3
-import tarfile
-import shutil
-import time
-import sys
 import json
-import redis
+import os
+import shutil
+import sys
+import tarfile
+import time
 import uuid
 import zipfile
-from pymongo import MongoClient
+from datetime import datetime
+
+import boto3
 import lib
 import lib.testcase
-from datetime import datetime
 import pytz
+import redis
+from pymongo import MongoClient
 
 
 class RunFMUSite:
@@ -90,6 +91,7 @@ class RunFMUSite:
         # Load fmu
         config = {
             'fmupath': fmupath,
+            'start_time': self.startTime,
             'step': 300,
             'kpipath': self.directory + '/resources/kpis.json'
         }
@@ -244,13 +246,12 @@ class RunFMUSite:
             if key != 'time':
                 output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-                self.mongo_db_recs.update_one({"_id": output_id}, {"$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
+                self.recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
 
 # Main Program Entry
 
 # get arguments from calling program
 # which is the processMessage program
-
 
 site_ref = sys.argv[1]
 real_time_flag = (sys.argv[2] == 'true')
@@ -265,7 +266,7 @@ startTime = sys.argv[4]
 if startTime == 'undefined':
     startTime = 0
 else:
-    starTime = int(sys.argv[4])
+    startTime = int(sys.argv[4])
 endTime = sys.argv[5]
 if endTime == 'undefined':
     endTime = 86400
