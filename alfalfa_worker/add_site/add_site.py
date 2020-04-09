@@ -80,7 +80,7 @@ class AddSite:
 
     def get_site_ref(self, haystack_json):
         """
-        Find the site given the haystack JSON file
+        Find the site given the haystack JSON file.  Remove 'r:' from string.
         :param haystack_json: json serialized Haystack document
         :return: site_ref: id of site
         """
