@@ -118,7 +118,7 @@ class PointDialogComponent extends React.Component {
     if( this.props.site ) {
       return(
         <div>
-          <Dialog open={true} onBackdropClick={this.props.onBackdropClick}>
+          <Dialog fullWidth={true} maxWidth='lg' open={true} onBackdropClick={this.props.onBackdropClick}>
             <DialogTitle>{this.props.site.name + ' Points'}</DialogTitle>
             <DialogContent>
               {this.table()}
@@ -231,9 +231,9 @@ class Sites extends React.Component {
     return (! stoppedItem);
   }
 
-  handleStartSimulation = (startDatetime,endDatetime,timescale,realtime) => {
+  handleStartSimulation = (startDatetime,endDatetime,timescale,realtime,externalClock) => {
     this.selectedSites().map((item) => {
-      this.props.startSimProp(item.siteRef,startDatetime,endDatetime,timescale,realtime);
+      this.props.startSimProp(item.siteRef,startDatetime,endDatetime,timescale,realtime,externalClock);
     })
   }
 
@@ -329,7 +329,6 @@ class Sites extends React.Component {
                   <TableCell>Site Reference</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Time</TableCell>
-                  <TableCell>Step</TableCell>
                   <TableCell></TableCell>
                 </TableRow>
               </TableHead>
@@ -350,7 +349,6 @@ class Sites extends React.Component {
                       <TableCell>{site.siteRef}</TableCell>
                       <TableCell>{site.simStatus}</TableCell>
                       <TableCell>{this.formatTime(site.datetime)}</TableCell>
-                      <TableCell>{site.step}</TableCell>
                       <TableCell><IconButton onClick={event => this.handleRequestShowPoints(event, site)}><MoreVert/></IconButton></TableCell>
                     </TableRow>
                    );
@@ -364,10 +362,10 @@ class Sites extends React.Component {
                 <StartDialog type={this.state.startDialogType} disabled={isStartDisabled} onStartSimulation={this.handleStartSimulation}></StartDialog>
               </Grid>
               <Grid item>
-                <Button variant="contained" className={classes.button} disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Simulation</Button>
+                <Button variant="contained" className={classes.button} disabled={isStopDisabled} onClick={this.handleStopSimulation}>Stop Test</Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" className={classes.button} disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Site</Button>
+                <Button variant="contained" className={classes.button} disabled={isRemoveDisabled} onClick={this.handleRemoveSite}>Remove Test Case</Button>
               </Grid>
             </Grid>
           </Grid>
@@ -382,7 +380,7 @@ const styles = theme => ({
     marginLeft: 16,
   },
   button: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(1),
   },
 });
 
@@ -404,8 +402,8 @@ const sitesQL = gql`
 
 // TODO: make an input type
 const runSiteQL = gql`
-  mutation runSiteMutation($siteRef: String!, $startDatetime: String, $endDatetime: String, $timescale: Float, $realtime: String ) {
-    runSite(siteRef: $siteRef, startDatetime: $startDatetime, endDatetime: $endDatetime, timescale: $timescale, realtime: $realtime)
+  mutation runSiteMutation($siteRef: String!, $startDatetime: String, $endDatetime: String, $timescale: Float, $realtime: Boolean, $externalClock: Boolean ) {
+    runSite(siteRef: $siteRef, startDatetime: $startDatetime, endDatetime: $endDatetime, timescale: $timescale, realtime: $realtime, externalClock: $externalClock)
   }
 `;
 
@@ -425,7 +423,7 @@ const withStyle = withStyles(styles)(Sites);
 
 const withStart = graphql(runSiteQL, {
   props: ({ mutate }) => ({
-    startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime } }),
+    startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime, externalClock) => mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime, externalClock } }),
   })
 })(withStyle);
 

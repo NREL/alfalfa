@@ -1,4 +1,15 @@
-#
+# IDEs
+.idea
+
+# Python
+.python-version
+*~$*
+*.pyc
+*.swp
+*.swo
+*.swn
+
+# Simulations
 /worker/test/output
 /s3/*
 # E+
@@ -32,5 +43,5 @@ fort.6
 *.autosave
 *~
 
-# Python
-
+# Custom
+client/__pycache__/*

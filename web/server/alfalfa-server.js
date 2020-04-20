@@ -29,6 +29,7 @@ import fs from 'fs';
 import hs from 'nodehaystack';
 import HDict from 'nodehaystack/HDict';
 import uuid from 'uuid/v1';
+import dbops from './dbops';
 
 var HBool = hs.HBool,
     HDateTime = hs.HDateTime,
@@ -38,6 +39,9 @@ var HBool = hs.HBool,
     HWatch = hs.HWatch,
     HHisItem = hs.HHisItem,
     HMarker = hs.HMarker,
+  // The purpose of this file is to consolidate operations to the database
+  // in a single place. Clients may transform the data into and out of 
+  // these functions for their own api purposes. ie Haystack api, GraphQL api.
     HNum = hs.HNum,
     HRef = hs.HRef,
     HStr = hs.HStr,
@@ -187,10 +191,13 @@ class AlfalfaWatch extends HWatch {
  * @constructor
  */
 class AlfalfaServer extends HServer {
-  constructor(mongodb) {
+  constructor(mongodb, redis, pub, sub) {
     super();
 
-    this.db = mongodb
+    this.db = mongodb;
+    this.redis = redis;
+    this.pub = pub;
+    this.sub = sub;
     this.writearrays = this.db.collection('writearrays');
     this.mrecs = this.db.collection('recs');
     this.recs = {};
@@ -462,7 +469,7 @@ class AlfalfaServer extends HServer {
     b.addCol("who");
     
     for (var i = 0; i < array.val.length; ++i) {
-      if( array.val[i] ) {
+      if( array.val[i] || array.val[i] === 0 ) {
         b.addRow([
           HNum.make(i + 1),
           HStr.make("" + (i + 1)),
@@ -490,10 +497,7 @@ class AlfalfaServer extends HServer {
       } else {
         let array = new WriteArray();
         array._id = rec.id().val;
-        let siteRef = rec.get('siteRef',false);
-        if( siteRef ) {
-          array.siteRef = siteRef.val;
-        }
+        array.siteRef = rec.get('siteRef',{}).val;
         this.writearrays.insertOne(array).then( () => {
           return this.mrecs.updateOne(
             { "_id": array._id },
@@ -512,73 +516,12 @@ class AlfalfaServer extends HServer {
   };
   
   onPointWrite(rec, level, val, who, dur, opts, callback) {
-    let writeArray = null;
-
-    this.writearrays.findOne({_id: rec.id().val}).then((array) => {
-      if( array ) {
-        if( val && val.val ) {
-          array.val[level - 1] = val.val;
-          array.who[level - 1] = who;
-        } else {
-          array.val[level - 1] = null;
-          array.who[level - 1] = null;
-        }
-        this.writearrays.updateOne(
-          { "_id": array._id },
-          { $set: { "val": array.val, "who": array.who } }
-        ).then( () => {
-          if( val && val.val ) {
-            const current = this.currentWinningValue(array);
-            return this.mrecs.updateOne(
-              { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
-            )
-          } else {
-            return this.mrecs.updateOne(
-              { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:disabled" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
-            )
-          }
-        }).then( () => {
-          const b = this.writeArrayToGrid(array);
-          callback(null, b.toGrid());
-        }).catch( (err) => {
-          callback(err);
-        });
-      } else {
-        let array = new WriteArray();
-        array._id = rec.id().val;
-        let siteRef = rec.get('siteRef',false);
-        if( siteRef ) {
-          array.siteRef = siteRef.val;
-        }
-        if( val ) {
-          array.val[level - 1] = val.val;
-          array.who[level - 1] = who;
-        } else {
-          array.val[level - 1] = null;
-          array.who[level - 1] = null;
-        }
-        this.writearrays.insertOne(array).then( () => {
-          const current = this.currentWinningValue(array);
-          if( current ) {
-            return this.mrecs.updateOne(
-              { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:ok", "rec.writeVal": `s:${current.val}`, "rec.writeLevel": `n:${current.level}` }, $unset: { writeErr: "" } }
-            )
-          } else {
-            return this.mrecs.updateOne(
-              { "_id": array._id },
-              { $set: { "rec.writeStatus": "s:disabled" }, $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": ""} }
-            )
-          }
-        }).then(() => {
-          const b = this.writeArrayToGrid(array);
-          callback(null, b.toGrid());
-        }).catch((err) => {
-          callback(err);
-        });
-      }
+    const value = val ? val.val : null;
+    const id = rec.id().val;
+    const siteRef = rec.get('siteRef',{}).val;
+    dbops.writePoint(id, siteRef, level, value, who, dur, this.db).then((array) => {
+      const b = this.writeArrayToGrid(array);
+      callback(null, b.toGrid());
     }).catch((err) => {
       callback(err);
     });
@@ -647,10 +590,13 @@ class AlfalfaServer extends HServer {
         });
       })
     } else if ( action == "stopSite" ) {
+      const siteRef = rec.id().val
       this.mrecs.updateOne(
-        { _id: rec.id().val },
+        { _id: siteRef },
         { $set: { "rec.simStatus": "s:Stopping" } }
-      )
+      ).then( () => {
+        this.pub.publish(siteRef, "stop");
+      });
       callback(null,HGrid.EMPTY);
     } else if ( action == "removeSite" ) {
       this.mrecs.deleteMany({site_ref: rec.id().val});

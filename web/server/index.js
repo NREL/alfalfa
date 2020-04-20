@@ -31,40 +31,46 @@ import url from 'url';
 import bodyParser from 'body-parser';
 import alfalfaServer from './alfalfa-server';
 import {MongoClient} from 'mongodb';
+import node_redis from 'redis';
 import graphQLHTTP from 'express-graphql';
 import {Schema} from './schema';
+import {Advancer} from './advancer';
 import historyApiFallback from 'connect-history-api-fallback';
 import morgan from 'morgan';
-import * as Minio from 'minio';
 import { URL } from "url";
+import AWS from 'aws-sdk';
 
-const s3URL = new URL(process.env.S3_URL);
+var client = new AWS.S3({endpoint: process.env.S3_URL});
 
-var client = new Minio.Client({
-    endPoint: s3URL.hostname,
-    port: parseInt(s3URL.port),
-    useSSL: s3URL.protocol == 'https:',
-    accessKey: process.env.AWS_ACCESS_KEY_ID,
-    secretKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: 'us-west-1'
-});
+const redis = node_redis.createClient({host: process.env.REDIS_HOST});
+const pub = redis.duplicate();
+const sub = redis.duplicate();
+const advancer = new Advancer(redis, pub, sub);
 
 MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   var app = express();
   
   if( process.env.NODE_ENV == "production" ) {
-    app.get('*.js', function (req, res, next) {
+    app.get('*.js', function(req, res, next) {
       req.url = req.url + '.gz';
       res.set('Content-Encoding', 'gzip');
+      res.set('Content-Type', 'text/javascript');
+      next();
+    });
+
+    app.get('*.css', function(req, res, next) {
+      req.url = req.url + '.gz';
+      res.set('Content-Encoding', 'gzip');
+      res.set('Content-Type', 'text/css');
       next();
     });
   } else {
     app.use(morgan('combined'))
   }
 
-  const db = mongoClient.db('boptest');
+  const db = mongoClient.db(process.env.MONGO_DB_NAME);
 
-  app.locals.alfalfaServer = new alfalfaServer(db);
+  app.locals.alfalfaServer = new alfalfaServer(db, redis, pub, sub);
 
   app.use('/graphql', (request, response) => {
       return graphQLHTTP({
@@ -73,7 +79,8 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
         schema: Schema,
         context: {
           ...request,
-          db
+          db,
+          advancer
         }
       })(request,response)
     }
@@ -86,25 +93,31 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   // from a browser
   app.post('/upload-url', (req, res) => {
     // Construct a new postPolicy.
-    var policy = client.newPostPolicy()
-    // Set the object name my-objectname.
-    policy.setKey(req.body.name);
-    // Set the bucket to my-bucketname.
-    policy.setBucket("alfalfa");
-    
-    var expires = new Date
-    expires.setSeconds(24 * 60 * 60 * 10) // 10 days expiry.
-    policy.setExpires(expires)
-    client.presignedPostPolicy(policy, function(e, data) {
-        if (e) throw e;
-        if ( s3URL.hostname.indexOf("amazonaws") == -1 ) {
-          const postURL = 'http://' + req.hostname + ':9000/alfalfa';
-          data.postURL = postURL;
+    const params = {
+      Bucket: process.env.S3_BUCKET,
+      Fields: {
+        key: req.body.name
+      }
+    };
+
+    client.createPresignedPost(params, function(err, data) {
+      if (err) {
+        throw err;
+      } else {
+        if ( process.env.S3_URL.indexOf("amazonaws") == -1 ) {
+          if (req.hostname.indexOf("web") == -1 ) {
+            const url = 'http://' + req.hostname + ':9000/' + process.env.S3_BUCKET;
+            data.url = url;
+          } else {
+            const url = 'http://minio:9000/alfalfa';
+            data.url = url;
+          }
         }
         res.send(JSON.stringify(data));
         res.end();
         return;
-    })
+      }
+    });
   });
   
   app.all('/api/*', function(req, res) {
@@ -141,7 +154,7 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
   app.use(historyApiFallback());
   app.use('/', express.static(path.join(__dirname, './app')));
 
-  let server = app.listen(80, () => {
+  let server = app.listen(80, '0.0.0.0', () => {
   
     var host = server.address().address;
     var port = server.address().port;

@@ -99,8 +99,12 @@ var siteType = new GraphQLObjectType({
     points: {
       type: new GraphQLList(pointType),
       description: 'A list of the Haystack points associated with the site',
-      resolve: (site,args,request) => {
-        return resolvers.sitePointResolver(site.siteRef);
+      args: {
+        writable: { type: GraphQLBoolean },
+        cur: { type: GraphQLBoolean }
+      },
+      resolve: (site,args,context) => {
+        return resolvers.sitePointResolver(site.siteRef, args, context);
       }
     }
   })
@@ -137,6 +141,10 @@ var simType = new GraphQLObjectType({
     timeCompleted: {
       type: GraphQLString,
       description: 'The date and time when the simulation was completed.'
+    },
+    results: {
+      type: GraphQLString,
+      description: 'Key simulation results, Can be interpreted as json, html, plain text depending on job type and use case.'
     }
   })
 });
@@ -227,7 +235,8 @@ const mutationType = new GraphQLObjectType({
         startDatetime : { type: GraphQLString },
         endDatetime : { type: GraphQLString },
         timescale : { type: GraphQLFloat },
-        realtime : { type: GraphQLString },
+        realtime : { type: GraphQLBoolean },
+        externalClock : { type: GraphQLBoolean },
       },
       resolve: (_,args,request) => {
         resolvers.runSiteResolver(args);
@@ -252,6 +261,29 @@ const mutationType = new GraphQLObjectType({
       resolve: (_,args,request) => {
         resolvers.removeSiteResolver(args);
       },
+    },
+    advance: {
+      name: 'advance',
+      type: GraphQLString,
+      args: {
+        siteRefs : { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) }
+      },
+      resolve: (_,{siteRefs, time},{advancer}) => {
+        return resolvers.advanceResolver(advancer, siteRefs);
+      },
+    },
+    writePoint: {
+      name: 'WritePoint',
+      type: GraphQLString,
+      args: {
+        siteRef : { type: new GraphQLNonNull(GraphQLString) },
+        pointName : { type: new GraphQLNonNull(GraphQLString) },
+        value : { type: GraphQLFloat },
+        level : { type: GraphQLInt }
+      },
+      resolve: (_,{siteRef, pointName, value, level},context) => {
+        return resolvers.writePointResolver(context, siteRef, pointName, value, level);
+      }
     }
   })
 });

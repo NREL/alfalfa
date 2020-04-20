@@ -29,7 +29,7 @@ const Hex = require('crypto-js/enc-hex');
 
 const policy = {"expiration": "2050-01-01T12:00:00.000Z",
  "conditions": [
-   {"bucket": "alfalfa"},
+   {"bucket": process.env.S3_BUCKET},
    {"acl": "private"},
    {"x-amz-credential": "AKIAIJ3WS3HZDVQG676Q/20500101/us-west-1/s3/aws4_request"},
    {"x-amz-algorithm": "AWS4-HMAC-SHA256"},
