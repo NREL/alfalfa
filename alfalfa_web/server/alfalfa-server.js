@@ -28,7 +28,7 @@ import os from 'os';
 import fs from 'fs';
 import hs from 'nodehaystack';
 import HDict from 'nodehaystack/HDict';
-import uuid from 'uuid/v1';
+import { v1 as uuidv1 } from 'uuid';
 import dbops from './dbops';
 
 var HBool = hs.HBool,
@@ -79,7 +79,7 @@ class AlfalfaWatch extends HWatch {
     if( id ) {
       this._id = id;
     } else {
-      this._id = uuid();
+      this._id = uuidv1();
       this._dis = dis;
       this._lease = lease;
     }
@@ -310,8 +310,6 @@ class AlfalfaServer extends HServer {
         }
       };
       callback(null,it);
-      //const a = [];
-      //return a;
     });
 
     //var index = 0;

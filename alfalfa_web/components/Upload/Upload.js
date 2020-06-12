@@ -38,7 +38,7 @@ import styles from './Upload.scss';
 import {cyan500, red500, greenA200} from '@material-ui/core/colors';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import uuid from 'uuid/v1';
+import { v1 as uuidv1 } from 'uuid';
 import { withStyles } from '@material-ui/core/styles';
 
 class FileInput extends React.Component {
@@ -117,7 +117,7 @@ class Upload extends React.Component {
   };
 
   onModelFileChange(file) {
-    this.setState({modelFile: file, completed: 0, uploadID: uuid()});
+    this.setState({modelFile: file, completed: 0, uploadID: uuidv1()});
   }
 
   onWeatherFileChange(file) {

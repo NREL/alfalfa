@@ -1,6 +1,6 @@
 FROM ubuntu:trusty
 
-RUN apt-get update && apt-get -y install ca-certificates curl python-software-properties
+RUN apt-get update && apt-get -y install ca-certificates curl python-software-properties build-essential git
 
 RUN cd /root
 
@@ -8,7 +8,7 @@ WORKDIR /root
 
 COPY alfalfa_web/package.json alfalfa_web/package-lock.json /root/
 
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -y ca-certificates nodejs \
     && npm install
 

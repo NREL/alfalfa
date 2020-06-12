@@ -47,7 +47,10 @@ const styles = theme => ({
   },
 });
 
+const timeFormat = "YYYY-MM-DD HH:mm:ss";
+
 class StartDialog extends React.Component {
+
   constructor(props) {
     super(props);
 
@@ -66,8 +69,8 @@ class StartDialog extends React.Component {
   componentWillMount = () => {
     console.log(this.props);
     if ( this.props.type == 'osm' ) {
-      this.state.selectedStartTime = moment().format();
-      this.state.selectedEndTime = moment().format();
+      this.state.selectedStartTime = moment().format(timeFormat);
+      this.state.selectedEndTime = moment().format(timeFormat);
     } else {
       this.state.selectedStartSeconds = 0;
       this.state.selectedEndSeconds = 86400;
@@ -75,7 +78,7 @@ class StartDialog extends React.Component {
   }
 
   handleStartTimeChange = time => {
-    this.setState({ selectedStartTime: time.format() })
+    this.setState({ selectedStartTime: time.format(timeFormat) })
   }
 
   handleTimescaleChange = event => {
@@ -83,7 +86,7 @@ class StartDialog extends React.Component {
   }
 
   handleEndTimeChange = time => {
-    this.setState({ selectedEndTime: time.format() })
+    this.setState({ selectedEndTime: time.format(timeFormat) })
   }
 
   handleStartSecondChange = event => {
