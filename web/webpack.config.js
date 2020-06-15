@@ -79,7 +79,7 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   mode: process.env.NODE_ENV,
-  entry: { 
+  entry: {
     app: ["./app.js"]
   },
   output: {
@@ -122,9 +122,9 @@ module.exports = {
         }, {
             loader: "css-loader", // translates CSS into CommonJS
             options: {
-              importLoaders: 1,
-              modules: 1,
-              localIdentName: '[name]__[local]___[hash:base64:5]'
+              importLoaders: true,
+              modules: true,
+              //localIdentName: '[name]__[local]___[hash:base64:5]'
             }
         }, {
             loader: "postcss-loader"
