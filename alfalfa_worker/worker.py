@@ -222,7 +222,7 @@ class Worker:
                     return_code = subprocess.call(
                         ['python3.5', p, site_id, step_sim_type, start_datetime,
                          end_datetime])
-            else:
+            else: # internal clock
                 if model_type == 'fmu':
                     return_code = subprocess.call(
                         ['python', p, '--step_sim_value', step_sim_value, site_id, step_sim_type, start_datetime,
@@ -230,10 +230,8 @@ class Worker:
                 else:
                     sys.stdout.flush()
                     return_code = subprocess.call(
-                        ['python3.5', '/alfalfa/alfalfa_worker/step_sim/step_osm.py', '--step_sim_value={}'.format(step_sim_value), site_id, step_sim_type, start_datetime,
+                        ['python3.5', p, '--step_sim_value={}'.format(step_sim_value), site_id, step_sim_type, start_datetime,
                          end_datetime])
-                    #return_code = subprocess.call(
-                    #    ['python3.5', '/alfalfa/alfalfa_worker/step_sim/step_osm.py'])
             self.check_subprocess_call(return_code, site_id, 'step_sim')
 
     def run_sim_type(self, p, file_name, upload_id):
@@ -399,3 +397,4 @@ class Worker:
                     self.process_message(message)
             except BaseException as e:
                 self.worker_logger.logger.info("Exception caught in alfalfa_worker.run: {}".format(e))
+

@@ -85,49 +85,51 @@ class OSMModelAdvancer(ModelAdvancer):
         if self.ep.status != 0:
             self.model_logger.logger.info('Could not connect to EnergyPlus: {}'.format(self.ep.msg))
 
-    def get_outputs(self):
+    def advance_to_start_time(self):
+        """ We get near the requested start time by manipulating the idf file,
+        however the idf start time is limited to the resolution of 1 day.
+        The purpose of this function is to move the simulation to the requested
+        start minute. 
+        This is accomplished by advancing the simulation as quickly as possible. Data is not
+        published to database during this process
+        """
+        self.exchange_data()
+        while True:
+            current_ep_time = self.get_energyplus_datetime()
+            self.model_logger.logger.info('current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
+            if current_ep_time < self.start_datetime:
+                self.step()
+            else:
+                break
+        self.update_db()
+
+    def exchange_data(self):
+        """
+        Write inputs to simulation and get updated outputs
+        This does not advance the simulation on its own, instead
+        to advance the simulation increment ep.kstep and then call this function
+        See self.step
+        """
+        # Before step
+        inputs = self.read_write_arrays_and_prep_inputs()
+        self.ep.write(mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs))
+        # After step
         packet = self.ep.read()
         flag, _, outputs = mlep.mlep_decode_packet(packet)
         self.ep.outputs = outputs
         return outputs
 
-    def advance_to_start_time(self):
-        inputs = self.read_write_arrays_and_prep_inputs()
-        while True:
-            get_outputs()
-            get_energyplus_datetime()
-
-            self.ep.write(mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs))
-        #####packet = self.ep.read()
-        #####flag, _, outputs = mlep.mlep_decode_packet(packet)
-        #####self.ep.flag = flag
-        #####self.ep.outputs = outputs
-        #####self.ep.kStep += 1
-        #####self.update_db_with_model_outputs()
-        #####self.update_sim_time_in_db()
-
     def step(self):
         """
         Simulate one simulation timestep
-        Step should consist of the following:
-            - check_sim_status_stop
-            - if not self.stop
-                - Reading write arrays from mongo - DONE
-                - Update model inputs - DONE
-                - Advancing the simulation
-                - Check that advancing the simulation results in the correct expected timestep
-                - Read output vals from simulation
-                - Update Mongo with values
         """
-        # Before step
-        inputs = self.read_write_arrays_and_prep_inputs()
-        self.ep.write(mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs))
-
-        # After step
-        packet = self.ep.read()
-        flag, _, outputs = mlep.mlep_decode_packet(packet)
-        self.ep.outputs = outputs
         self.ep.kStep += 1
+        self.exchange_data()
+
+    def update_db(self):
+        """
+        Update database with current ep outputs and simulation time
+        """
         self.update_db_with_model_outputs()
         self.update_sim_time_in_db()
 
@@ -173,6 +175,8 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep.is_running = 0
 
     def run_external_clock(self):
+        self.advance_to_start_time();
+
         while True:
             self.process_pubsub_message()
 
@@ -182,11 +186,21 @@ class OSMModelAdvancer(ModelAdvancer):
 
             if self.advance:
                 self.step()
+                self.update_db();
                 self.set_redis_states_after_advance()
                 self.advance = False
 
+    def step_delta_time(self):
+        """
+        Return a timedelta object to represent the real time between steps
+        This is used by the internal clock. Does not apply to the external clock
+        """
+        return timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
+
     def run_timescale(self):
-        next_step_time = datetime.now()
+        self.advance_to_start_time();
+
+        next_step_time = datetime.now() + self.step_delta_time()
         while True:
             current_time = datetime.now()
 
@@ -200,8 +214,9 @@ class OSMModelAdvancer(ModelAdvancer):
 
             if self.advance:
                 self.step()
+                self.update_db();
                 self.set_redis_states_after_advance()
-                next_step_time = next_step_time + timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
+                next_step_time = next_step_time + self.step_delta_time()
                 self.advance = False
 
     def reset(self, tarinfo):
@@ -346,16 +361,11 @@ class OSMModelAdvancer(ModelAdvancer):
         """
         message = self.ac.redis_pubsub.get_message()
         if message:
-            self.model_logger.logger.info('CDM message: {}'.format(message))
             data = message['data']
-
-            self.model_logger.logger.info('pubsub data: {}'.format(data))
             if data == b'advance':
                 self.advance = True
-                self.model_logger.logger.info('pubsub set advance')
             elif data == b'stop':
                 self.stop = True
-                self.model_logger.logger.info('pubsub set stop')
 
     def set_redis_states_after_advance(self):
         """Set an idle state in Redis"""
