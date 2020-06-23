@@ -266,39 +266,6 @@ class Sites extends React.Component {
     this.setState({ showSite: null });
   }
 
-  formatTime = (isotime) => {
-    let result = "";
-    
-    //check if it is ISO format
-    if ( ! isotime ) {
-      result = "-"
-    } else if ( (isotime.split("-").length === 3 ) ){
-      //is arr_isotime.length==3, it means it is ISO format
-      // Haystack has an extra string representation of the timezone
-      // tacked onto the end of the iso time string (after a single space)
-      // Here we remove that extra timezone designation
-      
-      const _isotime = isotime.replace(/\s[\w]*/,'');
-      // Use these options do show year and day of week
-      //const options = {  
-      //    weekday: "long", year: "numeric", month: "short",  
-      //    day: "numeric", hour: "2-digit", minute: "2-digit"  
-      //};  
-      // For now keep it simple 
-     
-      const options = {  
-          month: "short",  
-          day: "numeric", hour: "2-digit", minute: "2-digit"  
-      };  
-      const datetime = new Date(_isotime);
-      result = datetime.toLocaleTimeString("en-us", options);
-    } else {
-      result = isotime;
-    } 
-    
-    return result;
-  }
-
   showSiteRef = () => {
     if( this.state.showSite ) {
       return this.state.showSite.siteRef;
@@ -348,7 +315,7 @@ class Sites extends React.Component {
                       <TableCell padding="none">{site.name}</TableCell>
                       <TableCell>{site.siteRef}</TableCell>
                       <TableCell>{site.simStatus}</TableCell>
-                      <TableCell>{this.formatTime(site.datetime)}</TableCell>
+                      <TableCell>{site.datetime}</TableCell>
                       <TableCell><IconButton onClick={event => this.handleRequestShowPoints(event, site)}><MoreVert/></IconButton></TableCell>
                     </TableRow>
                    );

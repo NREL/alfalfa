@@ -6,6 +6,7 @@ import sys
 import tarfile
 import uuid
 from datetime import datetime, timedelta
+import time
 
 # Third party library imports
 import mlep
@@ -26,6 +27,9 @@ class OSMModelAdvancer(ModelAdvancer):
         tar.extractall(self.sim_path)
         tar.close()
 
+        # Subscribe to redis pubsub messages that control simulation
+        self.ac.redis_pubsub.subscribe(self.site_id);
+
         self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
         self.osm_file = os.path.join(self.sim_path_site, 'workflow/run/in.osm')
         self.idf = os.path.join(self.sim_path_site, "workflow/run/{}".format(self.site_id))
@@ -35,11 +39,10 @@ class OSMModelAdvancer(ModelAdvancer):
 
         # EnergyPlus MLEP initializations
         self.ep = mlep.MlepProcess()
-        self.ep.bcvtbDir = '/root/bcvtb/'
-        self.ep.env = {'BCVTB_HOME': '/root/bcvtb'}
+        self.ep.bcvtbDir = '/alfalfa/bcvtb/'
+        self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
         self.ep.accept_timeout = 30000
         self.ep.mapping = os.path.join(self.sim_path_site, 'workflow/reports/haystack_report_mapping.json')
-        self.ep.flag = 0
         self.ep.workDir = os.path.split(self.idf)[0]
         self.ep.arguments = (self.idf, self.weather_file)
         self.ep.kStep = 1  # simulation step indexed at 1
@@ -55,6 +58,9 @@ class OSMModelAdvancer(ModelAdvancer):
 
         # TODO: Figure out purpose of this
         self.master_enable_bypass = True
+
+    def seconds_per_time_step(self):
+        return 3600.0 / self.time_steps_per_hour
 
     def check_stop_conditions(self):
         """Placeholder to check for all stopping conditions"""
@@ -74,16 +80,35 @@ class OSMModelAdvancer(ModelAdvancer):
         (self.ep.status, self.ep.msg) = self.ep.start()
         if self.ep.status != 0:
             self.model_logger.logger.info('Could not start EnergyPlus: {}'.format(self.ep.msg))
-            self.ep.flag = 1
 
         [self.ep.status, self.ep.msg] = self.ep.accept_socket()
         if self.ep.status != 0:
             self.model_logger.logger.info('Could not connect to EnergyPlus: {}'.format(self.ep.msg))
-            self.ep.flag = 1
+
+    def get_outputs(self):
+        packet = self.ep.read()
+        flag, _, outputs = mlep.mlep_decode_packet(packet)
+        self.ep.outputs = outputs
+        return outputs
+
+    def advance_to_start_time(self):
+        inputs = self.read_write_arrays_and_prep_inputs()
+        while True:
+            get_outputs()
+            get_energyplus_datetime()
+
+            self.ep.write(mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs))
+        #####packet = self.ep.read()
+        #####flag, _, outputs = mlep.mlep_decode_packet(packet)
+        #####self.ep.flag = flag
+        #####self.ep.outputs = outputs
+        #####self.ep.kStep += 1
+        #####self.update_db_with_model_outputs()
+        #####self.update_sim_time_in_db()
 
     def step(self):
-        """Placeholder for making a step through simulation time
-
+        """
+        Simulate one simulation timestep
         Step should consist of the following:
             - check_sim_status_stop
             - if not self.stop
@@ -96,24 +121,13 @@ class OSMModelAdvancer(ModelAdvancer):
         """
         # Before step
         inputs = self.read_write_arrays_and_prep_inputs()
-        energyplus_datetime = self.get_energyplus_datetime()
-        expected_datetime = self.start_datetime + timedelta(seconds=(self.ep.kStep - 1) * self.ep.kStep)
         self.ep.write(mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs))
-        self.model_logger.logger.info(
-            'Before step.  EnergyPlus: {}\tExpected: {}'.format(energyplus_datetime.isoformat(sep=' '),
-                                                                expected_datetime.isoformat(sep=' ')))
 
         # After step
         packet = self.ep.read()
         flag, _, outputs = mlep.mlep_decode_packet(packet)
-        self.ep.flag = flag
         self.ep.outputs = outputs
         self.ep.kStep += 1
-        energyplus_datetime = self.get_energyplus_datetime()
-        expected_datetime = self.start_datetime + timedelta(seconds=(self.ep.kStep - 1) * self.ep.kStep)
-        self.model_logger.logger.info(
-            'Before step.  EnergyPlus: {}\tExpected: {}'.format(energyplus_datetime.isoformat(sep=' '),
-                                                                expected_datetime.isoformat(sep=' ')))
         self.update_db_with_model_outputs()
         self.update_sim_time_in_db()
 
@@ -159,23 +173,36 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep.is_running = 0
 
     def run_external_clock(self):
-        """Placeholder for running using an external_clock"""
-        self.ac.redis_pubsub.subscribe(self.site_id)
-        self.model_logger.logger.info('In: run_external_clock')
-        # TODO: Figure out why model doesn't advance
         while True:
             self.process_pubsub_message()
-            if self.advance:
-                self.step()
-                self.set_redis_states_after_advance()
-                self.advance = False
-            self.check_stop_conditions()
+
             if self.stop:
                 self.cleanup()
                 break
 
+            if self.advance:
+                self.step()
+                self.set_redis_states_after_advance()
+                self.advance = False
+
     def run_timescale(self):
-        """Placeholder for running using  an internal clock and a timescale"""
+        next_step_time = datetime.now()
+        while True:
+            current_time = datetime.now()
+
+            if current_time >= next_step_time: self.advance = True
+
+            self.process_pubsub_message()
+
+            if self.stop:
+                self.cleanup()
+                break
+
+            if self.advance:
+                self.step()
+                self.set_redis_states_after_advance()
+                next_step_time = next_step_time + timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
+                self.advance = False
 
     def reset(self, tarinfo):
         """
@@ -283,8 +310,17 @@ class OSMModelAdvancer(ModelAdvancer):
                             line = lines[i]
                         f.write(line)
         except BaseException as e:
-            self.model_logger.logger.info('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
+            self.model_logger.logger.error('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
             sys.exit(1)
+
+    def copy_variables_cfg(self):
+        """
+        Copy the variables.cfg file from the OpenStudio Measure reports directory to the 
+        simulation directory
+
+        :return:
+        """
+        shutil.copyfile(self.variables_file_old, self.variables_file_new)
 
     def osm_idf_files_prep(self):
         """
@@ -297,9 +333,10 @@ class OSMModelAdvancer(ModelAdvancer):
             self.model_logger.logger.info(
                 'Successfully ran translate_osm on osm: {} and idf: {}'.format(self.osm_file, self.idf))
         else:
-            self.model_logger.logger.info('translate_osm failed with return_code: {}'.format(return_code))
+            self.model_logger.logger.error('translate_osm failed with return_code: {}'.format(return_code))
             sys.exit(1)
         self.replace_timestep_and_run_period_idf_settings()
+        self.copy_variables_cfg()
 
     def process_pubsub_message(self):
         """
@@ -311,10 +348,14 @@ class OSMModelAdvancer(ModelAdvancer):
         if message:
             self.model_logger.logger.info('CDM message: {}'.format(message))
             data = message['data']
-            if data == 'advance':
+
+            self.model_logger.logger.info('pubsub data: {}'.format(data))
+            if data == b'advance':
                 self.advance = True
-            elif data == 'stop':
+                self.model_logger.logger.info('pubsub set advance')
+            elif data == b'stop':
                 self.stop = True
+                self.model_logger.logger.info('pubsub set stop')
 
     def set_redis_states_after_advance(self):
         """Set an idle state in Redis"""
@@ -359,7 +400,8 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def update_sim_time_in_db(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
-        output_time_string = self.get_energyplus_datetime()
-        self.ac.recs.update_one({"_id": self.site_id}, {
+        output_time_string = "s:" + str(self.get_energyplus_datetime())
+        self.ac.mongo_db_recs.update_one({"_id": self.site_id}, {
             "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(self.ep.kStep),
                      "rec.simStatus": "s:Running"}}, False)
+
