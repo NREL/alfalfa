@@ -24,22 +24,29 @@
 ########################################################################################################################
 
 
-# from __future__ import print_function
+# This file can be called from python 2 due to the older JModelica version support of Python. Make sure
+# to keep the __future__ print_function import
+from __future__ import print_function
 import os
 import sys
 
 
-def precheck_argus(argu_vars):
+def eprint(*args, **kwargs):
+    """Print to stderr helper method
+    """
+    print(*args, file=sys.stderr, **kwargs)
 
+
+def precheck_argus(argu_vars):
     if len(argu_vars) == 3:
         model_name = argu_vars[1]
         upload_id = argu_vars[2]
     else:
-        print('addSite called with incorrect number of arguments: %s.' % len(argu_vars), file=sys.stderr)
+        eprint('addSite called with incorrect number of arguments: %s.' % len(argu_vars))
         sys.exit(1)
 
     if not upload_id:
-        print('upload_id is empty', file=sys.stderr)
+        eprint('upload_id is empty')
         sys.exit(1)
 
     folderpath_cloud = os.path.join('/parse', upload_id)
@@ -48,7 +55,7 @@ def precheck_argus(argu_vars):
         if not os.path.exists(folderpath_cloud):
             os.makedirs(folderpath_cloud)
     except BaseException:
-        print('error making add site parsing directory for upload_id: %s' % upload_id, file=sys.stderr)
+        eprint('error making add site parsing directory for upload_id: %s' % upload_id)
         sys.exit(1)
 
     return (model_name, upload_id, folderpath_cloud)

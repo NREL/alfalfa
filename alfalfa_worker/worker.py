@@ -26,6 +26,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+import traceback
 import json
 import os
 import subprocess
@@ -86,17 +87,25 @@ class Worker:
         year = datetime.today().year
         start = "{}-01-01 00:00:00".format(year)
         end = "{}-12-31 23:59:00".format(year)
-        start_datetime = message_body.get('startDatetime',
-                                          start)  # TODO change server side message: startDatetime to start_datetime
-        end_datetime = message_body.get('endDatetime',
-                                        end)  # TODO change server side message: endDatetime to end_datetime
+        # TODO change server side message: startDatetime to start_datetime
+        start_datetime = message_body.get('startDatetime', start)
+        if start_datetime == 'undefined':
+            start_datetime = start
+        # TODO change server side message: endDatetime to end_datetime
+        end_datetime = message_body.get('endDatetime', end)
+        if end_datetime == 'undefined':
+            end_datetime = end
         realtime = message_body.get('realtime', False) == 'true'
         timescale = message_body.get('timescale', False)  # type checking below in if statement
         timescale = False if timescale == 'undefined' else timescale
-        external_clock = message_body.get('externalClock',
-                                          False) == 'true'  # TODO change server side message: externalClock to external_clock
+        # TODO change server side message: externalClock to external_clock
+        external_clock = message_body.get('externalClock', False) == 'true'
 
         # TODO remove after tests written
+        self.worker_logger.logger.info(
+            "start_datetime type: {}\tstart_datetime: {}".format(type(start_datetime), start_datetime))
+        self.worker_logger.logger.info(
+            "end_datetime type: {}\tend_datetime: {}".format(type(end_datetime), end_datetime))
         self.worker_logger.logger.info("realtime type: {}\trealtime: {}".format(type(realtime), realtime))
         self.worker_logger.logger.info("timescale type: {}\ttimescale: {}".format(type(timescale), timescale))
         self.worker_logger.logger.info(
@@ -145,6 +154,7 @@ class Worker:
         """
         self.worker_logger.logger.info("Checking message_body for: {}".format(message_type))
         self.worker_logger.logger.info("message_body: {}".format(message_body))
+        to_return = None
         if message_type == 'add_site':
             osm_name = message_body.get('osm_name', False)
             upload_id = message_body.get('upload_id', False)
@@ -187,8 +197,7 @@ class Worker:
             return_code = subprocess.call(['python3.5', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'add_site')
 
-    def step_sim_type(self, p, site_id, step_sim_type, step_sim_value, start_datetime,
-                      end_datetime, model_type):
+    def step_sim_type(self, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, model_type):
         """
         Simple wrapper for the step_sim subprocess call given required params
 
@@ -198,31 +207,62 @@ class Worker:
         :param step_sim_value:
         :param start_datetime:
         :param end_datetime:
+        :param model_type: string, type of model. Choices are 'osm' or 'fmu'
         :return:
         """
-
-        if not os.path.isfile(p):
-            self.worker_logger.logger.info("No file: {}".format(p))
-        else:
-            if step_sim_type == 'external_clock':
-                if model_type == 'fmu':
-                    return_code = subprocess.call(
-                        ['python', p, site_id, step_sim_type, start_datetime,
-                         end_datetime])
-                else:
-                    return_code = subprocess.call(
-                        ['python3.5', p, site_id, step_sim_type, start_datetime,
-                         end_datetime])
+        self.worker_logger.logger.info("Calling model '{}' step_sim_type '{}'".format(model_type, step_sim_type))
+        arg_step_sim_value = None
+        if step_sim_type == 'external_clock':
+            if model_type == 'fmu':
+                p = 'step_sim/step_fmu.py'
+                # fmu needs to run with Python 2
+                python = 'python'
+                # fmu expects start and end time in seconds from the beginning. Have to be strings and have to
+                # be integers
+                arg_start_datetime = str(0)  # always starts at 0 for now ...
+                arg_end_datetime = int((datetime.strptime(end_datetime, "%Y-%m-%d %H:%M:%S") - datetime.strptime(
+                    start_datetime, "%Y-%m-%d %H:%M:%S")).total_seconds())  # noqa
+                arg_end_datetime = str(arg_end_datetime)
             else:
-                if model_type == 'fmu':
-                    return_code = subprocess.call(
-                        ['python', p, site_id, step_sim_type, start_datetime,
-                         end_datetime, '--step_sim_value {}'.format(step_sim_value)])
-                else:
-                    return_code = subprocess.call(
-                        ['python3.5', p, site_id, step_sim_type, start_datetime,
-                         end_datetime])
+                p = 'step_sim/step_osm.py'
+                python = 'python3.5'
+                # add quotes around start/end time
+                arg_start_datetime = '"{}"'.format(start_datetime)
+                arg_end_datetime = '"{}"'.format(end_datetime)
+        else:
+            if model_type == 'fmu':
+                p = 'step_sim/step_fmu.py'
+                # fmu needs to run with Python 2
+                python = 'python'
+                arg_step_sim_value = step_sim_value
+                # fmu expects start and end time in seconds from the beginning. Have to be strings and have to
+                # be integers
+                arg_start_datetime = str(0)  # always starts at 0 for now
+                arg_end_datetime = int((datetime.strptime(end_datetime, "%Y-%m-%d %H:%M:%S") - datetime.strptime(
+                    start_datetime, "%Y-%m-%d %H:%M:%S")).total_seconds())  # noqa
+                arg_end_datetime = str(arg_end_datetime)
+            else:
+                p = 'step_sim/step_osm.py'
+                python = 'python3.5'
+                # add quotes around start/end time
+                arg_start_datetime = '"{}"'.format(start_datetime)
+                arg_end_datetime = '"{}"'.format(end_datetime)
+
+        if os.path.isfile(p):
+            call = [
+                python, p, site_id, step_sim_type, arg_start_datetime, arg_end_datetime
+            ]
+            if arg_step_sim_value:
+                call.append('--step_sim_value {}'.format(step_sim_value))
+
+            self.worker_logger.logger.info("Calling step_sim_type subprocess: {}".format(call))
+            return_code = subprocess.call(call)
             self.check_subprocess_call(return_code, site_id, 'step_sim')
+        else:
+            self.worker_logger.logger.info("No file: {}".format(p))
+            sys.exit(1)
+
+        return return_code
 
     def run_sim_type(self, p, file_name, upload_id):
         """
@@ -290,19 +330,16 @@ class Worker:
         else:
             site_id = message_body.get('id')
             site_rec = self.ac.mongo_db_recs.find_one({"_id": site_id})
+            self.worker_logger.logger.info('Site record: {}'.format(site_rec))
 
-            # TODO: do we still want default to be 'osm'?
-            sim_type = site_rec.get("rec", {}).get("sim_type", "osm").replace("s:", "")
+            # TODO: Check if simType is defined, error if not.
+            sim_type = site_rec.get("rec", {}).get("simType", "osm").replace("s:", "")
             step_sim_type, step_sim_value, start_datetime, end_datetime = self.check_step_sim_config(message_body)
             self.worker_logger.logger.info('Start step_sim for site_id: %s, and sim_type: %s' % (site_id, sim_type))
 
             # TODO: do we need to have two versions of python?
-            if sim_type == 'fmu':
-                p = 'step_sim/step_fmu.py'
-                self.step_sim_type(p, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, 'fmu')
-            elif sim_type == 'osm':
-                p = 'step_sim/step_osm.py'
-                self.step_sim_type(p, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, 'osm')
+            if sim_type == 'fmu' or sim_type == 'osm':
+                self.step_sim_type(site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, sim_type)
             else:
                 self.worker_logger.logger.info(
                     "Invalid simulation type: {}.  Only 'fmu' and 'osm' are currently supported".format(sim_type))
@@ -368,7 +405,8 @@ class Worker:
                     self.run_sim(message_body)
 
         except Exception as e:
-            print('Exception while processing message: %s' % e, file=sys.stderr)
+            tb = traceback.format_exc()
+            self.worker_logger.logger.error("Exception while processing message: {} with {}".format(e, tb))
 
     def run(self):
         """
@@ -388,4 +426,5 @@ class Worker:
                     # Process Message
                     self.process_message(message)
             except BaseException as e:
-                self.worker_logger.logger.info("Exception caught in alfalfa_worker.run: {}".format(e))
+                tb = traceback.format_exc()
+                self.worker_logger.logger.info("Exception caught in alfalfa_worker.run: {} with {}".format(e, tb))
