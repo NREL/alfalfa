@@ -1,7 +1,8 @@
 -r production.txt
 
-# For testing the API
-alfalfa-client
+# For testing the API -- use the git version of alfalfa-client
+-e git+https://github.com/nrel/alfalfa-client.git@develop#egg=alfalfa-client
+# alfalfa-client
 
 # Testing and code syntax packages
 autopep8==1.4.4

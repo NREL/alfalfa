@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
-*  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
+*  Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 *  following conditions are met:
@@ -265,7 +265,7 @@ class Sites extends React.Component {
   handleRequestClosePoints = () => {
     this.setState({ showSite: null });
   }
-
+  
   showSiteRef = () => {
     if( this.state.showSite ) {
       return this.state.showSite.siteRef;
@@ -303,9 +303,9 @@ class Sites extends React.Component {
                 {this.props.data.viewer.sites.map((site, i) => {
                    const isSelected = this.isSelected(site.siteRef);
                    return (
-                    <TableRow key={site.siteRef} 
+                    <TableRow key={site.siteRef}
                       selected={false}
-                      onClick={event => this.handleRowClick(event, site.siteRef)} 
+                      onClick={event => this.handleRowClick(event, site.siteRef)}
                     >
                       <TableCell padding="checkbox">
                         <Checkbox
@@ -407,10 +407,10 @@ const withRemove = graphql(removeSiteQL, {
 })(withStop);
 
 const withSites = graphql(sitesQL, {
-  options: { 
+  options: {
     pollInterval: 1000,
   },
-})(withRemove) 
+})(withRemove)
 
 export default withSites;
 

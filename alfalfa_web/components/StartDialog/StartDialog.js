@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
-*  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
+*  Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 *  following conditions are met:
@@ -40,7 +40,7 @@ import * as moment from 'moment';
 
 const styles = theme => ({
   label: {
-   whiteSpace: 'nowrap' 
+   whiteSpace: 'nowrap'
   },
   button: {
     margin: theme.spacing(1),
@@ -124,7 +124,7 @@ class StartDialog extends React.Component {
     let start;
     let stop;
     if ( this.props.type == 'osm' ) {
-      start = 
+      start =
       <Grid item xs={6}>
         <DateTimePicker
           value={selectedStartTime}
@@ -134,7 +134,7 @@ class StartDialog extends React.Component {
         />
       </Grid>;
 
-      stop = 
+      stop =
       <Grid item xs={6}>
         <DateTimePicker
           value={selectedEndTime}
@@ -144,9 +144,9 @@ class StartDialog extends React.Component {
         />
       </Grid>;
     } else {
-      start = 
+      start =
       <Grid item xs={6}>
-        <TextField 
+        <TextField
           label="FMU Start Time"
           value={selectedStartSeconds}
           onChange={this.handleStartSecondChange}
@@ -156,9 +156,9 @@ class StartDialog extends React.Component {
         />
       </Grid>;
 
-      stop = 
+      stop =
       <Grid item xs={6}>
-        <TextField 
+        <TextField
           label="FMU Stop Time"
           value={selectedEndSeconds}
           onChange={this.handleEndSecondChange}
@@ -179,7 +179,7 @@ class StartDialog extends React.Component {
               {start}
               {stop}
               <Grid item xs={12}>
-                <TextField 
+                <TextField
                   label="Timescale"
                   value={this.state.timescale}
                   onChange={this.handleTimescaleChange}

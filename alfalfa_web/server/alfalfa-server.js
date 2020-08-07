@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
-*  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
+*  Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 *  following conditions are met:
@@ -40,7 +40,7 @@ var HBool = hs.HBool,
     HHisItem = hs.HHisItem,
     HMarker = hs.HMarker,
   // The purpose of this file is to consolidate operations to the database
-  // in a single place. Clients may transform the data into and out of 
+  // in a single place. Clients may transform the data into and out of
   // these functions for their own api purposes. ie Haystack api, GraphQL api.
     HNum = hs.HNum,
     HRef = hs.HRef,
@@ -219,11 +219,11 @@ class AlfalfaServer extends HServer {
     }
     return db.toDict();
   }
-  
+
   //////////////////////////////////////////////////////////////////////////
   //Ops
   //////////////////////////////////////////////////////////////////////////
-  
+
   ops(callback) {
     callback(null, [
       HStdOps.about,
@@ -239,7 +239,7 @@ class AlfalfaServer extends HServer {
       HStdOps.watchPoll
     ]);
   };
-  
+
   hostName() {
     try {
       return os.hostname();
@@ -248,7 +248,7 @@ class AlfalfaServer extends HServer {
       return "Unknown";
     }
   };
-  
+
   onAbout(callback) {
     var aboutdict = new HDictBuilder()
         .add("serverName", this.hostName())
@@ -260,11 +260,11 @@ class AlfalfaServer extends HServer {
         .toDict();
     callback(null, aboutdict);
   };
-  
+
   //////////////////////////////////////////////////////////////////////////
   //Reads
   //////////////////////////////////////////////////////////////////////////
-  
+
   onReadById(id, callback) {
     this.mrecs.findOne({_id: id.val}).then((doc) => {
       if( doc ) {
@@ -277,7 +277,7 @@ class AlfalfaServer extends HServer {
       callback(err);
     });
   };
-  
+
   iterator(callback) {
     let self = this;
     this.mrecs.find().toArray().then((array) => {
@@ -362,11 +362,11 @@ class AlfalfaServer extends HServer {
   //    }
   //  };
   //};
-  
+
   //////////////////////////////////////////////////////////////////////////
   //Navigation
   //////////////////////////////////////////////////////////////////////////
-  
+
   onNav(navId, callback) {
     const _onNav = (base, callback) => {
       // map base record to site, equip, or point
@@ -382,7 +382,7 @@ class AlfalfaServer extends HServer {
           filter = "navNoChildren";
         }
       }
-  
+
       // read children of base record
       this.readAll(filter, (err, grid) => {
         if (err) callback(err);
@@ -419,32 +419,32 @@ class AlfalfaServer extends HServer {
   onNavReadByUri(uri, callback) {
     // return null;
   };
-  
+
   //////////////////////////////////////////////////////////////////////////
   //Watches
   //////////////////////////////////////////////////////////////////////////
-  
+
   onWatchOpen(dis, lease) {
     let w = new AlfalfaWatch(this,null,dis,lease);
     return w;
   };
-  
+
   onWatches(callback) {
     callback(new Error("Unsupported Operation"));
   };
-  
+
   onWatch(id) {
     let w = new AlfalfaWatch(this,id,null,null);
     return w;
   };
-  
+
   //////////////////////////////////////////////////////////////////////////
   //Point Write
   //////////////////////////////////////////////////////////////////////////
-  
+
   // Return:
   //{ val: ,
-  //  level: 
+  //  level:
   //}
   currentWinningValue(array) {
     for (var i = 0; i < array.val.length; ++i) {
@@ -465,7 +465,7 @@ class AlfalfaServer extends HServer {
     b.addCol("levelDis");
     b.addCol("val");
     b.addCol("who");
-    
+
     for (var i = 0; i < array.val.length; ++i) {
       if( array.val[i] || array.val[i] === 0 ) {
         b.addRow([
@@ -512,7 +512,7 @@ class AlfalfaServer extends HServer {
       callback(err);
     })
   };
-  
+
   onPointWrite(rec, level, val, who, dur, opts, callback) {
     const value = val ? val.val : null;
     const id = rec.id().val;
@@ -524,11 +524,11 @@ class AlfalfaServer extends HServer {
       callback(err);
     });
   };
-  
+
   //////////////////////////////////////////////////////////////////////////
   //History
   //////////////////////////////////////////////////////////////////////////
-  
+
   onHisRead(entity, range, callback) {
     // generate dummy 15min data
     var acc = [];
@@ -545,18 +545,18 @@ class AlfalfaServer extends HServer {
       }
       ts = HDateTime.make(ts.millis() + 15 * 60 * 1000, ts.tz);
     }
-  
+
     callback(null, acc);
   };
-  
+
   onHisWrite(rec, items, callback) {
     callback(new Error("Unsupported Operation"));
   };
-  
+
   //////////////////////////////////////////////////////////////////////////
   //Actions
   //////////////////////////////////////////////////////////////////////////
-  
+
   onInvokeAction(rec, action, args, callback) {
     if ( action == "runSite" ) {
       this.mrecs.updateOne(
@@ -571,7 +571,7 @@ class AlfalfaServer extends HServer {
           var val = entry.getValue();
             body[name] = val.val;
         }
-     
+
         var params = {
          MessageBody: JSON.stringify(body),
          QueueUrl: process.env.JOB_QUEUE_URL,

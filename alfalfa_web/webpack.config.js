@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
-*  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
+*  Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 *  following conditions are met:
@@ -79,7 +79,7 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   mode: process.env.NODE_ENV,
-  entry: { 
+  entry: {
     app: ["./app.js"]
   },
   output: {
@@ -123,7 +123,7 @@ module.exports = {
             loader: "css-loader", // translates CSS into CommonJS
             options: {
               importLoaders: true,
-              modules: true 
+              modules: true
               //localIdentName: '[name]__[local]___[hash:base64:5]'
             }
         }, {
