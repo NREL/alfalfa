@@ -1,7 +1,5 @@
 # Standard library imports
 import os
-import time
-from datetime import datetime
 
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
@@ -70,24 +68,10 @@ class ModelAdvancer(object):
 
     def run(self):
         """
-        Main call to run.  Run waits until it has been determined it is actually time to run.
-        Logic for determining to start simulation now or later is as follows:
-            1. For external_clock or timescale, we don't care how start_datetime compares
-            to current time, the simulation will be started.
-            2. For a realtime run, we will wait until a future time before starting the run
-            if that was specified.  If time is in past, we will reset time to now and start.
+        Main call to run.
         """
         self.set_idle_state()
         self.init_sim()
-        while True:
-            if not self.step_sim_type == 'realtime':
-                break
-            else:
-                if self.start_datetime > datetime.now():
-                    time.sleep(1)
-                else:
-                    self.start_datetime = datetime.now()
-                    break
         self.set_db_status_running()
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
             self.run_timescale()

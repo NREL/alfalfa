@@ -125,11 +125,11 @@ class Worker:
 
         if realtime:
             step_sim_type = "realtime"
-            step_sim_value = "1"
+            step_sim_value = 1
         elif timescale:
             if str(timescale).isdigit():
                 step_sim_type = "timescale"
-                step_sim_value = str(timescale)
+                step_sim_value = int(timescale)
             else:
                 self.worker_logger.logger.info("timescale: {} must be an integer value".format(timescale))
                 sys.exit(1)
@@ -257,6 +257,7 @@ class Worker:
 
             self.worker_logger.logger.info("Calling step_sim_type subprocess: {}".format(call))
             return_code = subprocess.call(call)
+
             self.check_subprocess_call(return_code, site_id, 'step_sim')
         else:
             self.worker_logger.logger.info("No file: {}".format(p))
@@ -343,7 +344,6 @@ class Worker:
             else:
                 self.worker_logger.logger.info(
                     "Invalid simulation type: {}.  Only 'fmu' and 'osm' are currently supported".format(sim_type))
-                sys.exit(1)
 
     def run_sim(self, message_body):
         """
@@ -359,7 +359,6 @@ class Worker:
         if not body_check:
             self.worker_logger.logger.info(
                 'message_body for step_sim does not have correct keys.  Simulation will not be run.')
-            # TODO insert sys.exit(1)?
         else:
             upload_filename = message_body.get('upload_filename')
             upload_id = message_body.get('upload_id')
