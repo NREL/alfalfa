@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
-*  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
+*  Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 *  following conditions are met:
@@ -43,7 +43,7 @@ function addSiteResolver(osmName, uploadID) {
    QueueUrl: process.env.JOB_QUEUE_URL,
    MessageGroupId: "Alfalfa"
   };
-  
+
   sqs.sendMessage(params, (err, data) => {
     if (err) {
       console.log(err);
@@ -62,7 +62,7 @@ function runSimResolver(uploadFilename, uploadID, context) {
    QueueUrl: process.env.JOB_QUEUE_URL,
    MessageGroupId: "Alfalfa"
   };
-  
+
   sqs.sendMessage(params, (err, data) => {
     if (err) {
       callback(err);
@@ -317,16 +317,16 @@ function writePointResolver(context,siteRef, pointName, value, level) {
   });
 }
 
-module.exports = { 
-  runSimResolver, 
-  addSiteResolver, 
-  sitesResolver, 
-  runSiteResolver, 
-  stopSiteResolver, 
-  removeSiteResolver, 
-  sitePointResolver, 
-  simsResolver, 
+module.exports = {
+  runSimResolver,
+  addSiteResolver,
+  sitesResolver,
+  runSiteResolver,
+  stopSiteResolver,
+  removeSiteResolver,
+  sitePointResolver,
+  simsResolver,
   advanceResolver,
-  writePointResolver 
+  writePointResolver
 };
 

@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
-*  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
+*  Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 *  following conditions are met:
@@ -64,7 +64,7 @@ class App extends React.Component {
           <div className={this.props.classes.root}>
             <AppBar position="static">
               <Toolbar>
-                <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}> 
+                <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}>
                   <Typography variant="h5" color="inherit">BOPTEST</Typography>
                 </Link>
                 <Grid container justify='flex-end'>
@@ -85,7 +85,7 @@ class App extends React.Component {
               <Route path="/sites" component={Sites}/>
               <Route path="/sims" component={Sims}/>
               <Route component={Upload}/>
-            </Switch>       
+            </Switch>
           </div>
         </MuiPickersUtilsProvider>
     );

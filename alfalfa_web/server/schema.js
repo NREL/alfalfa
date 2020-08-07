@@ -1,5 +1,5 @@
 /***********************************************************************************************************************
-*  Copyright (c) 2008-2018, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
+*  Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 *  following conditions are met:
@@ -156,11 +156,11 @@ var userType = new GraphQLObjectType({
   //  id: globalIdField('User'),
     username: {
       type: GraphQLString,
-      description: 'The username of a person', 
+      description: 'The username of a person',
     },
     sites: {
       type: new GraphQLList(siteType),
-      description: 'The Haystack sites', 
+      description: 'The Haystack sites',
       args: {
         siteRef: { type: GraphQLString }
       },
@@ -171,7 +171,7 @@ var userType = new GraphQLObjectType({
     },
     sims: {
       type: new GraphQLList(simType),
-      description: 'The simulations', 
+      description: 'The simulations',
       args: {
         siteRef: { type: GraphQLString },
         simRef: { type: GraphQLString }
@@ -205,7 +205,7 @@ var queryType = new GraphQLObjectType({
 const mutationType = new GraphQLObjectType({
   name: 'Mutations',
   fields: () => ({
-    runSim: { 
+    runSim: {
       name: 'RunSim',
       type: GraphQLString,
       args: {
@@ -216,7 +216,7 @@ const mutationType = new GraphQLObjectType({
         resolvers.runSimResolver(args.uploadFilename,args.uploadID,context);
       },
     },
-    addSite: { 
+    addSite: {
       name: 'AddSite',
       type: GraphQLString,
       args: {
