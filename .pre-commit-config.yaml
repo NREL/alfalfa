@@ -30,7 +30,7 @@ repos:
     rev: v1.4.4
     hooks:
       - id: autopep8
-        args: ['--in-place', '--aggressive', '--aggressive', '--recursive', '--max-line-length=100', '--ignore=E501,E402,W503,E731']
+        args: ['--in-place', '--aggressive', '--aggressive', '--recursive', '--max-line-length=100', '--ignore=E501,E402,W503,W504,E731']
   - repo: https://github.com/humitos/mirrors-autoflake.git
     rev: v1.3
     hooks:
@@ -40,4 +40,4 @@ repos:
     rev: 3.7.9
     hooks:
       - id: flake8
-        args: ['--ignore=E501,E402,W503,E731,F401']
+        args: ['--ignore=E501,E402,W503,W504,E731,F401']
