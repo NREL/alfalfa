@@ -92,14 +92,14 @@ class RunFMUSite:
         config = {
             'fmupath': fmupath,
             'start_time': self.startTime,
-            'step': 300,
+            'step': 300,  # this shouldn't be hard coded.
             'kpipath': self.directory + '/resources/kpis.json'
         }
 
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
 
-        # initiate the testcase
-        self.tc = lib.testcase.TestCase(config)
+        # initiate the testcase -- NL make sure to flatten the config options to pass to kwargs correctly
+        self.tc = lib.testcase.TestCase(**config)
 
         # run the FMU simulation
         self.kstep = 0
@@ -246,33 +246,45 @@ class RunFMUSite:
             if key != 'time':
                 output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-                self.recs.update_one( {"_id": output_id }, {"$set": {"rec.curVal":"n:%s" %value_y, "rec.curStatus":"s:ok","rec.cur": "m:" }} )        
+                self.mongo_db_recs.update_one({"_id": output_id}, {"$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
 
 # Main Program Entry
 
 # get arguments from calling program
 # which is the processMessage program
 
+
+# NL - update the argument order to match Alalfa's order with OpenStudio
+# NL - TODO: Revert this back to the previous setup and write a wrapper to use option parser.
 site_ref = sys.argv[1]
-real_time_flag = (sys.argv[2] == 'true')
-time_scale = sys.argv[3]
-if time_scale == 'undefined':
-    time_scale = 5
-else:
-    time_scale = int(time_scale)
-if real_time_flag:
-    time_scale = 1
-startTime = sys.argv[4]
+externalClock = (sys.argv[2] == 'external_clock')
+startTime = sys.argv[3]
 if startTime == 'undefined':
     startTime = 0
 else:
-    startTime = int(sys.argv[4])
-endTime = sys.argv[5]
+    startTime = int(sys.argv[3])
+endTime = sys.argv[4]
 if endTime == 'undefined':
-    endTime = 86400
+    endTime = 86400  # seconds
 else:
-    endTime = int(sys.argv[5])
-externalClock = (sys.argv[6] == 'true')
+    endTime = int(sys.argv[4])
+
+# arg 5 and 6 are optional
+try:
+    time_scale = sys.argv[5]
+except IndexError:
+    time_scale = 'undefined'
+
+time_scale = 5 if time_scale == 'undefined' else int(time_scale)  # minutes
+
+try:
+    real_time_flag = sys.argv[6]
+except IndexError:
+    real_time_flag = 'undefined'
+
+real_time_flag = True if real_time_flag == 'true' else 'false'
+if real_time_flag:
+    time_scale = 1
 
 runFMUSite = RunFMUSite(site_ref=site_ref, real_time_flag=real_time_flag, time_scale=time_scale, startTime=startTime, endTime=endTime, externalClock=externalClock)
 runFMUSite.run()

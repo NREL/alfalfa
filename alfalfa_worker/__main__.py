@@ -2,6 +2,8 @@ print("Starting Alfalfa Worker")
 
 import sys
 from alfalfa_worker.worker import Worker
+import traceback
+
 
 if __name__ == '__main__':
     try:
@@ -13,5 +15,7 @@ if __name__ == '__main__':
 
     try:
         worker.run()  # run the alfalfa_worker
-    except BaseException:  # TODO: what exceptions to catch?
-        print('Exception while running alfalfa_worker', file=sys.stderr)
+    except BaseException as e:  # Catch all exceptions
+        tb = traceback.format_exc()
+        worker.worker_logger.logger.error("Uncaught worker error {} with {}".format(e, tb))
+        sys.exit(1)
