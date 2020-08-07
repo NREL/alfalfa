@@ -13,7 +13,11 @@ class UpdateBoptest(distutils.cmd.Command):
 
     def initialize_options(self):
         self.files_to_download = {
-            'data/categories.json': 'alfalfa_worker/lib/data/categories.json'
+            'data/categories.json': 'alfalfa_worker/lib/data/categories.json',
+            'data/data_generator.py': 'alfalfa_worker/lib/data/data_generator.py',
+            'data/data_manager.py': 'alfalfa_worker/lib/data/data_manager.py',
+            'data/README.md': 'alfalfa_worker/lib/data/README.md',
+            'testcase.py': 'alfalfa_worker/lib/testcase.py',
         }
 
         # For now the branch is 'master' but will need to be moved to develop after it is merged.
