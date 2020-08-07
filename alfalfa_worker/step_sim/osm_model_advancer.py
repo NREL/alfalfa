@@ -6,7 +6,6 @@ import sys
 import tarfile
 import uuid
 from datetime import datetime, timedelta
-import time
 
 # Third party library imports
 import mlep
@@ -28,7 +27,7 @@ class OSMModelAdvancer(ModelAdvancer):
         tar.close()
 
         # Subscribe to redis pubsub messages that control simulation
-        self.ac.redis_pubsub.subscribe(self.site_id);
+        self.ac.redis_pubsub.subscribe(self.site_id)
 
         self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
         self.osm_file = os.path.join(self.sim_path_site, 'workflow/run/in.osm')
@@ -89,7 +88,7 @@ class OSMModelAdvancer(ModelAdvancer):
         """ We get near the requested start time by manipulating the idf file,
         however the idf start time is limited to the resolution of 1 day.
         The purpose of this function is to move the simulation to the requested
-        start minute. 
+        start minute.
         This is accomplished by advancing the simulation as quickly as possible. Data is not
         published to database during this process
         """
@@ -175,7 +174,7 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep.is_running = 0
 
     def run_external_clock(self):
-        self.advance_to_start_time();
+        self.advance_to_start_time()
 
         while True:
             self.process_pubsub_message()
@@ -186,7 +185,7 @@ class OSMModelAdvancer(ModelAdvancer):
 
             if self.advance:
                 self.step()
-                self.update_db();
+                self.update_db()
                 self.set_redis_states_after_advance()
                 self.advance = False
 
@@ -198,13 +197,14 @@ class OSMModelAdvancer(ModelAdvancer):
         return timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
 
     def run_timescale(self):
-        self.advance_to_start_time();
+        self.advance_to_start_time()
 
         next_step_time = datetime.now() + self.step_delta_time()
         while True:
             current_time = datetime.now()
 
-            if current_time >= next_step_time: self.advance = True
+            if current_time >= next_step_time:
+                self.advance = True
 
             self.process_pubsub_message()
 
@@ -214,7 +214,7 @@ class OSMModelAdvancer(ModelAdvancer):
 
             if self.advance:
                 self.step()
-                self.update_db();
+                self.update_db()
                 self.set_redis_states_after_advance()
                 next_step_time = next_step_time + self.step_delta_time()
                 self.advance = False
@@ -330,7 +330,7 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def copy_variables_cfg(self):
         """
-        Copy the variables.cfg file from the OpenStudio Measure reports directory to the 
+        Copy the variables.cfg file from the OpenStudio Measure reports directory to the
         simulation directory
 
         :return:
@@ -414,4 +414,3 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ac.mongo_db_recs.update_one({"_id": self.site_id}, {
             "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(self.ep.kStep),
                      "rec.simStatus": "s:Running"}}, False)
-

@@ -1,7 +1,5 @@
 # Standard library imports
 import os
-import time
-from datetime import datetime
 
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
