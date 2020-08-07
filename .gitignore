@@ -58,6 +58,7 @@ MANIFEST
 
 # Simulations / E+
 /alfalfa_worker/test/output
+tests/integration/output
 /s3/*
 *.audit
 *.bnd
