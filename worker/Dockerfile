@@ -13,12 +13,12 @@ RUN apt-get update \
     && apt-get install -y software-properties-common \
     && add-apt-repository -y ppa:openjdk-r/ppa \
     && apt-get update -y \
-    && apt-get install -y openjdk-8-jdk-headless \ 
-    && update-alternatives --config java \ 
-    && update-alternatives --config javac \ 
+    && apt-get install -y openjdk-8-jdk-headless \
+    && update-alternatives --config java \
+    && update-alternatives --config javac \
     && curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz \
     && tar -xzf bcvtb-linux.tar.gz \
-    && curl -sL https://deb.nodesource.com/setup_6.x | bash - \ 
+    && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
     && apt-get install -y ca-certificates nodejs
 
 ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-2.8.1.240bd7e1e8-Linux.deb
@@ -32,7 +32,7 @@ ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/NREL/EnergyPlus/releases/dow
 ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-x86_64.tar.gz
 ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
 
-# We would rather use the self extracting tarball distribution of EnergyPlus, but there appears to 
+# We would rather use the self extracting tarball distribution of EnergyPlus, but there appears to
 # be a bug in the installation script so using the tar.gz manually here and making our own links
 RUN curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
     && mkdir /usr/local/EnergyPlus-9-1-0 \
