@@ -47,9 +47,13 @@ const pub = redis.duplicate();
 const sub = redis.duplicate();
 const advancer = new Advancer(redis, pub, sub);
 
-MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
+MongoClient.connect(process.env.MONGO_URL,
+  {
+    reconnectTries: 20,
+    reconnectInterval: 0.5
+  }).then((mongoClient) => {
   var app = express();
-  
+
   if( process.env.NODE_ENV == "production" ) {
     app.get('*.js', function(req, res, next) {
       req.url = req.url + '.gz';
@@ -85,7 +89,7 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
       })(request,response)
     }
   );
-  
+
   app.use(bodyParser.text({ type: 'text/*' }));
   app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
 
@@ -119,18 +123,18 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
       }
     });
   });
-  
+
   app.all('/api/*', function(req, res) {
     // Remove this in production
     var path = url.parse(req.url).pathname;
     path = path.replace('/api','');
-  
+
     // parse URI path into "/{opName}/...."
     var slash = path.indexOf('/', 1);
     if (slash < 0) slash = path.length;
     var opName = path.substring(1, slash);
-  
-  
+
+
     // resolve the op
     app.locals.alfalfaServer.op(opName, false, function(err, op) {
       if (typeof(op) === 'undefined' || op === null) {
@@ -139,7 +143,7 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
         res.end();
         return;
       }
-  
+
       // route to the op
       op.onServiceOp(app.locals.alfalfaServer, req, res, function(err) {
         if (err) {
@@ -150,19 +154,19 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
       });
     });
   });
-  
+
   app.use(historyApiFallback());
   app.use('/', express.static(path.join(__dirname, './app')));
 
   let server = app.listen(80, '0.0.0.0', () => {
-  
+
     var host = server.address().address;
     var port = server.address().port;
-  
+
     if (host.length === 0 || host === "::") host = "localhost";
-  
+
     console.log('Node Haystack Toolkit listening at http://%s:%s', host, port);
-  
+
   });
 }).catch((err) => {
   console.log(err);
