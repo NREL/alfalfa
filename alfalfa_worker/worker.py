@@ -194,7 +194,7 @@ class Worker:
         if not os.path.isfile(p):
             self.worker_logger.logger.info("No file: {}".format(p))
         else:
-            return_code = subprocess.call(['python3.5', p, file_name, upload_id])
+            return_code = subprocess.call(['python3', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'add_site')
 
     def step_sim_type(self, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, model_type):
@@ -225,7 +225,7 @@ class Worker:
                 arg_end_datetime = str(arg_end_datetime)
             else:
                 p = 'step_sim/step_osm.py'
-                python = 'python3.5'
+                python = 'python3'
                 # add quotes around start/end time
                 arg_start_datetime = '"{}"'.format(start_datetime)
                 arg_end_datetime = '"{}"'.format(end_datetime)
@@ -243,7 +243,7 @@ class Worker:
                 arg_end_datetime = str(arg_end_datetime)
             else:
                 p = 'step_sim/step_osm.py'
-                python = 'python3.5'
+                python = 'python3'
                 # add quotes around start/end time
                 arg_start_datetime = '"{}"'.format(start_datetime)
                 arg_end_datetime = '"{}"'.format(end_datetime)
@@ -277,7 +277,7 @@ class Worker:
         if not os.path.isfile(p):
             self.worker_logger.logger.info("No file: {}".format(p))
         else:
-            return_code = subprocess.call(['python3.5', p, file_name, upload_id])
+            return_code = subprocess.call(['python3', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'run_sim')
 
     def add_site(self, message_body):

@@ -12,4 +12,4 @@ echo "Waiting for mongo to start"
 /usr/local/wait-for-it.sh --strict redis:27017
 
 cd /alfalfa
-python3.5 -m alfalfa_worker
+python3 -m alfalfa_worker
