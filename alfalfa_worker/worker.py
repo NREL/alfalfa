@@ -227,8 +227,8 @@ class Worker:
                 p = 'step_sim/step_osm.py'
                 python = 'python3'
                 # add quotes around start/end time
-                arg_start_datetime = '"{}"'.format(start_datetime)
-                arg_end_datetime = '"{}"'.format(end_datetime)
+                arg_start_datetime = start_datetime
+                arg_end_datetime = end_datetime
         else:
             if model_type == 'fmu':
                 p = 'step_sim/step_fmu.py'
@@ -244,16 +244,17 @@ class Worker:
             else:
                 p = 'step_sim/step_osm.py'
                 python = 'python3'
+                arg_step_sim_value = step_sim_value
                 # add quotes around start/end time
-                arg_start_datetime = '"{}"'.format(start_datetime)
-                arg_end_datetime = '"{}"'.format(end_datetime)
+                arg_start_datetime = start_datetime
+                arg_end_datetime = end_datetime
 
         if os.path.isfile(p):
             call = [
                 python, p, site_id, step_sim_type, arg_start_datetime, arg_end_datetime
             ]
             if arg_step_sim_value:
-                call.append('--step_sim_value {}'.format(step_sim_value))
+                call.append('--step_sim_value={}'.format(step_sim_value))
 
             self.worker_logger.logger.info("Calling step_sim_type subprocess: {}".format(call))
             return_code = subprocess.call(call)

@@ -95,8 +95,8 @@ class OSMModelAdvancer(ModelAdvancer):
         self.exchange_data()
         while True:
             current_ep_time = self.get_energyplus_datetime()
-            self.model_logger.logger.info('current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
             if current_ep_time < self.start_datetime:
+                self.model_logger.logger.info('current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
                 self.step()
             else:
                 break
