@@ -1,21 +1,8 @@
 import json
 import uuid
 
-
-# replace_ids.replace_siteid(upload_id, points_jsonpath, mapping_jsonpath)
-def replace_site_id(uploadid, points_jsonpath, mapping_jsonpath):
-    # step-1: find the siteid from jsonfile
-    with open(points_jsonpath, 'r') as jsonfile:
-        data = json.load(jsonfile)
-        for x in data:
-            for y in x.keys():
-                if 'site' == y:
-                    x['id']
-                else:
-                    pass
-
-    # step-2: replace the siteid with uploadid
-    for x in data:
+def replace_site_id(uploadid, points_json):
+    for x in points_json:
         for y in x.keys():
             if 'siteRef' == y:
                 x['siteRef'] = 'r:' + uploadid
@@ -24,41 +11,30 @@ def replace_site_id(uploadid, points_jsonpath, mapping_jsonpath):
             else:
                 pass
 
-    # step-3: replace the old json file with updated jsonfile
-    with open(points_jsonpath, 'w') as jsonfile:
-        json.dump(data, jsonfile)
+    return points_json
 
-
-def make_ids_unique(uploadid, points_jsonpath, mapping_jsonpath):
+def make_ids_unique(points_json, mapping_json):
     # map of old id to new id
     idmap = {}
 
-    with open(points_jsonpath, 'r') as jsonfile:
-        points = json.load(jsonfile)
+    # iterate all points and make a map of old id to new id
+    for point in points_json:
+        if "id" in point:
+            oldid = point["id"]
+            newid = "r:%s" % str(uuid.uuid1())
+            idmap[oldid] = newid
 
-        # iterate all points and make a map of old id to new id
-        for point in points:
-            if "id" in point:
-                oldid = point["id"]
-                newid = "r:%s" % str(uuid.uuid1())
-                idmap[oldid] = newid
+    # now use map to update all references to old id
+    for point in points_json:
+        for tag, oldvalue in point.items():
+            if oldvalue in idmap:
+                point[tag] = idmap[oldvalue]
 
-        # now use map to update all references to old id
-        for point in points:
-            for tag, oldvalue in point.items():
-                if oldvalue in idmap:
-                    point[tag] = idmap[oldvalue]
+    for point in mapping_json:
+        if "id" in point:
+            oldid = point["id"]
+            if oldid in idmap:
+                point["id"] = idmap[oldid]
 
-    with open(points_jsonpath, 'w') as jsonfile:
-        json.dump(points, jsonfile)
+    return points_json, mapping_json
 
-    with open(mapping_jsonpath, 'r') as jsonfile:
-        points = json.load(jsonfile)
-        for point in points:
-            if "id" in point:
-                oldid = point["id"]
-                if oldid in idmap:
-                    point["id"] = idmap[oldid]
-
-    with open(mapping_jsonpath, 'w') as jsonfile:
-        json.dump(points, jsonfile)
