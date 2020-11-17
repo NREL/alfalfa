@@ -26,11 +26,6 @@ class OSMModelAdvancer(ModelAdvancer):
         tar.extractall(self.sim_path)
         tar.close()
 
-        os.system('ls ' + self.sim_path_site)
-        os.system('ls ' + self.sim_path_site + '/simulation/')
-        print('sim_path: ' + self.sim_path)
-        print('sim_path_site: ' + self.sim_path_site)
-
         # Subscribe to redis pubsub messages that control simulation
         self.ac.redis_pubsub.subscribe(self.site_id)
 
