@@ -26,14 +26,17 @@ class OSMModelAdvancer(ModelAdvancer):
         tar.extractall(self.sim_path)
         tar.close()
 
+        os.system('ls ' + self.sim_path_site)
+        os.system('ls ' + self.sim_path_site + '/simulation/')
+        print('sim_path: ' + self.sim_path)
+        print('sim_path_site: ' + self.sim_path_site)
+
         # Subscribe to redis pubsub messages that control simulation
         self.ac.redis_pubsub.subscribe(self.site_id)
 
         self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
-        self.osm_file = os.path.join(self.sim_path_site, 'workflow/run/in.osm')
-        self.idf = os.path.join(self.sim_path_site, "workflow/run/{}".format(self.site_id))
-        self.idf_file = self.idf + '.idf'
-        self.weather_file = os.path.join(self.sim_path_site, 'workflow/files/weather.epw')
+        self.idf_file = os.path.join(self.sim_path_site, 'simulation/sim.idf')
+        self.weather_file = os.path.join(self.sim_path_site, 'simulation/sim.epw')
         self.str_format = "%Y-%m-%d %H:%M:%S"
 
         # EnergyPlus MLEP initializations
@@ -41,16 +44,15 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep.bcvtbDir = '/alfalfa/bcvtb/'
         self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
         self.ep.accept_timeout = 30000
-        self.ep.mapping = os.path.join(self.sim_path_site, 'workflow/reports/haystack_report_mapping.json')
-        self.ep.workDir = os.path.split(self.idf)[0]
-        self.ep.arguments = (self.idf, self.weather_file)
+        self.ep.mapping = os.path.join(self.sim_path_site, 'simulation/haystack_report_mapping.json')
+        self.ep.workDir = os.path.split(self.idf_file)[0]
+        self.ep.arguments = (self.idf_file, self.weather_file)
         self.ep.kStep = 1  # simulation step indexed at 1
         self.ep.deltaT = 60  # the simulation step size represented in seconds - on 'step', the model will advance 1min
 
         # Parse variables after Haystack measure
-        self.variables_file_old = os.path.join(self.sim_path_site, 'workflow/reports/export_bcvtb_report_variables.cfg')
-        self.variables_file_new = os.path.join(self.sim_path_site, 'workflow/run/variables.cfg')
-        self.variables = ParseVariables(self.variables_file_old, self.ep.mapping)
+        self.variables_file = os.path.join(self.sim_path_site, 'simulation/variables.cfg')
+        self.variables = ParseVariables(self.variables_file, self.ep.mapping)
 
         # Define MLEP inputs
         self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
@@ -339,19 +341,11 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def osm_idf_files_prep(self):
         """
-        Translate the osm and replace the timestep and starting and ending year, month, day, day of week in the idf file.
+        Replace the timestep and starting and ending year, month, day, day of week in the idf file.
 
         :return:
         """
-        return_code = subprocess.call(['openstudio', 'step_sim/step_osm/translate_osm.rb', self.osm_file, self.idf])
-        if return_code == 0:
-            self.model_logger.logger.info(
-                'Successfully ran translate_osm on osm: {} and idf: {}'.format(self.osm_file, self.idf))
-        else:
-            self.model_logger.logger.error('translate_osm failed with return_code: {}'.format(return_code))
-            sys.exit(1)
         self.replace_timestep_and_run_period_idf_settings()
-        self.copy_variables_cfg()
 
     def process_pubsub_message(self):
         """

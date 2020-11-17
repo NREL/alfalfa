@@ -164,14 +164,17 @@ class AddSite:
         :return:
         """
         self.add_site_logger.logger.info("add_osw for {}".format(self.key))
-        osw_zip_path = os.path.join(self.bucket_parsed_site_id_dir, 'in.zip')
 
-        self.ac.s3_bucket.download_file(self.key, osw_zip_path)
+        # download and extract the payload
+        payload_dir = os.path.join(self.bucket_parsed_site_id_dir, 'payload/')
+        os.mkdir(payload_dir) 
+        payload_file_path = os.path.join(payload_dir, 'in.zip')
+        self.ac.s3_bucket.download_file(self.key, payload_file_path)
+        zzip = zipfile.ZipFile(payload_file_path)
+        workflow_dir = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/')
+        zzip.extractall(workflow_dir)
 
-        zzip = zipfile.ZipFile(osw_zip_path)
-        zzip.extractall(self.bucket_parsed_site_id_dir)
-
-        osws = glob.glob(("%s/**/*.osw" % self.bucket_parsed_site_id_dir), recursive=True)
+        osws = glob.glob(("%s/**/*.osw" % workflow_dir), recursive=True)
         if osws:
             # there is only support for one osw at this time
             submitted_osw_path = osws[0]
@@ -179,13 +182,12 @@ class AddSite:
         else:
             sys.exit(1)
 
-        # Extract workflow tarball into this directory
-        self.extract_workflow_tar()
-        default_workflow_path = self.bucket_parsed_site_id_dir + '/workflow/'
-        default_measure_paths = [self.bucket_parsed_site_id_dir + '/workflow/measures/']
-        default_osw_path = default_workflow_path + 'workflow.osw'
+        # locate the "default" workflow
+        default_workflow_path = '/alfalfa/alfalfa_worker/workflow/'
+        default_measure_paths = [os.path.join(default_workflow_path, 'measures/')]
+        default_osw_path = os.path.join(default_workflow_path, 'workflow.osw')
 
-        # Merge the default osw measures into the user submitted workflow
+        # Merge the default workflow measures into the user submitted workflow
         with open(default_osw_path, 'r') as osw:
             data=osw.read()
         default_osw = json.loads(data)
@@ -222,14 +224,35 @@ class AddSite:
         points_json, mapping_json = make_ids_unique(points_json, mapping_json)
         points_json = replace_site_id(self.upload_id, points_json)
 
-        # add points to mongo
+        # add points to database
         mongo_response = self.ac.add_site_to_mongo(points_json, self.upload_id)
+
+        # create a "simulation" directory that has everything required for simulation
+        simulation_dir = os.path.join(self.bucket_parsed_site_id_dir, 'simulation/')
+        os.mkdir(simulation_dir) 
+        shutil.copy(submitted_workflow_path + '/run/in.idf', simulation_dir + '/sim.idf')
+        shutil.copy(submitted_workflow_path + '/reports/haystack_report_mapping.json', simulation_dir)
+        shutil.copy(submitted_workflow_path + '/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
+        # hack. need to find a more general approach to preserve osw resources that might be needed at simulation time
+        for file in glob.glob(submitted_workflow_path + '/python/*'):
+            shutil.copy(file, simulation_dir)
+
+        # find weather file (if) defined by osw and copy into simulation directory
+        epw_name = submitted_osw['weather_file']
+        if epw_name:
+            epw_file_path = self.find_file(epw_name, submitted_workflow_path) 
+            shutil.copyfile(epw_file_path, simulation_dir + '/sim.epw')
 
         # push entire directory to file storage
         filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
 
         # remove directory
         shutil.rmtree(self.bucket_parsed_site_id_dir)
+
+    def find_file(self, name, path):
+        for root, dirs, files in os.walk(path):
+            if name in files:
+                return os.path.join(root, name)
 
     def add_fmu(self):
         """
