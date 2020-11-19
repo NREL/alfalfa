@@ -198,7 +198,9 @@ class AddSite:
 
         default_steps = default_osw['steps']
         submitted_steps = submitted_osw['steps']
-        submitted_osw['steps'] = default_steps + submitted_steps
+        final_steps = submitted_steps
+        final_steps[1:1] = default_steps
+        submitted_osw['steps'] = final_steps
 
         submitted_measure_paths = submitted_osw['measure_paths']
         submitted_osw['measure_paths'] = default_measure_paths + submitted_measure_paths
