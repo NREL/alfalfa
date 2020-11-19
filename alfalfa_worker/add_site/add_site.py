@@ -226,6 +226,13 @@ class AddSite:
         points_json, mapping_json = make_ids_unique(points_json, mapping_json)
         points_json = replace_site_id(self.upload_id, points_json)
 
+        # save "fixed up" json
+        with open(points_json_path, 'w') as fp:
+            json.dump(points_json, fp)
+
+        with open(mapping_json_path, 'w') as fp:
+            json.dump(mapping_json, fp)
+
         # add points to database
         mongo_response = self.ac.add_site_to_mongo(points_json, self.upload_id)
 
