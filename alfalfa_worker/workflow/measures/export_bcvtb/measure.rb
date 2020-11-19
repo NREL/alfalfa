@@ -104,9 +104,6 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml
       #print outvar
       target.write(outvar)
-      if (outvar.keyValue.to_s =="*")
-        print " \n ****** You are good here ******"
-      end
       if (outvar.exportToBCVTB && (outvar.keyValue != "*"))
       #if (outvar.exportToBCVTB )
         bcvtb.add_element add_xml_output(outvar.variableName, outvar.keyValue)
