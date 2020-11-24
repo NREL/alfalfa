@@ -65,7 +65,7 @@ class App extends React.Component {
             <AppBar position="static">
               <Toolbar>
                 <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}>
-                  <Typography variant="h5" color="inherit">BOPTEST</Typography>
+                  <Typography variant="h5" color="inherit">Alfalfa</Typography>
                 </Link>
                 <Grid container justify='flex-end'>
                   <Grid item>
