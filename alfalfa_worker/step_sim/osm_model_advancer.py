@@ -52,7 +52,10 @@ class OSMModelAdvancer(ModelAdvancer):
         # Define MLEP inputs
         self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
 
-        # TODO: Figure out purpose of this
+        # The idf RunPeriod is manipulated in order to get close to the desired start time,
+        # but we can only get within 24 hours. We use "bypass" steps to quickly get to the 
+        # exact right start time. This flag indicates we are interating in bypass mode
+        # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
 
     def seconds_per_time_step(self):
@@ -97,6 +100,7 @@ class OSMModelAdvancer(ModelAdvancer):
                 self.step()
             else:
                 break
+        self.master_enable_bypass = False
         self.update_db()
 
     def exchange_data(self):
