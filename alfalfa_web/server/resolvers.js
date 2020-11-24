@@ -313,7 +313,7 @@ function writePointResolver(context,siteRef, pointName, value, level) {
   return dbops.getPoint(siteRef, pointName, context.db).then( point => {
     return dbops.writePoint(point._id, siteRef, level, value, null, null, context.db);
   }).then( array => {
-    return array;
+    return JSON.stringify(array);
   });
 }
 
