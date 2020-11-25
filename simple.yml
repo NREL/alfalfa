@@ -336,13 +336,13 @@ items:
           - name: S3_URL
             value: http://minio:9000
           - name: S3_BUCKET
-            value: alfalfa 
+            value: alfalfa
           - name: REGION
             value: alfalfa
           - name: AWS_ACCESS_KEY_ID
             value: demo
           - name: AWS_SECRET_ACCESS_KEY
-            value: password              
+            value: password
           image: testharbor.nrel.gov/alfalfa/web:latest
           imagePullPolicy: ""
           name: web
@@ -394,15 +394,15 @@ items:
           - name: S3_URL
             value: http://minio:9000
           - name: S3_BUCKET
-            value: alfalfa 
+            value: alfalfa
           - name: REGION
             value: alfalfa
           - name: AWS_ACCESS_KEY_ID
             value: demo
           - name: AWS_SECRET_ACCESS_KEY
-            value: password 
+            value: password
           - name: LOG_LEVEL
-            value: INFO             
+            value: INFO
           image: testharbor.nrel.gov/alfalfa/worker:latest
           imagePullPolicy: ""
           name: worker
@@ -413,4 +413,3 @@ items:
   status: {}
 kind: List
 metadata: {}
-
