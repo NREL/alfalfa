@@ -183,30 +183,10 @@ class AddSite:
             sys.exit(1)
 
         # locate the "default" workflow
-        default_workflow_path = '/alfalfa/alfalfa_worker/workflow/'
-        default_measure_paths = [os.path.join(default_workflow_path, 'measures/')]
-        default_osw_path = os.path.join(default_workflow_path, 'workflow.osw')
+        default_workflow_path = '/alfalfa/alfalfa_worker/workflow/workflow.osw'
 
         # Merge the default workflow measures into the user submitted workflow
-        with open(default_osw_path, 'r') as osw:
-            data=osw.read()
-        default_osw = json.loads(data)
-
-        with open(submitted_osw_path, 'r') as osw:
-            data=osw.read()
-        submitted_osw = json.loads(data)
-
-        default_steps = default_osw['steps']
-        submitted_steps = submitted_osw['steps']
-        final_steps = submitted_steps
-        final_steps[1:1] = default_steps
-        submitted_osw['steps'] = final_steps
-
-        submitted_measure_paths = submitted_osw['measure_paths']
-        submitted_osw['measure_paths'] = default_measure_paths + submitted_measure_paths
-
-        with open(submitted_osw_path, 'w') as fp:
-            json.dump(submitted_osw, fp)
+        call(['openstudio', '/alfalfa/alfalfa_worker/add_site/merge_osws.rb', default_workflow_path, submitted_osw_path])
 
         # run workflow
         call(['openstudio', 'run', '-m', '-w', submitted_osw_path])
@@ -247,6 +227,10 @@ class AddSite:
             shutil.copy(file, simulation_dir)
 
         # find weather file (if) defined by osw and copy into simulation directory
+        with open(submitted_osw_path, 'r') as osw:
+            data=osw.read()
+        submitted_osw = json.loads(data)
+
         epw_name = submitted_osw['weather_file']
         if epw_name:
             epw_file_path = self.find_file(epw_name, submitted_workflow_path) 
