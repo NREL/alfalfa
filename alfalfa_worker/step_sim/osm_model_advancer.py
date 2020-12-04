@@ -53,7 +53,7 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
 
         # The idf RunPeriod is manipulated in order to get close to the desired start time,
-        # but we can only get within 24 hours. We use "bypass" steps to quickly get to the 
+        # but we can only get within 24 hours. We use "bypass" steps to quickly get to the
         # exact right start time. This flag indicates we are interating in bypass mode
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
