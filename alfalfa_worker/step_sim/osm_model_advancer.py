@@ -1,7 +1,6 @@
 # Standard library imports
 import os
 import shutil
-import subprocess
 import sys
 import tarfile
 import uuid
