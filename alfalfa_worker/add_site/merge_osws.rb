@@ -40,4 +40,3 @@ new_steps = submitted_steps + alfalfa_steps
 submitted_osw.setMeasureSteps(model_measure_type, new_steps)
 
 submitted_osw.save()
-

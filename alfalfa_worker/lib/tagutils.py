@@ -37,4 +37,3 @@ def make_ids_unique(points_json, mapping_json):
                 point["id"] = idmap[oldid]
 
     return points_json, mapping_json
-
