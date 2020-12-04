@@ -106,7 +106,7 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
       } else {
         if ( process.env.S3_URL.indexOf("amazonaws") == -1 ) {
           if (req.hostname.indexOf("alfalfa_web") == -1 ) {
-            const url =  process.env.S3_URL + '/' + process.env.S3_BUCKET 
+            const url =  process.env.S3_URL + '/' + process.env.S3_BUCKET
             data.url = url;
           } else {
             const url = 'http://minio:9000/alfalfa';
@@ -167,4 +167,3 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
 }).catch((err) => {
   console.log(err);
 });
-

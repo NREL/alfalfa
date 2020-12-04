@@ -293,4 +293,3 @@ export var Schema = new GraphQLSchema({
   // Uncomment the following after adding some mutation fields:
   mutation: mutationType,
 });
-

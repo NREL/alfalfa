@@ -97,4 +97,3 @@ App.propTypes = {
 };
 
 export default withStyles(styles)(App);
-

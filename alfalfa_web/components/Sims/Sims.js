@@ -261,4 +261,3 @@ const styles = theme => ({
 const withStyle = withStyles(styles)(withSims);
 
 export default withStyle;
-

@@ -229,4 +229,3 @@ class StartDialog extends React.Component {
 }
 
 export default withStyles(styles)(StartDialog);
-
