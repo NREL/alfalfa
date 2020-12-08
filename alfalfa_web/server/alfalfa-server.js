@@ -605,4 +605,3 @@ class AlfalfaServer extends HServer {
 }
 
 module.exports = AlfalfaServer;
-

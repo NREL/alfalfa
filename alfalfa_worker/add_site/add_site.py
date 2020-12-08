@@ -131,10 +131,10 @@ class AddSite:
         :return:
         """
         if self.file_ext != '.fmu':
-            f = self.report_haystack_json
+            self.report_haystack_json
             self.site_ref = self.get_site_ref(self.report_haystack_json)
         else:
-            f = self.fmu_json
+            self.fmu_json
             self.site_ref = self.get_site_ref(self.fmu_json)
 
         # Check mongo upload works correctly
@@ -175,7 +175,7 @@ class AddSite:
 
     def add_osw(self):
         """
-        Workflow for osw.  
+        Workflow for osw.
         This function must merge the "built in" haystack workflow measures with
         the user measure, and then run the resulting combined workflow
         :return:
@@ -184,7 +184,7 @@ class AddSite:
 
         # download and extract the payload
         payload_dir = os.path.join(self.bucket_parsed_site_id_dir, 'payload/')
-        os.mkdir(payload_dir) 
+        os.mkdir(payload_dir)
         payload_file_path = os.path.join(payload_dir, 'in.zip')
         self.ac.s3_bucket.download_file(self.key, payload_file_path)
         zzip = zipfile.ZipFile(payload_file_path)
@@ -214,7 +214,7 @@ class AddSite:
 
         # create a "simulation" directory that has everything required for simulation
         simulation_dir = os.path.join(self.bucket_parsed_site_id_dir, 'simulation/')
-        os.mkdir(simulation_dir) 
+        os.mkdir(simulation_dir)
         shutil.copy(submitted_workflow_path + '/run/in.idf', simulation_dir + '/sim.idf')
         shutil.copy(submitted_workflow_path + '/reports/haystack_report_mapping.json', simulation_dir)
         shutil.copy(submitted_workflow_path + '/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
@@ -224,12 +224,12 @@ class AddSite:
 
         # find weather file (if) defined by osw and copy into simulation directory
         with open(submitted_osw_path, 'r') as osw:
-            data=osw.read()
+            data = osw.read()
         submitted_osw = json.loads(data)
 
         epw_name = submitted_osw['weather_file']
         if epw_name:
-            epw_file_path = self.find_file(epw_name, submitted_workflow_path) 
+            epw_file_path = self.find_file(epw_name, submitted_workflow_path)
             shutil.copyfile(epw_file_path, simulation_dir + '/sim.epw')
 
         # push entire directory to file storage

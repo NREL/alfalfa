@@ -1,5 +1,5 @@
-import json
 import uuid
+
 
 def replace_site_id(uploadid, points_json):
     for x in points_json:
@@ -12,6 +12,7 @@ def replace_site_id(uploadid, points_json):
                 pass
 
     return points_json
+
 
 def make_ids_unique(points_json, mapping_json):
     # map of old id to new id
@@ -37,4 +38,3 @@ def make_ids_unique(points_json, mapping_json):
                 point["id"] = idmap[oldid]
 
     return points_json, mapping_json
-
