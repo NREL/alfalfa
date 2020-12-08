@@ -94,7 +94,15 @@ class AddSite:
                         break
         return site_ref
 
-    def os_files_final_touches_and_upload(self, points_json_path, mapping_json_path):
+    def insert_fmu_tags(self, points_json_path):
+        with open(points_json_path, 'r') as f:
+            data=f.read()
+        points_json = json.loads(data)
+
+        mongo_response = self.ac.add_site_to_mongo(points_json, self.upload_id)
+
+
+    def insert_os_tags(self, points_json_path, mapping_json_path):
         """
         Make unique ids and replace site_id.  Upload to mongo and filestore.
         :return:
@@ -124,39 +132,6 @@ class AddSite:
         # add points to database
         mongo_response = self.ac.add_site_to_mongo(points_json, self.upload_id)
 
-    def add_to_mongo(self, site_ref, points_json):
-        """
-        Attempt upload to mongo and filestore.  Function exits if not uploaded correctly
-        based on expected return values from methods in AlfalfaConnections.
-        :return:
-        """
-        if self.file_ext != '.fmu':
-            self.report_haystack_json
-            self.site_ref = self.get_site_ref(self.report_haystack_json)
-        else:
-            self.fmu_json
-            self.site_ref = self.get_site_ref(self.fmu_json)
-
-        # Check mongo upload works correctly
-        mongo_response = self.ac.add_site_to_mongo(points_json, site_ref)
-        if len(mongo_response.inserted_ids) > 0:
-            self.add_site_logger.logger.info('added {} ids to MongoDB under site_ref: {}'.format(len(mongo_response.inserted_ids), self.site_ref))
-        else:
-            self.add_site_logger.logger.warning('site not added to MongoDB under site_ref: {}'.format(self.site_ref))
-            sys.exit(1)
-
-        # Check filestore upload works correctly
-        filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.site_ref)
-
-        # Clean local directory
-        shutil.rmtree(self.bucket_parsed_site_id_dir)
-        if filestore_response:
-            self.add_site_logger.logger.info(
-                'added to filestore: {}'.format(output))
-        else:
-            self.add_site_logger.logger.warning('site not added to filestore - exception: {}'.format(output))
-            sys.exit(1)
-
     def add_osm(self):
         """
         Workflow for osm.
@@ -171,7 +146,21 @@ class AddSite:
         # Run OS Workflow on uploaded file to apply afalfa necessary measures
         call(['openstudio', 'run', '-m', '-w', self.workflow_osw_path])
 
-        self.os_files_final_touches_and_upload(self.report_haystack_json, self.report_mapping_json)
+        # insert tags into db
+        self.insert_os_tags(self.report_haystack_json, self.report_mapping_json)
+
+        # create a "simulation" directory that has everything required for simulation
+        simulation_dir = os.path.join(self.bucket_parsed_site_id_dir, 'simulation/')
+        os.mkdir(simulation_dir)
+        shutil.copy(self.bucket_parsed_site_id_dir + 'workflow/run/in.idf', simulation_dir + '/sim.idf')
+        shutil.copy(self.bucket_parsed_site_id_dir + 'workflow/reports/haystack_report_mapping.json', simulation_dir)
+        shutil.copy(self.bucket_parsed_site_id_dir + 'workflow/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
+
+        # push entire directory to file storage
+        filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
+
+        # remove directory
+        shutil.rmtree(self.bucket_parsed_site_id_dir)
 
     def add_osw(self):
         """
@@ -210,7 +199,7 @@ class AddSite:
 
         points_json_path = submitted_workflow_path + '/reports/haystack_report_haystack.json'
         mapping_json = submitted_workflow_path + '/reports/haystack_report_mapping.json'
-        self.os_files_final_touches_and_upload(points_json_path, mapping_json_path)
+        self.insert_os_tags(points_json_path, mapping_json_path)
 
         # create a "simulation" directory that has everything required for simulation
         simulation_dir = os.path.join(self.bucket_parsed_site_id_dir, 'simulation/')
@@ -256,7 +245,14 @@ class AddSite:
         # External call to python2 to create FMU tags
         call(['python', 'lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
 
-        #self.add_to_mongo_and_filestore()
+        # insert tags into db
+        self.insert_fmu_tags(self.fmu_json)
+
+        # push entire directory to file storage
+        filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
+
+        # remove directory
+        shutil.rmtree(self.bucket_parsed_site_id_dir)
 
 
 if __name__ == "__main__":
