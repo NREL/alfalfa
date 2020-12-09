@@ -25,10 +25,10 @@ class ModelAdvancer(object):
         else:
             self.step_sim_value = None
 
-   #parser.add_argument('start_datetime', type=valid_date, help="Valid datetime, formatted: %Y-%m-%d %H:%M:%S")
+        # parser.add_argument('start_datetime', type=valid_date, help="Valid datetime, formatted: %Y-%m-%d %H:%M:%S")
         self.start_datetime = datetime.datetime.strptime(self.args.start_datetime, '%Y-%m-%d %H:%M:%S')
-        #self.start_datetime = self.args.start_datetime  # datetime object
-        #self.end_datetime = self.args.end_datetime  # datetime object
+        # self.start_datetime = self.args.start_datetime  # datetime object
+        # self.end_datetime = self.args.end_datetime  # datetime object
         self.end_datetime = datetime.datetime.strptime(self.args.end_datetime, '%Y-%m-%d %H:%M:%S')
 
         # Setup logging

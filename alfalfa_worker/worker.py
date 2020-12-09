@@ -120,7 +120,7 @@ class Worker:
         self.worker_logger.logger.info(
             "external_clock type: {}\texternal_clock: {}".format(type(external_clock), external_clock))
         # Only want one of: realtime, timescale, or external_clock.  Else, reject configuration.
-        #if (realtime and timescale) or (realtime and external_clock) or (timescale and external_clock):
+        # if (realtime and timescale) or (realtime and external_clock) or (timescale and external_clock):
         #    self.worker_logger.logger.info(
         #        "Only one of 'external_clock', 'timescale', or 'realtime' should be specified in message")
         #    sys.exit(1)

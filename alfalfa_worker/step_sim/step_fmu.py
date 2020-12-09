@@ -26,7 +26,6 @@
 import json
 import os
 import shutil
-import sys
 import tarfile
 import time
 import uuid
@@ -39,9 +38,11 @@ import lib.testcase
 import pytz
 import redis
 from pymongo import MongoClient
+from step_sim_utils import step_sim_arg_parser
 
 
 class RunFMUSite:
+
     def __init__(self, **kwargs):
         self.s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
         self.redis = redis.Redis(host=os.environ['REDIS_HOST'])
@@ -248,11 +249,10 @@ class RunFMUSite:
                 value_y = y_output[key]
                 self.mongo_db_recs.update_one({"_id": output_id}, {"$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
 
+
 # Main Program Entry
 
-from step_sim_utils import step_sim_arg_parser
 args = step_sim_arg_parser()
-
 site_ref = args.site_id
 externalClock = (args.step_sim_type == 'external_clock')
 real_time_flag = False
