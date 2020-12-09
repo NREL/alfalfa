@@ -152,9 +152,10 @@ class AddSite:
         # create a "simulation" directory that has everything required for simulation
         simulation_dir = os.path.join(self.bucket_parsed_site_id_dir, 'simulation/')
         os.mkdir(simulation_dir)
-        shutil.copy(self.bucket_parsed_site_id_dir + 'workflow/run/in.idf', simulation_dir + '/sim.idf')
-        shutil.copy(self.bucket_parsed_site_id_dir + 'workflow/reports/haystack_report_mapping.json', simulation_dir)
-        shutil.copy(self.bucket_parsed_site_id_dir + 'workflow/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
+        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/run/in.idf', simulation_dir + '/sim.idf')
+        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/files/weather.epw', simulation_dir + '/sim.epw')
+        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/haystack_report_mapping.json', simulation_dir)
+        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
 
         # push entire directory to file storage
         filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)

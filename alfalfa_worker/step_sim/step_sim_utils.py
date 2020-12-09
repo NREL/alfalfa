@@ -17,8 +17,8 @@ def step_sim_arg_parser():
     parser.add_argument('site_id', help="The _id attribute of the record stored in MongoDB")
     parser.add_argument('step_sim_type', help="The type of step simulation to perform.",
                         choices=['timescale', 'realtime', 'external_clock'])
-    parser.add_argument('start_datetime', type=valid_date, help="Valid datetime, formatted: %Y-%m-%d %H:%M:%S")
-    parser.add_argument('end_datetime', type=valid_date, help="Valid datetime, formatted: %Y-%m-%d %H:%M:%S")
+    parser.add_argument('start_datetime')
+    parser.add_argument('end_datetime')
 
     help_string = ('How quickly the model advances, represented as a '
                    'ratio between model_time:real_time.  1 means the '
