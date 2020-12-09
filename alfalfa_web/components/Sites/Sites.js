@@ -293,7 +293,7 @@ class Sites extends React.Component {
                 <TableRow>
                   <TableCell padding="checkbox"></TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Site Reference</TableCell>
+                  <TableCell>ID</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Time</TableCell>
                   <TableCell></TableCell>
