@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>replace_idf</name>
+  <uid>d2f575fd-6cac-472a-9841-511709492e00</uid>
+  <version_id>0e6adc1b-dfdd-47ce-80d5-af1a4db1732a</version_id>
+  <version_modified>20201110T192208Z</version_modified>
+  <xml_checksum>9D2F1A23</xml_checksum>
+  <class_name>ReplaceIDF</class_name>
+  <display_name>Replace IDF</display_name>
+  <description>Replace OpenStudio generated IDF file with user specified IDF.</description>
+  <modeler_description>Additional EnergyPlus measures can be placed after this measure in the workflow. Weather file should be described in the seed OSM file or in the OSW file used to run the simulation.</modeler_description>
+  <arguments>
+    <argument>
+      <name>idf_name</name>
+      <display_name>External IDF File Name</display_name>
+      <description>Name of the model to replace current model. This is the filename with the extension (e.g. MyModel.idf). Optionally this can include the full file path, but for most use cases should just be file name.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+  </arguments>
+  <outputs />
+  <provenances />
+  <tags />
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>EnergyPlusMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.3.0</identifier>
+        <min_compatible>2.3.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>4A19A905</checksum>
+    </file>
+  </files>
+</measure>
