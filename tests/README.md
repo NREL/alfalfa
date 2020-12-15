@@ -3,10 +3,10 @@ For defining tests to be written and tracking progress
 
 # Running tests locally
 1. Install dependencies:  `pip install -r requirements.txt`
-2. Run unit tests: `pytest`
-3. Run stack locally in detached mode: `docker-compose up -d`
-4. Run integration tests: `pytest -m "integration"`
-5. Clean up: `docker-compose down`
+1. Run unit tests: `pytest`
+1. Run stack locally in detached mode: `docker-compose up --build -d`
+1. Run integration tests: `pytest -m "integration"`
+1. Clean up: `docker-compose down`
 
 
 # Worker
