@@ -2,6 +2,7 @@ exclude: |
   (?x)(
     ^docs/conf.py|
     ^docs/resources|
+    ^tests/integration/models|
     ^lib|
     ^deploy|
     ^alfalfa_web/.babelrc|

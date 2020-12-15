@@ -32,13 +32,13 @@ class AlfalfaVariables < OpenStudio::Measure::ModelMeasure
     global = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, name)
     global.setExportToBCVTB(true)
 
-    # The global variable's value must be sent to output an variable so that python programs can read it 
+    # The global variable's value must be sent to output an variable so that python programs can read it
     # don't be mistaken, An OuputVariable object is created, but this is "input" to the simulation, from Alfalfa clients
     global_ems_output = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, global)
     global_ems_output.setName(name + "_EMS_Value")
     global_ems_output.setUpdateFrequency("SystemTimestep")
 
-    # Request the custom ems output var creaed in the previous step 
+    # Request the custom ems output var creaed in the previous step
     global_output = OpenStudio::Model::OutputVariable.new(global_ems_output.nameString(), model)
     global_output.setName(name + "_Value")
     global_output.setKeyValue("EMS")

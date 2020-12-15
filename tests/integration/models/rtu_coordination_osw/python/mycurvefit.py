@@ -1,7 +1,8 @@
 import numpy as np
 import csv
 
-def fit_sat_sst(sat,sst):
+
+def fit_sat_sst(sat, sst):
     """get the curve fit between supply-air-temp and saturated-suction-temp"""
     z = np.polyfit(sat, sst, 4)
     #print('coefcients: ', type(z), z.tolist())
@@ -12,6 +13,7 @@ def fit_sat_sst(sat,sst):
         writer.writerow(z.tolist())
 
     return p
+
 
 def fit_sat_sct(sat, sct):
     """get the curve fit between supply-air-temp and saturated-condensing-temp"""

@@ -600,4 +600,3 @@ OutputControl:Table:Style,
 
 Output:Table:SummaryReports,
   AllSummary;                             !- Report Name 1
-

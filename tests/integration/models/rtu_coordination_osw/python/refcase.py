@@ -3,9 +3,9 @@ import pysindy as ps
 from scipy.integrate import odeint
 from scipy.interpolate import interp1d
 import csv
-from scipy.signal import savgol_filter
 from mycurvefit import *
 from pyenergyplus.plugin import EnergyPlusPlugin
+
 
 class CaseModel(EnergyPlusPlugin):
 
@@ -48,15 +48,14 @@ class CaseModel(EnergyPlusPlugin):
             csvfile.seek(0)
             reader = csv.DictReader(csvfile)
             for row in reader:
-                T_food.append( np.float64( row['Sim 3']) )
+                T_food.append(np.float64(row['Sim 3']))
                 T_air.append(np.float64(row['Case T-Stat Bulb Temp']))
-                T_sa.append( np.float64(row['Case Air Discharge Temp']) )
+                T_sa.append(np.float64(row['Case Air Discharge Temp']))
                 T_evap.append(np.float64(row['Evap Coil Outlet Temp at TXV Bulb']))
                 T_cond.append(np.float64(row['Liquid Temp Enter TXV']))
                 T_amb.append(np.float64(row['Cond Air Inlet Temp']))
                 T_SST.append(np.float64(row['Saturated Suction']))
                 T_SCT.append(np.float64(row['Saturated Liquid']))
-
 
         T_food = np.asarray(T_food)
         T_air = np.asarray(T_air)
@@ -66,7 +65,6 @@ class CaseModel(EnergyPlusPlugin):
         T_amb = np.asarray(T_amb)
         T_SST = np.asarray(T_SST)
         T_SCT = np.asarray(T_SCT)
-
 
         t_train = np.arange(0, len(T_food) * 60, 60)
         t_finer = np.arange(0, len(T_food) * 60, 1)
@@ -79,7 +77,6 @@ class CaseModel(EnergyPlusPlugin):
         T_SST = interpolate(t_train, T_SST, t_finer)
         T_SCT = interpolate(t_train, T_SCT, t_finer)
 
-
         return (T_food, T_air, T_sa, T_evap, T_cond, T_amb, T_SST, T_SCT)
 
     def polyfit_SAT_SSTSCT(self, coeff, sat):
@@ -87,7 +84,7 @@ class CaseModel(EnergyPlusPlugin):
         (1)get the SST or SCT from given SAT;
         (2)polynomial is 4th order
         """
-        temp = coeff[0] * sat**4 + coeff[1] * sat**3 +coeff[2] * sat**2 +coeff[3] * sat**1 + coeff[4]
+        temp = coeff[0] * sat**4 + coeff[1] * sat**3 + coeff[2] * sat**2 + coeff[3] * sat**1 + coeff[4]
         return np.asarray(temp)
 
     def model_supply_air(self, compressor_on, compressorON_time):
@@ -103,10 +100,10 @@ class CaseModel(EnergyPlusPlugin):
         coeff_compressorON_Time_square = 0.0002817
         intercept = 38.67
         sat = coeff_compressorON * compressor_on + coeff_compressorON_Time * compressorON_time + \
-              coeff_compressorON_Time_square * compressorON_time**2 + intercept
+            coeff_compressorON_Time_square * compressorON_time**2 + intercept
         if sat > 80:
             sat = 75
-        #print(f'sat={sat}')
+        # print(f'sat={sat}')
 
         return np.array(sat)
 
@@ -137,11 +134,11 @@ class CaseModel(EnergyPlusPlugin):
         dt = time_step
 
         # step-3: control variables to be used
-        control_vars = np.concatenate( ( T_amb.reshape(-1, 1), T_sa.reshape(-1, 1), T_SST.reshape(-1,1), T_SCT.reshape(-1,1) ), axis=1)
+        control_vars = np.concatenate((T_amb.reshape(-1, 1), T_sa.reshape(-1, 1), T_SST.reshape(-1, 1), T_SCT.reshape(-1, 1)), axis=1)
         #print( "learning: control-vars shape: ", control_vars.shape)
         # step-4: do system identification to get coefficients of the ODEmodel
         threshold = 0.00000000000001
-        poly_order = 1 # the order =1 is predetermined
+        poly_order = 1  # the order =1 is predetermined
         model = ps.SINDy(
             optimizer=ps.STLSQ(threshold=threshold),
             feature_library=ps.PolynomialLibrary(degree=poly_order),
@@ -155,11 +152,10 @@ class CaseModel(EnergyPlusPlugin):
         # step-5: write to csv file
         with open('coeff_case3_final_001.csv', 'w') as fh:
             writer = csv.writer(fh, delimiter=',')
-            writer.writerow(['b', 'x0','x1','u0','u1','u2','u3'])
+            writer.writerow(['b', 'x0', 'x1', 'u0', 'u1', 'u2', 'u3'])
             writer.writerows(coeff)
 
         return coeff
-
 
     def read_coeff_coolingcase(self, csv_filename):
         """read csv file for coefficients
@@ -170,14 +166,14 @@ class CaseModel(EnergyPlusPlugin):
            k0, w0, w1, h0, h1, h2, h3 are the coefficients for x1
            u0, u1, u2, u3 are the control inputs.
         """
-        with open(csv_filename,'r') as f:
+        with open(csv_filename, 'r') as f:
             x = f.readlines()
-            coeff= np.zeros( (2, len(x[2].split(',')) ))
+            coeff = np.zeros((2, len(x[2].split(','))))
 
             for i, z in enumerate(x[2].split(',')):
-                coeff[0,i] = float(z)
+                coeff[0, i] = float(z)
             for j, v in enumerate(x[4].split(',')):
-                coeff[1,j] = float(v)
+                coeff[1, j] = float(v)
 
             return coeff
 
@@ -187,13 +183,13 @@ class CaseModel(EnergyPlusPlugin):
            where x0, x1 are the variables to be solved. x0 == Tfood, x1 ==Tair
            p4, p3, p2, p1, p0 are the coefficients of polynomial curve fitting
         """
-        with open(csv_filename,'r') as f:
+        with open(csv_filename, 'r') as f:
             x = f.readlines()
-            #print(x)
-            coeff= np.zeros( (1, len(x[0].split(',')) ))
+            # print(x)
+            coeff = np.zeros((1, len(x[0].split(','))))
 
             for i, z in enumerate(x[2].split(',')):
-                coeff[0,i] = float(z)
+                coeff[0, i] = float(z)
             #print('Yanfei: coeff check: ', coeff)
             return coeff.flatten()
 
@@ -203,16 +199,15 @@ class CaseModel(EnergyPlusPlugin):
            where x0, x1 are the variables to be solved. x0 == Tfood, x1 ==Tair
            p4, p3, p2, p1, p0 are the coefficients of polynomial curve fitting
         """
-        with open(csv_filename,'r') as f:
+        with open(csv_filename, 'r') as f:
             x = f.readlines()
-            #print(x)
-            coeff= np.zeros( (1, len(x[0].split(',')) ))
+            # print(x)
+            coeff = np.zeros((1, len(x[0].split(','))))
 
             for i, z in enumerate(x[2].split(',')):
-                coeff[0,i] = float(z)
+                coeff[0, i] = float(z)
             #print('Yanfei: coeff check: ', coeff)
             return coeff.flatten()
-
 
     def interpolate(t, x, t_new):
         # interpolate data
@@ -225,7 +220,6 @@ class CaseModel(EnergyPlusPlugin):
 
         return new_x
 
-
     def food_modeling_validate():
         # step-1: collect all essential data
         file_base = "C:/Users/YLI3/Yanfei_Projects/Emerson/EmersonData/"
@@ -236,10 +230,10 @@ class CaseModel(EnergyPlusPlugin):
         coeff = read_coeff_coolingcase(csv_file_coeff)
 
         # step-2: initial condition, T_air and T_food
-        x0_init= [T_food[0], T_air[0]]
+        x0_init = [T_food[0], T_air[0]]
 
         # step-3: time step and range
-        dt = 1 # seconds
+        dt = 1  # seconds
 
         f_sat_sst = fit_sat_sst(T_sa, T_SST)
         f_sat_sct = fit_sat_sct(T_sa, T_SCT)
@@ -258,42 +252,42 @@ class CaseModel(EnergyPlusPlugin):
         read_coeff_SAT_SST("coeff_SAT_SCT_emerson_001.csv")
 
         # step-4: control variables to be used
-        control_inputs = np.concatenate( ( T_zone.reshape(-1, 1), T_sa.reshape(-1, 1), SST_repr.reshape(-1,1), SCT_repr.reshape(-1,1) ), axis=1)
+        control_inputs = np.concatenate((T_zone.reshape(-1, 1), T_sa.reshape(-1, 1), SST_repr.reshape(-1, 1), SCT_repr.reshape(-1, 1)), axis=1)
         #control_inputs = np.concatenate( (T_zone.reshape(-1,1), T_sa.reshape(-1,1)), axis=1)
         #print("validate control inputs: ", control_inputs.shape)
         ###########################################################################################
         # step-6: set up ODE
         ###########################################################################################
+
         def diff_fun(x, t, coeff, control_inputs):
             # construct the ODE equations.
-            dt = 1 # attention: dt=1 after interpolation
-            i = int(t/dt)
-            if i>=len(control_inputs[:,0]):
-                i=len(control_inputs[:,0])-1
-            u0 = control_inputs[i,0]
-            u1 = control_inputs[i,1]
-            u2 = control_inputs[i,2]
-            u3 = control_inputs[i,3]
+            dt = 1  # attention: dt=1 after interpolation
+            i = int(t / dt)
+            if i >= len(control_inputs[:, 0]):
+                i = len(control_inputs[:, 0]) - 1
+            u0 = control_inputs[i, 0]
+            u1 = control_inputs[i, 1]
+            u2 = control_inputs[i, 2]
+            u3 = control_inputs[i, 3]
             # variables to solve
-            x0 = x[0] # Tfood
-            x1 = x[1] # Tair
+            x0 = x[0]  # Tfood
+            x1 = x[1]  # Tair
             dxdt = [
                 coeff[0, 0] + coeff[0, 1] * x0 + coeff[0, 2] * x1 + coeff[0, 3] * u0 + coeff[0, 4] * u1 + coeff[0, 5] * u2 + coeff[0, 6] * u3,
                 coeff[1, 0] + coeff[1, 1] * x0 + coeff[1, 2] * x1 + coeff[1, 3] * u0 + coeff[1, 4] * u1 + coeff[1, 5] * u2 + coeff[1, 6] * u3,
-                ]
+            ]
             return dxdt
 
         ###########################################################################################
         # step-7: solve ODE equations with learnt coefficients
         ###########################################################################################
         # x_test is a 2D array, with predicted results: T_air, T_food
-        t_valid = np.linspace(0, len(T_food)*dt, len(T_food))
+        t_valid = np.linspace(0, len(T_food) * dt, len(T_food))
         # print("t_valid: ", t_valid)
 
-        x_validate = odeint(diff_fun, x0_init, t_valid, args=(coeff, control_inputs) )
+        x_validate = odeint(diff_fun, x0_init, t_valid, args=(coeff, control_inputs))
 
         return x_validate
-
 
     def food_modeling_solve(self, state, T_food_init: float, T_air_init: float, T_zone_cur: float, compressor_on: bool, compressorON_time: int, steps_cur: int) -> tuple:
         """
@@ -326,36 +320,37 @@ class CaseModel(EnergyPlusPlugin):
         x0_train = [T_food_init, T_air_init]
 
         # step-3: time step and range
-        dt = 60 # seconds, because timestep from EnergyPlus is 1 minute.
+        dt = 60  # seconds, because timestep from EnergyPlus is 1 minute.
         t_cur = steps_cur * dt
         T_zone_cur = np.asarray(T_zone_cur)
         # step-4: control variables to be used
-        control_inputs = np.concatenate( (T_zone_cur.reshape(-1,1), T_sa_cur.reshape(-1,1), \
-                                          SST_cur.reshape(-1,1), SCT_cur.reshape(-1,1)), axis=1)
+        control_inputs = np.concatenate((T_zone_cur.reshape(-1, 1), T_sa_cur.reshape(-1, 1),
+                                         SST_cur.reshape(-1, 1), SCT_cur.reshape(-1, 1)), axis=1)
         # print("Yanfei control inputs: ", control_inputs.shape)
         ###########################################################################################
         # step-6: set up ODE
         ###########################################################################################
+
         def diff_fun(x, t, coeff, control_inputs):
             # construct the ODE equations.
-            dt = 1 # attention: dt=1 after interpolation
-            i = int(t/dt)
-            if i>=len(control_inputs[:,0]):
-                i=len(control_inputs[:,0])-1
-            u0 = control_inputs[i,0]
-            u1 = control_inputs[i,1]
-            u2 = control_inputs[i,2]
-            u3 = control_inputs[i,3]
+            dt = 1  # attention: dt=1 after interpolation
+            i = int(t / dt)
+            if i >= len(control_inputs[:, 0]):
+                i = len(control_inputs[:, 0]) - 1
+            u0 = control_inputs[i, 0]
+            u1 = control_inputs[i, 1]
+            u2 = control_inputs[i, 2]
+            u3 = control_inputs[i, 3]
 
             # variables to solve
-            x0 = x[0] # Tfood
-            x1 = x[1] # Tair
+            x0 = x[0]  # Tfood
+            x1 = x[1]  # Tair
             dxdt = [
-                coeff[0, 0] + coeff[0, 1] * x0 + coeff[0, 2] * x1 + coeff[0, 3] * u0 + coeff[0, 4] * u1 +\
+                coeff[0, 0] + coeff[0, 1] * x0 + coeff[0, 2] * x1 + coeff[0, 3] * u0 + coeff[0, 4] * u1 +
                 coeff[0, 5] * u2 + coeff[0, 6] * u3,
-                coeff[1, 0] + coeff[1, 1] * x0 + coeff[1, 2] * x1 + coeff[1, 3] * u0 + coeff[1, 4] * u1 + \
+                coeff[1, 0] + coeff[1, 1] * x0 + coeff[1, 2] * x1 + coeff[1, 3] * u0 + coeff[1, 4] * u1 +
                 coeff[1, 5] * u2 + coeff[1, 6] * u3,
-                ]
+            ]
             return dxdt
 
         ###########################################################################################
@@ -365,10 +360,9 @@ class CaseModel(EnergyPlusPlugin):
         t_solve = np.linspace(0, t_cur, num=60)
         #print ("t_solve shape: ", t_solve.shape )
         #print("t-solve: ", t_solve)
-        x_solve = odeint(diff_fun, x0_train, t_solve, args=(coeff_case, control_inputs) )
+        x_solve = odeint(diff_fun, x0_train, t_solve, args=(coeff_case, control_inputs))
 
-
-        return (x_solve[-1,0], x_solve[-1,1])
+        return (x_solve[-1, 0], x_solve[-1, 1])
 
     def rtu_cyc(self, state) -> int:
 
@@ -405,7 +399,7 @@ class CaseModel(EnergyPlusPlugin):
             self.api.exchange.set_actuator_value(state, self.clg_setpt_hndl, 50)
 
         self.t_zone = self.api.exchange.get_variable_value(state, self.zone_mean_air_temp_hndl)
-        self.t_zone = (self.t_zone * (9/5)) + 32
+        self.t_zone = (self.t_zone * (9 / 5)) + 32
         self.comp_on = self.api.exchange.get_variable_value(state, self.case_avail_sch_hndl)
 
         if self.comp_on == 0:

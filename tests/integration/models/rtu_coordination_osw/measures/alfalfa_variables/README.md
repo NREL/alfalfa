@@ -22,5 +22,3 @@ ModelMeasure
 
 
 This measure does not have any user arguments
-
-
