@@ -26,7 +26,6 @@
 import json
 import os
 import shutil
-import sys
 import tarfile
 import time
 import uuid
@@ -39,9 +38,11 @@ import lib.testcase
 import pytz
 import redis
 from pymongo import MongoClient
+from step_sim_utils import step_sim_arg_parser
 
 
 class RunFMUSite:
+
     def __init__(self, **kwargs):
         self.s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
         self.redis = redis.Redis(host=os.environ['REDIS_HOST'])
@@ -248,43 +249,22 @@ class RunFMUSite:
                 value_y = y_output[key]
                 self.mongo_db_recs.update_one({"_id": output_id}, {"$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
 
+
 # Main Program Entry
 
-# get arguments from calling program
-# which is the processMessage program
-
-
-# NL - update the argument order to match Alalfa's order with OpenStudio
-# NL - TODO: Revert this back to the previous setup and write a wrapper to use option parser.
-site_ref = sys.argv[1]
-externalClock = (sys.argv[2] == 'external_clock')
-startTime = sys.argv[3]
-if startTime == 'undefined':
-    startTime = 0
-else:
-    startTime = int(sys.argv[3])
-endTime = sys.argv[4]
-if endTime == 'undefined':
-    endTime = 86400  # seconds
-else:
-    endTime = int(sys.argv[4])
-
-# arg 5 and 6 are optional
-try:
-    time_scale = sys.argv[5]
-except IndexError:
-    time_scale = 'undefined'
-
-time_scale = 5 if time_scale == 'undefined' else int(time_scale)  # minutes
-
-try:
-    real_time_flag = sys.argv[6]
-except IndexError:
-    real_time_flag = 'undefined'
-
-real_time_flag = True if real_time_flag == 'true' else 'false'
-if real_time_flag:
+args = step_sim_arg_parser()
+site_ref = args.site_id
+externalClock = (args.step_sim_type == 'external_clock')
+real_time_flag = False
+if args.step_sim_type == 'timescale':
+    time_scale = args.step_sim_value
+elif args.step_sim_type == 'realtime':
+    real_time_flag = True
     time_scale = 1
+else:
+    time_scale = 5
+startTime = float(args.start_datetime)
+endTime = float(args.end_datetime)
 
 runFMUSite = RunFMUSite(site_ref=site_ref, real_time_flag=real_time_flag, time_scale=time_scale, startTime=startTime, endTime=endTime, externalClock=externalClock)
 runFMUSite.run()

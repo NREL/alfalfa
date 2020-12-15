@@ -3,7 +3,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-import json
 import os
 import tarfile
 
@@ -48,16 +47,13 @@ class AlfalfaConnections:
                 ...other Haystack tags for rec
             }
         }
-        :param haystack_json: json serialized Haystack document
+        :param haystack_json: json Haystack document
         :param site_ref: id of site
         :return: pymongo.results.InsertManyResult
         """
-        with open(haystack_json) as json_file:
-            data = json.load(json_file)
-
         if site_ref:
             array_to_insert = []
-            for entity in data:
+            for entity in haystack_json:
                 array_to_insert.append({
                     '_id': entity['id'].replace('r:', ''),
                     'site_ref': site_ref,

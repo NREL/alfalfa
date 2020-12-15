@@ -104,10 +104,7 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml
       #print outvar
       target.write(outvar)
-      if (outvar.keyValue.to_s =="*")
-        print " \n ****** You are good here ******"
-      end
-      if (outvar.exportToBCVTB && (outvar.keyValue != "*"))
+      if (outvar.exportToBCVTB)
       #if (outvar.exportToBCVTB )
         bcvtb.add_element add_xml_output(outvar.variableName, outvar.keyValue)
         runner.registerInfo("Added #{outvar.variableName.to_s} #{outvar.keyValue.to_s} to BCVTB XML file.")
@@ -116,14 +113,12 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     end  #end outputVariables
     target.close
 
-    #loop through EMSoutputVariables
+    #loop through EMSOutputVariables
     #my time variables will be written to cfg file here
-    outputVariables = model.getEnergyManagementSystemOutputVariables
+    emsOutputVariables = model.getEnergyManagementSystemOutputVariables
     #alphabetize
-    outputVariables = outputVariables.sort_by{ |m| m.name.to_s.downcase }
-    outputVariables.each do |outvar|
-      #print "\n Watchout Here!!!"
-      #print outvar.emsVariableName.to_s
+    emsOutputVariables = emsOutputVariables.sort_by{ |m| m.name.to_s.downcase }
+    emsOutputVariables.each do |outvar|
       #If flag set to true and keyValue is not * then add output variable to BCVTB xml
       if (outvar.exportToBCVTB)
 #         print "\n Watchout Here!!!  "
@@ -133,7 +128,7 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
         runner.registerInfo("Added #{outvar.nameString} to BCVTB XML file.")
         counter += 1
       end
-    end  #end EMSoutputVariables
+    end  #end EMSOutputVariables
 
     # find all EnergyManagementSystemGlobalVariable objects and
     # replace those that have exportToBCVTB set to true
@@ -162,6 +157,13 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
           body = prog.body
           body.gsub!(emsGlobalHandle, eevarHandle)
           prog.setBody(body)
+        end
+
+        emsOutputVariables.each do |outvar|
+          this_ems_var_name = outvar.emsVariableName
+          if this_ems_var_name == emsGlobalHandle
+            outvar.setEMSVariableName(eevarHandle)
+          end
         end
       end
     end

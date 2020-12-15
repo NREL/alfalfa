@@ -65,17 +65,17 @@ class App extends React.Component {
             <AppBar position="static">
               <Toolbar>
                 <Link to={'/'} className={this.props.classes.title} style={{ textDecoration: 'none', color: 'unset' }}>
-                  <Typography variant="h5" color="inherit">BOPTEST</Typography>
+                  <Typography variant="h5" color="inherit">Alfalfa</Typography>
                 </Link>
                 <Grid container justify='flex-end'>
                   <Grid item>
                     <Link to={'/sites'} style={{ textDecoration: 'none', color: 'unset' }}>
-                      <Typography className={classes.button} variant="button" color="inherit">Test-Cases</Typography>
+                      <Typography className={classes.button} variant="button" color="inherit">Models</Typography>
                     </Link>
                   </Grid>
                   <Grid item>
                     <Link to={'/sims'} style={{ textDecoration: 'none', color: 'unset' }}>
-                      <Typography className={classes.button} variant="button" color="inherit">Completed-Tests</Typography>
+                      <Typography className={classes.button} variant="button" color="inherit">Completed-Simulations</Typography>
                     </Link>
                   </Grid>
                 </Grid>
@@ -97,4 +97,3 @@ App.propTypes = {
 };
 
 export default withStyles(styles)(App);
-

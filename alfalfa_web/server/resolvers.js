@@ -35,9 +35,9 @@ var s3client = new AWS.S3({endpoint: process.env.S3_URL});
 
 function addSiteResolver(osmName, uploadID) {
   var params = {
-   MessageBody: `{"op": "InvokeAction", 
-      "action": "addSite", 
-      "osm_name": "${osmName}", 
+   MessageBody: `{"op": "InvokeAction",
+      "action": "addSite",
+      "osm_name": "${osmName}",
       "upload_id": "${uploadID}"
     }`,
    QueueUrl: process.env.JOB_QUEUE_URL,
@@ -54,9 +54,9 @@ function addSiteResolver(osmName, uploadID) {
 
 function runSimResolver(uploadFilename, uploadID, context) {
   var params = {
-   MessageBody: `{"op": "InvokeAction", 
-    "action": "runSim", 
-    "upload_filename": "${uploadFilename}", 
+   MessageBody: `{"op": "InvokeAction",
+    "action": "runSim",
+    "upload_filename": "${uploadFilename}",
     "upload_id": "${uploadID}"
    }`,
    QueueUrl: process.env.JOB_QUEUE_URL,
@@ -313,7 +313,7 @@ function writePointResolver(context,siteRef, pointName, value, level) {
   return dbops.getPoint(siteRef, pointName, context.db).then( point => {
     return dbops.writePoint(point._id, siteRef, level, value, null, null, context.db);
   }).then( array => {
-    return array;
+    return JSON.stringify(array);
   });
 }
 
@@ -329,4 +329,3 @@ module.exports = {
   advanceResolver,
   writePointResolver
 };
-

@@ -80,7 +80,7 @@ class FileInput extends React.Component {
     return (
       <div>
         <input className={styles.hidden} type="file" ref={this.fileInputRef} onInput={this.handleFileChange} />
-        <TextField fullWidth={true} label='Select Test Case' onClick={this.handleTextInputClick} value={this.state.filename}
+        <TextField fullWidth={true} label='Select Model' onClick={this.handleTextInputClick} value={this.state.filename}
           InputLabelProps={{
             shrink: this.state.filename != ""
           }}
@@ -223,7 +223,7 @@ class Upload extends React.Component {
               <FileInput hint={this.modelFileHint()} onFileChange={this.onModelFileChange}/>
             </Grid>
             <Grid item xs>
-              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.addJobProp)} }>Upload Test Case</Button>
+              <Button fullWidth={true} variant="contained" color="primary" onClick={() => {this.onClick(this.props.addJobProp)} }>Upload Model</Button>
             </Grid>
           </Grid>
         </div>
@@ -263,4 +263,3 @@ export default graphql(addJobQL, {
     addJobProp: (osmName, uploadID) => mutate({ variables: { osmName, uploadID } }),
   }),
 })(withRunSim);
-

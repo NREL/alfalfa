@@ -8585,4 +8585,3 @@ OS:Output:Variable,
   timestep,                               !- Reporting Frequency
   ,                                       !- Schedule Name
   True;                                   !- Export To BCVTB
-

@@ -1,6 +1,14 @@
 # Tests
 For defining tests to be written and tracking progress
 
+# Running tests locally
+1. Install dependencies:  `pip install -r requirements.txt`
+2. Run unit tests: `pytest`
+3. Run stack locally in detached mode: `docker-compose up -d`
+4. Run integration tests: `pytest -m "integration"`
+5. Clean up: `docker-compose down`
+
+
 # Worker
 ## AlfalfaConnections
 1. What happens if init fails? i.e. environment variables not available?

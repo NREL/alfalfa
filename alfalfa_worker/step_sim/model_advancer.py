@@ -1,5 +1,6 @@
 # Standard library imports
 import os
+import datetime
 
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
@@ -23,8 +24,12 @@ class ModelAdvancer(object):
             self.step_sim_value = 1
         else:
             self.step_sim_value = None
-        self.start_datetime = self.args.start_datetime  # datetime object
-        self.end_datetime = self.args.end_datetime  # datetime object
+
+        # parser.add_argument('start_datetime', type=valid_date, help="Valid datetime, formatted: %Y-%m-%d %H:%M:%S")
+        self.start_datetime = datetime.datetime.strptime(self.args.start_datetime, '%Y-%m-%d %H:%M:%S')
+        # self.start_datetime = self.args.start_datetime  # datetime object
+        # self.end_datetime = self.args.end_datetime  # datetime object
+        self.end_datetime = datetime.datetime.strptime(self.args.end_datetime, '%Y-%m-%d %H:%M:%S')
 
         # Setup logging
         self.model_logger = ModelLogger()

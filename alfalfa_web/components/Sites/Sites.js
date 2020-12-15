@@ -265,7 +265,7 @@ class Sites extends React.Component {
   handleRequestClosePoints = () => {
     this.setState({ showSite: null });
   }
-  
+
   showSiteRef = () => {
     if( this.state.showSite ) {
       return this.state.showSite.siteRef;
@@ -293,7 +293,7 @@ class Sites extends React.Component {
                 <TableRow>
                   <TableCell padding="checkbox"></TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Site Reference</TableCell>
+                  <TableCell>ID</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Time</TableCell>
                   <TableCell></TableCell>
@@ -413,4 +413,3 @@ const withSites = graphql(sitesQL, {
 })(withRemove)
 
 export default withSites;
-

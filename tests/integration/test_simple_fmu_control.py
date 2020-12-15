@@ -15,7 +15,6 @@ from alfalfa_worker.lib.unit_conversions import deg_k_to_c
 
 # This test case is a single zone VAV with basic control. The file comes from the
 # RL project repo here: https://github.com/nllong/alfalfa-rl-project/
-
 def compute_control(y, reward, time, heating_setpoint, cooling_setpoint):
     """
     y has any of the accessible model outputs such as the cooling power etc.
@@ -109,8 +108,10 @@ def initialize_control(heating_setpoint, cooling_setpoint):
 
 
 @pytest.mark.integration
-class TestVavTestCase(TestCase):
-    def test_run_vav_test_case(self):
+class TestSimpleFMUControl(TestCase):
+
+    @pytest.mark.skip
+    def test_control(self):
         alfalfa = AlfalfaClient(url='http://localhost')
 
         # Denver weather
