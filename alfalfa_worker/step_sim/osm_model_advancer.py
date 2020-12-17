@@ -29,8 +29,17 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ac.redis_pubsub.subscribe(self.site_id)
 
         self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
-        self.idf_file = os.path.join(self.sim_path_site, 'simulation/sim.idf')
-        self.weather_file = os.path.join(self.sim_path_site, 'simulation/sim.epw')
+
+        # If idf_file is named "in.idf" we need to change the name because in.idf is not accepted by mlep
+        # (likely mlep is using that name internally)
+        # simulation/sim.idf is the assumed convention, but sim.idf may be a symlink
+        original_idf_file = os.path.join(self.sim_path_site, 'simulation/sim.idf')
+        # Follow any symlink
+        dst_idf_file = os.path.realpath(original_idf_file)
+        self.idf_file = os.path.join(os.path.dirname(dst_idf_file), 'sim.idf')
+        os.rename(dst_idf_file, self.idf_file)
+
+        self.weather_file = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/sim.epw'))
         self.str_format = "%Y-%m-%d %H:%M:%S"
 
         # EnergyPlus MLEP initializations
@@ -38,14 +47,14 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep.bcvtbDir = '/alfalfa/bcvtb/'
         self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
         self.ep.accept_timeout = 30000
-        self.ep.mapping = os.path.join(self.sim_path_site, 'simulation/haystack_report_mapping.json')
+        self.ep.mapping = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/haystack_report_mapping.json'))
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
         self.ep.kStep = 1  # simulation step indexed at 1
         self.ep.deltaT = 60  # the simulation step size represented in seconds - on 'step', the model will advance 1min
 
         # Parse variables after Haystack measure
-        self.variables_file = os.path.join(self.sim_path_site, 'simulation/variables.cfg')
+        self.variables_file = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/variables.cfg'))
         self.variables = ParseVariables(self.variables_file, self.ep.mapping)
 
         # Define MLEP inputs

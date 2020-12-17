@@ -15,6 +15,16 @@ from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_site_id
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 
 
+def rel_symlink(src, dst):
+    """
+    Create a symlink to a file (src),
+    where the link (dst) is a relative path,
+    relative to the given src
+    """
+    src = os.path.relpath(src, os.path.dirname(dst))
+    os.symlink(src, dst)
+
+
 class AddSite:
     """A wrapper class around adding sites"""
 
@@ -197,19 +207,37 @@ class AddSite:
         # run workflow
         call(['openstudio', 'run', '-m', '-w', submitted_osw_path])
 
-        points_json_path = submitted_workflow_path + '/reports/haystack_report_haystack.json'
-        mapping_json_path = submitted_workflow_path + '/reports/haystack_report_mapping.json'
+        points_json_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_haystack.json')
+        mapping_json_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_mapping.json')
         self.insert_os_tags(points_json_path, mapping_json_path)
 
         # create a "simulation" directory that has everything required for simulation
         simulation_dir = os.path.join(self.bucket_parsed_site_id_dir, 'simulation/')
         os.mkdir(simulation_dir)
-        shutil.copy(submitted_workflow_path + '/run/in.idf', simulation_dir + '/sim.idf')
-        shutil.copy(submitted_workflow_path + '/reports/haystack_report_mapping.json', simulation_dir)
-        shutil.copy(submitted_workflow_path + '/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
+
+        idf_src_path = os.path.join(submitted_workflow_path, 'run/in.idf')
+        idf_dest_path = os.path.join(simulation_dir, 'sim.idf')
+        rel_symlink(idf_src_path, idf_dest_path)
+
+        haystack_src_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_mapping.json')
+        haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_mapping.json')
+        rel_symlink(haystack_src_path, haystack_dest_path)
+
+        variables_src_path = os.path.join(submitted_workflow_path, 'reports/export_bcvtb_report_variables.cfg')
+        variables_dest_path = os.path.join(simulation_dir, 'variables.cfg')
+        rel_symlink(variables_src_path, variables_dest_path)
+
+        # variables.cfg also needs to be located next to the idf to satisfy EnergyPlus conventions
+        idf_src_dir = os.path.dirname(idf_src_path)
+        variables_ep_path = os.path.join(idf_src_dir, 'variables.cfg')
+        rel_symlink(variables_src_path, variables_ep_path)
+
         # hack. need to find a more general approach to preserve osw resources that might be needed at simulation time
         for file in glob.glob(submitted_workflow_path + '/python/*'):
-            shutil.copy(file, simulation_dir)
+            idfdir = os.path.dirname(idf_src_path)
+            filename = os.path.basename(file)
+            dst = os.path.join(idfdir, filename)
+            rel_symlink(file, dst)
 
         # find weather file (if) defined by osw and copy into simulation directory
         with open(submitted_osw_path, 'r') as osw:
@@ -218,8 +246,9 @@ class AddSite:
 
         epw_name = submitted_osw['weather_file']
         if epw_name:
-            epw_file_path = self.find_file(epw_name, submitted_workflow_path)
-            shutil.copyfile(epw_file_path, simulation_dir + '/sim.epw')
+            epw_src_path = self.find_file(epw_name, submitted_workflow_path)
+            epw_dst_path = os.path.join(simulation_dir, 'sim.epw')
+            rel_symlink(epw_src_path, epw_dst_path)
 
         # push entire directory to file storage
         filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
