@@ -85,5 +85,3 @@ jobs:
       - name: Run tests with pytest
         run: |
           pytest -m "integration"
-
-
