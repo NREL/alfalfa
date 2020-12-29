@@ -49,7 +49,7 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
 COPY alfalfa_worker/requirements/production.txt /alfalfa/
-RUN  python3 -m pip install --ignore-installed -r /alfalfa/production.txt
+# RUN  python3 -m pip install --ignore-installed -r /alfalfa/production.txt
 RUN  python -m pip install --ignore-installed -r /alfalfa/production.txt
 
 COPY . /alfalfa

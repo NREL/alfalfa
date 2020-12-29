@@ -251,12 +251,13 @@ class Worker:
 
         if os.path.isfile(p):
             call = [
-                python, p, site_id, step_sim_type, arg_start_datetime, arg_end_datetime
+                python, p, site_id, step_sim_type, f"{arg_start_datetime}", f"{arg_end_datetime}"
             ]
             if arg_step_sim_value:
                 call.append('--step_sim_value={}'.format(step_sim_value))
 
-            self.worker_logger.logger.info("Calling step_sim_type subprocess: {}".format(call))
+            self.worker_logger.logger.info("Calling step_sim_type subprocess")
+            self.worker_logger.logger.info(call)
             return_code = subprocess.call(call)
 
             self.check_subprocess_call(return_code, site_id, 'step_sim')
