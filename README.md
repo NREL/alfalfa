@@ -12,37 +12,12 @@ This is a Haystack implementation backed by a virtual building. Virtual building
 This is a local implementation of Amazon S3 for bulk file storage during development.
 1. Use ```Ctrl-C``` to stop the services.
 
-## Running Worker Integration Tests
-
-1. Run ```docker-compose up worker-test```
-1. Test output should be located in worker/test/output.
-1. See worker/test/test.py for an example.
-
-## Running Unit Tests
-
-1. Run ```pip install -r requirements.txt```
-1. Run `py.test`
-
-## Running Integration Tests
-
-1. To run integration tests, then you must first launch the docker compose in the root directory of this repository
-
-    ```bash
-    docker-compose up
-    ```
-
-1. After the service has launched (successfully?) then run
-
-    ```bash
-    py.test -m 'integration'
-    ```
-
-These tests have been added to the tox running framework and run on travis as needed. You can also test locally by
-simply calling:
-
-    ```bash
-    tox -e integration
-    ```
+# Running tests locally
+1. Install dependencies:  `pip install -r requirements.txt`
+1. Run unit tests: `pytest`
+1. Run stack locally in detached mode: `docker-compose up --build -d`
+1. Run integration tests: `pytest -m "integration"`
+1. Clean up: `docker-compose down`
 
 ## Making changes
 
