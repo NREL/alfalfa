@@ -20,6 +20,14 @@ jobs:
           DEFAULT_BRANCH: develop
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  pre-commit:
+    name: pre-commit checks
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - uses: pre-commit/action@v2.0.0
+      with:
+        extra_args: --all-files
+
   unit-tests:
     name: Run unit tests
     runs-on: ubuntu-latest
