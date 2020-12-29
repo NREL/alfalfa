@@ -4,7 +4,7 @@ import pytest
 import tempfile
 import zipfile
 from unittest import TestCase
-from alfalfa_client import AlfalfaClient
+from alfalfa_client.alfalfa_client import AlfalfaClient
 
 
 # Consider factoring this out of the test file
