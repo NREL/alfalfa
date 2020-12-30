@@ -67,6 +67,13 @@ jobs:
         run: |
           docker-compose up --build -d
 
+      - name: Dump docker logs before tests
+        uses: jwalton/gh-docker-logs@v1
+
       - name: Run tests with pytest
         run: |
           pytest -m "integration"
+
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v1
