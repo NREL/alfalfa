@@ -206,7 +206,7 @@ def getInputs(bypass_flag):
         write_arrays = mongodb.writearrays
         for array in write_arrays.find({"siteRef": sp.site_ref}):
             for val in array.get('val'):
-                if val:
+                if val is not None:
                     index = sp.variables.inputIndex(array.get('_id'))
                     if index == -1:
                         logger.error('bad input index for: %s' % array.get('_id'))
