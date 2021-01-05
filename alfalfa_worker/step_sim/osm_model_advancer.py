@@ -382,7 +382,7 @@ class OSMModelAdvancer(ModelAdvancer):
             self.ep.inputs[master_index] = 1
             for array in self.ac.mongo_db_write_arrays.find({"siteRef": self.site_id}):
                 for val in array.get('val'):
-                    if val:
+                    if val is not None:
                         index = self.variables.get_input_index(array.get('_id'))
                         if index == -1:
                             self.model_logger.logger.error('bad input index for: %s' % array.get('_id'))
