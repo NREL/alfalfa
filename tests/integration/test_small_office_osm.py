@@ -2,7 +2,7 @@ import os
 import datetime
 import pytest
 from unittest import TestCase
-from alfalfa_client import AlfalfaClient
+from alfalfa_client.alfalfa_client import AlfalfaClient
 
 
 @pytest.mark.integration

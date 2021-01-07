@@ -8,7 +8,8 @@ import sys
 import time
 from unittest import TestCase
 
-from alfalfa_client import AlfalfaClient, Historian
+from alfalfa_client.alfalfa_client import AlfalfaClient
+from alfalfa_client.historian import Historian
 from alfalfa_worker.lib.thermal_comfort import ThermalComfort
 from alfalfa_worker.lib.unit_conversions import deg_k_to_c
 
