@@ -72,7 +72,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest -m "integration"
+          pytest --timeout=120 -m "integration"
 
       - name: Dump docker logs on failure
         if: failure()
