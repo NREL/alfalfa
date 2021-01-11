@@ -196,12 +196,25 @@ class MlepProcess:
 
     # Read
     # ==============================================================
-    def read(self):
+    def read(self, packet_size=4096):
+        """
+        Read data from the bcvtb server.  The bcvtb protocol is designed
+        to end a message with a newline (\n).
+        :param packet_size: [int]
+        :return: [bytes]
+        """
+        packet = []
         # Read Packet
-        if self.is_running:
-            packet = self.comm_socket.recv(50000)
+        if self.is_running and isinstance(self.comm_socket, socket.socket):
+            while True:
+                piece = self.comm_socket.recv(packet_size)
+                packet.append(piece)
+                decoded = piece.decode('utf-8')
+                if decoded.endswith('\n'):
+                    packet = b''.join(packet)
+                    break
         else:
-            packet = ''
+            packet = b''
             print('Co-simulation is not running.')
 
         # Return
