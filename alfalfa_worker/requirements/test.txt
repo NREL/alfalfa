@@ -1,4 +1,4 @@
--r production.txt
+-r py3-production.txt
 
 # For testing the API
 alfalfa-client==0.1.0.dev5
