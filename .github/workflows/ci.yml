@@ -75,6 +75,11 @@ jobs:
           timeout: 120000
           interval: 500
 
+      - name: Wait another 30s
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '30s'
+
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
 
