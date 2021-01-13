@@ -48,9 +48,10 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
-COPY alfalfa_worker/requirements/production.txt /alfalfa/
-RUN  python3 -m pip install --ignore-installed -r /alfalfa/production.txt
-RUN  python -m pip install --ignore-installed -r /alfalfa/production.txt
+COPY alfalfa_worker/requirements/py3-production.txt /alfalfa/
+COPY alfalfa_worker/requirements/py2-production.txt /alfalfa/
+RUN  python3 -m pip install --ignore-installed -r /alfalfa/py3-production.txt
+RUN  python -m pip install --ignore-installed -r /alfalfa/py2-production.txt
 
 COPY . /alfalfa
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
