@@ -67,12 +67,20 @@ jobs:
         run: |
           docker-compose up --build -d
 
+      - name: Wait for web server
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost/'
+          responseCode: 200
+          timeout: 120000
+          interval: 500
+
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
 
       - name: Run tests with pytest
         run: |
-          pytest -m "integration"
+          pytest --timeout=240 -m "integration"
 
       - name: Dump docker logs on failure
         if: failure()
