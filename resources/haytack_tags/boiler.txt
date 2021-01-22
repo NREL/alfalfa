@@ -1,7 +1,0 @@
-run cmd
-run sensor
-enable cmd
-circ pump cmd
-circ pump sensor
-condensate pump cmd
-condensate pump sensor

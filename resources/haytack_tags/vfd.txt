@@ -1,5 +1,0 @@
-run cmd
-run sensor
-enable cmd
-speed cmd
-freq cmd

@@ -1,0 +1,9 @@
+boto3==1.11.0
+importlib-metadata==1.4.0
+mlep==0.1.1.dev3
+pandas==0.24.2  # need older version until Python > 3.5
+pymongo==3.10.1
+redis==3.3.11
+requests==2.22.0
+setuptools==44.0.0  # this is required for symfit, else get https://stackoverflow.com/questions/7446187/no-module-named-pkg-resources
+symfit==0.5.3

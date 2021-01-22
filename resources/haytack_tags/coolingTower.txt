@@ -1,9 +1,0 @@
-condenser water leaving temp sensor
-condenser water leaving temp sp
-condenser water leaving flow sensor
-condenser water leaving pressure sensor
-condenser water entering temp sensor
-condenser water entering pressure sensor
-condenser water entering flow sensor
-fan cmd
-fan sensor

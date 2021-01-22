@@ -1,9 +1,0 @@
-power sensor
-energy sensor
-current sensor
-current phase sensor
-volt sensor
-volt phase sensor
-pf sensor
-pf phase sensor
-freq sensor

@@ -1,0 +1,38 @@
+{
+  "seed_file" : "empty.osm",
+  "weather_file": "USA_OH_Dayton-Wright.Patterson.AFB.745700_TMY3.epw",
+  "measure_paths": [
+    "./measures/"
+  ],
+  "file_paths": [
+    "./weather/",
+    "./python/"
+  ],
+  "run_directory": "./run/",
+  "steps" : [
+    {
+      "measure_dir_name" : "alfalfa_vars",
+      "name" : "AlfalfaVariables",
+      "description" : "Add custom variables for Alfalfa",
+      "modeler_description" : "Add EMS global variables required by Alfalfa"
+    },
+    {
+      "measure_dir_name" : "replace_idf",
+      "name" : "Replace IDF",
+      "description" : "Replace OpenStudio generated IDF file with user specified IDF file.",
+      "modeler_description" : "Additional EnergyPlus measures and reporting measures can be placed after this measure in the workflow. Weather file should be described in the seed OSM file or in the OSW file used to run the simulation.",
+      "arguments" : {
+        "idf_name" : "in.idf"
+      }
+    },
+    {
+      "measure_dir_name" : "prep_idf",
+      "name" : "Prepare IDF",
+      "description" : "Gather necessary companion files to run IDF",
+      "modeler_description" : "Gather necessary companion files to run IDF",
+      "arguments" : {
+        "py_name" : "case_models"
+      }
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+*.ddy text eol=crlf
+*.epw text eol=crlf
+*.stat text eol=crlf
