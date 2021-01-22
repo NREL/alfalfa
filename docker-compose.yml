@@ -9,7 +9,7 @@ services:
       context: .
       args:
         - NODE_ENV
-    image: cbilab.nrel.gov:5000/alfalfa-web:latest
+    image: ${WEB_REGISTRY_URI}:latest
     ports:
      - target: 80
        published: 80
