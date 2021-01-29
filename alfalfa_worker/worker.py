@@ -132,7 +132,10 @@ class Worker:
                 "At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
             sys.exit(1)
 
-        if realtime:
+        if external_clock:
+            step_sim_type = "external_clock"
+            step_sim_value = "true"
+        elif realtime:
             step_sim_type = "realtime"
             step_sim_value = 1
         elif timescale:
@@ -142,9 +145,6 @@ class Worker:
             else:
                 self.worker_logger.logger.info("timescale: {} must be an integer value".format(timescale))
                 sys.exit(1)
-        elif external_clock:
-            step_sim_type = "external_clock"
-            step_sim_value = "true"
 
         # Check datetime string formatting
         if sim_type == 'osm':
