@@ -48,14 +48,14 @@ class TestSimpleThermostat(TestCase):
         assert float(time) == pytest.approx(300.0)
 
         # Having not set any inputs the fmu will be at the initial state.
-        # The control signal output "rea" is at 1.0
+        # The control signal output "rea" is at 0.0
         outputs = self.alfalfa.outputs(self.model_id)
         rea = outputs.get("rea")
-        assert rea == pytest.approx(1.0)
+        assert rea == pytest.approx(0.0)
 
         # Attempt to override the measured temp (ie zone temperature),
         # and the setpoint, such that zone temperature is over setpoint.
-        self.alfalfa.setInputs(self.model_id, {"oveWriMeasuredTemp_u": 30.0, "TsetPoint_u": 21.0})
+        self.alfalfa.setInputs(self.model_id, {"oveWriMeasuredTemp_u": 303.15, "TsetPoint_u": 294.15})
 
         # Advance time, outputs will not be updated until advance happens.
         # Should this limitation be considered a bug?
@@ -65,22 +65,31 @@ class TestSimpleThermostat(TestCase):
         time = self.alfalfa.get_sim_time(self.model_id)
         assert float(time) == pytest.approx(600.0)
 
-        # The output rea is unchanged
+        # When temperature is over setpoint controller returns 0.0
         outputs = self.alfalfa.outputs(self.model_id)
         rea = outputs.get("rea")
-        assert rea == pytest.approx(1.0)
+        assert rea == pytest.approx(0.0)
 
         # Now override the measured (zone) temperature such that it is below setpoint
-        self.alfalfa.setInputs(self.model_id, {"oveWriMeasuredTemp_u": 10.0, "TsetPoint_u": 21.0})
+        self.alfalfa.setInputs(self.model_id, {"oveWriMeasuredTemp_u": 283.15, "TsetPoint_u": 294.15})
 
         self.alfalfa.advance([self.model_id])
         time = self.alfalfa.get_sim_time(self.model_id)
         assert float(time) == pytest.approx(900.0)
 
-        # The control signal output is still unchanged. ... why?
+        # When temperature is below setpoint controller returns 1.0
         outputs = self.alfalfa.outputs(self.model_id)
         rea = outputs.get("rea")
         assert rea == pytest.approx(1.0)
+
+        # Test the control signal override
+        self.alfalfa.setInputs(self.model_id, {"oveWriActuatorSignal_u": 0.0})
+        self.alfalfa.advance([self.model_id])
+        time = self.alfalfa.get_sim_time(self.model_id)
+        assert float(time) == pytest.approx(1200.0)
+        outputs = self.alfalfa.outputs(self.model_id)
+        rea = outputs.get("rea")
+        assert rea == pytest.approx(0.0)
 
     def tearDown(self):
         self.alfalfa.stop(self.model_id)
