@@ -82,6 +82,15 @@ class TestSimpleThermostat(TestCase):
         rea = outputs.get("rea")
         assert rea == pytest.approx(1.0)
 
+        # Test the control signal override
+        self.alfalfa.setInputs(self.model_id, {"oveWriActuatorSignal_u": 0.0})
+        self.alfalfa.advance([self.model_id])
+        time = self.alfalfa.get_sim_time(self.model_id)
+        assert float(time) == pytest.approx(1200.0)
+        outputs = self.alfalfa.outputs(self.model_id)
+        rea = outputs.get("rea")
+        assert rea == pytest.approx(0.0)
+
     def tearDown(self):
         self.alfalfa.stop(self.model_id)
         self.alfalfa.wait(self.model_id, "Stopped")
