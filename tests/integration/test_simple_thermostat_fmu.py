@@ -48,10 +48,10 @@ class TestSimpleThermostat(TestCase):
         assert float(time) == pytest.approx(300.0)
 
         # Having not set any inputs the fmu will be at the initial state.
-        # The control signal output "rea" is at 1.0
+        # The control signal output "rea" is at 0.0
         outputs = self.alfalfa.outputs(self.model_id)
         rea = outputs.get("rea")
-        assert rea == pytest.approx(1.0)
+        assert rea == pytest.approx(0.0)
 
         # Attempt to override the measured temp (ie zone temperature),
         # and the setpoint, such that zone temperature is over setpoint.
@@ -65,10 +65,10 @@ class TestSimpleThermostat(TestCase):
         time = self.alfalfa.get_sim_time(self.model_id)
         assert float(time) == pytest.approx(600.0)
 
-        # The output rea is unchanged
+        # When temperature is over setpoint controller returns 0.0
         outputs = self.alfalfa.outputs(self.model_id)
         rea = outputs.get("rea")
-        assert rea == pytest.approx(1.0)
+        assert rea == pytest.approx(0.0)
 
         # Now override the measured (zone) temperature such that it is below setpoint
         self.alfalfa.setInputs(self.model_id, {"oveWriMeasuredTemp_u": 283.15, "TsetPoint_u": 294.15})
@@ -77,7 +77,7 @@ class TestSimpleThermostat(TestCase):
         time = self.alfalfa.get_sim_time(self.model_id)
         assert float(time) == pytest.approx(900.0)
 
-        # The control signal output is still unchanged. ... why?
+        # When temperature is below setpoint controller returns 1.0
         outputs = self.alfalfa.outputs(self.model_id)
         rea = outputs.get("rea")
         assert rea == pytest.approx(1.0)
