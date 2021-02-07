@@ -1,5 +1,6 @@
 boto3==1.11.0
 importlib-metadata==1.4.0
+influxdb==5.3.0
 mlep==0.1.1.dev3
 pandas==0.24.2  # need older version until Python > 3.5
 pymongo==3.10.1
