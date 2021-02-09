@@ -190,7 +190,6 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def run_external_clock(self):
         self.advance_to_start_time()
-        print("RUN EXTERNAL CLOCK ADVANCED")
         while True:
             self.process_pubsub_message()
 
@@ -203,7 +202,6 @@ class OSMModelAdvancer(ModelAdvancer):
                 self.update_db()
                 self.set_redis_states_after_advance()
                 self.advance = False
-                self.model_logger.logger.info("ADVANCED")
 
     def step_delta_time(self):
         """
@@ -377,10 +375,8 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def set_redis_states_after_advance(self):
         """Set an idle state in Redis"""
-        self.model_logger.logger.info("ADVANCING REDIS")
         self.ac.redis.publish(self.site_id, 'complete')
         self.ac.redis.hset(self.site_id, 'control', 'idle')
-        self.model_logger.logger.info("REDIS ADVANCED")
 
     def read_write_arrays_and_prep_inputs(self):
         master_index = self.variables.input_index_from_variable_name("MasterEnable")
