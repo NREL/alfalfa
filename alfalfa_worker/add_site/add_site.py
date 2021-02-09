@@ -164,6 +164,7 @@ class AddSite:
         shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/run/in.idf', simulation_dir + '/sim.idf')
         shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/files/weather.epw', simulation_dir + '/sim.epw')
         shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/haystack_report_mapping.json', simulation_dir)
+        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/haystack_report_haystack.json', simulation_dir)
         shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
 
         # push entire directory to file storage
