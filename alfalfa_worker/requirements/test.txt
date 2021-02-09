@@ -1,7 +1,7 @@
 -r py3-production.txt
 
 # For testing the API
-alfalfa-client==0.1.0.dev6
+alfalfa-client==0.1.0.dev5
 
 # Testing and code syntax packages
 autopep8==1.4.4
