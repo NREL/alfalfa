@@ -27,9 +27,6 @@ class OSMModelAdvancer(ModelAdvancer):
         tar.extractall(self.sim_path)
         tar.close()
 
-        # Subscribe to redis pubsub messages that control simulation
-        self.ac.redis_pubsub.subscribe(self.site_id)
-
         self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
 
         # If idf_file is named "in.idf" we need to change the name because in.idf is not accepted by mlep
@@ -114,6 +111,7 @@ class OSMModelAdvancer(ModelAdvancer):
                     'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
                 self.step()
             else:
+                self.model_logger.logger.info(f"current_ep_time: {current_ep_time} reached desired start_datetime: {self.start_datetime}")
                 break
         self.master_enable_bypass = False
         self.update_db()

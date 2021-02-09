@@ -151,6 +151,7 @@ class RunFMUSite:
             while True:
                 message = self.redis_pubsub.get_message()
                 if message:
+                    print("process_pubsub_message: %s" % message)
                     data = message['data']
                     if data == 'advance':
                         self.step()

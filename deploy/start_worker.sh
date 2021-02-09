@@ -9,7 +9,7 @@ echo "Waiting for redis to start"
 /usr/local/wait-for-it.sh --strict redis:6379
 
 echo "Waiting for mongo to start"
-/usr/local/wait-for-it.sh --strict redis:27017
+/usr/local/wait-for-it.sh --strict mongo:27017
 
 cd /alfalfa
 python3 -m alfalfa_worker
