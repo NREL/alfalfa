@@ -18,6 +18,8 @@ from alfalfa_worker.step_sim.step_osm.parse_variables import ParseVariables
 class OSMModelAdvancer(ModelAdvancer):
     def __init__(self):
         super(OSMModelAdvancer, self).__init__()
+        print(f"step_sim_type: {self.step_sim_type}")
+        print(f"step_sim_value: {self.step_sim_type}")
         # Download file from bucket and extract
         self.bucket_key = os.path.join(self.parsed_path, self.tar_name)
         self.ac.s3_bucket.download_file(self.bucket_key, self.tar_path)
@@ -101,15 +103,21 @@ class OSMModelAdvancer(ModelAdvancer):
         published to database during this process
         """
         self.exchange_data()
+
+        current_ep_time = self.get_energyplus_datetime()
+        self.model_logger.logger.info(
+            'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
         while True:
             current_ep_time = self.get_energyplus_datetime()
             if current_ep_time < self.start_datetime:
-                self.model_logger.logger.info('current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
+                self.model_logger.logger.info(
+                    'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
                 self.step()
             else:
                 break
         self.master_enable_bypass = False
         self.update_db()
+        print("AT START TIME")
 
     def exchange_data(self):
         """
@@ -138,8 +146,12 @@ class OSMModelAdvancer(ModelAdvancer):
         """
         Update database with current ep outputs and simulation time
         """
-        self.update_db_with_model_outputs()
-        self.update_sim_time_in_db()
+        self.write_outputs_to_mongo()
+        if self.use_historian:
+            self.model_logger.logger.info("WRITING TO INFLUX")
+            self.write_outputs_to_influx()
+            self.model_logger.logger.info("WROTE TO INFLUX")
+        self.update_sim_time_in_mongo()
 
     def create_tag_dictionaries(self):
         """Placeholder for method necessary to create Haystack entities and records"""
@@ -184,7 +196,7 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def run_external_clock(self):
         self.advance_to_start_time()
-
+        print("RUN EXTERNAL CLOCK ADVANCED")
         while True:
             self.process_pubsub_message()
 
@@ -197,6 +209,7 @@ class OSMModelAdvancer(ModelAdvancer):
                 self.update_db()
                 self.set_redis_states_after_advance()
                 self.advance = False
+                self.model_logger.logger.info("ADVANCED")
 
     def step_delta_time(self):
         """
@@ -370,8 +383,10 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def set_redis_states_after_advance(self):
         """Set an idle state in Redis"""
+        self.model_logger.logger.info("ADVANCING REDIS")
         self.ac.redis.publish(self.site_id, 'complete')
         self.ac.redis.hset(self.site_id, 'control', 'idle')
+        self.model_logger.logger.info("REDIS ADVANCED")
 
     def read_write_arrays_and_prep_inputs(self):
         master_index = self.variables.input_index_from_variable_name("MasterEnable")
@@ -394,7 +409,7 @@ class OSMModelAdvancer(ModelAdvancer):
         inputs = tuple(self.ep.inputs)
         return inputs
 
-    def update_db_with_model_outputs(self):
+    def write_outputs_to_mongo(self):
         """Placeholder for updating the current values exposed through Mongo AFTER a simulation timestep"""
         for output_id in self.variables.get_output_ids():
             output_index = self.variables.get_output_index(output_id)
@@ -409,9 +424,55 @@ class OSMModelAdvancer(ModelAdvancer):
                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
                              "rec.cur": "m:"}}, False)
 
-    def update_sim_time_in_db(self):
+    def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
         output_time_string = "s:" + str(self.get_energyplus_datetime())
         self.ac.mongo_db_recs.update_one({"_id": self.site_id}, {
             "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(self.ep.kStep),
                      "rec.simStatus": "s:Running"}}, False)
+        self.model_logger.logger.info("UPDATED SIM TIME IN MONGO")
+
+    def write_outputs_to_influx(self):
+        """
+        Write output data to influx
+        :return:
+        """
+        json_body = []
+        base = {
+            "measurement": self.site_id,
+            "time": f"{self.get_energyplus_datetime()}",
+        }
+        response = False
+        for output_id in self.variables.get_output_ids():
+            output_index = self.variables.get_output_index(output_id)
+            if output_index == -1:
+                self.model_logger.logger.error('bad output index for: %s' % output_id)
+            else:
+                output_value = self.ep.outputs[output_index]
+                # id = self.process_haystack(entity.get("id", ""))
+                # p = True
+                # cur_val = self.process_haystack(entity.get("curVal", ""))
+                # dis = self.process_haystack(entity.get("dis", ""))
+                # cur_status = self.process_haystack(entity.get("curStatus", ""))
+                base["fields"] = {
+                    "value": output_value
+                }
+                base["tags"] = {
+                    "id": output_id,
+                    "siteRef": self.site_id,
+                    "point": True,
+                    "source": 'alfalfa'
+                }
+                json_body.append(base.copy())
+        try:
+            self.model_logger.logger.info(f"Writing to influx: {json_body}")
+            response = self.ac.influx_client.write_points(points=json_body,
+                                                          time_precision='s',
+                                                          database=self.ac.influx_db_name)
+        except ConnectionError as e:
+            self.model_logger.logger.error(f"Influx ConnectionError on curVal write: {e}")
+        if not response:
+            self.model_logger.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
+        else:
+            self.model_logger.logger.info(
+                f"Successful write to influx.  Length of JSON: {len(json_body)}")
