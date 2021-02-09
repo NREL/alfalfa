@@ -84,11 +84,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "$tag_id",
+          "alias": "$tag_dis",
           "groupBy": [
             {
               "params": [
-                "id"
+                "dis"
               ],
               "type": "tag"
             }
