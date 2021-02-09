@@ -115,7 +115,6 @@ class OSMModelAdvancer(ModelAdvancer):
                 break
         self.master_enable_bypass = False
         self.update_db()
-        print("AT START TIME")
 
     def exchange_data(self):
         """
@@ -146,9 +145,7 @@ class OSMModelAdvancer(ModelAdvancer):
         """
         self.write_outputs_to_mongo()
         if self.use_historian:
-            self.model_logger.logger.info("WRITING TO INFLUX")
             self.write_outputs_to_influx()
-            self.model_logger.logger.info("WROTE TO INFLUX")
         self.update_sim_time_in_mongo()
 
     def create_tag_dictionaries(self):
@@ -428,7 +425,6 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ac.mongo_db_recs.update_one({"_id": self.site_id}, {
             "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(self.ep.kStep),
                      "rec.simStatus": "s:Running"}}, False)
-        self.model_logger.logger.info("UPDATED SIM TIME IN MONGO")
 
     def write_outputs_to_influx(self):
         """
@@ -463,14 +459,15 @@ class OSMModelAdvancer(ModelAdvancer):
                 }
                 json_body.append(base.copy())
         try:
-            self.model_logger.logger.info(f"Writing to influx: {json_body}")
             response = self.ac.influx_client.write_points(points=json_body,
                                                           time_precision='s',
                                                           database=self.ac.influx_db_name)
+
         except ConnectionError as e:
             self.model_logger.logger.error(f"Influx ConnectionError on curVal write: {e}")
         if not response:
             self.model_logger.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
+            self.model_logger.logger.info(f"Attempted to write: {json_body}")
         else:
             self.model_logger.logger.info(
                 f"Successful write to influx.  Length of JSON: {len(json_body)}")
