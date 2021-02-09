@@ -4,6 +4,7 @@ import pytest
 import tempfile
 import zipfile
 from unittest import TestCase
+
 from alfalfa_client.alfalfa_client import AlfalfaClient
 
 
@@ -15,16 +16,21 @@ def zipdir(path, ziph):
             ziph.write(os.path.join(root, file))
 
 
+def make_temp_zip(dir_name):
+    osw_dir_path = os.path.join(os.path.dirname(__file__), 'models', dir_name)
+    zip_file_fd, zip_file_path = tempfile.mkstemp(suffix='.zip')
+
+    zipf = zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED)
+    zipdir(osw_dir_path, zipf)
+    zipf.close()
+    return zip_file_path
+
+
 @pytest.mark.integration
 class TestRefrigCaseOSW(TestCase):
 
     def test_simple_internal_clock(self):
-        osw_dir_path = os.path.join(os.path.dirname(__file__), 'models', 'refrig_case_osw')
-        zip_file_fd, zip_file_path = tempfile.mkstemp(suffix='.zip')
-
-        zipf = zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED)
-        zipdir(osw_dir_path, zipf)
-        zipf.close()
+        zip_file_path = make_temp_zip("refrig_case_osw")
 
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
