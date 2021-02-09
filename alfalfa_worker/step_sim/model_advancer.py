@@ -79,8 +79,11 @@ class ModelAdvancer(object):
         self.init_sim()
         self.set_db_status_running()
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
+            self.model_logger.logger.info("Running timescale / realtime")
             self.run_timescale()
         elif self.step_sim_type == 'external_clock':
+            self.model_logger.logger.info("Running external_clock")
+            self.ac.redis_pubsub.subscribe(self.site_id)
             self.run_external_clock()
 
     def set_idle_state(self):
