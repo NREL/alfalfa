@@ -224,6 +224,10 @@ class AddSite:
         haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_mapping.json')
         rel_symlink(haystack_src_path, haystack_dest_path)
 
+        haystack_src_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_haystack.json')
+        haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_haystack.json')
+        rel_symlink(haystack_src_path, haystack_dest_path)
+
         variables_src_path = os.path.join(submitted_workflow_path, 'reports/export_bcvtb_report_variables.cfg')
         variables_dest_path = os.path.join(simulation_dir, 'variables.cfg')
         rel_symlink(variables_src_path, variables_dest_path)
