@@ -37,6 +37,7 @@ tags
 # Unittest and coverage
 htmlcov/*
 .coverage
+.coveragerc
 .tox
 junit.xml
 coverage.xml
@@ -60,6 +61,7 @@ MANIFEST
 # Simulations / E+
 /alfalfa_worker/test/output
 tests/integration/output
+tests/worker/lib/output
 /s3/*
 *.audit
 *.bnd
