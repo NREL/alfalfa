@@ -27,6 +27,8 @@ class TestSmallOfficeOSM(TestCase):
         alfalfa.wait(model_id, "Running")
         alfalfa.stop(model_id)
         alfalfa.wait(model_id, "Stopped")
+        # wait for next alfalfa-client release
+        # alfalfa.remove_site(model_id)
 
     def test_simple_external_clock(self):
         alfalfa = AlfalfaClient(url='http://localhost')
@@ -70,4 +72,5 @@ class TestSmallOfficeOSM(TestCase):
         # Shut down
         alfalfa.stop(model_id)
         alfalfa.wait(model_id, "Stopped")
+        # wait for next alfalfa-client release
         # alfalfa.remove_site(model_id)
