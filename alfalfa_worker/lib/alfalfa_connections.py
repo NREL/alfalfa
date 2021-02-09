@@ -9,6 +9,7 @@ import tarfile
 import boto3
 from pymongo import MongoClient
 from redis import Redis
+from influxdb import InfluxDBClient
 
 
 class AlfalfaConnections:
@@ -34,6 +35,12 @@ class AlfalfaConnections:
         self.mongo_db_recs = self.mongo_db.recs
         self.mongo_db_write_arrays = self.mongo_db.writearrays
         self.mongo_db_sims = self.mongo_db.sims
+
+        # InfluxDB
+        self.influx_db_name = os.environ['INFLUXDB_DB']
+        self.influx_client = InfluxDBClient(host=os.environ['INFLUX_HOST'],
+                                            username=os.environ['INFLUXDB_ADMIN_USER'],
+                                            password=os.environ['INFLUXDB_ADMIN_PASSWORD'])
 
     def add_site_to_mongo(self, haystack_json, site_ref):
         """
