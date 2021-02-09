@@ -26,6 +26,7 @@
 import xml.etree.ElementTree as ET
 import json
 
+
 # <variable source='EnergyPlus'>
 #   <EnergyPlus name='CAV_bas' type='Air System Outdoor Air Flow Fraction'/>
 # </variable>
@@ -35,8 +36,14 @@ import json
 
 
 class ParseVariables:
-    def __init__(self, xml_file_path, json_file_path):
-        self.xml = ET.parse(xml_file_path)
+    def __init__(self, variables_cfg_xml_path, haystack_report_mapping_json_path, haystack_report_haystack_json_path):
+        """
+
+        :param variables_cfg_xml_path: [str] path to variables.cfg file
+        :param haystack_report_mapping_json_path: [str] path to haystack_report_mapping.json
+        :param haystack_report_haystack_json_path: [str] path to haystack_report_haystack.json
+        """
+        self.xml = ET.parse(variables_cfg_xml_path)
 
         """
         Mapping of:
@@ -105,7 +112,7 @@ class ParseVariables:
                 input_index += 1
 
         # Read in json as dict
-        with open(json_file_path, "r") as f:
+        with open(haystack_report_mapping_json_path, "r") as f:
             parsed_json = json.loads(f.read())
 
         for i in range(0, len(parsed_json)):
@@ -117,6 +124,17 @@ class ParseVariables:
                 item = {key: parsed_json[i][key] for key in ('variable', 'id')}
                 item['id'] = item['id'].replace('r:', '')
                 self.json_inputs[item['id']] = item
+
+        with open(haystack_report_haystack_json_path, 'r') as f:
+            self.haystack_data = json.loads(f.read())
+
+        self.haystack_id_dis_map = {}
+        for entity in self.haystack_data:
+            if 'id' in entity and 'dis' in entity:
+                self.haystack_id_dis_map[entity['id'].replace('r:', '')] = entity['dis'].replace('s:', '')
+
+    def get_haystack_dis_given_id(self, entity_id: str):
+        return self.haystack_id_dis_map.get(entity_id.replace('r:', ''))
 
     def get_output_ids(self):
         """

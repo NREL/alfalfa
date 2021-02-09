@@ -18,8 +18,6 @@ from alfalfa_worker.step_sim.step_osm.parse_variables import ParseVariables
 class OSMModelAdvancer(ModelAdvancer):
     def __init__(self):
         super(OSMModelAdvancer, self).__init__()
-        print(f"step_sim_type: {self.step_sim_type}")
-        print(f"step_sim_value: {self.step_sim_type}")
         # Download file from bucket and extract
         self.bucket_key = os.path.join(self.parsed_path, self.tar_name)
         self.ac.s3_bucket.download_file(self.bucket_key, self.tar_path)
@@ -54,7 +52,8 @@ class OSMModelAdvancer(ModelAdvancer):
 
         # Parse variables after Haystack measure
         self.variables_file = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/variables.cfg'))
-        self.variables = ParseVariables(self.variables_file, self.ep.mapping)
+        self.haystack_json_file = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/haystack_report_haystack.json'))
+        self.variables = ParseVariables(self.variables_file, self.ep.mapping, self.haystack_json_file)
 
         # Define MLEP inputs
         self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
@@ -443,16 +442,13 @@ class OSMModelAdvancer(ModelAdvancer):
                 self.model_logger.logger.error('bad output index for: %s' % output_id)
             else:
                 output_value = self.ep.outputs[output_index]
-                # id = self.process_haystack(entity.get("id", ""))
-                # p = True
-                # cur_val = self.process_haystack(entity.get("curVal", ""))
-                # dis = self.process_haystack(entity.get("dis", ""))
-                # cur_status = self.process_haystack(entity.get("curStatus", ""))
+                dis = self.variables.get_haystack_dis_given_id(output_id)
                 base["fields"] = {
                     "value": output_value
                 }
                 base["tags"] = {
                     "id": output_id,
+                    "dis": dis,
                     "siteRef": self.site_id,
                     "point": True,
                     "source": 'alfalfa'
