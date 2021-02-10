@@ -37,7 +37,7 @@ class AlfalfaConnections:
         self.mongo_db_sims = self.mongo_db.sims
 
         # InfluxDB
-        self.historian_enabled = os.environ['HISTORIAN_ENABLE'] == 'true'
+        self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
         if self.historian_enabled:
             self.influx_db_name = os.environ['INFLUXDB_DB']
             self.influx_client = InfluxDBClient(host=os.environ['INFLUX_HOST'],
