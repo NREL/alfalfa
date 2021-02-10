@@ -37,10 +37,15 @@ class AlfalfaConnections:
         self.mongo_db_sims = self.mongo_db.sims
 
         # InfluxDB
-        self.influx_db_name = os.environ['INFLUXDB_DB']
-        self.influx_client = InfluxDBClient(host=os.environ['INFLUX_HOST'],
-                                            username=os.environ['INFLUXDB_ADMIN_USER'],
-                                            password=os.environ['INFLUXDB_ADMIN_PASSWORD'])
+        self.historian_enabled = os.environ['HISTORIAN_ENABLE'] == 'true'
+        if self.historian_enabled:
+            self.influx_db_name = os.environ['INFLUXDB_DB']
+            self.influx_client = InfluxDBClient(host=os.environ['INFLUX_HOST'],
+                                                username=os.environ['INFLUXDB_ADMIN_USER'],
+                                                password=os.environ['INFLUXDB_ADMIN_PASSWORD'])
+        else:
+            self.influx_db_name = None
+            self.influx_client = None
 
     def add_site_to_mongo(self, haystack_json, site_ref):
         """
