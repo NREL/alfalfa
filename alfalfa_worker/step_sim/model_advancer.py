@@ -52,7 +52,7 @@ class ModelAdvancer(object):
         self.advance = False  # Advance == True condition specifically indicates a step shall be taken
 
         # Global flag for using the historian
-        self.enable_historian = os.environ['ENABLE_HISTORIAN'] == 'true'
+        self.historian_enabled = os.environ['HISTORIAN_ENABLE'] == 'true'
 
     def set_db_status_running(self):
         """

@@ -143,7 +143,7 @@ class OSMModelAdvancer(ModelAdvancer):
         Update database with current ep outputs and simulation time
         """
         self.write_outputs_to_mongo()
-        if self.enable_historian:
+        if self.historian_enabled:
             self.write_outputs_to_influx()
         self.update_sim_time_in_mongo()
 
