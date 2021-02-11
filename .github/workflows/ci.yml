@@ -111,7 +111,8 @@ jobs:
 
       - name: Build and run stack
         run: |
-          docker-compose -f docker-compose-historian.yml --env-file .env.historian up --build -d
+          export HISTORIAN_ENABLE=true
+          docker-compose -f docker-compose.yml -f docker-compose-historian.yml up --build -d
 
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1
