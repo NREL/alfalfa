@@ -93,12 +93,12 @@ class AlfalfaConnections:
 
                 return tarinfo
 
-            tarname = "{}.tar.gz".format(site_ref)
+            tarname = "%s.tar.gz" % site_ref
             tar = tarfile.open(tarname, "w:gz")
             tar.add(bucket_parsed_site_id_dir, filter=reset, arcname=site_ref)
             tar.close()
 
-            upload_location = "parsed/{}".format(tarname)
+            upload_location = "parsed/%s" % tarname
             try:
                 self.s3_bucket.upload_file(tarname, upload_location)
                 return True, upload_location
