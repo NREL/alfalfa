@@ -65,6 +65,7 @@ jobs:
 
       - name: Build and run stack
         run: |
+          printenv
           docker-compose up --build -d
 
       - name: Wait for web server
@@ -112,6 +113,7 @@ jobs:
       - name: Build and run stack
         run: |
           export HISTORIAN_ENABLE=true
+          printenv
           docker-compose -f docker-compose.yml -f docker-compose-historian.yml up --build -d
 
       - name: Wait for web server
