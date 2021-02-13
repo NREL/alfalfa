@@ -48,17 +48,18 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
-COPY alfalfa_worker/requirements/py3-production.txt /alfalfa/
+# Need to set the lang to use Python 3.6 with Poetry
+ENV LANG C.UTF-8
+COPY pyproject.toml /alfalfa/
+COPY poetry.lock /alfalfa/
 COPY alfalfa_worker/requirements/py2-production.txt /alfalfa/
-RUN  python3 -m pip install --ignore-installed -r /alfalfa/py3-production.txt
+RUN  pip3 install poetry
+RUN  poetry install --no-dev
 RUN  python -m pip install --ignore-installed -r /alfalfa/py2-production.txt
 
 COPY . /alfalfa
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 COPY ./deploy/start_worker.sh start_worker.sh
-
-WORKDIR /alfalfa
-RUN pip3 install .
 
 WORKDIR /alfalfa/alfalfa_worker
 RUN tar -czf workflow.tar.gz workflow
