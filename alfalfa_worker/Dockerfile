@@ -53,10 +53,16 @@ ENV LANG C.UTF-8
 COPY pyproject.toml /alfalfa/
 COPY poetry.lock /alfalfa/
 COPY alfalfa_worker/requirements/py2-production.txt /alfalfa/
-RUN  pip3 install poetry
+RUN  pip3 install --upgrade pip && pip3 install poetry
+# Install python packages to the system and not in a virtualenv
+RUN  poetry config virtualenvs.create false
+RUN  poetry update
 RUN  poetry install --no-dev
+#RUN  python3 -m poetry install --no-dev
 RUN  python -m pip install --ignore-installed -r /alfalfa/py2-production.txt
 
+# Include the path to where alfalfa_worker is so that system calls can find it.
+ENV PYTHONPATH="/alfalfa:${PYTHONPATH}"
 COPY . /alfalfa
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 COPY ./deploy/start_worker.sh start_worker.sh
