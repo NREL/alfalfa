@@ -49,20 +49,22 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
 # Need to set the lang to use Python 3.6 with Poetry
-ENV LANG C.UTF-8
+ENV  LANG C.UTF-8
 COPY pyproject.toml /alfalfa/
 COPY poetry.lock /alfalfa/
 COPY alfalfa_worker/requirements/py2-production.txt /alfalfa/
-RUN  pip3 install --upgrade pip && pip3 install poetry
-# Install python packages to the system and not in a virtualenv
-RUN  poetry config virtualenvs.create false
-RUN  poetry update
-RUN  poetry install --no-dev
-#RUN  python3 -m poetry install --no-dev
+# Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
+# Line 3 below installs python packages to the system and not in a virtualenv.
+RUN  python3 -m pip install --upgrade pip setuptools && \
+     python3 -m pip install poetry && \
+     python3 -m poetry config virtualenvs.create false && \
+     python3 -m poetry install --no-dev
+# Python 2 dependencies
 RUN  python -m pip install --ignore-installed -r /alfalfa/py2-production.txt
 
 # Include the path to where alfalfa_worker is so that system calls can find it.
-ENV PYTHONPATH="/alfalfa:${PYTHONPATH}"
+ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
+
 COPY . /alfalfa
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 COPY ./deploy/start_worker.sh start_worker.sh

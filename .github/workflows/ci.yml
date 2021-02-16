@@ -39,11 +39,12 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install poetry
+          poetry install
 
       - name: Run tests with pytest
         run: |
-          pytest
+          poetry run pytest
 
   integration-tests:
     name: Run integration tests
@@ -61,7 +62,8 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install poetry
+          poetry install
 
       - name: Build and run stack
         run: |
@@ -85,7 +87,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest --timeout=240 -m "integration"
+          poetry run pytest --timeout=240 -m "integration"
 
       - name: Dump docker logs on failure
         if: failure()

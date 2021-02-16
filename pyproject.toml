@@ -14,7 +14,7 @@ pymongo = "3.10.1"
 redis = "3.3.11"
 requests = "2.22.0"
 symfit = "0.5.3"
-setuptools = "44.0.0"  # this is required for symfit, else get https://stackoverflow.com/questions/7446187/no-module-named-pkg-resources
+
 
 [tool.poetry.dev-dependencies]
 alfalfa-client = "0.1.0.dev5"

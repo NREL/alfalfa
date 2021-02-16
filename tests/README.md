@@ -2,10 +2,11 @@
 For defining tests to be written and tracking progress
 
 # Running tests locally
-1. Install dependencies:  `pip install -r requirements.txt`
-1. Run unit tests: `pytest`
+1. Install Poetry:  `pip install poetry`
+1. Install dependencies:  `poetry install`
+1. Run unit tests: `poetry run pytest`
 1. Run stack locally in detached mode: `docker-compose up --build -d`
-1. Run integration tests: `pytest -m "integration"`
+1. Run integration tests: `poetry run pytest -m "integration"`
 1. Clean up: `docker-compose down`
 
 
@@ -15,7 +16,7 @@ For defining tests to be written and tracking progress
     - These become exceptions to catch when instantiating?
 
 ## Worker
-1. Best practice to put entire .run() method in a try/except block
+1. Best practice is to put entire .run() method in a try/except block
 
 ### process_message
 1. json.loads(message.body) doesn't work - how to handle?
@@ -41,7 +42,7 @@ For defining tests to be written and tracking progress
 
 ### step_sim
 1. What happens if id can't be found in records?
-1. atleast one of realtime, timescale, external_clock must be specified - else, doesn't run
+1. At least one of realtime, timescale, external_clock must be specified - else, doesn't run
 1. no more than one of realtime, timescale, external_clock specified - else, doesn't run
 
 #### check_step_sim_config
