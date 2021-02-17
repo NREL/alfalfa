@@ -1,23 +1,16 @@
 [[package]]
 name = "alfalfa-client"
-version = "0.1.0-dev6"
+version = "0.1.0.dev7"
 description = "A standalone client for the NREL Alfalfa application"
 category = "dev"
 optional = false
-python-versions = "^3.6.1"
-develop = false
+python-versions = ">=3.6.1,<4.0.0"
 
 [package.dependencies]
-hszinc = "^1.3.1"
-importlib-metadata = "^3.4.0"
+hszinc = ">=1.3.1,<2.0.0"
+importlib-metadata = ">=3.4.0,<4.0.0"
 pandas = "0.24.2"
 requests-toolbelt = "0.9.1"
-
-[package.source]
-type = "git"
-url = "https://git@github.com/nrel/alfalfa-client.git"
-reference = "fix/cherry-pick-dev"
-resolved_reference = "145f2dbc5719702826e90f071a1e6b01bbaf3411"
 
 [[package]]
 name = "appdirs"
@@ -886,10 +879,13 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.1"
-content-hash = "0e354dd30f2815f04dc661bb3a8127e3da9b9cec0338ae6f322368dda4a88f18"
+content-hash = "24edd2fc0d681a2f4c3c53331ec14198ac8963ed3878b4c125409da6321c3cec"
 
 [metadata.files]
-alfalfa-client = []
+alfalfa-client = [
+    {file = "alfalfa-client-0.1.0.dev7.tar.gz", hash = "sha256:e4e7e1ff64bd69914ef6cf3f02566eed9836508e020a27f6f7c41fe233cfbec7"},
+    {file = "alfalfa_client-0.1.0.dev7-py3-none-any.whl", hash = "sha256:297627b1c335fa7976d629f5e015b1ff68d22178cefb580a7985194669e25ab6"},
+]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},

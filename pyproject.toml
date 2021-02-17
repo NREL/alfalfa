@@ -20,8 +20,8 @@ scipy = "1.5.4"
 numpy = "1.19.5"
 
 [tool.poetry.dev-dependencies]
-#alfalfa-client = "0.1.0.dev5"
-alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "fix/cherry-pick-dev"}
+alfalfa-client = "0.1.0.dev7"
+#alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "develop"}
 autopep8 = "^1.4.4"
 pre-commit = "^2.10.1"
 pytest = "6.2.2"
