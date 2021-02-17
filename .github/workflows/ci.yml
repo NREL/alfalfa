@@ -105,6 +105,7 @@ jobs:
         # or lewagon/wait-on-check-action@master, but master is not guaranteed to be stable ATM
         uses: lewagon/wait-on-check-action@v0.2
         with:
+          ref: ${{ github.ref }}
           # check-name: test # name of the existing check - omit to wait for all checks
           running-workflow-name: 'publish'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
