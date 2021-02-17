@@ -110,3 +110,5 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 20 # seconds
 
+      - name: Checkout code
+        uses: actions/checkout@v2
