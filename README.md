@@ -19,10 +19,11 @@ The alfalfa stack can optionally be run with a historian (influxdb) and a dashbo
 1. Only a simple dashboard is supported for now
 
 # Running tests locally
-1. Install dependencies:  `pip install -r requirements.txt`
-1. Run unit tests: `pytest`
+1. Install poetry (similar to Ruby's bundler):  `pip install poetry`
+1. Install dependencies:  `poetry install`
+1. Run unit tests: `poetry run pytest`
 1. Run stack locally in detached mode: `docker-compose up --build -d`
-1. Run integration tests: `pytest -m "integration"`
+1. Run integration tests: `poetry run pytest -m "integration"`
 1. Clean up: `docker-compose down`
 
 ## Making changes
