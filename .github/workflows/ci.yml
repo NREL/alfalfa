@@ -36,14 +36,12 @@ jobs:
         with:
           python-version: '3.6'
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2.0.0
 
       - name: Run tests with pytest
         run: |
+          poetry install
           poetry run pytest
 
   integration-tests:
@@ -59,11 +57,8 @@ jobs:
         with:
           python-version: '3.6'
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-          poetry install
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2.0.0
 
       - name: Build and run stack
         run: |
@@ -87,6 +82,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
+          poetry install
           poetry run pytest --timeout=240 -m "integration"
 
       - name: Dump docker logs on failure
