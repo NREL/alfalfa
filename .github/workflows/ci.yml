@@ -97,17 +97,24 @@ jobs:
     name: Publish Docker Images
     runs-on: ubuntu-latest
     steps:
-      # This step will retry until required check passes
-      # and will fail the whole workflow if the check conclusion is not a success
-      - name: Wait on tests
-        # or lewagon/wait-on-check-action@master, but master is not guaranteed to be stable ATM
-        uses: lewagon/wait-on-check-action@v0.2
-        with:
-          ref: ${{ github.ref }}
-          # check-name: test # name of the existing check - omit to wait for all checks
-          running-workflow-name: 'publish'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 20 # seconds
+      # This step will retry until all other jobs pass
+      # and will fail the whole workflow if this job does not succeed ()
+      # TODO uncomment once Docker publishing hooked in
+      # - name: Wait on tests
+      #   uses: lewagon/wait-on-check-action@v0.2
+      #   with:
+      #     # this won't run on pull requests, only pushes (which we want)
+      #     ref: ${{ github.ref }}
+      #     running-workflow-name: 'publish'
+      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+      #     wait-interval: 20 # seconds
 
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Build & Publish Images
+        shell: bash
+        run: ./.github/workflows/publish_to_docker.sh
+        env:
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
