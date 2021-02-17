@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "alfalfa"
+version = "0.1.0"
+description = ""
+authors = ["Nicholas Long <nicholas.long@nrel.gov>"]
+
+[tool.poetry.dependencies]
+python = "^3.6.1"
+importlib-metadata = "3.4.0"
+boto3 = "1.17.8"
+mlep = "0.1.1.dev3"
+pymongo = "3.11.3"
+redis = "3.5.3"
+requests = "2.25.1"
+symfit = "0.5.3"
+# These libraries are used for the data generator/testcase. They are pinned to older versions
+# as the min python version is 3.7
+pandas = "0.24.2"
+scipy = "1.5.4"
+numpy = "1.19.5"
+
+[tool.poetry.dev-dependencies]
+alfalfa-client = "0.1.0.dev7"
+#alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "develop"}
+autopep8 = "^1.4.4"
+pre-commit = "^2.10.1"
+pytest = "6.2.2"
+pycodestyle = "^2.5.0"
+pytest-cov = "2.11.1"
+pytest-docker-compose = "3.2.1"
+pytest-timeout = "1.4.2"
+tox = "^3.21.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
