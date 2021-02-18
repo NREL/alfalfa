@@ -1,8 +1,15 @@
 [tool.poetry]
 name = "alfalfa"
 version = "0.1.0"
-description = ""
-authors = ["Nicholas Long <nicholas.long@nrel.gov>"]
+description = "Alfalfa is a web based software service that implements a virtual building control system using an OpenStudio/EnergyPlus simulation or FMU as a backend."
+authors = [
+    'Kyle Benne <kyle.benne@nrel.gov>',
+    'Cory Mosiman <cory.mosiman@nrel.gov>',
+    'Anya Petersen <Anya.Petersen@nrel.gov>',
+    'Brian Ball <brian.ball@nrel.gov>',
+    'Nicholas Long <nicholas.long@nrel.gov>',
+    'Willy Bernal <willy.bernalheredia@nrel.gov>',
+]
 
 [tool.poetry.dependencies]
 python = "^3.6.1"
