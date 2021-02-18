@@ -44,98 +44,98 @@ jobs:
           poetry install
           poetry run pytest
 
-  integration-tests:
-    name: Run integration tests
-    runs-on: ubuntu-latest
+  # integration-tests:
+  #   name: Run integration tests
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.6'
+  #     - name: Install Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: '3.6'
 
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2.0.0
+  #     - name: Install poetry
+  #       uses: abatilo/actions-poetry@v2.0.0
 
-      - name: Build and run stack
-        run: |
-          printenv
-          docker-compose up --build -d
+      # - name: Build and run stack
+      #   run: |
+      #     printenv
+      #     docker-compose up --build -d
 
-      - name: Wait for web server
-        uses: nev7n/wait_for_response@v1
-        with:
-          url: 'http://localhost/'
-          responseCode: 200
-          timeout: 120000
-          interval: 500
+      # - name: Wait for web server
+      #   uses: nev7n/wait_for_response@v1
+      #   with:
+      #     url: 'http://localhost/'
+      #     responseCode: 200
+      #     timeout: 120000
+      #     interval: 500
 
-      - name: Wait another 30s
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '30s'
+      # - name: Wait another 30s
+      #   uses: jakejarvis/wait-action@master
+      #   with:
+      #     time: '30s'
 
-      - name: Dump docker logs before tests
-        uses: jwalton/gh-docker-logs@v1
+      # - name: Dump docker logs before tests
+      #   uses: jwalton/gh-docker-logs@v1
 
-      - name: Run tests with pytest
-        run: |
-          poetry install
-          poetry run pytest --timeout=240 -m "integration"
+      # - name: Run tests with pytest
+      #   run: |
+      #     poetry install
+      #     poetry run pytest --timeout=240 -m "integration"
 
-      - name: Dump docker logs on failure
-        if: failure()
-        uses: jwalton/gh-docker-logs@v1
+      # - name: Dump docker logs on failure
+      #   if: failure()
+      #   uses: jwalton/gh-docker-logs@v1
 
-  integration-tests-historian:
-    name: Run integration tests with historian
-    runs-on: ubuntu-latest
+  # integration-tests-historian:
+  #   name: Run integration tests with historian
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.6'
+  #     - name: Install Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: '3.6'
 
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2.0.0
+  #     - name: Install poetry
+  #       uses: abatilo/actions-poetry@v2.0.0
 
-      - name: Build and run stack
-        run: |
-          export HISTORIAN_ENABLE=true
-          printenv
-          docker-compose -f docker-compose.yml -f docker-compose-historian.yml up --build -d
+  #     - name: Build and run stack
+  #       run: |
+  #         export HISTORIAN_ENABLE=true
+  #         printenv
+  #         docker-compose -f docker-compose.yml -f docker-compose-historian.yml up --build -d
 
-      - name: Wait for web server
-        uses: nev7n/wait_for_response@v1
-        with:
-          url: 'http://localhost/'
-          responseCode: 200
-          timeout: 120000
-          interval: 500
+  #     - name: Wait for web server
+  #       uses: nev7n/wait_for_response@v1
+  #       with:
+  #         url: 'http://localhost/'
+  #         responseCode: 200
+  #         timeout: 120000
+  #         interval: 500
 
-      - name: Wait another 30s
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '30s'
+  #     - name: Wait another 30s
+  #       uses: jakejarvis/wait-action@master
+  #       with:
+  #         time: '30s'
 
-      - name: Dump docker logs before tests
-        uses: jwalton/gh-docker-logs@v1
+  #     - name: Dump docker logs before tests
+  #       uses: jwalton/gh-docker-logs@v1
 
-      - name: Run tests with pytest
-        run: |
-          poetry install
-          poetry run pytest --timeout=240 -m "integration"
+  #     - name: Run tests with pytest
+  #       run: |
+  #         poetry install
+  #         poetry run pytest --timeout=240 -m "integration"
 
-      - name: Dump docker logs on failure
-        if: failure()
-        uses: jwalton/gh-docker-logs@v1
+  #     - name: Dump docker logs on failure
+  #       if: failure()
+  #       uses: jwalton/gh-docker-logs@v1
 
   publish:
     if: |
@@ -146,15 +146,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # This step will retry until all other jobs pass
-      # and will fail the whole workflow if this job does not succeed ()
+      # and will fail the whole workflow if this job does not succeed
       # TODO uncomment once Docker publishing hooked in
-      # - name: Wait on tests
-      #   uses: lewagon/wait-on-check-action@v0.2
-      #   with:
-      #     ref: ${{ github.ref }}
-      #     running-workflow-name: 'publish'
-      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
-      #     wait-interval: 20 # seconds
+      - name: Wait on tests
+        uses: lewagon/wait-on-check-action@v0.2
+        with:
+          ref: ${{ github.ref }}
+          running-workflow-name: 'publish'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 20 # seconds
 
       - name: Checkout code
         uses: actions/checkout@v2
