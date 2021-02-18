@@ -2,11 +2,11 @@ export WEB_REGISTRY_URI=nrel/alfalfa-web
 export WORKER_REGISTRY_URI=nrel/alfalfa-worker
 
 if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
-    VERSION_TAG="develop"
+    export VERSION_TAG="develop"
 elif [ "${GITHUB_REF}" == "refs/heads/docker-pub" ]; then
-    VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
+    export VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
 elif [ "${GITHUB_REF}" == "refs/heads/master" ]; then
-    VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
+    export VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
 fi
 
 docker-compose build
@@ -22,3 +22,5 @@ if [ "${GITHUB_REF}" == "refs/heads/master" ]; then
     docker push ${WEB_REGISTRY_URI}:latest; (( exit_status = exit_status || $? ))
     docker push ${WORKER_REGISTRY_URI}:latest; (( exit_status = exit_status || $? ))
 fi
+
+exit $exit_status
