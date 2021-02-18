@@ -11,8 +11,8 @@ class TestSmallOfficeOSM(TestCase):
 
     def test_simple_internal_clock(self):
         alfalfa = AlfalfaClient(url='http://localhost')
-        fmu_path = os.path.join(os.path.dirname(__file__), 'models', 'small_office.osm')
-        model_id = alfalfa.submit(fmu_path)
+        model_path = os.path.join(os.path.dirname(__file__), 'models', 'small_office.osm')
+        model_id = alfalfa.submit(model_path)
 
         alfalfa.wait(model_id, "Stopped")
 

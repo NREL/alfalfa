@@ -164,6 +164,7 @@ class AddSite:
         shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/run/in.idf', simulation_dir + '/sim.idf')
         shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/files/weather.epw', simulation_dir + '/sim.epw')
         shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/haystack_report_mapping.json', simulation_dir)
+        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/haystack_report_haystack.json', simulation_dir)
         shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
 
         # push entire directory to file storage
@@ -221,6 +222,10 @@ class AddSite:
 
         haystack_src_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_mapping.json')
         haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_mapping.json')
+        rel_symlink(haystack_src_path, haystack_dest_path)
+
+        haystack_src_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_haystack.json')
+        haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_haystack.json')
         rel_symlink(haystack_src_path, haystack_dest_path)
 
         variables_src_path = os.path.join(submitted_workflow_path, 'reports/export_bcvtb_report_variables.cfg')

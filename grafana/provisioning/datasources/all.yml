@@ -1,0 +1,11 @@
+datasources:
+-  name: 'influxAlfalfa'                        # name of the datasource
+   access: 'proxy'                              # make grafana perform the requests
+   editable: true                               # whether it should be editable
+   is_default: true                             # whether this should be the default DS
+   type: influxdb                               # type of the data source
+   url: http://influxdb:8086                    # url of the prom instance
+   version: 1                                   # well, versioning
+   database: alfalfa
+   user: admin
+   password: password

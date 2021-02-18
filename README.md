@@ -12,6 +12,12 @@ This is a Haystack implementation backed by a virtual building. Virtual building
 This is a local implementation of Amazon S3 for bulk file storage during development.
 1. Use ```Ctrl-C``` to stop the services.
 
+### Running with Historian and Dashboard
+The alfalfa stack can optionally be run with a historian (influxdb) and a dashboard (grafana). History data is only added for OSM / OSW models.
+1. `export HISTORIAN_ENABLE=true && docker-compose -f docker-compose.yml -f docker-compose-historian.yml up --build -d`
+1. Navigate to http://localhost:3000 to view a grafana dashboard. Note that timespans for history data will be based on the time during which the simulation was run (simulation time), not real world time.
+1. Only a simple dashboard is supported for now
+
 # Running tests locally
 1. Install poetry (similar to Ruby's bundler):  `pip install poetry`
 1. Install dependencies:  `poetry install`

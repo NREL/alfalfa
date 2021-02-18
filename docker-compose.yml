@@ -83,6 +83,11 @@ services:
       - REDIS_HOST
       - S3_BUCKET
       - REGION
+      - INFLUXDB_DB
+      - INFLUX_HOST
+      - INFLUXDB_ADMIN_USER
+      - INFLUXDB_ADMIN_PASSWORD
+      - HISTORIAN_ENABLE
     depends_on:
       - redis
       - mongo
@@ -92,18 +97,7 @@ services:
     image: mongo
     ports:
       - "27017:27017"
-  #client-test:
-  #  build:
-  #    context: client
-  #    # Dockerfile is missing
-  #    dockerfile: client/Dockerfile-test
-  #  depends_on:
-  #    - alfalfa_web
   redis:
     image: redis
     ports:
       - "6379:6379"
-#  test:
-#    build: tests
-#    depends_on:
-#      - web
