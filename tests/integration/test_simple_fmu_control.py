@@ -194,8 +194,8 @@ class TestSimpleFMUControl(TestCase):
         result_dir = os.path.join(os.path.dirname(__file__), 'output', file_basename)
         if not os.path.exists(result_dir):
             os.makedirs(result_dir)
-        historian.save_csv(result_dir, f'data.csv')
-        historian.save_pickle(result_dir, f'data.pkl')
+        historian.save_csv(result_dir, 'data.csv')
+        historian.save_pickle(result_dir, 'data.pkl')
         print(historian.to_df().describe())
         kpis = historian.evaluate_performance()
         with open(f'{result_dir}/kpis_result.json', 'w') as f:

@@ -11,5 +11,21 @@ echo "Waiting for redis to start"
 echo "Waiting for mongo to start"
 /usr/local/wait-for-it.sh --strict mongo:27017
 
+echo "Historian Enable"
+echo $HISTORIAN_ENABLE
+
+if [[ $HISTORIAN_ENABLE = 'true' ]]
+then
+  echo "Historian enabled"
+
+  echo "Waiting for influxdb to start"
+  /usr/local/wait-for-it.sh --strict influxdb:8086
+
+  echo "Waiting for grafana to start"
+  /usr/local/wait-for-it.sh --strict grafana:3000
+else
+  echo "Historian not enabled"
+fi
+
 cd /alfalfa
 python3 -m alfalfa_worker

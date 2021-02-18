@@ -51,6 +51,9 @@ class ModelAdvancer(object):
         self.stop = False  # Stop == True used to end the simulation and initiate cleanup
         self.advance = False  # Advance == True condition specifically indicates a step shall be taken
 
+        # Global flag for using the historian
+        self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
+
     def set_db_status_running(self):
         """
         Set an idle state in Redis and update the simulation status in Mongo to Running.
@@ -78,9 +81,12 @@ class ModelAdvancer(object):
         self.set_idle_state()
         self.init_sim()
         self.set_db_status_running()
+        self.ac.redis_pubsub.subscribe(self.site_id)
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
+            self.model_logger.logger.info("Running timescale / realtime")
             self.run_timescale()
         elif self.step_sim_type == 'external_clock':
+            self.model_logger.logger.info("Running external_clock")
             self.run_external_clock()
 
     def set_idle_state(self):
@@ -109,10 +115,10 @@ class ModelAdvancer(object):
     def update_model_inputs_from_write_arrays(self):
         """Placeholder for getting write values from Mongo and writing into simulation BEFORE a simulation timestep"""
 
-    def update_db_with_model_outputs(self):
+    def write_outputs_to_mongo(self):
         """Placeholder for updating the current values exposed through Mongo AFTER a simulation timestep"""
 
-    def update_sim_time_in_db(self):
+    def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
 
     def create_tag_dictionaries(self):
