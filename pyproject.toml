@@ -18,6 +18,7 @@ symfit = "0.5.3"
 pandas = "0.24.2"
 scipy = "1.5.4"
 numpy = "1.19.5"
+influxdb = "5.3.0"
 
 [tool.poetry.dev-dependencies]
 alfalfa-client = "0.1.0.dev7"

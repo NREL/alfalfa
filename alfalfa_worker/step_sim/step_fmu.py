@@ -30,46 +30,40 @@ import tarfile
 import time
 import uuid
 import zipfile
-from datetime import datetime
+from datetime import datetime, timedelta
 
-import boto3
 import lib
 import lib.testcase
 import pytz
-import redis
-from pymongo import MongoClient
+
+from lib.alfalfa_connections import AlfalfaConnections
 from step_sim_utils import step_sim_arg_parser
 
 
 class RunFMUSite:
 
     def __init__(self, **kwargs):
-        self.s3 = boto3.resource('s3', region_name='us-east-1', endpoint_url=os.environ['S3_URL'])
-        self.redis = redis.Redis(host=os.environ['REDIS_HOST'])
-        self.redis_pubsub = self.redis.pubsub()
-
-        # Initiate Mongo Database
-        mongo_client = MongoClient(os.environ['MONGO_URL'])
-        self.mongo_db = mongo_client[os.environ['MONGO_DB_NAME']]
-        self.mongo_db_recs = self.mongo_db.recs
-        self.write_arrays = self.mongo_db.writearrays
-        self.mongo_db_sims = self.mongo_db.sims
+        # Setup connections
+        self.ac = AlfalfaConnections()
 
         # get arguments from calling program
         # which is the processMessage program
-        self.site_ref = kwargs['site_ref']
+        self.site_id = kwargs['site_id']
         self.real_time_flag = kwargs['real_time_flag']
         self.time_scale = kwargs['time_scale']
         self.startTime = kwargs['startTime']
         self.endTime = kwargs['endTime']
         self.externalClock = kwargs['externalClock']
 
-        self.site = self.mongo_db_recs.find_one({"_id": self.site_ref})
+        # Use arbitrary start datetime for now
+        self.current_datetime = datetime(1970, 1, 1, 0, 0, 0)
+
+        self.site = self.ac.mongo_db_recs.find_one({"_id": self.site_id})
 
         # build the path for zipped-file, fmu, json
         sim_path = '/simulate'
-        self.directory = os.path.join(sim_path, self.site_ref)
-        tar_name = "%s.tar.gz" % self.site_ref
+        self.directory = os.path.join(sim_path, self.site_id)
+        tar_name = "%s.tar.gz" % self.site_id
         key = "parsed/%s" % tar_name
         tarpath = os.path.join(self.directory, tar_name)
         fmupath = os.path.join(self.directory, 'model.fmu')
@@ -79,8 +73,8 @@ class RunFMUSite:
             os.makedirs(self.directory)
 
         # download the tar file and tag file
-        self.s3_bucket = self.s3.Bucket('alfalfa')
-        self.s3_bucket.download_file(key, tarpath)
+        # self.s3_bucket = self.s3.Bucket('alfalfa')
+        self.ac.s3_bucket.download_file(key, tarpath)
 
         tar = tarfile.open(tarpath)
         tar.extractall(sim_path)
@@ -89,11 +83,15 @@ class RunFMUSite:
         zzip = zipfile.ZipFile(fmupath)
         zzip.extract('resources/kpis.json', self.directory)
 
+        # this shouldn't be hard coded.
+        # step_size in seconds
+        self.step_size = 300
+
         # Load fmu
         config = {
             'fmupath': fmupath,
             'start_time': self.startTime,
-            'step': 300,  # this shouldn't be hard coded.
+            'step': self.step_size,
             'kpipath': self.directory + '/resources/kpis.json'
         }
 
@@ -108,7 +106,10 @@ class RunFMUSite:
         self.simtime = 0
 
         if self.externalClock:
-            self.redis_pubsub.subscribe(self.site_ref)
+            self.ac.redis_pubsub.subscribe(self.site_id)
+
+        if self.ac.historian_enabled:
+            print("Historian enabled")
 
     def create_tag_dictionaries(self, tag_filepath):
         '''
@@ -149,12 +150,12 @@ class RunFMUSite:
 
         if self.externalClock:
             while True:
-                message = self.redis_pubsub.get_message()
+                message = self.ac.redis_pubsub.get_message()
                 if message:
                     data = message['data']
                     if data == 'advance':
                         self.step()
-                        self.redis.publish(self.site_ref, 'complete')
+                        self.ac.redis.publish(self.site_id, 'complete')
                         self.set_idle_state()
                     elif data == 'stop':
                         self.set_idle_state()
@@ -174,7 +175,7 @@ class RunFMUSite:
     def db_stop_set(self):
         # A client may have requested that the simulation stop early,
         # look for a signal to stop from the database
-        self.site = self.mongo_db_recs.find_one({"_id": self.site_ref})
+        self.site = self.ac.mongo_db_recs.find_one({"_id": self.site_id})
         if self.site and (self.site.get("rec", {}).get("simStatus") == "s:Stopping"):
             self.stop = True
         return self.stop
@@ -187,9 +188,15 @@ class RunFMUSite:
     # cleanup after the simulation is stopped
     def cleanup(self):
         # Clear all current values from the database when the simulation is no longer running
-        self.mongo_db_recs.update_one({"_id": self.site_ref}, {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""}}, False)
-        self.mongo_db_recs.update_many({"site_ref": self.site_ref, "rec.cur": "m:"}, {"$unset": {"rec.curVal": "", "rec.curErr": ""}, "$set": {"rec.curStatus": "s:disabled"}}, False)
-        self.mongo_db_recs.update_many({"site_ref": self.site_ref, "rec.writable": "m:"}, {"$unset": {"rec.writeLevel": "", "rec.writeVal": ""}, "$set": {"rec.writeStatus": "s:disabled"}}, False)
+        self.ac.mongo_db_recs.update_one({"_id": self.site_id},
+                                         {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""}},
+                                         False)
+        self.ac.mongo_db_recs.update_many({"site_ref": self.site_id, "rec.cur": "m:"},
+                                          {"$unset": {"rec.curVal": "", "rec.curErr": ""},
+                                           "$set": {"rec.curStatus": "s:disabled"}}, False)
+        self.ac.mongo_db_recs.update_many({"site_ref": self.site_id, "rec.writable": "m:"},
+                                          {"$unset": {"rec.writeLevel": "", "rec.writeVal": ""},
+                                           "$set": {"rec.writeStatus": "s:disabled"}}, False)
 
         self.sim_id = str(uuid.uuid4())
         tarname = "%s.tar.gz" % self.sim_id
@@ -198,28 +205,32 @@ class RunFMUSite:
         tar.close()
 
         uploadkey = "simulated/%s" % tarname
-        self.s3_bucket.upload_file(tarname, uploadkey)
+        self.ac.s3_bucket.upload_file(tarname, uploadkey)
         os.remove(tarname)
 
         time = str(datetime.now(tz=pytz.UTC))
         name = self.site.get("rec", {}).get("dis", "Test Case").replace('s:', '')
         kpis = json.dumps(self.tc.get_kpis())
-        self.mongo_db_sims.insert_one({"_id": self.sim_id, "name": name, "siteRef": self.site_ref, "simStatus": "Complete", "timeCompleted": time, "s3Key": uploadkey, "results": str(kpis)})
+        self.ac.mongo_db_sims.insert_one(
+            {"_id": self.sim_id, "name": name, "siteRef": self.site_id, "simStatus": "Complete", "timeCompleted": time,
+             "s3Key": uploadkey, "results": str(kpis)})
 
         shutil.rmtree(self.directory)
 
     def set_idle_state(self):
-        self.redis.hset(site_ref, 'control', 'idle')
+        self.ac.redis.hset(self.site_id, 'control', 'idle')
 
     def init_sim_status(self):
         self.set_idle_state()
         output_time_string = 's:%s' % (self.simtime)
-        self.mongo_db_recs.update_one({"_id": self.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
+        self.ac.mongo_db_recs.update_one({"_id": self.site_id},
+                                         {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
 
     def update_sim_status(self):
         self.simtime = self.tc.final_time
         output_time_string = 's:%s' % (self.simtime)
-        self.mongo_db_recs.update_one({"_id": self.site_ref}, {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
+        self.ac.mongo_db_recs.update_one({"_id": self.site_id},
+                                         {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
 
     def step(self):
         # u represents simulation input values
@@ -229,7 +240,7 @@ class RunFMUSite:
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
         # convention
-        for array in self.write_arrays.find({"siteRef": self.site_ref}):
+        for array in self.ac.mongo_db_write_arrays.find({"siteRef": self.site_id}):
             _id = array.get('_id')
             for val in array.get('val'):
                 if val is not None:
@@ -241,19 +252,69 @@ class RunFMUSite:
 
         y_output = self.tc.advance(u)
         self.update_sim_status()
+        self.increment_datetime()
 
         # get each of the simulation output values and feed to the database
         for key in y_output.keys():
             if key != 'time':
                 output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-                self.mongo_db_recs.update_one({"_id": output_id}, {"$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
+                self.ac.mongo_db_recs.update_one({"_id": output_id}, {
+                    "$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
+
+        if self.ac.historian_enabled:
+            self.write_outputs_to_influx(y_output)
+
+    def increment_datetime(self):
+        """
+        The current datetime is incremented.
+        :return:
+        """
+        self.current_datetime += timedelta(seconds=self.step_size)
+
+    def write_outputs_to_influx(self, outputs):
+        """
+        Write output data to influx
+        :return:
+        """
+        json_body = []
+        base = {
+            "measurement": self.site_id,
+            "time": "%s" % self.current_datetime,
+        }
+        response = False
+        # get each of the simulation output values and feed to the database
+        for key in outputs.keys():
+            if key != 'time':
+                output_id = self.tagid_and_outputs[key]
+                value = outputs[key]
+                dis = self.id_and_dis[output_id]
+                base["fields"] = {
+                    "value": value
+                }
+                base["tags"] = {
+                    "id": output_id,
+                    "dis": dis,
+                    "siteRef": self.site_id,
+                    "point": True,
+                    "source": 'alfalfa'
+                }
+                json_body.append(base.copy())
+        try:
+            print("Trying to write to influx")
+            response = self.ac.influx_client.write_points(points=json_body,
+                                                          time_precision='s',
+                                                          database=self.ac.influx_db_name)
+            if response:
+                print("Influx response received %s" % response)
+        except ConnectionError as e:
+            print("Unable to write to influx: %s" % e)
 
 
 # Main Program Entry
 
 args = step_sim_arg_parser()
-site_ref = args.site_id
+site_id = args.site_id
 externalClock = (args.step_sim_type == 'external_clock')
 real_time_flag = False
 if args.step_sim_type == 'timescale':
@@ -266,5 +327,6 @@ else:
 startTime = float(args.start_datetime)
 endTime = float(args.end_datetime)
 
-runFMUSite = RunFMUSite(site_ref=site_ref, real_time_flag=real_time_flag, time_scale=time_scale, startTime=startTime, endTime=endTime, externalClock=externalClock)
+runFMUSite = RunFMUSite(site_id=site_id, real_time_flag=real_time_flag, time_scale=time_scale, startTime=startTime,
+                        endTime=endTime, externalClock=externalClock)
 runFMUSite.run()
