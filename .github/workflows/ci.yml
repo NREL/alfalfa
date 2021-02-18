@@ -151,7 +151,6 @@ jobs:
       # - name: Wait on tests
       #   uses: lewagon/wait-on-check-action@v0.2
       #   with:
-      #     # this won't run on pull requests, only pushes (which we want)
       #     ref: ${{ github.ref }}
       #     running-workflow-name: 'publish'
       #     repo-token: ${{ secrets.GITHUB_TOKEN }}
