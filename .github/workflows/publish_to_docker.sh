@@ -3,8 +3,6 @@ export WORKER_REGISTRY_URI=nrel/alfalfa-worker
 
 if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
     export VERSION_TAG="develop"
-elif [ "${GITHUB_REF}" == "refs/heads/docker-pub" ]; then
-    export VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
 elif [ "${GITHUB_REF}" == "refs/heads/master" ]; then
     export VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
 fi
