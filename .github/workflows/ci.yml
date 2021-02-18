@@ -23,26 +23,26 @@ jobs:
       with:
         extra_args: --all-files
 
-  unit-tests:
-    name: Run unit tests
-    runs-on: ubuntu-latest
+  # unit-tests:
+  #   name: Run unit tests
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.6'
+  #     - name: Install Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: '3.6'
 
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2.0.0
+  #     - name: Install poetry
+  #       uses: abatilo/actions-poetry@v2.0.0
 
-      - name: Run tests with pytest
-        run: |
-          poetry install
-          poetry run pytest
+  #     - name: Run tests with pytest
+  #       run: |
+  #         poetry install
+  #         poetry run pytest
 
   # integration-tests:
   #   name: Run integration tests
@@ -142,17 +142,14 @@ jobs:
       github.ref == 'refs/heads/main' ||
       github.ref == 'refs/heads/develop' ||
       github.ref == 'refs/heads/docker-pub'
-    name: Publish Docker Images
     runs-on: ubuntu-latest
     steps:
-      # This step will retry until all other jobs pass
-      # and will fail the whole workflow if this job does not succeed
-      # TODO uncomment once Docker publishing hooked in
+      # This only runs if all other jobs pass.
       - name: Wait on tests
         uses: lewagon/wait-on-check-action@v0.2
         with:
           ref: ${{ github.ref }}
-          running-workflow-name: 'publish'
+          running-workflow-name: 'publish' #this job shouldn't wait for itself
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 20 # seconds
 
