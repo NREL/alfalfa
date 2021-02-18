@@ -159,8 +159,7 @@ jobs:
       # Install only toml, which is used to extract version.
       # We don't need any other python-related stuff
       - name: Install toml
-        run: |
-        python -m pip install toml
+        run: python -m pip install toml
 
       - name: Build & Publish Images
         shell: bash
