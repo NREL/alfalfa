@@ -17,5 +17,5 @@ COPY lib/dbops.js /root/server/
 
 ARG NODE_ENV
 RUN npm run build
-
+RUN ls -alh bundle/app/
 CMD [ "npm", "start" ]
