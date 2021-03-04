@@ -9,7 +9,7 @@ elif [ "${GITHUB_REF}" == "refs/heads/master" ]; then
     export VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
 fi
 
-docker-compose -f docker-compose.yml -f docker-compose-historian.yml
+docker-compose -f docker-compose.yml -f docker-compose-historian.yml build
 echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 docker push ${WEB_REGISTRY_URI}:${VERSION_TAG}; (( exit_status = exit_status || $? ))
 docker push ${WORKER_REGISTRY_URI}:${VERSION_TAG}; (( exit_status = exit_status || $? ))
