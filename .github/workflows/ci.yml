@@ -140,7 +140,8 @@ jobs:
   publish:
     if: |
       github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/develop'
+      github.ref == 'refs/heads/develop' ||
+      github.ref == 'refs/heads/publish-grafana'
     runs-on: ubuntu-latest
     steps:
       # Only if all other jobs pass.
