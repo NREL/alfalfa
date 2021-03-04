@@ -84,7 +84,7 @@ services:
       - S3_BUCKET
       - REGION
       - INFLUXDB_DB
-      - INFLUX_HOST
+      - INFLUXDB_HOST
       - INFLUXDB_ADMIN_USER
       - INFLUXDB_ADMIN_PASSWORD
       - HISTORIAN_ENABLE
