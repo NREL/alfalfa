@@ -1,5 +1,6 @@
 export WEB_REGISTRY_URI=nrel/alfalfa-web
 export WORKER_REGISTRY_URI=nrel/alfalfa-worker
+export HISTORIAN_GUI_REGISTRY_URI=nrel/alfalfa-grafana
 
 # Here VERSION_TAG will override what is loaded from .env
 if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
