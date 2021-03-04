@@ -188,7 +188,7 @@
     ]
   },
   "timepicker": {},
-  "timezone": "",
+  "timezone": "utc",
   "title": "Simple Dashboard",
   "uid": "YxaCy4PMk",
   "version": 3
