@@ -1,6 +1,5 @@
 version: '3.2'
 
-
 services:
   influxdb:
     image: influxdb:1.8
@@ -22,7 +21,7 @@ services:
         - INFLUXDB_DB
         - INFLUXDB_HOST
     hostname: grafana
-    image: grafana/grafana:latest
+    image: ${HISTORIAN_GUI_REGISTRY_URI}:${VERSION_TAG}
     ports:
       - "3000:3000"
     environment:
