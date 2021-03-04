@@ -1,9 +1,8 @@
 version: '3.2'
 
-
 services:
   influxdb:
-    image: influxdb:latest
+    image: influxdb:1.8.4
     hostname: influxdb
     ports:
       - "8086:8086"
