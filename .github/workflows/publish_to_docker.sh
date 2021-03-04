@@ -5,8 +5,8 @@ export HISTORIAN_GUI_REGISTRY_URI=nrel/alfalfa-grafana
 # Here VERSION_TAG will override what is loaded from .env
 if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
     export VERSION_TAG="develop"
-elif [ "${GITHUB_REF}" == "refs/heads/publish-grafana" ]; then
-    export VERSION_TAG="experimental"
+# elif [ "${GITHUB_REF}" == "refs/heads/publish-grafana" ]; then
+#     export VERSION_TAG="experimental"
 elif [ "${GITHUB_REF}" == "refs/heads/master" ]; then
     export VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
 fi
