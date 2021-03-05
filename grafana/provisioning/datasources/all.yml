@@ -8,5 +8,5 @@ datasources:
    url: http://${INFLUXDB_HOST}:8086                    # url of the prom instance
    version: 1                                   # well, versioning
    database: $INFLUXDB_DB
-   user: $GF_SECURITY_ADMIN_USER
-   password: $GF_SECURITY_ADMIN_PASSWORD
+   user: $INFLUXDB_ADMIN_USER
+   password: $INFLUXDB_ADMIN_PASSWORD
