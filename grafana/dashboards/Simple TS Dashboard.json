@@ -24,7 +24,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "influxAlfalfa",
       "fieldConfig": {
         "defaults": {
           "custom": {
