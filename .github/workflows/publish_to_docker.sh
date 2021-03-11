@@ -7,7 +7,7 @@ if [ "${GITHUB_REF}" == "refs/heads/develop" ]; then
     export VERSION_TAG="develop"
 # elif [ "${GITHUB_REF}" == "refs/heads/publish-grafana" ]; then
 #     export VERSION_TAG="experimental"
-elif [ "${GITHUB_REF}" == "refs/heads/master" ]; then
+elif [ "${GITHUB_REF}" == "refs/heads/main" ]; then
     export VERSION_TAG="$(python ./.github/workflows/parse_version.py)"
 fi
 
@@ -20,8 +20,8 @@ docker push ${WORKER_REGISTRY_URI}:${VERSION_TAG}; (( exit_status = exit_status 
 echo "pushing ${HISTORIAN_GUI_REGISTRY_URI}:${VERSION_TAG}"
 docker push ${HISTORIAN_GUI_REGISTRY_URI}:${VERSION_TAG}; (( exit_status = exit_status || $? ))
 
-if [ "${GITHUB_REF}" == "refs/heads/master" ]; then
-    # Deploy master as the latest.
+if [ "${GITHUB_REF}" == "refs/heads/main" ]; then
+    # Deploy main as the latest.
     docker tag ${WEB_REGISTRY_URI}:${VERSION_TAG} ${WEB_REGISTRY_URI}:latest; (( exit_status = exit_status || $? ))
     docker tag ${WORKER_REGISTRY_URI}:${VERSION_TAG} ${WORKER_REGISTRY_URI}:latest; (( exit_status = exit_status || $? ))
     docker tag ${HISTORIAN_GUI_REGISTRY_URI}:${VERSION_TAG} ${HISTORIAN_GUI_REGISTRY_URI}:latest; (( exit_status = exit_status || $? ))
