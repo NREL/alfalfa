@@ -36,14 +36,13 @@ jobs:
         with:
           python-version: '3.6'
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2.0.0
 
       - name: Run tests with pytest
         run: |
-          pytest
+          poetry install
+          poetry run pytest
 
   integration-tests:
     name: Run integration tests
@@ -58,13 +57,12 @@ jobs:
         with:
           python-version: '3.6'
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2.0.0
 
       - name: Build and run stack
         run: |
+          printenv
           docker-compose up --build -d
 
       - name: Wait for web server
@@ -85,8 +83,86 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest --timeout=240 -m "integration"
+          poetry install
+          poetry run pytest --timeout=240 -m "integration"
 
       - name: Dump docker logs on failure
         if: failure()
         uses: jwalton/gh-docker-logs@v1
+
+  integration-tests-historian:
+    name: Run integration tests with historian
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2.0.0
+
+      - name: Build and run stack
+        run: |
+          export HISTORIAN_ENABLE=true
+          printenv
+          docker-compose -f docker-compose.yml -f docker-compose-historian.yml up --build -d
+
+      - name: Wait for web server
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost/'
+          responseCode: 200
+          timeout: 120000
+          interval: 500
+
+      - name: Wait another 30s
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '30s'
+
+      - name: Dump docker logs before tests
+        uses: jwalton/gh-docker-logs@v1
+
+      - name: Run tests with pytest
+        run: |
+          poetry install
+          poetry run pytest --timeout=240 -m "integration"
+
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v1
+
+  publish:
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      # Only if all other jobs pass.
+      - name: Wait on tests
+        uses: lewagon/wait-on-check-action@v0.2
+        with:
+          ref: ${{ github.ref }}
+          running-workflow-name: 'publish' #this job shouldn't wait for itself
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 20 # seconds
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Install only toml, which is used to extract version.
+      # We don't do anything else with Python in this job.
+      - name: Install toml
+        run: python -m pip install toml
+
+      - name: Build & Publish Images
+        shell: bash
+        run: ./.github/workflows/publish_to_docker.sh
+        env:
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}

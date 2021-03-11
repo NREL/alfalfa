@@ -9,6 +9,7 @@ import tarfile
 import boto3
 from pymongo import MongoClient
 from redis import Redis
+from influxdb import InfluxDBClient
 
 
 class AlfalfaConnections:
@@ -34,6 +35,17 @@ class AlfalfaConnections:
         self.mongo_db_recs = self.mongo_db.recs
         self.mongo_db_write_arrays = self.mongo_db.writearrays
         self.mongo_db_sims = self.mongo_db.sims
+
+        # InfluxDB
+        self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
+        if self.historian_enabled:
+            self.influx_db_name = os.environ['INFLUXDB_DB']
+            self.influx_client = InfluxDBClient(host=os.environ['INFLUXDB_HOST'],
+                                                username=os.environ['INFLUXDB_ADMIN_USER'],
+                                                password=os.environ['INFLUXDB_ADMIN_PASSWORD'])
+        else:
+            self.influx_db_name = None
+            self.influx_client = None
 
     def add_site_to_mongo(self, haystack_json, site_ref):
         """
@@ -81,12 +93,12 @@ class AlfalfaConnections:
 
                 return tarinfo
 
-            tarname = "{}.tar.gz".format(site_ref)
+            tarname = "%s.tar.gz" % site_ref
             tar = tarfile.open(tarname, "w:gz")
             tar.add(bucket_parsed_site_id_dir, filter=reset, arcname=site_ref)
             tar.close()
 
-            upload_location = "parsed/{}".format(tarname)
+            upload_location = "parsed/%s" % tarname
             try:
                 self.s3_bucket.upload_file(tarname, upload_location)
                 return True, upload_location

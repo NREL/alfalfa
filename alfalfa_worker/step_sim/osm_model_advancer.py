@@ -25,9 +25,6 @@ class OSMModelAdvancer(ModelAdvancer):
         tar.extractall(self.sim_path)
         tar.close()
 
-        # Subscribe to redis pubsub messages that control simulation
-        self.ac.redis_pubsub.subscribe(self.site_id)
-
         self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
 
         # If idf_file is named "in.idf" we need to change the name because in.idf is not accepted by mlep
@@ -55,7 +52,8 @@ class OSMModelAdvancer(ModelAdvancer):
 
         # Parse variables after Haystack measure
         self.variables_file = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/variables.cfg'))
-        self.variables = ParseVariables(self.variables_file, self.ep.mapping)
+        self.haystack_json_file = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/haystack_report_haystack.json'))
+        self.variables = ParseVariables(self.variables_file, self.ep.mapping, self.haystack_json_file)
 
         # Define MLEP inputs
         self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
@@ -101,12 +99,18 @@ class OSMModelAdvancer(ModelAdvancer):
         published to database during this process
         """
         self.exchange_data()
+
+        current_ep_time = self.get_energyplus_datetime()
+        self.model_logger.logger.info(
+            'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
         while True:
             current_ep_time = self.get_energyplus_datetime()
             if current_ep_time < self.start_datetime:
-                self.model_logger.logger.info('current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
+                self.model_logger.logger.info(
+                    'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
                 self.step()
             else:
+                self.model_logger.logger.info(f"current_ep_time: {current_ep_time} reached desired start_datetime: {self.start_datetime}")
                 break
         self.master_enable_bypass = False
         self.update_db()
@@ -138,8 +142,10 @@ class OSMModelAdvancer(ModelAdvancer):
         """
         Update database with current ep outputs and simulation time
         """
-        self.update_db_with_model_outputs()
-        self.update_sim_time_in_db()
+        self.write_outputs_to_mongo()
+        if self.historian_enabled:
+            self.write_outputs_to_influx()
+        self.update_sim_time_in_mongo()
 
     def create_tag_dictionaries(self):
         """Placeholder for method necessary to create Haystack entities and records"""
@@ -184,7 +190,6 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def run_external_clock(self):
         self.advance_to_start_time()
-
         while True:
             self.process_pubsub_message()
 
@@ -394,7 +399,7 @@ class OSMModelAdvancer(ModelAdvancer):
         inputs = tuple(self.ep.inputs)
         return inputs
 
-    def update_db_with_model_outputs(self):
+    def write_outputs_to_mongo(self):
         """Placeholder for updating the current values exposed through Mongo AFTER a simulation timestep"""
         for output_id in self.variables.get_output_ids():
             output_index = self.variables.get_output_index(output_id)
@@ -409,9 +414,52 @@ class OSMModelAdvancer(ModelAdvancer):
                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
                              "rec.cur": "m:"}}, False)
 
-    def update_sim_time_in_db(self):
+    def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
         output_time_string = "s:" + str(self.get_energyplus_datetime())
         self.ac.mongo_db_recs.update_one({"_id": self.site_id}, {
             "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(self.ep.kStep),
                      "rec.simStatus": "s:Running"}}, False)
+
+    def write_outputs_to_influx(self):
+        """
+        Write output data to influx
+        :return:
+        """
+        json_body = []
+        base = {
+            "measurement": self.site_id,
+            "time": f"{self.get_energyplus_datetime()}",
+        }
+        response = False
+        for output_id in self.variables.get_output_ids():
+            output_index = self.variables.get_output_index(output_id)
+            if output_index == -1:
+                self.model_logger.logger.error('bad output index for: %s' % output_id)
+            else:
+                output_value = self.ep.outputs[output_index]
+                dis = self.variables.get_haystack_dis_given_id(output_id)
+                base["fields"] = {
+                    "value": output_value
+                }
+                base["tags"] = {
+                    "id": output_id,
+                    "dis": dis,
+                    "siteRef": self.site_id,
+                    "point": True,
+                    "source": 'alfalfa'
+                }
+                json_body.append(base.copy())
+        try:
+            response = self.ac.influx_client.write_points(points=json_body,
+                                                          time_precision='s',
+                                                          database=self.ac.influx_db_name)
+
+        except ConnectionError as e:
+            self.model_logger.logger.error(f"Influx ConnectionError on curVal write: {e}")
+        if not response:
+            self.model_logger.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
+            self.model_logger.logger.info(f"Attempted to write: {json_body}")
+        else:
+            self.model_logger.logger.info(
+                f"Successful write to influx.  Length of JSON: {len(json_body)}")

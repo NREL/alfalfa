@@ -9,7 +9,7 @@ services:
       context: .
       args:
         - NODE_ENV
-    image: ${WEB_REGISTRY_URI}:latest
+    image: ${WEB_REGISTRY_URI}:${VERSION_TAG}
     ports:
      - target: 80
        published: 80
@@ -24,6 +24,7 @@ services:
       - MONGO_URL
       - MONGO_DB_NAME
       - S3_URL
+      - S3_URL_EXTERNAL
       - REDIS_HOST
       - S3_BUCKET
       - REGION
@@ -70,7 +71,7 @@ services:
       # and to copy the wait-for-it.sh file in deploy
       dockerfile: alfalfa_worker/Dockerfile
       context: .
-    image: ${WORKER_REGISTRY_URI}:latest
+    image: ${WORKER_REGISTRY_URI}:${VERSION_TAG}
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -83,6 +84,11 @@ services:
       - REDIS_HOST
       - S3_BUCKET
       - REGION
+      - INFLUXDB_DB
+      - INFLUXDB_HOST
+      - INFLUXDB_ADMIN_USER
+      - INFLUXDB_ADMIN_PASSWORD
+      - HISTORIAN_ENABLE
     depends_on:
       - redis
       - mongo
@@ -92,18 +98,7 @@ services:
     image: mongo
     ports:
       - "27017:27017"
-  #client-test:
-  #  build:
-  #    context: client
-  #    # Dockerfile is missing
-  #    dockerfile: client/Dockerfile-test
-  #  depends_on:
-  #    - alfalfa_web
   redis:
     image: redis
     ports:
       - "6379:6379"
-#  test:
-#    build: tests
-#    depends_on:
-#      - web

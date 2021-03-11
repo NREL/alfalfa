@@ -104,15 +104,14 @@ MongoClient.connect(process.env.MONGO_URL).then((mongoClient) => {
       if (err) {
         throw err;
       } else {
-        if ( process.env.S3_URL.indexOf("amazonaws") == -1 ) {
-          if (req.hostname.indexOf("alfalfa_web") == -1 ) {
-            // const url =  process.env.S3_URL + '/' + process.env.S3_BUCKET
-            const url = 'http://' + req.hostname + ':9000/' + process.env.S3_BUCKET
-            data.url = url;
-          } else {
-            const url = 'http://minio:9000/alfalfa';
-            data.url = url;
-          }
+        // if you're running locally and using internal Docker networking ( "http://minio:9000")
+        // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
+        if (process.env.S3_URL_EXTERNAL) {
+          const url = process.env.S3_URL_EXTERNAL + '/' + process.env.S3_BUCKET;
+          data.url = url;
+        } else {
+          const url = process.env.S3_URL + '/' + process.env.S3_BUCKET;
+          data.url = url;
         }
         res.send(JSON.stringify(data));
         res.end();
