@@ -1,5 +1,5 @@
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import mlep
 import pytz
 import os
@@ -16,15 +16,23 @@ from alfalfa_worker.step_sim.step_osm.parse_variables import ParseVariables
 
 class OSMModelAdvancer(ModelAdvancer):
     def __init__(self):
+        self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
         super(OSMModelAdvancer, self).__init__()
+        # Set up tar file for downloading from s3
+        self.parsed_path = '/parsed'
+        self.sim_path = '/simulate'
+        self.sim_path_site = os.path.join(self.sim_path, self.site_id)
+        if not os.path.exists(self.sim_path_site):
+            os.makedirs(self.sim_path_site)
+        self.tar_name = "{}.tar.gz".format(self.site_id)
+        self.tar_path = os.path.join(self.sim_path_site, self.tar_name)
+
         # Download file from bucket and extract
         self.bucket_key = os.path.join(self.parsed_path, self.tar_name)
         self.ac.s3_bucket.download_file(self.bucket_key, self.tar_path)
         tar = tarfile.open(self.tar_path)
         tar.extractall(self.sim_path)
         tar.close()
-
-        self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
 
         # If idf_file is named "in.idf" we need to change the name because in.idf is not accepted by mlep
         # (likely mlep is using that name internally)
@@ -47,6 +55,7 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
         self.ep.kStep = 1  # simulation step indexed at 1
+        # TODO This should be set from self.step_size
         self.ep.deltaT = 60  # the simulation step size represented in seconds - on 'step', the model will advance 1min
 
         # Parse variables after Haystack measure
@@ -62,9 +71,6 @@ class OSMModelAdvancer(ModelAdvancer):
         # exact right start time. This flag indicates we are interating in bypass mode
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
-
-    def seconds_per_time_step(self):
-        return 3600.0 / self.time_steps_per_hour
 
     def check_stop_conditions(self):
         """Placeholder to check for all stopping conditions"""
@@ -146,10 +152,6 @@ class OSMModelAdvancer(ModelAdvancer):
             self.write_outputs_to_influx()
         self.update_sim_time_in_mongo()
 
-    def create_tag_dictionaries(self):
-        """Placeholder for method necessary to create Haystack entities and records"""
-        # TODO maybe don't need...
-
     def cleanup(self):
         """
         Simulation files zipped and uploaded to s3 bucket, timeCompleted is set to now.
@@ -186,13 +188,6 @@ class OSMModelAdvancer(ModelAdvancer):
                                           False)
         self.ep.stop(True)
         self.ep.is_running = 0
-
-    def step_delta_time(self):
-        """
-        Return a timedelta object to represent the real time between steps
-        This is used by the internal clock. Does not apply to the external clock
-        """
-        return timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
 
     def reset(self, tarinfo):
         """
@@ -355,13 +350,8 @@ class OSMModelAdvancer(ModelAdvancer):
                 self.ac.mongo_db_recs.update_one({"_id": output_id}, {
                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
                              "rec.cur": "m:"}}, False)
-
-    def update_sim_time_in_mongo(self):
-        """Placeholder for updating the datetime in Mongo to current simulation time"""
-        output_time_string = "s:" + str(self.get_energyplus_datetime())
-        self.ac.mongo_db_recs.update_one({"_id": self.site_id}, {
-            "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(self.ep.kStep),
-                     "rec.simStatus": "s:Running"}}, False)
+    def current_sim_time(self):
+        return(str(self.get_energyplus_datetime()))
 
     def write_outputs_to_influx(self):
         """
