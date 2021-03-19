@@ -1,6 +1,11 @@
 # Standard library imports
+from datetime import datetime, timedelta
 import os
-import datetime
+import pytz
+import shutil
+import sys
+import tarfile
+import uuid
 
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
@@ -25,20 +30,21 @@ class ModelAdvancer(object):
         else:
             self.step_sim_value = None
 
+        #TODO start_datetime and end_datetime parsing are different for FMU vs OS
         # parser.add_argument('start_datetime', type=valid_date, help="Valid datetime, formatted: %Y-%m-%d %H:%M:%S")
-        self.start_datetime = datetime.datetime.strptime(self.args.start_datetime, '%Y-%m-%d %H:%M:%S')
+        self.start_datetime = datetime.strptime(self.args.start_datetime, '%Y-%m-%d %H:%M:%S')
         # self.start_datetime = self.args.start_datetime  # datetime object
         # self.end_datetime = self.args.end_datetime  # datetime object
-        self.end_datetime = datetime.datetime.strptime(self.args.end_datetime, '%Y-%m-%d %H:%M:%S')
+        self.end_datetime = datetime.strptime(self.args.end_datetime, '%Y-%m-%d %H:%M:%S')
 
-        # Setup logging
+        # Set up logging
         self.model_logger = ModelLogger()
 
-        # Setup connections
+        # Set up connections
         self.ac = AlfalfaConnections()
         self.site = self.ac.mongo_db_recs.find_one({"_id": self.site_id})
 
-        # Setup tar file for downloading from s3
+        # Set up tar file for downloading from s3
         self.parsed_path = '/parsed'
         self.sim_path = '/simulate'
         self.sim_path_site = os.path.join(self.sim_path, self.site_id)
@@ -67,6 +73,8 @@ class ModelAdvancer(object):
     def check_sim_status_stop(self):
         """
         Check if the simulation status is either stopped or stopping
+        and updates stop property
+        TODO instead of setting self.stop, consider returning boolean
 
         :return:
         """
@@ -96,11 +104,11 @@ class ModelAdvancer(object):
         """Placeholder to check for all stopping conditions"""
 
     def init_sim(self):
-        """Placeholder for all things necessary to initialize simulation"""
+        """Must be overwritten in subclasses."""
+        pass
 
     def step(self):
-        """Placeholder for making a step through simulation time
-
+        """Must be overwritten in subclasses.
         Step should consist of the following:
             - Reading write arrays from mongo
             - check_sim_status_stop
@@ -111,6 +119,7 @@ class ModelAdvancer(object):
                 - Read output vals from simulation
                 - Update Mongo with values
         """
+        pass
 
     def update_model_inputs_from_write_arrays(self):
         """Placeholder for getting write values from Mongo and writing into simulation BEFORE a simulation timestep"""
@@ -128,14 +137,68 @@ class ModelAdvancer(object):
         """Placeholder for configuring necessary files for running model"""
 
     def cleanup(self):
-        """Placeholder for cleaning up after simulation has completed"""
+        """Must be overwritten in subclasses."""
+        pass
+    def advance_to_start_time(self):
+        """Must be overwritten in subclasses."""
+        pass
+
+    def set_redis_states_after_advance(self):
+        """Set an idle state in Redis"""
+        self.ac.redis.publish(self.site_id, 'complete')
+        self.ac.redis.hset(self.site_id, 'control', 'idle')
 
     def run_external_clock(self):
-        """Placeholder for running using an external_clock"""
+        self.advance_to_start_time()
+        while True:
+            self.process_pubsub_message()
+
+            if self.stop:
+                self.cleanup()
+                break
+
+            if self.advance:
+                self.step()
+                self.update_db()
+                self.set_redis_states_after_advance()
+                self.advance = False
 
     def run_timescale(self):
-        """Placeholder for running using  an internal clock and a timescale"""
+        self.advance_to_start_time()
 
+        next_step_time = datetime.now() + self.step_delta_time()
+        while True:
+            current_time = datetime.now()
+
+            if current_time >= next_step_time:
+                self.advance = True
+
+            self.process_pubsub_message()
+
+            if self.stop:
+                self.cleanup()
+                break
+
+            if self.advance:
+                self.step()
+                self.update_db()
+                self.set_redis_states_after_advance()
+                next_step_time = next_step_time + self.step_delta_time()
+                self.advance = False
+
+    def process_pubsub_message(self):
+        """
+        Process message from pubsub and set relevant flags
+
+        :return:
+        """
+        message = self.ac.redis_pubsub.get_message()
+        if message:
+            data = message['data']
+            if data == b'advance':
+                self.advance = True
+            elif data == b'stop':
+                self.stop = True
 
 if __name__ == '__main__':
     m = ModelAdvancer()

@@ -1,14 +1,13 @@
-# Standard library imports
+
+from datetime import datetime, timedelta
+import mlep
+import pytz
 import os
 import shutil
 import sys
 import tarfile
 import uuid
-from datetime import datetime, timedelta
 
-# Third party library imports
-import mlep
-import pytz
 
 # Local imports
 from alfalfa_worker.step_sim.model_advancer import ModelAdvancer
@@ -188,50 +187,12 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep.stop(True)
         self.ep.is_running = 0
 
-    def run_external_clock(self):
-        self.advance_to_start_time()
-        while True:
-            self.process_pubsub_message()
-
-            if self.stop:
-                self.cleanup()
-                break
-
-            if self.advance:
-                self.step()
-                self.update_db()
-                self.set_redis_states_after_advance()
-                self.advance = False
-
     def step_delta_time(self):
         """
         Return a timedelta object to represent the real time between steps
         This is used by the internal clock. Does not apply to the external clock
         """
         return timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
-
-    def run_timescale(self):
-        self.advance_to_start_time()
-
-        next_step_time = datetime.now() + self.step_delta_time()
-        while True:
-            current_time = datetime.now()
-
-            if current_time >= next_step_time:
-                self.advance = True
-
-            self.process_pubsub_message()
-
-            if self.stop:
-                self.cleanup()
-                break
-
-            if self.advance:
-                self.step()
-                self.update_db()
-                self.set_redis_states_after_advance()
-                next_step_time = next_step_time + self.step_delta_time()
-                self.advance = False
 
     def reset(self, tarinfo):
         """
@@ -358,25 +319,6 @@ class OSMModelAdvancer(ModelAdvancer):
         :return:
         """
         self.replace_timestep_and_run_period_idf_settings()
-
-    def process_pubsub_message(self):
-        """
-        Process message from pubsub and set relevant flags
-
-        :return:
-        """
-        message = self.ac.redis_pubsub.get_message()
-        if message:
-            data = message['data']
-            if data == b'advance':
-                self.advance = True
-            elif data == b'stop':
-                self.stop = True
-
-    def set_redis_states_after_advance(self):
-        """Set an idle state in Redis"""
-        self.ac.redis.publish(self.site_id, 'complete')
-        self.ac.redis.hset(self.site_id, 'control', 'idle')
 
     def read_write_arrays_and_prep_inputs(self):
         master_index = self.variables.input_index_from_variable_name("MasterEnable")
