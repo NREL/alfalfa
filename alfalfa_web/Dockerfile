@@ -8,7 +8,8 @@ WORKDIR /root
 
 COPY alfalfa_web/package.json alfalfa_web/package-lock.json /root/
 
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
+    && curl -fsSL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -y ca-certificates nodejs \
     && npm install
 
