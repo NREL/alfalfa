@@ -69,7 +69,7 @@ COPY alfalfa_worker/requirements/py2-production.txt /alfalfa/
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
 # Line 3 below installs python packages to the system and not in a virtualenv.
 RUN  python3 -m pip install --upgrade pip setuptools && \
-     python3 -m pip install poetry && \
+     python3 -m pip install poetry==1.1.4 && \
      python3 -m poetry config virtualenvs.create false && \
      python3 -m poetry install --no-dev
 # Python 2 dependencies
