@@ -1,21 +1,21 @@
-FROM ubuntu:trusty
+FROM ubuntu:18.04
 
-RUN apt-get update && apt-get -y install ca-certificates curl python-software-properties build-essential git
+RUN apt-get update && apt-get -y install curl git
+
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+    && apt-get update \
+    && apt-get install -y nodejs
 
 RUN cd /root
-
 WORKDIR /root
 
 COPY alfalfa_web/package.json alfalfa_web/package-lock.json /root/
 
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
-    && apt-get install -y --force-yes ca-certificates nodejs \
-    && npm install
+RUN npm install
 
 COPY alfalfa_web /root
 COPY lib/dbops.js /root/server/
 
 ARG NODE_ENV
 RUN npm run build
-RUN ls -alh build/app/
 CMD [ "npm", "start" ]
