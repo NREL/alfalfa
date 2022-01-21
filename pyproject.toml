@@ -14,27 +14,31 @@ authors = [
 [tool.poetry.dependencies]
 python = "^3.6.1"
 importlib-metadata = "3.4.0"
-boto3 = "1.17.8"
+boto3 = "~1.20.40"
 mlep = "0.1.1.dev3"
-pymongo = "3.11.3"
+pymongo = "4.0.1"
 redis = "3.5.3"
-requests = "2.25.1"
-symfit = "0.5.3"
-# These libraries are used for the data generator/testcase. They are pinned to older versions
-# as the min python version is 3.7
+requests = "^2.27.1"
+symfit = "0.5.4"
+
+# These libraries are used for the data generator/testcase.
+# They are pinned to older versions as the min python version is 3.7
 pandas = "0.24.2"
 scipy = "1.5.4"
 numpy = "1.19.5"
-influxdb = "5.3.0"
+
+# The influxdb dependency will be removed once filebeat is configured
+influxdb = "^5.3.1"
 
 [tool.poetry.dev-dependencies]
-alfalfa-client = "0.1.0.dev7"
+alfalfa-client = "0.1.1"
+#alfalfa-client = {path = "../alfalfa-client/", develop = true}
 #alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "develop"}
 autopep8 = "^1.4.4"
 pre-commit = "^2.10.1"
-pytest = "6.2.2"
+pytest = "^6.2.5"
 pycodestyle = "^2.5.0"
-pytest-cov = "2.11.1"
+pytest-cov = "^3.0.0"
 pytest-docker-compose = "3.2.1"
 pytest-timeout = "1.4.2"
 tox = "^3.21.4"
