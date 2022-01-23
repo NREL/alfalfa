@@ -4,7 +4,7 @@ items:
   kind: Service
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -24,7 +24,7 @@ items:
   kind: Service
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -44,7 +44,7 @@ items:
   kind: Service
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -64,7 +64,7 @@ items:
   kind: Service
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -84,7 +84,7 @@ items:
   kind: Service
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -104,7 +104,7 @@ items:
   kind: Service
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -124,7 +124,7 @@ items:
   kind: Service
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -147,7 +147,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -163,7 +163,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
@@ -185,7 +185,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -201,7 +201,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
@@ -237,7 +237,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -253,7 +253,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
@@ -285,7 +285,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -301,7 +301,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
@@ -332,7 +332,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -348,7 +348,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
@@ -379,7 +379,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -395,7 +395,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
@@ -417,7 +417,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -433,7 +433,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
@@ -455,7 +455,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -471,7 +471,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
@@ -517,7 +517,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
+      kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
         k8s-historian.yml convert
       kompose.version: 1.21.0 ()
     creationTimestamp: null
@@ -533,7 +533,7 @@ items:
     template:
       metadata:
         annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
+          kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
             -o k8s-historian.yml convert
           kompose.version: 1.21.0 ()
         creationTimestamp: null
