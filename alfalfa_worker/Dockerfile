@@ -1,13 +1,29 @@
-FROM michaelwetter/ubuntu-1804_jmodelica_trunk
+FROM michaelwetter/ubuntu-1804_jmodelica_trunk AS base
 
 USER root
+
 ENV HOME /home/alfalfa
 
-WORKDIR /alfalfa
+# Need to set the lang to use Python 3.6 with Poetry
+ENV  LANG C.UTF-8
+WORKDIR /home/alfalfa
 
 RUN apt-get update -y && apt-get install -y \
-    ca-certificates curl libglu1 libjpeg8 libfreetype6 libxi6 libdbus-glib-1-2 libfontconfig1 libsm6 gdebi-core python3 python3-pip \
-    && apt-get install -y git
+        ca-certificates \
+        curl \
+        libglu1 \
+        libjpeg8 \
+        libfreetype6 \
+        libxi6 \
+        libdbus-glib-1-2 \
+        libfontconfig1 \
+        libsm6 \
+        gdebi-core \
+        python3 \
+        python3-pip \
+        vim \
+        git && \
+    apt-get install -y git
 
 RUN apt-get update \
     && apt-get install -y software-properties-common \
@@ -44,8 +60,6 @@ RUN curl -SLO ${SPAWN_DOWNLOAD_URL} \
     && tar -C /usr/local/Spawn-0.0.1/ --strip-components=1 -xzf ${SPAWN_DOWNLOAD_FILENAME} \
     && ln -s /usr/local/Spawn-0.0.1/bin/spawn /usr/local/bin/ \
     && rm ${SPAWN_DOWNLOAD_FILENAME}
-RUN spawn --version
-
 
 # We would rather use the self extracting tarball distribution of EnergyPlus, but there appears to
 # be a bug in the installation script so using the tar.gz manually here and making our own links
@@ -61,17 +75,19 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
-# Need to set the lang to use Python 3.6 with Poetry
-ENV  LANG C.UTF-8
+
+WORKDIR /alfalfa
 COPY pyproject.toml /alfalfa/
 COPY poetry.lock /alfalfa/
 COPY alfalfa_worker/requirements/py2-production.txt /alfalfa/
+
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
 # Line 3 below installs python packages to the system and not in a virtualenv.
 RUN  python3 -m pip install --upgrade pip setuptools && \
-     python3 -m pip install poetry==1.1.4 && \
+     python3 -m pip install poetry==1.1.12 && \
      python3 -m poetry config virtualenvs.create false && \
      python3 -m poetry install --no-dev
+
 # Python 2 dependencies
 RUN  python -m pip install --ignore-installed -r /alfalfa/py2-production.txt
 
@@ -83,8 +99,9 @@ COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 COPY ./deploy/start_worker.sh start_worker.sh
 
 WORKDIR /alfalfa/alfalfa_worker
+# add back in the workflow.tar.gz, but this will be remove (i think)
+# when we remove the osm support.
 RUN tar -czf workflow.tar.gz workflow
-
 ENV ROOT_DIR /usr/local
 ENV JMODELICA_HOME $ROOT_DIR/JModelica
 ENV IPOPT_HOME $ROOT_DIR/Ipopt-3.12.4
@@ -93,4 +110,27 @@ ENV SEPARATE_PROCESS_JVM /usr/lib/jvm/java-8-openjdk-amd64/
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 ENV PYTHONPATH $PYTHONPATH:$JMODELICA_HOME/Python:$JMODELICA_HOME/Python/pymodelica
 
-CMD [ "/alfalfa/start_worker.sh" ]
+CMD ["/alfalfa/start_worker.sh"]
+
+# **** Staged build for running in development mode ****
+FROM base as dev
+
+# Install poetry's dev dependencies by removing old lock
+RUN rm -f poetry.lock && \
+    python3 -m pip install --upgrade pip setuptools && \
+    python3 -m pip install poetry==1.1.12 && \
+    python3 -m poetry config virtualenvs.create false && \
+    python3 -m poetry install
+
+# for remote debugging
+RUN pip install remote-pdb
+
+# for live reloading celery
+RUN pip install watchdog[watchmedo]
+
+# The docker-compose will require the mounting
+# of the files into the container, see docker-compose.dev.yml
+
+# Enable the ability to restart the service when
+# the files change
+CMD ["watchmedo", "auto-restart", "--directory=/alfalfa/alfalfa_worker", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]

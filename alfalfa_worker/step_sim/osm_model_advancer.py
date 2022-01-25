@@ -41,8 +41,8 @@ class OSMModelAdvancer(ModelAdvancer):
 
         # EnergyPlus MLEP initializations
         self.ep = mlep.MlepProcess()
-        self.ep.bcvtbDir = '/alfalfa/bcvtb/'
-        self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
+        self.ep.bcvtbDir = '/home/alfalfa/bcvtb/'
+        self.ep.env = {'BCVTB_HOME': '/home/alfalfa/bcvtb'}
         self.ep.accept_timeout = 30000
         self.ep.mapping = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/haystack_report_mapping.json'))
         self.ep.workDir = os.path.split(self.idf_file)[0]
