@@ -44,6 +44,42 @@ jobs:
           poetry install
           poetry run pytest
 
+  fmu-tests:
+    name: Run fmu tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and run stack
+        run: |
+          printenv
+          docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+
+      - name: Wait for web server
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost/'
+          responseCode: 200
+          timeout: 120000
+          interval: 500
+
+      - name: Wait another 30s
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '30s'
+
+      - name: Dump docker logs before tests
+        uses: jwalton/gh-docker-logs@v1
+
+      - name: Run tests in Docker worker container
+        run: |
+          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m fmu"
+
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v1
+
   integration-tests:
     name: Run integration tests
     runs-on: ubuntu-latest
@@ -110,7 +146,7 @@ jobs:
         run: |
           export HISTORIAN_ENABLE=true
           printenv
-          docker-compose -f docker-compose.yml -f docker-compose-historian.yml up --build -d
+          docker-compose -f docker-compose.yml -f docker-compose.historian.yml up --build -d
 
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1

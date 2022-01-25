@@ -85,8 +85,12 @@ tests/worker/lib/output
 socket.cfg
 fort.6
 
-# alfalfa tarballs
+# alfalfa simulation files
 alfalfa_worker/*.tar.gz
+alfalfa_worker/Buildings_HelloWorld_exportedModel*
+alfalfa_worker/wrapped_*
+!alfalfa_worker/workflow.tar.gz
+wrapped_log.txt
 
 # Custom
 client/__pycache__/*

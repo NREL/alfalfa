@@ -99,6 +99,9 @@ COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 COPY ./deploy/start_worker.sh start_worker.sh
 
 WORKDIR /alfalfa/alfalfa_worker
+# add back in the workflow.tar.gz, but this will be remove (i think)
+# when we remove the osm support.
+RUN tar -czf workflow.tar.gz workflow
 ENV ROOT_DIR /usr/local
 ENV JMODELICA_HOME $ROOT_DIR/JModelica
 ENV IPOPT_HOME $ROOT_DIR/Ipopt-3.12.4
