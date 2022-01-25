@@ -85,5 +85,8 @@ tests/worker/lib/output
 socket.cfg
 fort.6
 
+# alfalfa tarballs
+alfalfa_worker/*.tar.gz
+
 # Custom
 client/__pycache__/*
