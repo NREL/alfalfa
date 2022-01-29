@@ -3,3 +3,6 @@
 dist
 docs
 tox.ini
+
+alfalfa_web/.config
+alfalfa_web/.npm

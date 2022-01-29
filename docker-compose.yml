@@ -6,20 +6,23 @@ services:
       # is to utilize shared code, specifically in db
       dockerfile: alfalfa_web/Dockerfile
       context: .
+      target: base
       args:
         - NODE_ENV
     image: ${WEB_REGISTRY_URI}:${VERSION_TAG}
     ports:
-     - target: 80
-       published: 80
-       protocol: tcp
-       mode: host
-     - "29043:29043"
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - "29043:29043"
     environment:
       - NODE_ENV
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
-      - JOB_QUEUE_URL
+      - JOB_QUEUE_URL=${JOB_QUEUE_URL_1}
+      - JOB_QUEUE_URL_1
+      - JOB_QUEUE_URL_2
       - MONGO_URL
       - MONGO_DB_NAME
       - S3_URL
@@ -75,7 +78,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
-      - JOB_QUEUE_URL
+      - JOB_QUEUE_URL=${JOB_QUEUE_URL_1}
       - MONGO_URL
       - MONGO_DB_NAME
       - LOGLEVEL=INFO

@@ -25,13 +25,15 @@ RUN apt-get update -y && apt-get install -y \
         git && \
     apt-get install -y git
 
+# Use set in update-alternatives instead of config to
+# provide non-interactive input.
 RUN apt-get update \
     && apt-get install -y software-properties-common \
     && add-apt-repository -y ppa:openjdk-r/ppa \
     && apt-get update -y \
     && apt-get install -y openjdk-8-jdk-headless \
-    && update-alternatives --config java \
-    && update-alternatives --config javac \
+    && update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java \
+    && update-alternatives --set javac /usr/lib/jvm/java-8-openjdk-amd64/bin/javac \
     && curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz \
     && tar -xzf bcvtb-linux.tar.gz \
     && apt-get install -y ca-certificates nodejs
@@ -75,7 +77,6 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
-
 WORKDIR /alfalfa
 COPY pyproject.toml /alfalfa/
 COPY poetry.lock /alfalfa/
@@ -113,7 +114,7 @@ ENV PYTHONPATH $PYTHONPATH:$JMODELICA_HOME/Python:$JMODELICA_HOME/Python/pymodel
 CMD ["/alfalfa/start_worker.sh"]
 
 # **** Staged build for running in development mode ****
-FROM base as dev
+FROM base AS dev
 
 # Install poetry's dev dependencies by removing old lock
 RUN rm -f poetry.lock && \
@@ -134,3 +135,9 @@ RUN pip install watchdog[watchmedo]
 # Enable the ability to restart the service when
 # the files change
 CMD ["watchmedo", "auto-restart", "--directory=/alfalfa/alfalfa_worker", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
+
+# **** Image with just OpenStudio and EnergyPlus ****
+FROM ubuntu:18.04 AS alfalfa-openstudio
+COPY --from=base /usr/local/EnergyPlus-9-4-0 /usr/local/EnergyPlus-9-4-0
+# This is a WIP, need to decide how where the base libraries go because ./energyplus requires
+# several libraries to already be installed on the core OS
