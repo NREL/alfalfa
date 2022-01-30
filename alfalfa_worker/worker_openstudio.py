@@ -26,40 +26,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-import traceback
-import json
 import os
 import subprocess
 import sys
 from datetime import datetime
 
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
-from alfalfa_worker.worker_logger import WorkerLogger
+from alfalfa_worker.worker_job_base import WorkerJobBase
+from alfalfa_worker.lib.utils import process_datetime_string
 
 
-class Worker:
+class WorkerOpenStudio(WorkerJobBase):
     """The Alfalfa alfalfa_worker class.  Used for processing messages from the boto3 SQS Queue resource"""
 
     def __init__(self):
-        self.ac = AlfalfaConnections()
-        self.worker_logger = WorkerLogger()
-        os.chdir('alfalfa_worker')
-        self.alfalfa_worker_dir = os.getcwd()
-
-    def process_datetime_string(self, dt):
-        """
-        Check that datetime string has been correctly passed.
-        Should be passed as: "%Y-%m-%d %H:%M:%S"
-
-        :param str dt: datetime string
-        :return: formatted time string
-        """
-        try:
-            dt = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
-            return (dt.strftime("%Y-%m-%d %H:%M:%S"))
-        except ValueError:
-            self.worker_logger.logger.info("Invalid datetime string passed: {}".format(dt))
-            sys.exit(1)
+        super().__init__()
 
     def check_step_sim_config(self, message_body, sim_type):
         """
@@ -143,54 +123,15 @@ class Worker:
                 step_sim_type = "timescale"
                 step_sim_value = int(timescale)
             else:
-                self.worker_logger.logger.info("timescale: {} must be an integer value".format(timescale))
+                self.worker_logger.logger.info(f"timescale: {timescale} must be an integer value")
                 sys.exit(1)
 
         # Check datetime string formatting
         if sim_type == 'osm':
-            start_datetime = self.process_datetime_string(start_datetime)
-            end_datetime = self.process_datetime_string(end_datetime)
+            start_datetime = process_datetime_string(start_datetime, logger=self.worker_logger.logger)
+            end_datetime = process_datetime_string(end_datetime, logger=self.worker_logger.logger)
 
         return (step_sim_type, step_sim_value, start_datetime, end_datetime)
-
-    def check_message_body(self, message_body, message_type):
-        """
-        Check that the message body contains minimum necessary keys before next step is processed.
-
-        :param message_body: Body of a single message from a boto3 Queue resource
-        :type message_body: dict
-        :param str message_type: One of 'add_site', 'step_sim', 'run_sim'
-        :return:
-        """
-        self.worker_logger.logger.info("Checking message_body for: {}".format(message_type))
-        self.worker_logger.logger.info("message_body: {}".format(message_body))
-        to_return = None
-        if message_type == 'add_site':
-            osm_name = message_body.get('osm_name', False)
-            upload_id = message_body.get('upload_id', False)
-            to_return = False if not osm_name or not upload_id else True
-        elif message_type == 'step_sim':
-            site_id = message_body.get('id', False)
-            to_return = False if not site_id else True
-        elif message_type == 'run_sim':
-            upload_filename = message_body.get('upload_filename', False)
-            upload_id = message_body.get('upload_id', False)
-            to_return = False if not upload_filename or not upload_id else True
-        return (to_return)
-
-    def check_subprocess_call(self, rc, file_name, message_type):
-        """
-        Simple wrapper to check and log subprocess calls
-
-        :param rc: return code as returned by subprocess.call() method
-        :param file_name:
-        :return:
-        """
-        if rc == 0:
-            self.worker_logger.logger.info("{} successful for: {}".format(message_type, file_name))
-        else:
-            self.worker_logger.logger.info("{} unsuccessful for: {}".format(message_type, file_name))
-            self.worker_logger.logger.info("{} return code: {}".format(message_type, rc))
 
     def add_site_type(self, p, file_name, upload_id):
         """
@@ -208,8 +149,7 @@ class Worker:
             self.check_subprocess_call(return_code, file_name, 'add_site')
 
     def step_sim_type(self, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, model_type):
-        """
-        Simple wrapper for the step_sim subprocess call given required params
+        """Simple wrapper for the step_sim subprocess call given required params
 
         :param p:
         :param site_id:
@@ -293,6 +233,7 @@ class Worker:
         :type message_body: dict
         :return:
         """
+        # TODO: move the body check to before the calling of `add_site`
         body_check = self.check_message_body(message_body, 'add_site')
         if not body_check:
             self.worker_logger.logger.info(
@@ -305,7 +246,7 @@ class Worker:
 
             # TODO reorganize the message names, because now "osm_name"
             #  is misleading because we are also handling FMUs
-            name, ext = os.path.splitext(file_name)
+            _, ext = os.path.splitext(file_name)
             if ext in ['.osm', '.zip', '.fmu']:
                 p = 'add_site/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
@@ -375,56 +316,3 @@ class Worker:
                 self.run_sim_type(p, upload_filename, upload_id)
             else:
                 self.worker_logger.logger.info('Unsupported file type was uploaded')
-
-    def process_message(self, message):
-        """
-        Process a single message from Queue.  Depending on operation requested, will call one of:
-        - step_sim
-        - add_site
-        - run_sim
-
-        :param message: A single message, as returned from a boto3 Queue resource
-        :return:
-        """
-        try:
-            message_body = json.loads(message.body)
-            message.delete()
-            op = message_body.get('op')
-            if op == 'InvokeAction':
-                action = message_body.get('action')
-                # TODO change to step_sim
-                if action == 'runSite':
-                    self.step_sim(message_body)
-
-                # TODO change to add_site
-                elif action == 'addSite':
-                    self.add_site(message_body)
-
-                # TODO change to run_sim
-                elif action == 'runSim':
-                    self.run_sim(message_body)
-
-        except Exception as e:
-            tb = traceback.format_exc()
-            self.worker_logger.logger.error("Exception while processing message: {} with {}".format(e, tb))
-
-    def run(self):
-        """
-        Listen to queue and process messages upon arrival
-
-        :return:
-        """
-        self.worker_logger.logger.info("Enter alfalfa_worker run")
-        while True:
-            # WaitTimeSeconds triggers long polling that will wait for events to enter queue
-            # Receive Message
-            try:
-                messages = self.ac.sqs_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20)
-                if len(messages) > 0:
-                    message = messages[0]
-                    self.worker_logger.logger.info('Message Received with payload: %s' % message.body)
-                    # Process Message
-                    self.process_message(message)
-            except BaseException as e:
-                tb = traceback.format_exc()
-                self.worker_logger.logger.info("Exception caught in alfalfa_worker.run: {} with {}".format(e, tb))

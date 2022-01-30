@@ -1,13 +1,13 @@
 print("Starting Alfalfa Worker")
 
 import sys
-from alfalfa_worker.worker import Worker
+from alfalfa_worker.worker_openstudio import WorkerOpenStudio
 import traceback
 
 
 if __name__ == '__main__':
     try:
-        worker = Worker()
+        worker = WorkerOpenStudio()
         worker.worker_logger.logger.info("Worker initialized")
     except BaseException as e:  # TODO: what exceptions to catch?
         tb = traceback.format_exc()

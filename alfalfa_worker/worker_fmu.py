@@ -41,7 +41,6 @@ class WorkerFmu(WorkerJobBase):
 
     def __init__(self):
         super().__init__()
-        print('THIS IS THE FMU WORKER! -- WIP!')
 
     def check_step_sim_config(self, message_body, sim_type):
         """
