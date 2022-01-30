@@ -102,7 +102,7 @@ COPY ./deploy/start_worker.sh start_worker.sh
 WORKDIR /alfalfa/alfalfa_worker
 # add back in the workflow.tar.gz, but this will be remove (i think)
 # when we remove the osm support.
-RUN tar -czf workflow.tar.gz workflow
+# RUN tar -czf workflow.tar.gz workflow
 ENV ROOT_DIR /usr/local
 ENV JMODELICA_HOME $ROOT_DIR/JModelica
 ENV IPOPT_HOME $ROOT_DIR/Ipopt-3.12.4
@@ -134,7 +134,7 @@ RUN pip install watchdog[watchmedo]
 
 # Enable the ability to restart the service when
 # the files change
-CMD ["watchmedo", "auto-restart", "--directory=/alfalfa/alfalfa_worker", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
+CMD ["watchmedo", "auto-restart", "--directory=/alfalfa/alfalfa_worker/worker_openstudio", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
 
 # **** Image with just OpenStudio and EnergyPlus ****
 FROM ubuntu:18.04 AS alfalfa-openstudio

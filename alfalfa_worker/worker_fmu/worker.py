@@ -165,26 +165,26 @@ class WorkerFmu(WorkerJobBase):
         arg_step_sim_value = None
         if step_sim_type == 'external_clock':
             if model_type == 'fmu':
-                p = 'step_sim/step_fmu.py'
+                p = 'worker_fmu/step_fmu.py'
                 # fmu needs to run with Python 2
                 python = 'python'
                 arg_start_datetime = start_datetime
                 arg_end_datetime = end_datetime
             else:
-                p = 'step_sim/step_osm.py'
+                p = 'worker_openstudio/step_osm.py'
                 python = 'python3'
                 arg_start_datetime = start_datetime
                 arg_end_datetime = end_datetime
         else:
             if model_type == 'fmu':
-                p = 'step_sim/step_fmu.py'
+                p = 'worker_fmu/step_fmu.py'
                 # fmu needs to run with Python 2
                 python = 'python'
                 arg_step_sim_value = step_sim_value
                 arg_start_datetime = start_datetime
                 arg_end_datetime = end_datetime
             else:
-                p = 'step_sim/step_osm.py'
+                p = 'worker_openstudio/step_osm.py'
                 python = 'python3'
                 arg_step_sim_value = step_sim_value
                 arg_start_datetime = start_datetime
@@ -248,8 +248,11 @@ class WorkerFmu(WorkerJobBase):
             # TODO reorganize the message names, because now "osm_name"
             #  is misleading because we are also handling FMUs
             _, ext = os.path.splitext(file_name)
-            if ext in ['.osm', '.zip', '.fmu']:
-                p = 'add_site/add_site.py'
+            if ext in ['.osm', '.zip']:
+                p = 'worker_openstudio/add_site.py'
+                self.add_site_type(p, file_name, upload_id)
+            elif ext in ['.fmu']:
+                p = 'worker_fmu/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
             else:
                 self.worker_logger.logger.info(
@@ -282,7 +285,9 @@ class WorkerFmu(WorkerJobBase):
             self.worker_logger.logger.info('Start step_sim for site_id: %s, and sim_type: %s' % (site_id, sim_type))
 
             # TODO: do we need to have two versions of python?
-            if sim_type == 'fmu' or sim_type == 'osm':
+            if sim_type == 'fmu':
+                self.step_sim_type(site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, sim_type)
+            elif sim_type == 'osm':
                 self.step_sim_type(site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, sim_type)
             else:
                 self.worker_logger.logger.info(

@@ -1,13 +1,22 @@
 print("Starting Alfalfa Worker")
 
+import os
 import sys
-from alfalfa_worker.worker_openstudio import WorkerOpenStudio
 import traceback
 
+# Determine which worker to load based on the QUEUE.
+# This may be temporary for now, not sure on how else
+# to determine which worker gets launched
+if 'local-queue1' in os.environ.get('JOB_QUEUE_URL', None):
+    from alfalfa_worker.worker_openstudio.worker import WorkerOpenStudio as Worker
+elif 'local-queue2' in os.environ.get('JOB_QUEUE_URL', None):
+    from alfalfa_worker.worker_fmu.worker import WorkerFmu as Worker
+else:
+    print(f"Unknown queue in env var of JOB_QUEUE_URL with {os.environ.get('JOB_QUEUE_URL', None)}")
 
 if __name__ == '__main__':
     try:
-        worker = WorkerOpenStudio()
+        worker = Worker()
         worker.worker_logger.logger.info("Worker initialized")
     except BaseException as e:  # TODO: what exceptions to catch?
         tb = traceback.format_exc()

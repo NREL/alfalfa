@@ -1,7 +1,7 @@
 # TODO
 
 # Local imports
-from alfalfa_worker.step_sim.model_advancer import ModelAdvancer
+from alfalfa_worker.model_advancer import ModelAdvancer
 
 
 class FMUModelAdvancer(ModelAdvancer):
