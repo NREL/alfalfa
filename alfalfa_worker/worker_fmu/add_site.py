@@ -10,7 +10,7 @@ from subprocess import call
 import json
 
 # Local
-from alfalfa_worker.add_site.add_site_logger import AddSiteLogger
+from alfalfa_worker.add_site_logger import AddSiteLogger
 from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_site_id
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
 
@@ -200,10 +200,10 @@ class AddSite:
             sys.exit(1)
 
         # locate the "default" workflow
-        default_workflow_path = '/alfalfa/alfalfa_worker/workflow/workflow.osw'
+        default_workflow_path = '/alfalfa/alfalfa_worker/worker_openstudio/lib/workflow/workflow.osw'
 
         # Merge the default workflow measures into the user submitted workflow
-        call(['openstudio', '/alfalfa/alfalfa_worker/add_site/merge_osws.rb', default_workflow_path, submitted_osw_path])
+        call(['openstudio', '/alfalfa/alfalfa_worker/worker_openstudio/lib/merge_osws.rb', default_workflow_path, submitted_osw_path])
 
         # run workflow
         call(['openstudio', 'run', '-m', '-w', submitted_osw_path])

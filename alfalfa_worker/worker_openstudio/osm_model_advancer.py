@@ -11,8 +11,8 @@ import mlep
 import pytz
 
 # Local imports
-from alfalfa_worker.step_sim.model_advancer import ModelAdvancer
-from alfalfa_worker.step_sim.step_osm.parse_variables import ParseVariables
+from alfalfa_worker.model_advancer import ModelAdvancer
+from alfalfa_worker.worker_openstudio.lib.parse_variables import ParseVariables
 
 
 class OSMModelAdvancer(ModelAdvancer):

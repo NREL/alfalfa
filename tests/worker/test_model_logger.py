@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from alfalfa_worker.step_sim.model_logger import ModelLogger
+from alfalfa_worker.model_logger import ModelLogger
 
 
 class TestModelLogger(TestCase):
