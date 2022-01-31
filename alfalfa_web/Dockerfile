@@ -17,7 +17,6 @@ COPY alfalfa_web/package.json alfalfa_web/package-lock.json /srv/alfalfa/
 RUN npm install
 
 COPY alfalfa_web /srv/alfalfa
-COPY lib/dbops.js /srv/alfalfa/server/
 
 ARG NODE_ENV
 RUN npm run build
@@ -34,7 +33,6 @@ FROM base AS dev
 # the files change
 RUN npm install watch
 COPY deploy/build_web.sh /srv/scripts/
-ADD lib/dbops.js /srv/scripts/
 RUN chmod +x /srv/scripts/build_web.sh
 
 ENTRYPOINT /srv/scripts/build_web.sh
