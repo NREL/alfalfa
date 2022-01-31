@@ -33,11 +33,11 @@ AWS.config.update({ region: process.env.REGION });
 var sqs = new AWS.SQS();
 var s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
-function addSiteResolver(osmName, uploadID) {
+function addSiteResolver(modelName, uploadID) {
   var params = {
     MessageBody: `{"op": "InvokeAction",
       "action": "addSite",
-      "osm_name": "${osmName}",
+      "model_name": "${modelName}",
       "upload_id": "${uploadID}"
     }`,
     QueueUrl: process.env.JOB_QUEUE_URL,

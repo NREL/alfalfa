@@ -248,8 +248,8 @@ const localstyles = (theme) => ({
 const withStyle = withStyles(localstyles)(Upload);
 
 const addJobQL = gql`
-  mutation addJobMutation($osmName: String!, $uploadID: String!) {
-    addSite(osmName: $osmName, uploadID: $uploadID)
+  mutation addJobMutation($modelName: String!, $uploadID: String!) {
+    addSite(modelName: $modelName, uploadID: $uploadID)
   }
 `;
 
@@ -267,6 +267,6 @@ const withRunSim = graphql(runSimQL, {
 
 export default graphql(addJobQL, {
   props: ({ mutate }) => ({
-    addJobProp: (osmName, uploadID) => mutate({ variables: { osmName, uploadID } })
-  })
+    addJobProp: (modelName, uploadID) => mutate({ variables: { modelName, uploadID } }),
+  }),
 })(withRunSim);
