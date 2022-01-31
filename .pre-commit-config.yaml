@@ -60,4 +60,4 @@ repos:
     rev: ""
     hooks:
       - id: prettier
-        types_or: [css, yaml, markdown]
+        types_or: [css, yaml, markdown, html]
