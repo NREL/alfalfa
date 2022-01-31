@@ -1,4 +1,4 @@
-version: '3.2'
+version: "3.2"
 
 services:
   influxdb:
@@ -14,7 +14,7 @@ services:
     restart: always
   grafana:
     build:
-      context: './grafana'
+      context: "./grafana"
       args:
         - INFLUXDB_ADMIN_USER
         - INFLUXDB_ADMIN_PASSWORD

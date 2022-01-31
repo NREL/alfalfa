@@ -5,7 +5,7 @@
 # Usage:
 #   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
-version: '3.4'
+version: "3.4"
 services:
   web: # main haystack application
     build:
@@ -45,7 +45,7 @@ services:
       - worker
       - mc
     # volumes:
-      # - ./alfalfa_web:/srv/alfalfa
+    # - ./alfalfa_web:/srv/alfalfa
   worker:
     build:
       # the purpose of context one level above is to install the entire alfalfa package
