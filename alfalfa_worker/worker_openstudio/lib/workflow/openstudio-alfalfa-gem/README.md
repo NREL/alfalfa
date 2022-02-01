@@ -30,8 +30,8 @@ To be filled out later.
 
 # Releasing
 
-* Update change log
-* Update version in `/lib/openstudio/openstudio-alfalfa/version.rb`
-* Merge down to master
-* Release via github
-* run `rake release` from master
+- Update change log
+- Update version in `/lib/openstudio/openstudio-alfalfa/version.rb`
+- Merge down to master
+- Release via github
+- run `rake release` from master
