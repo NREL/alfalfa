@@ -267,6 +267,6 @@ const withRunSim = graphql(runSimQL, {
 
 export default graphql(addJobQL, {
   props: ({ mutate }) => ({
-    addJobProp: (modelName, uploadID) => mutate({ variables: { modelName, uploadID } }),
-  }),
+    addJobProp: (modelName, uploadID) => mutate({ variables: { modelName, uploadID } })
+  })
 })(withRunSim);

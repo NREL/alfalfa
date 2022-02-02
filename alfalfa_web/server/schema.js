@@ -212,23 +212,23 @@ const mutationType = new GraphQLObjectType({
       name: "RunSim",
       type: GraphQLString,
       args: {
-        uploadFilename : { type: new GraphQLNonNull(GraphQLString) },
-        uploadID : { type: new GraphQLNonNull(GraphQLString) },
+        uploadFilename: { type: new GraphQLNonNull(GraphQLString) },
+        uploadID: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve: (_,args,context) => {
-        resolvers.runSimResolver(args.uploadFilename, args.uploadID,context);
-      },
+      resolve: (_, args, context) => {
+        resolvers.runSimResolver(args.uploadFilename, args.uploadID, context);
+      }
     },
     addSite: {
       name: "AddSite",
       type: GraphQLString,
       args: {
-        modelName : { type: new GraphQLNonNull(GraphQLString) },
-        uploadID : { type: new GraphQLNonNull(GraphQLString) },
+        modelName: { type: new GraphQLNonNull(GraphQLString) },
+        uploadID: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve: (_,args,request) => {
+      resolve: (_, args, request) => {
         resolvers.addSiteResolver(args.modelName, args.uploadID);
-      },
+      }
     },
     runSite: {
       name: "RunSite",
