@@ -13,8 +13,8 @@ Run the following command to setup pre-commit with your git environment:
 pre-commit install
 ```
 
-After it is installed, the pre-commit workflow will be run before every `git commit`.  It can also be run manually using: `pre-commit run --all-files`.  The yaml file is setup to ignore: E501,E402,W503,E731 (for both autopep8 and flake8), but runs the following:
+After it is installed, the pre-commit workflow will be run before every `git commit`. It can also be run manually using: `pre-commit run --all-files`. The yaml file is setup to ignore: E501,E402,W503,E731 (for both autopep8 and flake8), but runs the following:
 
-* autopep8
-* autoflake8 to remove unused variables and imports
-* flake8
+- autopep8
+- autoflake8 to remove unused variables and imports
+- flake8

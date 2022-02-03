@@ -20,8 +20,8 @@ class Advancer {
     this.sub = sub;
     this.handlers = {};
 
-    this.sub.on('message', (channel, message) => {
-      if (message == 'complete') {
+    this.sub.on("message", (channel, message) => {
+      if (message == "complete") {
         if (this.handlers.hasOwnProperty(channel)) {
           this.handlers[channel](message);
         }
@@ -39,10 +39,10 @@ class Advancer {
 
         // Cleanup the resrouces for advance and finalize the promise
         let interval;
-        const finalize = (success, message='') => {
+        const finalize = (success, message = "") => {
           clearInterval(interval);
           this.sub.unsubscribe(channel);
-          response[siteref] = { "status": success, "message": message };
+          response[siteref] = { status: success, message: message };
           pending = pending - 1;
           if (pending == 0) {
             resolve(response);
@@ -51,7 +51,7 @@ class Advancer {
 
         const notify = () => {
           this.handlers[channel] = () => {
-            finalize(true, 'success');
+            finalize(true, "success");
           };
 
           this.sub.subscribe(channel);
@@ -62,17 +62,17 @@ class Advancer {
           // Check if the simulation has gone back to idle
           let intervalCounts = 0;
           interval = setInterval(() => {
-            const control = this.redis.hget(siteref, 'control');
-            if (control == 'idle') {
+            const control = this.redis.hget(siteref, "control");
+            if (control == "idle") {
               // If the control state is idle, then assume the step has been made
               // and reslve the advance promise, this might happen if we miss the notification for some reason
-              finalize(true, 'success');
+              finalize(true, "success");
             } else {
               intervalCounts += 1;
             }
             if (intervalCounts > 6) {
-              console.error(`Simulation with id ${siteref} timed out while trying to advance`)
-              finalize(false, 'no simulation reply');
+              console.error(`Simulation with id ${siteref} timed out while trying to advance`);
+              finalize(false, "no simulation reply");
             }
           }, 10000);
         };
@@ -81,19 +81,20 @@ class Advancer {
         this.redis.watch(siteref, (err) => {
           if (err) throw err;
 
-          this.redis.hget(siteref, 'control', (err, control) => {
+          this.redis.hget(siteref, "control", (err, control) => {
             if (err) throw err;
             // if control not equal idle then abort the request to advance and return to client
-            if (control == 'idle') {
+            if (control == "idle") {
               // else proceed to advance state, this node has exclusive control over the simulation now
-              this.redis.multi()
+              this.redis
+                .multi()
                 .hset(siteref, "control", "advance")
                 .exec((err, results) => {
                   if (err) throw err;
                   notify();
-                })
+                });
             } else {
-              finalize(true, 'busy');
+              finalize(true, "busy");
             }
           });
         });
@@ -108,4 +109,4 @@ class Advancer {
   }
 }
 
-export {Advancer};
+export { Advancer };
