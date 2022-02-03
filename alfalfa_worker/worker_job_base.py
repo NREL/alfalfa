@@ -61,9 +61,9 @@ class WorkerJobBase(object):
         self.worker_logger.logger.info("message_body: {}".format(message_body))
         to_return = None
         if message_type == 'add_site':
-            osm_name = message_body.get('osm_name', False)
+            model_name = message_body.get('model_name', False)
             upload_id = message_body.get('upload_id', False)
-            to_return = False if not osm_name or not upload_id else True
+            to_return = False if not model_name or not upload_id else True
         elif message_type == 'step_sim':
             site_id = message_body.get('id', False)
             to_return = False if not site_id else True
