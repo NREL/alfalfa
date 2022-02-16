@@ -102,15 +102,6 @@ class AddSite:
             self.add_site_logger.logger.error("Unsupported file extension: {}".format(self.file_ext))
             os.exit(1)
 
-    def extract_workflow_tar(self):
-        """
-        Extract workflow tarball into this directory
-        :return:
-        """
-        tar = tarfile.open("workflow.tar.gz")
-        tar.extractall(self.bucket_parsed_site_id_dir)
-        tar.close()
-
     def get_site_ref(self, haystack_json):
         """
         Find the site given the haystack JSON file.  Remove 'r:' from string.
