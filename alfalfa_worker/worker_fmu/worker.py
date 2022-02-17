@@ -241,14 +241,12 @@ class WorkerFmu(WorkerJobBase):
                 'message_body for add_site does not have correct keys.  Site will not be added.')
             # TODO insert sys.exit(1)?
         else:
-            file_name = message_body.get('osm_name')  # TODO: change message body to file_name (for fmu)
+            file_name = message_body.get('model_name')
             upload_id = message_body.get('upload_id')
             self.worker_logger.logger.info('Add site for file_name: %s, and upload_id: %s' % (file_name, upload_id))
 
-            # TODO reorganize the message names, because now "osm_name"
-            #  is misleading because we are also handling FMUs
             _, ext = os.path.splitext(file_name)
-            if ext in ['.osm', '.zip']:
+            if ext in ['.zip']:
                 p = 'worker_openstudio/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
             elif ext in ['.fmu']:
@@ -256,7 +254,7 @@ class WorkerFmu(WorkerJobBase):
                 self.add_site_type(p, file_name, upload_id)
             else:
                 self.worker_logger.logger.info(
-                    "Unsupported file type: {}.  Valid extensions: .osm, .zip, .fmu".format(ext))
+                    "Unsupported file type: {}.  Valid extensions: .zip, .fmu".format(ext))
 
     def step_sim(self, message_body):
         """

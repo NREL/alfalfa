@@ -29,7 +29,6 @@ import glob
 import os
 import shutil
 import sys
-import tarfile
 import zipfile
 from subprocess import call
 import json
@@ -94,24 +93,13 @@ class AddSite:
         4. Remove files generated during this process
         :return:
         """
-        if self.file_ext == '.osm':
-            self.add_osm()
-        elif self.file_ext == '.zip':
+        if self.file_ext == '.zip':
             self.add_osw()
         elif self.file_ext == '.fmu':
             self.add_fmu()
         else:
             self.add_site_logger.logger.error("Unsupported file extension: {}".format(self.file_ext))
             os.exit(1)
-
-    def extract_workflow_tar(self):
-        """
-        Extract workflow tarball into this directory
-        :return:
-        """
-        tar = tarfile.open("workflow.tar.gz")
-        tar.extractall(self.bucket_parsed_site_id_dir)
-        tar.close()
 
     def get_site_ref(self, haystack_json):
         """
@@ -165,38 +153,6 @@ class AddSite:
 
         # add points to database
         self.ac.add_site_to_mongo(points_json, self.upload_id)
-
-    def add_osm(self):
-        """
-        Workflow for osm.
-        :return:
-        """
-        self.add_site_logger.logger.info("add_osm for {}".format(self.key))
-        self.ac.s3_bucket.download_file(self.key, self.seed_osm_path)
-
-        # Extract workflow tarball into this directory
-        self.extract_workflow_tar()
-
-        # Run OS Workflow on uploaded file to apply afalfa necessary measures
-        call(['openstudio', 'run', '-m', '-w', self.workflow_osw_path])
-
-        # insert tags into db
-        self.insert_os_tags(self.report_haystack_json, self.report_mapping_json)
-
-        # create a "simulation" directory that has everything required for simulation
-        simulation_dir = os.path.join(self.bucket_parsed_site_id_dir, 'simulation/')
-        os.mkdir(simulation_dir)
-        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/run/in.idf', simulation_dir + '/sim.idf')
-        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/files/weather.epw', simulation_dir + '/sim.epw')
-        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/haystack_report_mapping.json', simulation_dir)
-        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/haystack_report_haystack.json', simulation_dir)
-        shutil.copy(self.bucket_parsed_site_id_dir + '/workflow/reports/export_bcvtb_report_variables.cfg', simulation_dir + '/variables.cfg')
-
-        # push entire directory to file storage
-        filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
-
-        # remove directory
-        shutil.rmtree(self.bucket_parsed_site_id_dir)
 
     def add_osw(self):
         """

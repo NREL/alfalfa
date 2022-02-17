@@ -92,7 +92,6 @@ fort.6
 alfalfa_worker/*.tar.gz
 alfalfa_worker/Buildings_HelloWorld_exportedModel*
 alfalfa_worker/wrapped_*
-!alfalfa_worker/worker_openstudio/workflow.tar.gz
 wrapped_log.txt
 
 # Custom
