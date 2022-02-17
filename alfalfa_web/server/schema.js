@@ -223,11 +223,11 @@ const mutationType = new GraphQLObjectType({
       name: "AddSite",
       type: GraphQLString,
       args: {
-        osmName: { type: new GraphQLNonNull(GraphQLString) },
+        modelName: { type: new GraphQLNonNull(GraphQLString) },
         uploadID: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (_, args, request) => {
-        resolvers.addSiteResolver(args.osmName, args.uploadID);
+        resolvers.addSiteResolver(args.modelName, args.uploadID);
       }
     },
     runSite: {
