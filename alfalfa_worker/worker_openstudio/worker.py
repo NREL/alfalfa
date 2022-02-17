@@ -274,7 +274,7 @@ class WorkerOpenStudio(WorkerJobBase):
             # TODO insert sys.exit(1)?
         else:
             site_id = message_body.get('id')
-            site_rec = self.ac.mongo_db_recs.find_one({"_id": site_id})
+            site_rec = self.mongo_db_recs.find_one({"_id": site_id})
             self.worker_logger.logger.info('Site record: {}'.format(site_rec))
 
             # TODO: Check if simType is defined, error if not.

@@ -45,7 +45,7 @@ class OSMModelAdvancer(ModelAdvancer):
         super(OSMModelAdvancer, self).__init__()
         # Download file from bucket and extract
         self.bucket_key = os.path.join(self.parsed_path, self.tar_name)
-        self.ac.s3_bucket.download_file(self.bucket_key, self.tar_path)
+        self.s3_bucket.download_file(self.bucket_key, self.tar_path)
         tar = tarfile.open(self.tar_path)
         tar.extractall(self.sim_path)
         tar.close()
@@ -193,7 +193,7 @@ class OSMModelAdvancer(ModelAdvancer):
         tar_file.close()
 
         s3_key = "simulated/%s/%s" % (self.site_id, tar_name)
-        self.ac.s3_bucket.upload_file(tar_name, s3_key)
+        self.s3_bucket.upload_file(tar_name, s3_key)
 
         os.remove(tar_name)
         shutil.rmtree(self.sim_path_site)
@@ -201,15 +201,15 @@ class OSMModelAdvancer(ModelAdvancer):
         name = self.site.get("rec", {}).get("dis", "Unknown") if self.site else "Unknown"
         name = name.replace("s:", "")
         t = str(datetime.now(tz=pytz.UTC))
-        self.ac.mongo_db_sims.insert_one(
+        self.mongo_db_sims.insert_one(
             {"_id": sim_id, "siteRef": self.site_id, "s3Key": s3_key, "name": name, "timeCompleted": t})
-        self.ac.mongo_db_recs.update_one({"_id": self.site_id},
-                                         {"$set": {"rec.simStatus": "s:Stopped"},
+        self.mongo_db_recs.update_one({"_id": self.site_id},
+                                      {"$set": {"rec.simStatus": "s:Stopped"},
                                           "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
-        self.ac.mongo_db_recs.update_many({"_id": self.site_id, "rec.cur": "m:"},
-                                          {"$unset": {"rec.curVal": "", "rec.curErr": ""},
+        self.mongo_db_recs.update_many({"_id": self.site_id, "rec.cur": "m:"},
+                                       {"$unset": {"rec.curVal": "", "rec.curErr": ""},
                                            "$set": {"rec.curStatus": "s:disabled"}},
-                                          False)
+                                       False)
         self.ep.stop(True)
         self.ep.is_running = 0
 
@@ -390,7 +390,7 @@ class OSMModelAdvancer(ModelAdvancer):
 
         :return:
         """
-        message = self.ac.redis_pubsub.get_message()
+        message = self.redis_pubsub.get_message()
         if message:
             data = message['data']
             if data == b'advance':
@@ -400,8 +400,8 @@ class OSMModelAdvancer(ModelAdvancer):
 
     def set_redis_states_after_advance(self):
         """Set an idle state in Redis"""
-        self.ac.redis.publish(self.site_id, 'complete')
-        self.ac.redis.hset(self.site_id, 'control', 'idle')
+        self.redis.publish(self.site_id, 'complete')
+        self.redis.hset(self.site_id, 'control', 'idle')
 
     def read_write_arrays_and_prep_inputs(self):
         master_index = self.variables.input_index_from_variable_name("MasterEnable")
@@ -410,7 +410,7 @@ class OSMModelAdvancer(ModelAdvancer):
         else:
             self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
             self.ep.inputs[master_index] = 1
-            for array in self.ac.mongo_db_write_arrays.find({"siteRef": self.site_id}):
+            for array in self.mongo_db_write_arrays.find({"siteRef": self.site_id}):
                 for val in array.get('val'):
                     if val is not None:
                         index = self.variables.get_input_index(array.get('_id'))
@@ -435,14 +435,14 @@ class OSMModelAdvancer(ModelAdvancer):
 
                 # TODO: Make this better with a bulk update
                 # Also at some point consider removing curVal and related fields after sim ends
-                self.ac.mongo_db_recs.update_one({"_id": output_id}, {
+                self.mongo_db_recs.update_one({"_id": output_id}, {
                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
                              "rec.cur": "m:"}}, False)
 
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
         output_time_string = "s:" + str(self.get_energyplus_datetime())
-        self.ac.mongo_db_recs.update_one({"_id": self.site_id}, {
+        self.mongo_db_recs.update_one({"_id": self.site_id}, {
             "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(self.ep.kStep),
                      "rec.simStatus": "s:Running"}}, False)
 
@@ -476,9 +476,9 @@ class OSMModelAdvancer(ModelAdvancer):
                 }
                 json_body.append(base.copy())
         try:
-            response = self.ac.influx_client.write_points(points=json_body,
-                                                          time_precision='s',
-                                                          database=self.ac.influx_db_name)
+            response = self.influx_client.write_points(points=json_body,
+                                                       time_precision='s',
+                                                       database=self.influx_db_name)
 
         except ConnectionError as e:
             self.model_logger.logger.error(f"Influx ConnectionError on curVal write: {e}")

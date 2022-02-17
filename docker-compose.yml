@@ -97,6 +97,9 @@ services:
       - mongo
       - goaws
       - mc
+    #volumes:
+    # TODO: Add in worker fmu volume
+    # TODO: Add in worker openstudio volume
   mongo:
     image: mongo
     ports:

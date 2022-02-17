@@ -27,14 +27,17 @@ import os
 import datetime
 
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
+from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
 from alfalfa_worker.model_logger import ModelLogger
 
 
-class ModelAdvancer(object):
-    """Base class for advancing models"""
+class ModelAdvancer(AlfalfaConnectionsBase):
+    """Base class for advancing models. Inherits from
+    AlfalfaConnectionsBase which provides member variables to
+    databases, queues, etc."""
 
     def __init__(self):
+        super().__init__()
         # Parse args and extract to class variables
 
         # Having an arg parser here is a bit strange. Maybe just a partial to the argparser?
@@ -59,8 +62,7 @@ class ModelAdvancer(object):
         self.model_logger = ModelLogger()
 
         # Setup connections
-        self.ac = AlfalfaConnections()
-        self.site = self.ac.mongo_db_recs.find_one({"_id": self.site_id})
+        self.site = self.mongo_db_recs.find_one({"_id": self.site_id})
 
         # Setup tar file for downloading from s3
         self.parsed_path = '/parsed'
@@ -85,8 +87,8 @@ class ModelAdvancer(object):
         :return:
         """
         output_time_string = 's:{}'.format(self.start_datetime.strftime("%Y-%m-%d %H:%M"))
-        self.ac.mongo_db_recs.update_one({"_id": self.site_id},
-                                         {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
+        self.mongo_db_recs.update_one({"_id": self.site_id},
+                                      {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
 
     def check_sim_status_stop(self):
         """
@@ -105,7 +107,7 @@ class ModelAdvancer(object):
         self.set_idle_state()
         self.init_sim()
         self.set_db_status_running()
-        self.ac.redis_pubsub.subscribe(self.site_id)
+        self.redis_pubsub.subscribe(self.site_id)
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
             self.model_logger.logger.info("Running timescale / realtime")
             self.run_timescale()
@@ -114,7 +116,7 @@ class ModelAdvancer(object):
             self.run_external_clock()
 
     def set_idle_state(self):
-        self.ac.redis.hset(self.site_id, 'control', 'idle')
+        self.redis.hset(self.site_id, 'control', 'idle')
 
     def check_stop_conditions(self):
         """Placeholder to check for all stopping conditions"""

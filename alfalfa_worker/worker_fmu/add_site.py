@@ -36,7 +36,7 @@ import json
 # Local
 from alfalfa_worker.add_site_logger import AddSiteLogger
 from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_site_id
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
+from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
 
 
 def rel_symlink(src, dst):
@@ -49,7 +49,7 @@ def rel_symlink(src, dst):
     os.symlink(src, dst)
 
 
-class AddSite:
+class AddSite(AlfalfaConnectionsBase):
     """A wrapper class around adding sites"""
 
     def __init__(self, fn, up_id, f_dir):
@@ -59,6 +59,8 @@ class AddSite:
         :param up_id: upload_id as first created by Upload.js when sending file to file s3 bucket (addSiteResolver)
         :param f_dir: directory to upload to on s3 bucket after parsing: parsed/{site_id}/.  Also used locally during this process.
         """
+        super().__init__()
+
         self.add_site_logger = AddSiteLogger()
         self.add_site_logger.logger.info("AddSite called with args: {} {} {}".format(fn, up_id, f_dir))
         self.file_name = fn
@@ -77,9 +79,6 @@ class AddSite:
         # Define FMU specific attributes
         self.fmu_path = os.path.join(self.bucket_parsed_site_id_dir, 'model.fmu')
         self.fmu_json = os.path.join(self.bucket_parsed_site_id_dir, 'tags.json')
-
-        # Create connections
-        self.ac = AlfalfaConnections()
 
         # Needs to be set after files are uploaded / parsed.
         self.site_ref = None
@@ -122,7 +121,7 @@ class AddSite:
             data = f.read()
         points_json = json.loads(data)
 
-        self.ac.add_site_to_mongo(points_json, self.upload_id)
+        self.add_site_to_mongo(points_json, self.upload_id)
 
     def insert_os_tags(self, points_json_path, mapping_json_path):
         """
@@ -152,7 +151,7 @@ class AddSite:
             json.dump(mapping_json, fp)
 
         # add points to database
-        self.ac.add_site_to_mongo(points_json, self.upload_id)
+        self.add_site_to_mongo(points_json, self.upload_id)
 
     def add_osw(self):
         """
@@ -167,7 +166,7 @@ class AddSite:
         payload_dir = os.path.join(self.bucket_parsed_site_id_dir, 'payload/')
         os.mkdir(payload_dir)
         payload_file_path = os.path.join(payload_dir, 'in.zip')
-        self.ac.s3_bucket.download_file(self.key, payload_file_path)
+        self.s3_bucket.download_file(self.key, payload_file_path)
         zzip = zipfile.ZipFile(payload_file_path)
         workflow_dir = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/')
         zzip.extractall(workflow_dir)
@@ -237,7 +236,7 @@ class AddSite:
             rel_symlink(epw_src_path, epw_dst_path)
 
         # push entire directory to file storage
-        filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
+        filestore_response, output = self.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
 
         # remove directory
         shutil.rmtree(self.bucket_parsed_site_id_dir)
@@ -255,7 +254,7 @@ class AddSite:
         """
         self.add_site_logger.logger.info("add_fmu for {}".format(self.key))
 
-        self.ac.s3_bucket.download_file(self.key, self.fmu_path)
+        self.s3_bucket.download_file(self.key, self.fmu_path)
 
         # External call to python2 to create FMU tags
         call(['python', 'lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
@@ -264,7 +263,7 @@ class AddSite:
         self.insert_fmu_tags(self.fmu_json)
 
         # push entire directory to file storage
-        filestore_response, output = self.ac.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
+        filestore_response, output = self.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
 
         # remove directory
         shutil.rmtree(self.bucket_parsed_site_id_dir)

@@ -25,9 +25,7 @@ export S3_BUCKET=alfalfa
 
 export REDIS_HOST=localhost
 
-export JOB_QUEUE_URL=http://localhost:4100/queue/local-queue1
-export JOB_QUEUE_URL_1=http://localhost:4100/queue/local-queue1
-export JOB_QUEUE_URL_2=http://localhost:4100/queue/local-queue2
+export JOB_QUEUE_URL=http://localhost:4100/queue/local-queue
 
 export MONGO_URL=mongodb://localhost:27017/
 export MONGO_DB_NAME=alfalfa
