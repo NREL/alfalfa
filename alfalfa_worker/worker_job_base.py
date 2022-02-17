@@ -23,7 +23,6 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
-import os
 
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
 from alfalfa_worker.worker_logger import WorkerLogger
@@ -45,10 +44,6 @@ class WorkerJobBase(AlfalfaConnectionsBase):
         super().__init__()
 
         self.worker_logger = WorkerLogger()
-
-        # TODO: when to change this directory, not here?
-        # os.chdir('alfalfa_worker')
-        self.alfalfa_worker_dir = os.getcwd()
 
     def check_message_body(self, message_body, message_type):
         """

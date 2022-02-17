@@ -144,7 +144,7 @@ class WorkerFmu(WorkerJobBase):
         :return:
         """
         if not os.path.isfile(p):
-            self.worker_logger.logger.info("No file: {}".format(p))
+            self.worker_logger.logger.info(f"No file: {p}, Working directory: {os.getcwd()}")
         else:
             return_code = subprocess.call(['python3', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'add_site')
@@ -165,26 +165,26 @@ class WorkerFmu(WorkerJobBase):
         arg_step_sim_value = None
         if step_sim_type == 'external_clock':
             if model_type == 'fmu':
-                p = 'worker_fmu/step_fmu.py'
+                p = 'alfalfa_worker/worker_fmu/step_fmu.py'
                 # fmu needs to run with Python 2
                 python = 'python'
                 arg_start_datetime = start_datetime
                 arg_end_datetime = end_datetime
             else:
-                p = 'worker_openstudio/step_osm.py'
+                p = 'alfalfa_worker/worker_openstudio/step_osm.py'
                 python = 'python3'
                 arg_start_datetime = start_datetime
                 arg_end_datetime = end_datetime
         else:
             if model_type == 'fmu':
-                p = 'worker_fmu/step_fmu.py'
+                p = 'alfalfa_worker/worker_fmu/step_fmu.py'
                 # fmu needs to run with Python 2
                 python = 'python'
                 arg_step_sim_value = step_sim_value
                 arg_start_datetime = start_datetime
                 arg_end_datetime = end_datetime
             else:
-                p = 'worker_openstudio/step_osm.py'
+                p = 'alfalfa_worker/worker_openstudio/step_osm.py'
                 python = 'python3'
                 arg_step_sim_value = step_sim_value
                 arg_start_datetime = start_datetime
@@ -247,10 +247,10 @@ class WorkerFmu(WorkerJobBase):
 
             _, ext = os.path.splitext(file_name)
             if ext in ['.zip']:
-                p = 'worker_openstudio/add_site.py'
+                p = 'alfalfa_worker/worker_openstudio/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
             elif ext in ['.fmu']:
-                p = 'worker_fmu/add_site.py'
+                p = 'alfalfa_worker/worker_fmu/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
             else:
                 self.worker_logger.logger.info(
