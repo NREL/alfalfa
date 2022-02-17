@@ -45,9 +45,12 @@ class DispatcherLoggerMixin:
     """A logger specific for the tasks of the Dispatcher.
     Feel free to move this to its own file!"""
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        # Since this is a mixin, call all other parent class initializers
+        super().__init__(*args, **kwargs)
+
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
-        self.logger = logging.getLogger('alfalfa_worker')
+        self.logger = logging.getLogger('alfalfa_dispatcher')
         self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         self.fh = logging.FileHandler('alfalfa_dispatcher.log')
@@ -71,6 +74,7 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
 
     def __init__(self):
         super().__init__()
+        self.logger.info(f"Job queue url is {self.sqs_queue}")
 
         # create classes for the workers that this dispatcher supports
         self.worker_openstudio_class = WorkerOpenStudio()

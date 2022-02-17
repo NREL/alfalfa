@@ -37,15 +37,15 @@ from alfalfa_worker.dispatcher import Dispatcher
 if __name__ == '__main__':
     try:
         dispatcher = Dispatcher()
-        dispatcher.logger.logger.info("Worker initialized")
+        dispatcher.logger.info("Dispatcher initialized")
     except BaseException as e:  # TODO: what exceptions to catch?
         tb = traceback.format_exc()
-        print("Exception while starting up alfalfa_worker error {} with {}".format(e, tb), file=sys.stderr)
+        print("Exception while starting up alfalfa dispatcher. Error {} with {}".format(e, tb), file=sys.stderr)
         sys.exit(1)
 
     try:
         dispatcher.run()  # run the dispatcher
     except BaseException as e:  # Catch all exceptions
         tb = traceback.format_exc()
-        dispatcher.dispatcher.logger.error("Uncaught worker error {} with {}".format(e, tb))
+        dispatcher.logger.error("Uncaught worker error {} with {}".format(e, tb))
         sys.exit(1)

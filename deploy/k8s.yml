@@ -328,7 +328,7 @@ items:
           - name: AWS_SECRET_ACCESS_KEY
             value: password
           - name: JOB_QUEUE_URL
-            value: http://goaws:4100/queue/local-queue
+            value: http://goaws:4100/queue/local-queue1
           - name: MONGO_DB_NAME
             value: alfalfa
           - name: MONGO_URL
@@ -398,7 +398,7 @@ items:
           - name: INFLUXDB_HOST
             value: influxdb
           - name: JOB_QUEUE_URL
-            value: http://goaws:4100/queue/local-queue
+            value: http://goaws:4100/queue/local-queue1
           - name: LOGLEVEL
             value: INFO
           - name: MONGO_DB_NAME

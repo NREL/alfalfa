@@ -28,9 +28,7 @@ services:
       - NODE_ENV
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
-      - JOB_QUEUE_URL=${JOB_QUEUE_URL_1}
-      - JOB_QUEUE_URL_1
-      - JOB_QUEUE_URL_2
+      - JOB_QUEUE_URL
       - MONGO_URL
       - MONGO_DB_NAME
       - S3_URL
@@ -57,7 +55,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
-      - JOB_QUEUE_URL=${JOB_QUEUE_URL}
+      - JOB_QUEUE_URL
       - MONGO_URL
       - MONGO_DB_NAME
       - LOGLEVEL=INFO
