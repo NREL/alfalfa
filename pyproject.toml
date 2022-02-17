@@ -33,7 +33,7 @@ influxdb = "^5.3.1"
 [tool.poetry.dev-dependencies]
 #alfalfa-client = "0.1.1"
 #alfalfa-client = {path = "../alfalfa-client/", develop = true}
-alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "osmName-refactor"}
+alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "develop"}
 autopep8 = "^1.4.4"
 pre-commit = "^2.10.1"
 pytest = "^6.2.5"
