@@ -28,10 +28,10 @@ import datetime
 
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
-from alfalfa_worker.model_logger import ModelLogger
+from alfalfa_worker.lib.logger_mixins import ModelLoggerMixin
 
 
-class ModelAdvancer(AlfalfaConnectionsBase):
+class ModelAdvancer(ModelLoggerMixin, AlfalfaConnectionsBase):
     """Base class for advancing models. Inherits from
     AlfalfaConnectionsBase which provides member variables to
     databases, queues, etc."""
@@ -58,10 +58,7 @@ class ModelAdvancer(AlfalfaConnectionsBase):
         # self.end_datetime = self.args.end_datetime  # datetime object
         self.end_datetime = datetime.datetime.strptime(self.args.end_datetime, '%Y-%m-%d %H:%M:%S')
 
-        # Setup logging
-        self.model_logger = ModelLogger()
-
-        # Setup connections
+        # Store the site for later use
         self.site = self.mongo_db_recs.find_one({"_id": self.site_id})
 
         # Setup tar file for downloading from s3
@@ -109,10 +106,10 @@ class ModelAdvancer(AlfalfaConnectionsBase):
         self.set_db_status_running()
         self.redis_pubsub.subscribe(self.site_id)
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
-            self.model_logger.logger.info("Running timescale / realtime")
+            self.logger.info("Running timescale / realtime")
             self.run_timescale()
         elif self.step_sim_type == 'external_clock':
-            self.model_logger.logger.info("Running external_clock")
+            self.logger.info("Running external_clock")
             self.run_external_clock()
 
     def set_idle_state(self):

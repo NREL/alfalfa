@@ -24,8 +24,6 @@
 ########################################################################################################################
 
 import traceback
-import logging
-import os
 import json
 
 from pathlib import Path
@@ -39,27 +37,7 @@ from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
 # Workers that are defined in this dispatcher
 from alfalfa_worker.worker_openstudio.worker import WorkerOpenStudio
 from alfalfa_worker.worker_fmu.worker import WorkerFmu
-
-
-class DispatcherLoggerMixin:
-    """A logger specific for the tasks of the Dispatcher.
-    Feel free to move this to its own file!"""
-
-    def __init__(self, *args, **kwargs):
-        # Since this is a mixin, call all other parent class initializers
-        super().__init__(*args, **kwargs)
-
-        logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
-        self.logger = logging.getLogger('alfalfa_dispatcher')
-        self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-        self.fh = logging.FileHandler('alfalfa_dispatcher.log')
-        self.fh.setFormatter(self.formatter)
-        self.logger.addHandler(self.fh)
-
-        self.sh = logging.StreamHandler()
-        self.sh.setFormatter(self.formatter)
-        self.logger.addHandler(self.sh)
+from alfalfa_worker.lib.logger_mixins import DispatcherLoggerMixin
 
 
 class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):

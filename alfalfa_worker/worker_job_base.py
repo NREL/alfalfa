@@ -25,10 +25,10 @@
 
 
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
-from alfalfa_worker.worker_logger import WorkerLogger
+from alfalfa_worker.lib.logger_mixins import WorkerLoggerMixin
 
 
-class WorkerJobBase(AlfalfaConnectionsBase):
+class WorkerJobBase(WorkerLoggerMixin, AlfalfaConnectionsBase):
     """Base class for configuration/setup of Worker Job information.
 
     Worker classes that inherit from this object are required to define the following:
@@ -43,8 +43,6 @@ class WorkerJobBase(AlfalfaConnectionsBase):
         # mongo, redis/sqs, s3, and other database connections.
         super().__init__()
 
-        self.worker_logger = WorkerLogger()
-
     def check_message_body(self, message_body, message_type):
         """
         Check that the message body contains minimum necessary keys before next step is processed.
@@ -54,8 +52,8 @@ class WorkerJobBase(AlfalfaConnectionsBase):
         :param str message_type: One of 'add_site', 'step_sim', 'run_sim'
         :return:
         """
-        self.worker_logger.logger.info("Checking message_body for: {}".format(message_type))
-        self.worker_logger.logger.info("message_body: {}".format(message_body))
+        self.logger.info("Checking message_body for: {}".format(message_type))
+        self.logger.info("message_body: {}".format(message_body))
         to_return = None
         if message_type == 'add_site':
             model_name = message_body.get('model_name', False)
@@ -79,10 +77,10 @@ class WorkerJobBase(AlfalfaConnectionsBase):
         :return:
         """
         if rc == 0:
-            self.worker_logger.logger.info("{} successful for: {}".format(message_type, file_name))
+            self.logger.info("{} successful for: {}".format(message_type, file_name))
         else:
-            self.worker_logger.logger.info("{} unsuccessful for: {}".format(message_type, file_name))
-            self.worker_logger.logger.info("{} return code: {}".format(message_type, rc))
+            self.logger.info("{} unsuccessful for: {}".format(message_type, file_name))
+            self.logger.info("{} return code: {}".format(message_type, rc))
 
     # TODO: change name to start... since it is starting the queue watching. Run is used in this
     # project to run a simulation.

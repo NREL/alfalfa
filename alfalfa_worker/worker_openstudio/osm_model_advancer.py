@@ -42,7 +42,7 @@ from alfalfa_worker.worker_openstudio.lib.parse_variables import ParseVariables
 
 class OSMModelAdvancer(ModelAdvancer):
     def __init__(self):
-        super(OSMModelAdvancer, self).__init__()
+        super().__init__()
         # Download file from bucket and extract
         self.bucket_key = os.path.join(self.parsed_path, self.tar_name)
         self.s3_bucket.download_file(self.bucket_key, self.tar_path)
@@ -109,11 +109,11 @@ class OSMModelAdvancer(ModelAdvancer):
         self.osm_idf_files_prep()
         (self.ep.status, self.ep.msg) = self.ep.start()
         if self.ep.status != 0:
-            self.model_logger.logger.info('Could not start EnergyPlus: {}'.format(self.ep.msg))
+            self.logger.info('Could not start EnergyPlus: {}'.format(self.ep.msg))
 
         [self.ep.status, self.ep.msg] = self.ep.accept_socket()
         if self.ep.status != 0:
-            self.model_logger.logger.info('Could not connect to EnergyPlus: {}'.format(self.ep.msg))
+            self.logger.info('Could not connect to EnergyPlus: {}'.format(self.ep.msg))
 
     def advance_to_start_time(self):
         """ We get near the requested start time by manipulating the idf file,
@@ -126,16 +126,16 @@ class OSMModelAdvancer(ModelAdvancer):
         self.exchange_data()
 
         current_ep_time = self.get_energyplus_datetime()
-        self.model_logger.logger.info(
+        self.logger.info(
             'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
         while True:
             current_ep_time = self.get_energyplus_datetime()
             if current_ep_time < self.start_datetime:
-                self.model_logger.logger.info(
+                self.logger.info(
                     'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
                 self.step()
             else:
-                self.model_logger.logger.info(f"current_ep_time: {current_ep_time} reached desired start_datetime: {self.start_datetime}")
+                self.logger.info(f"current_ep_time: {current_ep_time} reached desired start_datetime: {self.start_datetime}")
                 break
         self.master_enable_bypass = False
         self.update_db()
@@ -364,7 +364,7 @@ class OSMModelAdvancer(ModelAdvancer):
                             line = lines[i]
                         f.write(line)
         except BaseException as e:
-            self.model_logger.logger.error('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
+            self.logger.error('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
             sys.exit(1)
 
     def copy_variables_cfg(self):
@@ -415,7 +415,7 @@ class OSMModelAdvancer(ModelAdvancer):
                     if val is not None:
                         index = self.variables.get_input_index(array.get('_id'))
                         if index == -1:
-                            self.model_logger.logger.error('bad input index for: %s' % array.get('_id'))
+                            self.logger.error('bad input index for: %s' % array.get('_id'))
                         else:
                             self.ep.inputs[index] = val
                             self.ep.inputs[index + 1] = 1
@@ -429,7 +429,7 @@ class OSMModelAdvancer(ModelAdvancer):
         for output_id in self.variables.get_output_ids():
             output_index = self.variables.get_output_index(output_id)
             if output_index == -1:
-                self.model_logger.logger.error('bad output index for: %s' % output_id)
+                self.logger.error('bad output index for: %s' % output_id)
             else:
                 output_value = self.ep.outputs[output_index]
 
@@ -460,7 +460,7 @@ class OSMModelAdvancer(ModelAdvancer):
         for output_id in self.variables.get_output_ids():
             output_index = self.variables.get_output_index(output_id)
             if output_index == -1:
-                self.model_logger.logger.error('bad output index for: %s' % output_id)
+                self.logger.error('bad output index for: %s' % output_id)
             else:
                 output_value = self.ep.outputs[output_index]
                 dis = self.variables.get_haystack_dis_given_id(output_id)
@@ -481,10 +481,10 @@ class OSMModelAdvancer(ModelAdvancer):
                                                        database=self.influx_db_name)
 
         except ConnectionError as e:
-            self.model_logger.logger.error(f"Influx ConnectionError on curVal write: {e}")
+            self.logger.error(f"Influx ConnectionError on curVal write: {e}")
         if not response:
-            self.model_logger.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
-            self.model_logger.logger.info(f"Attempted to write: {json_body}")
+            self.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
+            self.logger.info(f"Attempted to write: {json_body}")
         else:
-            self.model_logger.logger.info(
+            self.logger.info(
                 f"Successful write to influx.  Length of JSON: {len(json_body)}")

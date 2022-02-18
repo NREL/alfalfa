@@ -34,7 +34,7 @@ from subprocess import call
 import json
 
 # Local
-from alfalfa_worker.add_site_logger import AddSiteLogger
+from alfalfa_worker.lib.logger_mixins import AddSiteLoggerMixin
 from alfalfa_worker.lib.precheck_argus import precheck_argus
 from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
@@ -50,7 +50,7 @@ def rel_symlink(src, dst):
     os.symlink(src, dst)
 
 
-class AddSite(AlfalfaConnectionsBase):
+class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
     """A wrapper class around adding sites"""
 
     def __init__(self, fn, up_id, f_dir):
@@ -62,8 +62,7 @@ class AddSite(AlfalfaConnectionsBase):
         """
         super().__init__()
 
-        self.add_site_logger = AddSiteLogger()
-        self.add_site_logger.logger.info("AddSite called with args: {} {} {}".format(fn, up_id, f_dir))
+        self.logger.info("AddSite called with args: {} {} {}".format(fn, up_id, f_dir))
         self.file_name = fn
         self.upload_id = up_id
         self.bucket_parsed_site_id_dir = f_dir
@@ -98,7 +97,7 @@ class AddSite(AlfalfaConnectionsBase):
         elif self.file_ext == '.fmu':
             self.add_fmu()
         else:
-            self.add_site_logger.logger.error("Unsupported file extension: {}".format(self.file_ext))
+            self.logger.error("Unsupported file extension: {}".format(self.file_ext))
             os.exit(1)
 
     def get_site_ref(self, haystack_json):
@@ -161,7 +160,7 @@ class AddSite(AlfalfaConnectionsBase):
         the user measure, and then run the resulting combined workflow
         :return:
         """
-        self.add_site_logger.logger.info("add_osw for {}".format(self.key))
+        self.logger.info("add_osw for {}".format(self.key))
 
         # download and extract the payload
         payload_dir = os.path.join(self.bucket_parsed_site_id_dir, 'payload/')
@@ -253,7 +252,7 @@ class AddSite(AlfalfaConnectionsBase):
         old version of the Modelica Buildings Library and JModelica.
         :return:
         """
-        self.add_site_logger.logger.info("add_fmu for {}".format(self.key))
+        self.logger.info("add_fmu for {}".format(self.key))
 
         self.s3_bucket.download_file(self.key, self.fmu_path)
 

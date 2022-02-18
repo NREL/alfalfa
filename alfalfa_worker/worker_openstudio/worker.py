@@ -92,24 +92,24 @@ class WorkerOpenStudio(WorkerJobBase):
         external_clock = message_body.get('externalClock', False) == 'true'
 
         # TODO remove after tests written
-        self.worker_logger.logger.info(
+        self.logger.info(
             "start_datetime type: {}\tstart_datetime: {}".format(type(start_datetime), start_datetime))
-        self.worker_logger.logger.info(
+        self.logger.info(
             "end_datetime type: {}\tend_datetime: {}".format(type(end_datetime), end_datetime))
-        self.worker_logger.logger.info("realtime type: {}\trealtime: {}".format(type(realtime), realtime))
-        self.worker_logger.logger.info("timescale type: {}\ttimescale: {}".format(type(timescale), timescale))
-        self.worker_logger.logger.info(
+        self.logger.info("realtime type: {}\trealtime: {}".format(type(realtime), realtime))
+        self.logger.info("timescale type: {}\ttimescale: {}".format(type(timescale), timescale))
+        self.logger.info(
             "external_clock type: {}\texternal_clock: {}".format(type(external_clock), external_clock))
         # Only want one of: realtime, timescale, or external_clock.  Else, reject configuration.
         # if (realtime and timescale) or (realtime and external_clock) or (timescale and external_clock):
-        #    self.worker_logger.logger.info(
+        #    self.logger.info(
         #        "Only one of 'external_clock', 'timescale', or 'realtime' should be specified in message")
         #    sys.exit(1)
 
         # Check for at least one of the required parameters
         if not realtime and not timescale and not external_clock:
             # TODO: If exiting, what logging type to use?
-            self.worker_logger.logger.info(
+            self.logger.info(
                 "At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
             sys.exit(1)
 
@@ -124,13 +124,13 @@ class WorkerOpenStudio(WorkerJobBase):
                 step_sim_type = "timescale"
                 step_sim_value = int(timescale)
             else:
-                self.worker_logger.logger.info(f"timescale: {timescale} must be an integer value")
+                self.logger.info(f"timescale: {timescale} must be an integer value")
                 sys.exit(1)
 
         # Check datetime string formatting
         if sim_type == 'osm':
-            start_datetime = process_datetime_string(start_datetime, logger=self.worker_logger.logger)
-            end_datetime = process_datetime_string(end_datetime, logger=self.worker_logger.logger)
+            start_datetime = process_datetime_string(start_datetime, logger=self.logger)
+            end_datetime = process_datetime_string(end_datetime, logger=self.logger)
 
         return (step_sim_type, step_sim_value, start_datetime, end_datetime)
 
@@ -144,7 +144,7 @@ class WorkerOpenStudio(WorkerJobBase):
         :return:
         """
         if not os.path.isfile(p):
-            self.worker_logger.logger.info(f"No file: {p}, Working directory: {os.getcwd()}")
+            self.logger.info(f"No file: {p}, Working directory: {os.getcwd()}")
         else:
             return_code = subprocess.call(['python3', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'add_site')
@@ -161,7 +161,7 @@ class WorkerOpenStudio(WorkerJobBase):
         :param model_type: string, type of model. Choices are 'osm' or 'fmu'
         :return:
         """
-        self.worker_logger.logger.info("Calling model '{}' step_sim_type '{}'".format(model_type, step_sim_type))
+        self.logger.info("Calling model '{}' step_sim_type '{}'".format(model_type, step_sim_type))
         arg_step_sim_value = None
         if step_sim_type == 'external_clock':
             if model_type == 'fmu':
@@ -197,12 +197,12 @@ class WorkerOpenStudio(WorkerJobBase):
             if arg_step_sim_value:
                 call.append('--step_sim_value={}'.format(step_sim_value))
 
-            self.worker_logger.logger.info("Calling step_sim_type subprocess: {}".format(call))
+            self.logger.info("Calling step_sim_type subprocess: {}".format(call))
             return_code = subprocess.call(call)
 
             self.check_subprocess_call(return_code, site_id, 'step_sim')
         else:
-            self.worker_logger.logger.info("No file: {}".format(p))
+            self.logger.info("No file: {}".format(p))
             sys.exit(1)
 
         return return_code
@@ -217,7 +217,7 @@ class WorkerOpenStudio(WorkerJobBase):
         :return:
         """
         if not os.path.isfile(p):
-            self.worker_logger.logger.info("No file: {}".format(p))
+            self.logger.info("No file: {}".format(p))
         else:
             return_code = subprocess.call(['python3', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'run_sim')
@@ -237,13 +237,13 @@ class WorkerOpenStudio(WorkerJobBase):
         # TODO: move the body check to before the calling of `add_site`
         body_check = self.check_message_body(message_body, 'add_site')
         if not body_check:
-            self.worker_logger.logger.info(
+            self.logger.info(
                 'message_body for add_site does not have correct keys.  Site will not be added.')
             # TODO insert sys.exit(1)?
         else:
             file_name = message_body.get('model_name')
             upload_id = message_body.get('upload_id')
-            self.worker_logger.logger.info('Add site for file_name: %s, and upload_id: %s' % (file_name, upload_id))
+            self.logger.info('Add site for file_name: %s, and upload_id: %s' % (file_name, upload_id))
 
             _, ext = os.path.splitext(file_name)
             if ext in ['.zip']:
@@ -253,7 +253,7 @@ class WorkerOpenStudio(WorkerJobBase):
                 p = 'alfalfa_worker/worker_fmu/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
             else:
-                self.worker_logger.logger.info(
+                self.logger.info(
                     "Unsupported file type: {}.  Valid extensions: .zip, .fmu".format(ext))
 
     def step_sim(self, message_body):
@@ -269,18 +269,18 @@ class WorkerOpenStudio(WorkerJobBase):
         """
         body_check = self.check_message_body(message_body, 'step_sim')
         if not body_check:
-            self.worker_logger.logger.info(
+            self.logger.info(
                 'message_body for step_sim does not have correct keys.  Simulation will not be stepped through.')
             # TODO insert sys.exit(1)?
         else:
             site_id = message_body.get('id')
             site_rec = self.mongo_db_recs.find_one({"_id": site_id})
-            self.worker_logger.logger.info('Site record: {}'.format(site_rec))
+            self.logger.info('Site record: {}'.format(site_rec))
 
             # TODO: Check if simType is defined, error if not.
             sim_type = site_rec.get("rec", {}).get("simType", "osm").replace("s:", "")
             step_sim_type, step_sim_value, start_datetime, end_datetime = self.check_step_sim_config(message_body, sim_type)
-            self.worker_logger.logger.info('Start step_sim for site_id: %s, and sim_type: %s' % (site_id, sim_type))
+            self.logger.info('Start step_sim for site_id: %s, and sim_type: %s' % (site_id, sim_type))
 
             # TODO: do we need to have two versions of python?
             if sim_type == 'fmu':
@@ -288,7 +288,7 @@ class WorkerOpenStudio(WorkerJobBase):
             elif sim_type == 'osm':
                 self.step_sim_type(site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, sim_type)
             else:
-                self.worker_logger.logger.info(
+                self.logger.info(
                     "Invalid simulation type: {}.  Only 'fmu' and 'osm' are currently supported".format(sim_type))
 
     def run_sim(self, message_body):
@@ -303,12 +303,12 @@ class WorkerOpenStudio(WorkerJobBase):
         """
         body_check = self.check_message_body(message_body, 'run_sim')
         if not body_check:
-            self.worker_logger.logger.info(
+            self.logger.info(
                 'message_body for step_sim does not have correct keys.  Simulation will not be run.')
         else:
             upload_filename = message_body.get('upload_filename')
             upload_id = message_body.get('upload_id')
-            self.worker_logger.logger.info(
+            self.logger.info(
                 'Run sim for upload_filename: %s, and upload_id: %s' % (upload_filename, upload_id))
 
             name, ext = os.path.splitext(upload_filename)
@@ -319,4 +319,4 @@ class WorkerOpenStudio(WorkerJobBase):
                 p = 'run_sim/sim_fmu/sim_fmu.py'
                 self.run_sim_type(p, upload_filename, upload_id)
             else:
-                self.worker_logger.logger.info('Unsupported file type was uploaded')
+                self.logger.info('Unsupported file type was uploaded')
