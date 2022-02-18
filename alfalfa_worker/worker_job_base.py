@@ -24,7 +24,7 @@
 ########################################################################################################################
 
 
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
+from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 from alfalfa_worker.lib.logger_mixins import WorkerLoggerMixin
 
 

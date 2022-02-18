@@ -27,11 +27,11 @@ import os
 import datetime
 
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
+from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 from alfalfa_worker.lib.logger_mixins import ModelLoggerMixin
 
 
-class ModelAdvancer(ModelLoggerMixin, AlfalfaConnectionsBase):
+class ModelAdvancerBase(ModelLoggerMixin, AlfalfaConnectionsBase):
     """Base class for advancing models. Inherits from
     AlfalfaConnectionsBase which provides member variables to
     databases, queues, etc."""
@@ -158,7 +158,3 @@ class ModelAdvancer(ModelLoggerMixin, AlfalfaConnectionsBase):
 
     def run_timescale(self):
         """Placeholder for running using  an internal clock and a timescale"""
-
-
-if __name__ == '__main__':
-    m = ModelAdvancer()

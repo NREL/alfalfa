@@ -32,7 +32,7 @@ from pathlib import Path
 # alfalfa connections. WorkerJobBase could/should be updated to inherit
 # from a new class that just handles the alfalfa connections, then
 # the WorkerJobBase and Dispatcher can both inherit from the new class.
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
+from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 
 # Workers that are defined in this dispatcher
 from alfalfa_worker.worker_openstudio.worker import WorkerOpenStudio

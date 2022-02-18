@@ -37,7 +37,7 @@ import json
 from alfalfa_worker.lib.logger_mixins import AddSiteLoggerMixin
 from alfalfa_worker.lib.precheck_argus import precheck_argus
 from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
+from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 
 
 def rel_symlink(src, dst):

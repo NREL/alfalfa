@@ -36,11 +36,11 @@ import mlep
 import pytz
 
 # Local imports
-from alfalfa_worker.model_advancer import ModelAdvancer
+from alfalfa_worker.model_advancer_base import ModelAdvancerBase
 from alfalfa_worker.worker_openstudio.lib.parse_variables import ParseVariables
 
 
-class OSMModelAdvancer(ModelAdvancer):
+class OSMModelAdvancer(ModelAdvancerBase):
     def __init__(self):
         super().__init__()
         # Download file from bucket and extract

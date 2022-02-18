@@ -34,7 +34,7 @@ import zipfile
 
 from datetime import datetime, timedelta
 from alfalfa_worker.lib.testcase import TestCase
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
+from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 from alfalfa_worker.step_sim_utils import step_sim_arg_parser
 
 
