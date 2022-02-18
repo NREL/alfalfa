@@ -23,10 +23,11 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
-# Local imports
 from alfalfa_worker.model_advancer import ModelAdvancer
 
 
+# THIS IS CURRENTLY CALLED WITH PYTHON 2!
 class FMUModelAdvancer(ModelAdvancer):
     def __init__(self):
+        # TODO: replace super call with just super() when this is moved to Python3!
         super(FMUModelAdvancer, self).__init__()

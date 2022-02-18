@@ -80,6 +80,22 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         self.worker_openstudio_class = WorkerOpenStudio()
         self.worker_fmu_class = WorkerFmu()
 
+    def determine_worker_class(self, test_str):
+        """This is the only place where we should decide
+        if the work is an OSW or an FMU
+        """
+        worker_class = None
+        test_str = test_str.lower().replace('.', '')
+        if test_str in ['osw', 'osm', 'zip']:
+            worker_class = self.worker_openstudio_class
+        elif test_str == 'fmu':
+            worker_class = self.worker_fmu_class
+
+        if worker_class is None:
+            raise Exception(f"Unable to determine worker class of string {test_str}")
+
+        return worker_class
+
     def process_message(self, message):
         """Process a single message from Queue.  Depending on operation requested,
         will call one of:
@@ -95,37 +111,32 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
             op = message_body.get('op')
             if op == 'InvokeAction':
                 action = message_body.get('action')
+                if action in ['init', 'addSite']:
+                    # get the model type from the body to determine which class will
+                    # dispatch the work
+                    model_name = Path(message_body.get('model_name'))
 
-                # get the model type from the body to determine which class will
-                # dispatch the work
-                model_name = Path(message_body.get('model_name'))
+                    worker_class = self.determine_worker_class(model_name.suffix)
+                    self.logger.info(f"Dispatching {action} with model_type {model_name.suffix} to worker {worker_class}")
+                    if action == 'init':
+                        # For testing purposes, just return the
+                        # worker class that was assigned
+                        return worker_class
+                    elif action == 'addSite':
+                        worker_class.add_site(message_body)
+                elif action in ['runSite', 'runSim']:
+                    # get the site ID out of the message
+                    site_id = message_body.get('id')
+                    site_rec = self.mongo_db_recs.find_one({"_id": site_id})
+                    sim_type = site_rec.get("rec", {}).get("simType").replace("s:", "")
 
-                # This is the only place where we should decide
-                # if the work is an OSW or an FMU
-                if model_name.suffix.lower() == '.osw':
-                    worker_class = self.worker_openstudio_class
-                elif model_name.suffix.lower() == '.zip':
-                    worker_class = self.worker_openstudio_class
-                elif model_name.suffix.lower() == '.fmu':
-                    worker_class = self.worker_fmu_class
-
-                if action == 'init':
-                    # For testing purposes, just return the
-                    # worker class that was assigned
-                    return worker_class
-
-                # TODO change to step_sim
-                if action == 'runSite':
-                    # TODO: Strongly type the step_sim, add_site, and run_sim (add mypy???)
-                    worker_class.step_sim(message_body)
-
-                # TODO change to add_site
-                elif action == 'addSite':
-                    worker_class.add_site(message_body)
-
-                # TODO change to run_sim
-                elif action == 'runSim':
-                    worker_class.run_sim(message_body)
+                    worker_class = self.determine_worker_class(sim_type)
+                    self.logger.info(f"Dispatching {action} with sim_type {sim_type} to worker {worker_class}")
+                    if action == 'runSite':
+                        # TODO: Strongly type the step_sim, add_site, and run_sim (add mypy???)
+                        worker_class.step_sim(message_body)
+                    elif action == 'runSim':
+                        worker_class.run_sim(message_body)
 
         except Exception as e:
             tb = traceback.format_exc()

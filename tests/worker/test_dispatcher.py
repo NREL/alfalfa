@@ -12,6 +12,21 @@ class TestValidInit(TestCase):
         dispatcher = Dispatcher()
         self.assertTrue(isinstance(dispatcher, Dispatcher))
 
+    def test_determine_worker_class(self):
+        dispatcher = Dispatcher()
+        klass = dispatcher.determine_worker_class('OSw')
+        self.assertTrue(isinstance(klass, WorkerOpenStudio))
+        klass = dispatcher.determine_worker_class('zIp')
+        self.assertTrue(isinstance(klass, WorkerOpenStudio))
+        klass = dispatcher.determine_worker_class('.fmu')
+        self.assertTrue(isinstance(klass, WorkerFmu))
+        klass = dispatcher.determine_worker_class('FMU')
+        self.assertTrue(isinstance(klass, WorkerFmu))
+
+        with self.assertRaises(Exception) as context:
+            dispatcher.determine_worker_class('oSu')
+        self.assertTrue('Unable to determine worker class of string osu' in str(context.exception))
+
     def test_worker_add_site(self):
         dispatcher = Dispatcher()
 
@@ -43,5 +58,20 @@ class TestValidInit(TestCase):
         self.assertTrue(isinstance(klass, WorkerOpenStudio))
 
     def test_worker_run_site(self):
-        # {'id': '58244900-9039-11ec-87d0-acde48001122', 'op': 'InvokeAction', 'action': 'runSite', 'timescale': '1', 'startDatetime': '2019-01-02 00:02:00', 'endDatetime': '2019-01-03 00:00:00', 'realtime': 'undefined', 'externalClock': 'false'}
-        pass
+        Dispatcher()
+        message_stub = MessageMock({
+            "body": json.dumps(
+                {
+                    "op": "InvokeAction",
+                    "action": "runSite",
+                    "model_name": "a/file/model.OSW",
+                    "timescale": "1",
+                    "startDatetime": "2019-01-02 00:02:00",
+                    "endDatetime": "2019-01-03 00:00:00",
+                    "realtime": "false",
+                    "externalClock": "false"
+                })
+        })
+        print(message_stub)
+        # klass = dispatcher.process_message(message_stub)
+        # self.assertTrue(isinstance(klass, WorkerOpenStudio))

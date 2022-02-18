@@ -12,7 +12,7 @@ from redis import Redis
 from influxdb import InfluxDBClient
 
 
-class AlfalfaConnectionsBase():
+class AlfalfaConnectionsBase(object):
     """Create connections to data resources for Alfalfa"""
 
     def __init__(self):

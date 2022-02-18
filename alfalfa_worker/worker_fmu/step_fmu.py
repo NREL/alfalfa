@@ -29,24 +29,24 @@ import shutil
 import tarfile
 import time
 import uuid
-import zipfile
-from datetime import datetime, timedelta
-
-import lib
-import lib.testcase
 import pytz
+import zipfile
 
-from lib.alfalfa_connections import AlfalfaConnections
-from step_sim_utils import step_sim_arg_parser
+from datetime import datetime, timedelta
+from alfalfa_worker.lib.testcase import TestCase
+from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
+from alfalfa_worker.step_sim_utils import step_sim_arg_parser
 
 
-class RunFMUSite(AlfalfaConnections):
+# THIS IS CURRENTLY CALLED WITH PYTHON 2!
+class RunFMUSite(AlfalfaConnectionsBase):
     """Class for running FMU sites. This is a wrapper class
     and is often called via the command line with is at the
     bottom of this file."""
 
     def __init__(self, **kwargs):
-        super().__init__()
+        # TODO: replace super call with just super() when this is moved to Python3!
+        super(RunFMUSite, self).__init__()
 
         # get arguments from calling program
         # which is the processMessage program
@@ -99,7 +99,7 @@ class RunFMUSite(AlfalfaConnections):
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
 
         # initiate the testcase -- NL make sure to flatten the config options to pass to kwargs correctly
-        self.tc = lib.testcase.TestCase(**config)
+        self.tc = TestCase(**config)
 
         # run the FMU simulation
         self.kstep = 0

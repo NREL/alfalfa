@@ -35,7 +35,8 @@ import json
 
 # Local
 from alfalfa_worker.add_site_logger import AddSiteLogger
-from alfalfa_worker.lib import precheck_argus, make_ids_unique, replace_site_id
+from alfalfa_worker.lib.precheck_argus import precheck_argus
+from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
 from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnectionsBase
 
 
@@ -59,6 +60,7 @@ class AddSite(AlfalfaConnectionsBase):
         :param up_id: upload_id as first created by Upload.js when sending file to file s3 bucket (addSiteResolver)
         :param f_dir: directory to upload to on s3 bucket after parsing: parsed/{site_id}/.  Also used locally during this process.
         """
+        # TODO: replace super call with just super() when this is moved to Python3!
         super().__init__()
 
         self.add_site_logger = AddSiteLogger()
@@ -257,7 +259,7 @@ class AddSite(AlfalfaConnectionsBase):
         self.s3_bucket.download_file(self.key, self.fmu_path)
 
         # External call to python2 to create FMU tags
-        call(['python', 'lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
+        call(['python', 'alfalfa_worker/lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
 
         # insert tags into db
         self.insert_fmu_tags(self.fmu_json)

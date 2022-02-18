@@ -96,3 +96,8 @@ wrapped_log.txt
 
 # Custom
 client/__pycache__/*
+
+# dev files when running locally
+*.tar.gz
+Buildings_HelloWorld_exportedModel*
+wrapped_result.mat
