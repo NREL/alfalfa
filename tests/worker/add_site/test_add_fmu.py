@@ -1,9 +1,9 @@
-import os
 import json
-import pytest
-
-from unittest import TestCase
+import os
 from subprocess import call
+from unittest import TestCase
+
+import pytest
 
 
 @pytest.mark.fmu

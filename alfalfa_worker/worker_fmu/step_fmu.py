@@ -29,12 +29,13 @@ import shutil
 import tarfile
 import time
 import uuid
-import pytz
 import zipfile
-
 from datetime import datetime, timedelta
-from alfalfa_worker.lib.testcase import TestCase
+
+import pytz
+
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
+from alfalfa_worker.lib.testcase import TestCase
 from alfalfa_worker.step_sim_utils import step_sim_arg_parser
 
 

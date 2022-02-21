@@ -1,9 +1,10 @@
-import os
 import datetime
-import pytest
+import os
 import tempfile
 import zipfile
 from unittest import TestCase
+
+import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
 
 

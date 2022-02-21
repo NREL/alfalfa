@@ -23,9 +23,8 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
-import traceback
 import json
-
+import traceback
 from pathlib import Path
 
 # Currently this is a child of WorkerJobBase, but mostly for the
@@ -33,11 +32,10 @@ from pathlib import Path
 # from a new class that just handles the alfalfa connections, then
 # the WorkerJobBase and Dispatcher can both inherit from the new class.
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
-
+from alfalfa_worker.lib.logger_mixins import DispatcherLoggerMixin
+from alfalfa_worker.worker_fmu.worker import WorkerFmu
 # Workers that are defined in this dispatcher
 from alfalfa_worker.worker_openstudio.worker import WorkerOpenStudio
-from alfalfa_worker.worker_fmu.worker import WorkerFmu
-from alfalfa_worker.lib.logger_mixins import DispatcherLoggerMixin
 
 
 class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):

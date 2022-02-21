@@ -33,7 +33,6 @@ import traceback
 # to determine which worker gets launched
 from alfalfa_worker.dispatcher import Dispatcher
 
-
 if __name__ == '__main__':
     try:
         dispatcher = Dispatcher()

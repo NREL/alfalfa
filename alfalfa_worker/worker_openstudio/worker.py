@@ -31,8 +31,8 @@ import subprocess
 import sys
 from datetime import datetime
 
-from alfalfa_worker.worker_job_base import WorkerJobBase
 from alfalfa_worker.lib.utils import process_datetime_string
+from alfalfa_worker.worker_job_base import WorkerJobBase
 
 
 class WorkerOpenStudio(WorkerJobBase):

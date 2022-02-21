@@ -1,8 +1,8 @@
 import os
-import pytest
 from unittest import TestCase
-from alfalfa_client.alfalfa_client import AlfalfaClient
 
+import pytest
+from alfalfa_client.alfalfa_client import AlfalfaClient
 
 ##################################################################################################
 # The is a test of the simple_thermostat.fmu,
@@ -15,6 +15,7 @@ from alfalfa_client.alfalfa_client import AlfalfaClient
 #
 # Modelica source code of the simple_thermostat.fmu is available here: <todo: add link to source>
 ##################################################################################################
+
 
 @pytest.mark.integration
 class TestSimpleThermostat(TestCase):

@@ -23,9 +23,8 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
-import xml.etree.ElementTree as ET
 import json
-
+import xml.etree.ElementTree as ET
 
 # <variable source='EnergyPlus'>
 #   <EnergyPlus name='CAV_bas' type='Air System Outdoor Air Flow Fraction'/>

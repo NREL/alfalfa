@@ -1,7 +1,7 @@
+from datetime import datetime
 from unittest import TestCase
 
 from alfalfa_worker.step_sim_utils import valid_date
-from datetime import datetime
 
 
 class TestStepSimUtils(TestCase):

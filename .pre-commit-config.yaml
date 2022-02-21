@@ -61,3 +61,8 @@ repos:
     hooks:
       - id: prettier
         types_or: [css, yaml, markdown, html, scss, javascript]
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
+    hooks:
+      - id: isort
+        args: ["-m=VERTICAL_HANGING_INDENT"] # vertical hanging

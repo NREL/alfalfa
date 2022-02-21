@@ -1,6 +1,6 @@
 import json
-
 from unittest import TestCase
+
 from alfalfa_worker.dispatcher import Dispatcher
 from alfalfa_worker.worker_fmu.worker import WorkerFmu
 from alfalfa_worker.worker_openstudio.worker import WorkerOpenStudio
