@@ -24,15 +24,16 @@
 ########################################################################################################################
 
 from __future__ import print_function
+
 import os
-import boto3
 import sys
-import pytz
-
-from pymongo import MongoClient
 from datetime import datetime
-from alfalfa_worker.lib.testcase import TestCase
 
+import boto3
+import pytz
+from pymongo import MongoClient
+
+from alfalfa_worker.lib.testcase import TestCase
 
 # THIS IS CURRENTLY CALLED WITH PYTHON 2!
 try:
