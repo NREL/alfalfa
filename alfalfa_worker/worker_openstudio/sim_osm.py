@@ -24,16 +24,18 @@
 ########################################################################################################################
 
 from __future__ import print_function
-import os
+
 import glob
-import boto3
-import tarfile
+import os
 import shutil
-from pymongo import MongoClient
-import sys
 import subprocess
+import sys
+import tarfile
 from datetime import datetime
+
+import boto3
 import pytz
+from pymongo import MongoClient
 
 try:
     sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])

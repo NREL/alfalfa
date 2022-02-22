@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-
 # from alfalfa_worker.add_site.add_osm.add_osm import add_osm
 
 

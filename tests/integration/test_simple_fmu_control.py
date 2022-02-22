@@ -3,13 +3,14 @@
 import datetime
 import json
 import os
-import pytest
 import sys
 import time
 from unittest import TestCase
 
+import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
 from alfalfa_client.historian import Historian
+
 from alfalfa_worker.lib.thermal_comfort import ThermalComfort
 from alfalfa_worker.lib.unit_conversions import deg_k_to_c
 

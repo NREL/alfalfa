@@ -23,15 +23,12 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ########################################################################################################################
 
-import os
-import json
-import traceback
 
-from alfalfa_worker.lib.alfalfa_connections import AlfalfaConnections
-from alfalfa_worker.worker_logger import WorkerLogger
+from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
+from alfalfa_worker.lib.logger_mixins import WorkerLoggerMixin
 
 
-class WorkerJobBase(object):
+class WorkerJobBase(WorkerLoggerMixin, AlfalfaConnectionsBase):
     """Base class for configuration/setup of Worker Job information.
 
     Worker classes that inherit from this object are required to define the following:
@@ -42,11 +39,9 @@ class WorkerJobBase(object):
     """
 
     def __init__(self):
-        self.ac = AlfalfaConnections()
-        self.worker_logger = WorkerLogger()
-
-        os.chdir('alfalfa_worker')
-        self.alfalfa_worker_dir = os.getcwd()
+        # inherits from AlfalfaConnectionsBase which adds in the
+        # mongo, redis/sqs, s3, and other database connections.
+        super().__init__()
 
     def check_message_body(self, message_body, message_type):
         """
@@ -57,8 +52,8 @@ class WorkerJobBase(object):
         :param str message_type: One of 'add_site', 'step_sim', 'run_sim'
         :return:
         """
-        self.worker_logger.logger.info("Checking message_body for: {}".format(message_type))
-        self.worker_logger.logger.info("message_body: {}".format(message_body))
+        self.logger.info("Checking message_body for: {}".format(message_type))
+        self.logger.info("message_body: {}".format(message_body))
         to_return = None
         if message_type == 'add_site':
             model_name = message_body.get('model_name', False)
@@ -73,39 +68,6 @@ class WorkerJobBase(object):
             to_return = False if not upload_filename or not upload_id else True
         return (to_return)
 
-    def process_message(self, message):
-        """
-        Process a single message from Queue.  Depending on operation requested, will call one of:
-        - step_sim
-        - add_site
-        - run_sim
-
-        :param message: A single message, as returned from a boto3 Queue resource
-        :return:
-        """
-        try:
-            message_body = json.loads(message.body)
-            message.delete()
-            op = message_body.get('op')
-            if op == 'InvokeAction':
-                action = message_body.get('action')
-                # TODO change to step_sim
-                if action == 'runSite':
-                    # TODO: Strongly type the step_sim, add_site, and run_sim (add mypy???)
-                    self.step_sim(message_body)
-
-                # TODO change to add_site
-                elif action == 'addSite':
-                    self.add_site(message_body)
-
-                # TODO change to run_sim
-                elif action == 'runSim':
-                    self.run_sim(message_body)
-
-        except Exception as e:
-            tb = traceback.format_exc()
-            self.worker_logger.logger.error("Exception while processing message: {} with {}".format(e, tb))
-
     def check_subprocess_call(self, rc, file_name, message_type):
         """
         Simple wrapper to check and log subprocess calls
@@ -115,30 +77,10 @@ class WorkerJobBase(object):
         :return:
         """
         if rc == 0:
-            self.worker_logger.logger.info("{} successful for: {}".format(message_type, file_name))
+            self.logger.info("{} successful for: {}".format(message_type, file_name))
         else:
-            self.worker_logger.logger.info("{} unsuccessful for: {}".format(message_type, file_name))
-            self.worker_logger.logger.info("{} return code: {}".format(message_type, rc))
+            self.logger.info("{} unsuccessful for: {}".format(message_type, file_name))
+            self.logger.info("{} return code: {}".format(message_type, rc))
 
     # TODO: change name to start... since it is starting the queue watching. Run is used in this
     # project to run a simulation.
-    def run(self):
-        """
-        Listen to queue and process messages upon arrival
-
-        :return:
-        """
-        self.worker_logger.logger.info("Enter alfalfa_worker run")
-        while True:
-            # WaitTimeSeconds triggers long polling that will wait for events to enter queue
-            # Receive Message
-            try:
-                messages = self.ac.sqs_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20)
-                if len(messages) > 0:
-                    message = messages[0]
-                    self.worker_logger.logger.info('Message Received with payload: %s' % message.body)
-                    # Process Message
-                    self.process_message(message)
-            except BaseException as e:
-                tb = traceback.format_exc()
-                self.worker_logger.logger.info("Exception caught in alfalfa_worker.run: {} with {}".format(e, tb))

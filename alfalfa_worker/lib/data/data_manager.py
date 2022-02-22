@@ -9,14 +9,15 @@ test case FMU.
 
 '''
 
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-import zipfile
-from scipy import interpolate
-import warnings
-import os
 import json
+import os
+import warnings
+import zipfile
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy import interpolate
 
 
 class Data_Manager(object):

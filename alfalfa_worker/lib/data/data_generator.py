@@ -10,14 +10,15 @@ factors and temperature set points for a whole year.
 
 '''
 
-from pymodelica import compile_fmu
-from pyfmi import load_fmu
-from scipy import interpolate
-import pandas as pd
-import numpy as np
+import json
 import os
 import platform
-import json
+
+import numpy as np
+import pandas as pd
+from pyfmi import load_fmu
+from pymodelica import compile_fmu
+from scipy import interpolate
 
 
 class Data_Generator(object):

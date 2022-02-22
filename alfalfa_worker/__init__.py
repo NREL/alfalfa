@@ -1,7 +1,5 @@
-# from .alfalfa_worker import AlfalfaConnections
-
 # -*- coding: utf-8 -*-
-from pkg_resources import get_distribution, DistributionNotFound
+from pkg_resources import DistributionNotFound, get_distribution
 
 try:
     # Change here if project is renamed and does not equal the package name
@@ -12,6 +10,7 @@ except DistributionNotFound:
 finally:
     del get_distribution, DistributionNotFound
 
+# TODO: remove these, I don't even think they exist as shown anymore!
 # Not sure that these are needed here. Leave for now...
 __all__ = ['add_site',
            'lib',

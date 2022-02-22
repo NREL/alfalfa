@@ -24,15 +24,20 @@
 ########################################################################################################################
 
 from __future__ import print_function
+
 import os
-import boto3
-from pymongo import MongoClient
 import sys
 from datetime import datetime
-import pytz
-import lib.testcase
 
+import boto3
+import pytz
+from pymongo import MongoClient
+
+from alfalfa_worker.lib.testcase import TestCase
+
+# THIS IS CURRENTLY CALLED WITH PYTHON 2!
 try:
+    # TODO: convert this to a class and then inherit from AlfalfaConnectionsBase
     s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
 
     # Mongo Database
@@ -62,7 +67,7 @@ try:
         'step': 60
     }
 
-    tc = lib.testcase.TestCase(config)
+    tc = TestCase(config)
 
     u = {}
     while tc.start_time < 10000:

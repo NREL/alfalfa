@@ -1,8 +1,7 @@
+import os
 from unittest import TestCase
 
 from alfalfa_worker.lib.make_gzip_file import make_gzip_file
-
-import os
 
 
 class TestHttpRequests(TestCase):

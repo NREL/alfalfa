@@ -7,12 +7,12 @@ import os
 import tarfile
 
 import boto3
+from influxdb import InfluxDBClient
 from pymongo import MongoClient
 from redis import Redis
-from influxdb import InfluxDBClient
 
 
-class AlfalfaConnections:
+class AlfalfaConnectionsBase(object):
     """Create connections to data resources for Alfalfa"""
 
     def __init__(self):
