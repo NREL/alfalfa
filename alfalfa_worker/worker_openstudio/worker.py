@@ -42,21 +42,13 @@ class WorkerOpenStudio(WorkerJobBase):
     def __init__(self):
         super().__init__()
 
-    def check_step_sim_config(self, message_body, sim_type):
+    def check_step_sim_config(self, message_body):
         """
         Check that the configuration parameters sent in the message for step_sim are valid.
         Message body must have exactly one of:
             - realtime.  expect 'true', 'false' or none provided
             - timescale.  expect int(), str that can be cast as an int, or none provided
             - external_clock. expect 'true', 'false', or none provided
-        Optional parameters in message body:
-            if sim_type == fmu
-                - startDatetime. Else, default is 0.
-                - endDatetime. Else, default is number of seconds in year
-            else
-                - startDatetime. Else, default is Jan 1st, 00:00:00 of current year.
-                    If realtime is specified, changed to current time.
-                - endDatetime. Else, default is Dec 31st, 23:59:00 of current year
 
         start_datetime str : formatted as "%Y-%m-%d %H:%M:%S"
         end_datetime str : formatted as "%Y-%m-%d %H:%M:%S"
@@ -68,13 +60,9 @@ class WorkerOpenStudio(WorkerJobBase):
         :return: step_sim_type, step_sim_value, start_datetime, end_datetime
         """
 
-        if sim_type == 'osm':
-            year = datetime.today().year
-            start = "{}-01-01 00:00:00".format(year)
-            end = "{}-12-31 23:59:00".format(year)
-        else:
-            start = "0"
-            end = str(60 * 60 * 24 * 365)
+        year = datetime.today().year
+        start = "{}-01-01 00:00:00".format(year)
+        end = "{}-12-31 23:59:00".format(year)
 
         # TODO change server side message: startDatetime to start_datetime
         start_datetime = message_body.get('startDatetime', start)
@@ -128,9 +116,8 @@ class WorkerOpenStudio(WorkerJobBase):
                 sys.exit(1)
 
         # Check datetime string formatting
-        if sim_type == 'osm':
-            start_datetime = process_datetime_string(start_datetime, logger=self.logger)
-            end_datetime = process_datetime_string(end_datetime, logger=self.logger)
+        start_datetime = process_datetime_string(start_datetime, logger=self.logger)
+        end_datetime = process_datetime_string(end_datetime, logger=self.logger)
 
         return (step_sim_type, step_sim_value, start_datetime, end_datetime)
 
@@ -149,7 +136,7 @@ class WorkerOpenStudio(WorkerJobBase):
             return_code = subprocess.call(['python3', p, file_name, upload_id])
             self.check_subprocess_call(return_code, file_name, 'add_site')
 
-    def step_sim_type(self, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, model_type):
+    def step_sim_type(self, site_id, step_sim_type, step_sim_value, start_datetime, end_datetime):
         """Simple wrapper for the step_sim subprocess call given required params
 
         :param p:
@@ -158,37 +145,21 @@ class WorkerOpenStudio(WorkerJobBase):
         :param step_sim_value:
         :param start_datetime:
         :param end_datetime:
-        :param model_type: string, type of model. Choices are 'osm' or 'fmu'
         :return:
         """
-        self.logger.info("Calling model '{}' step_sim_type '{}'".format(model_type, step_sim_type))
+        self.logger.info("Calling model '{}' step_sim_type 'osm'".format(step_sim_type))
         arg_step_sim_value = None
         if step_sim_type == 'external_clock':
-            if model_type == 'fmu':
-                p = 'alfalfa_worker/worker_fmu/step_fmu.py'
-                # fmu needs to run with Python 2
-                python = 'python'
-                arg_start_datetime = start_datetime
-                arg_end_datetime = end_datetime
-            else:
-                p = 'alfalfa_worker/worker_openstudio/step_osm.py'
-                python = 'python3'
-                arg_start_datetime = start_datetime
-                arg_end_datetime = end_datetime
+            p = 'alfalfa_worker/worker_openstudio/step_osm.py'
+            python = 'python3'
+            arg_start_datetime = start_datetime
+            arg_end_datetime = end_datetime
         else:
-            if model_type == 'fmu':
-                p = 'alfalfa_worker/worker_fmu/step_fmu.py'
-                # fmu needs to run with Python 2
-                python = 'python'
-                arg_step_sim_value = step_sim_value
-                arg_start_datetime = start_datetime
-                arg_end_datetime = end_datetime
-            else:
-                p = 'alfalfa_worker/worker_openstudio/step_osm.py'
-                python = 'python3'
-                arg_step_sim_value = step_sim_value
-                arg_start_datetime = start_datetime
-                arg_end_datetime = end_datetime
+            p = 'alfalfa_worker/worker_openstudio/step_osm.py'
+            python = 'python3'
+            arg_step_sim_value = step_sim_value
+            arg_start_datetime = start_datetime
+            arg_end_datetime = end_datetime
 
         if os.path.isfile(p):
             call = [
@@ -225,7 +196,7 @@ class WorkerOpenStudio(WorkerJobBase):
     def add_site(self, message_body):
         """
         Caller to add a site depending on the type of file to upload.
-        Valid file extensions include: '.osm', '.zip', '.fmu'
+        Valid file extensions include: '.zip'
         '.zip' file extensions expected for OpenStudio workflow directories.
         Site is added by spinning off a subprocess
         TODO: Document expected directory structure for OS workflows
@@ -249,17 +220,14 @@ class WorkerOpenStudio(WorkerJobBase):
             if ext in ['.zip']:
                 p = 'alfalfa_worker/worker_openstudio/add_site.py'
                 self.add_site_type(p, file_name, upload_id)
-            elif ext in ['.fmu']:
-                p = 'alfalfa_worker/worker_fmu/add_site.py'
-                self.add_site_type(p, file_name, upload_id)
             else:
                 self.logger.info(
-                    "Unsupported file type: {}.  Valid extensions: .zip, .fmu".format(ext))
+                    "Unsupported file type: {}.  Valid extensions: .zip".format(ext))
 
     def step_sim(self, message_body):
         """
         Caller to step through a simulation.
-        Valid simulation types include: '.osm', '.fmu'
+        Valid simulation types include: '.osm'
         The simulation will not be started if an invalid simulation config is provided.
         Run occurs by spinning of a subprocess.
 
@@ -277,23 +245,14 @@ class WorkerOpenStudio(WorkerJobBase):
             site_rec = self.mongo_db_recs.find_one({"_id": site_id})
             self.logger.info('Site record: {}'.format(site_rec))
 
-            # TODO: Check if simType is defined, error if not.
-            sim_type = site_rec.get("rec", {}).get("simType", "osm").replace("s:", "")
-            step_sim_type, step_sim_value, start_datetime, end_datetime = self.check_step_sim_config(message_body, sim_type)
-            self.logger.info('Start step_sim for site_id: %s, and sim_type: %s' % (site_id, sim_type))
+            step_sim_type, step_sim_value, start_datetime, end_datetime = self.check_step_sim_config(message_body)
+            self.logger.info('Start step_sim for site_id: %s, and sim_type: osm' % (site_id))
 
-            # TODO: do we need to have two versions of python?
-            if sim_type == 'fmu':
-                self.step_sim_type(site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, sim_type)
-            elif sim_type == 'osm':
-                self.step_sim_type(site_id, step_sim_type, step_sim_value, start_datetime, end_datetime, sim_type)
-            else:
-                self.logger.info(
-                    "Invalid simulation type: {}.  Only 'fmu' and 'osm' are currently supported".format(sim_type))
+            self.step_sim_type(site_id, step_sim_type, step_sim_value, start_datetime, end_datetime)
 
     def run_sim(self, message_body):
         """
-        Run a simulation.  Running a simulation provides vanilla run of either an OSM or an FMU model.  Doesn't
+        Run a simulation.  Running a simulation provides vanilla run of an OSM.  Doesn't
         allow for external interfacing into model during runtime - simply runs the model.  Run occurs
         by spinning off a subprocess.
 
@@ -311,12 +270,5 @@ class WorkerOpenStudio(WorkerJobBase):
             self.logger.info(
                 'Run sim for upload_filename: %s, and upload_id: %s' % (upload_filename, upload_id))
 
-            name, ext = os.path.splitext(upload_filename)
-            if ext == '.gz':
-                p = 'run_sim/sim_osm/sim_osm.py'
-                self.run_sim_type(p, upload_filename, upload_id)
-            elif ext == '.fmu':
-                p = 'run_sim/sim_fmu/sim_fmu.py'
-                self.run_sim_type(p, upload_filename, upload_id)
-            else:
-                self.logger.info('Unsupported file type was uploaded')
+            p = 'run_sim/sim_osm/sim_osm.py'
+            self.run_sim_type(p, upload_filename, upload_id)

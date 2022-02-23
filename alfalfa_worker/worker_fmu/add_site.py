@@ -25,12 +25,10 @@
 
 from __future__ import print_function
 
-import glob
 import json
 import os
 import shutil
 import sys
-import zipfile
 from subprocess import call
 
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
@@ -70,13 +68,6 @@ class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
         _, self.file_ext = os.path.splitext(self.file_name)
         self.key = "uploads/%s/%s" % (self.upload_id, self.file_name)
 
-        # Define OSM and OSW specific attributes
-        self.seed_osm_path = os.path.join(self.bucket_parsed_site_id_dir, 'seed.osm')
-        self.workflow_osw_path = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/workflow.osw')
-        self.epw_path = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/files/weather.epw')  # mainly only used for add_osw
-        self.report_haystack_json = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/reports/haystack_report_haystack.json')
-        self.report_mapping_json = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/reports/haystack_report_mapping.json')
-
         # Define FMU specific attributes
         self.fmu_path = os.path.join(self.bucket_parsed_site_id_dir, 'model.fmu')
         self.fmu_json = os.path.join(self.bucket_parsed_site_id_dir, 'tags.json')
@@ -93,13 +84,7 @@ class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
         4. Remove files generated during this process
         :return:
         """
-        if self.file_ext == '.zip':
-            self.add_osw()
-        elif self.file_ext == '.fmu':
-            self.add_fmu()
-        else:
-            self.logger.error("Unsupported file extension: {}".format(self.file_ext))
-            os.exit(1)
+        self.add_fmu()
 
     def get_site_ref(self, haystack_json):
         """
@@ -153,94 +138,6 @@ class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
 
         # add points to database
         self.add_site_to_mongo(points_json, self.upload_id)
-
-    def add_osw(self):
-        """
-        Workflow for osw.
-        This function must merge the "built in" haystack workflow measures with
-        the user measure, and then run the resulting combined workflow
-        :return:
-        """
-        self.logger.info("add_osw for {}".format(self.key))
-
-        # download and extract the payload
-        payload_dir = os.path.join(self.bucket_parsed_site_id_dir, 'payload/')
-        os.mkdir(payload_dir)
-        payload_file_path = os.path.join(payload_dir, 'in.zip')
-        self.s3_bucket.download_file(self.key, payload_file_path)
-        zzip = zipfile.ZipFile(payload_file_path)
-        workflow_dir = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/')
-        zzip.extractall(workflow_dir)
-
-        osws = glob.glob(("%s/**/*.osw" % workflow_dir), recursive=True)
-        if osws:
-            # there is only support for one osw at this time
-            submitted_osw_path = osws[0]
-            submitted_workflow_path = os.path.dirname(submitted_osw_path)
-        else:
-            sys.exit(1)
-
-        # locate the "default" workflow
-        default_workflow_path = '/alfalfa/alfalfa_worker/worker_openstudio/lib/workflow/workflow.osw'
-
-        # Merge the default workflow measures into the user submitted workflow
-        call(['openstudio', '/alfalfa/alfalfa_worker/worker_openstudio/lib/merge_osws.rb', default_workflow_path, submitted_osw_path])
-
-        # run workflow
-        call(['openstudio', 'run', '-m', '-w', submitted_osw_path])
-
-        points_json_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_haystack.json')
-        mapping_json_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_mapping.json')
-        self.insert_os_tags(points_json_path, mapping_json_path)
-
-        # create a "simulation" directory that has everything required for simulation
-        simulation_dir = os.path.join(self.bucket_parsed_site_id_dir, 'simulation/')
-        os.mkdir(simulation_dir)
-
-        idf_src_path = os.path.join(submitted_workflow_path, 'run/in.idf')
-        idf_dest_path = os.path.join(simulation_dir, 'sim.idf')
-        rel_symlink(idf_src_path, idf_dest_path)
-
-        haystack_src_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_mapping.json')
-        haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_mapping.json')
-        rel_symlink(haystack_src_path, haystack_dest_path)
-
-        haystack_src_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_haystack.json')
-        haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_haystack.json')
-        rel_symlink(haystack_src_path, haystack_dest_path)
-
-        variables_src_path = os.path.join(submitted_workflow_path, 'reports/export_bcvtb_report_variables.cfg')
-        variables_dest_path = os.path.join(simulation_dir, 'variables.cfg')
-        rel_symlink(variables_src_path, variables_dest_path)
-
-        # variables.cfg also needs to be located next to the idf to satisfy EnergyPlus conventions
-        idf_src_dir = os.path.dirname(idf_src_path)
-        variables_ep_path = os.path.join(idf_src_dir, 'variables.cfg')
-        rel_symlink(variables_src_path, variables_ep_path)
-
-        # hack. need to find a more general approach to preserve osw resources that might be needed at simulation time
-        for file in glob.glob(submitted_workflow_path + '/python/*'):
-            idfdir = os.path.dirname(idf_src_path)
-            filename = os.path.basename(file)
-            dst = os.path.join(idfdir, filename)
-            rel_symlink(file, dst)
-
-        # find weather file (if) defined by osw and copy into simulation directory
-        with open(submitted_osw_path, 'r') as osw:
-            data = osw.read()
-        submitted_osw = json.loads(data)
-
-        epw_name = submitted_osw['weather_file']
-        if epw_name:
-            epw_src_path = self.find_file(epw_name, submitted_workflow_path)
-            epw_dst_path = os.path.join(simulation_dir, 'sim.epw')
-            rel_symlink(epw_src_path, epw_dst_path)
-
-        # push entire directory to file storage
-        filestore_response, output = self.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
-
-        # remove directory
-        shutil.rmtree(self.bucket_parsed_site_id_dir)
 
     def find_file(self, name, path):
         for root, dirs, files in os.walk(path):
