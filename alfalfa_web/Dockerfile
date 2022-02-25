@@ -7,7 +7,7 @@ RUN cd /root
 WORKDIR /root
 
 COPY alfalfa_web/package.json alfalfa_web/package-lock.json /root/
-
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1655A0AB68576280
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -y ca-certificates nodejs \
     && npm install
