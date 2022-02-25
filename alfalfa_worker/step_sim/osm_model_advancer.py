@@ -43,7 +43,7 @@ class OSMModelAdvancer(ModelAdvancer):
         self.ep = mlep.MlepProcess()
         self.ep.bcvtbDir = '/alfalfa/bcvtb/'
         self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
-        self.ep.accept_timeout = 30000
+        self.ep.accept_timeout = 60000
         self.ep.mapping = os.path.realpath(os.path.join(self.sim_path_site, 'simulation/haystack_report_mapping.json'))
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
