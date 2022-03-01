@@ -76,10 +76,6 @@ class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
         self.report_haystack_json = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/reports/haystack_report_haystack.json')
         self.report_mapping_json = os.path.join(self.bucket_parsed_site_id_dir, 'workflow/reports/haystack_report_mapping.json')
 
-        # Define FMU specific attributes
-        self.fmu_path = os.path.join(self.bucket_parsed_site_id_dir, 'model.fmu')
-        self.fmu_json = os.path.join(self.bucket_parsed_site_id_dir, 'tags.json')
-
         # Needs to be set after files are uploaded / parsed.
         self.site_ref = None
 
@@ -92,13 +88,7 @@ class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
         4. Remove files generated during this process
         :return:
         """
-        if self.file_ext == '.zip':
-            self.add_osw()
-        elif self.file_ext == '.fmu':
-            self.add_fmu()
-        else:
-            self.logger.error("Unsupported file extension: {}".format(self.file_ext))
-            os.exit(1)
+        self.add_osw()
 
     def get_site_ref(self, haystack_json):
         """
@@ -115,13 +105,6 @@ class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
                         site_ref = entity['id'].replace('r:', '')
                         break
         return site_ref
-
-    def insert_fmu_tags(self, points_json_path):
-        with open(points_json_path, 'r') as f:
-            data = f.read()
-        points_json = json.loads(data)
-
-        self.add_site_to_mongo(points_json, self.upload_id)
 
     def insert_os_tags(self, points_json_path, mapping_json_path):
         """
@@ -245,28 +228,6 @@ class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
         for root, dirs, files in os.walk(path):
             if name in files:
                 return os.path.join(root, name)
-
-    def add_fmu(self):
-        """
-        Workflow for fmu.  External call to python2 must be made since currently we are using an
-        old version of the Modelica Buildings Library and JModelica.
-        :return:
-        """
-        self.logger.info("add_fmu for {}".format(self.key))
-
-        self.s3_bucket.download_file(self.key, self.fmu_path)
-
-        # External call to python2 to create FMU tags
-        call(['python', 'lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
-
-        # insert tags into db
-        self.insert_fmu_tags(self.fmu_json)
-
-        # push entire directory to file storage
-        filestore_response, output = self.add_site_to_filestore(self.bucket_parsed_site_id_dir, self.upload_id)
-
-        # remove directory
-        shutil.rmtree(self.bucket_parsed_site_id_dir)
 
 
 if __name__ == "__main__":
