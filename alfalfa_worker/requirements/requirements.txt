@@ -1,0 +1,15 @@
+boto3
+Cython
+data
+importlib-metadata
+influxdb
+lxml
+matplotlib
+mlep
+numpy
+pandas
+pymongo
+redis
+requests
+scipy
+symfit

@@ -46,8 +46,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
     bottom of this file."""
 
     def __init__(self, **kwargs):
-        # TODO: replace super call with just super() when this is moved to Python3!
-        super(RunFMUSite, self).__init__()
+        super().__init__()
 
         # get arguments from calling program
         # which is the processMessage program
@@ -155,6 +154,8 @@ class RunFMUSite(AlfalfaConnectionsBase):
                 message = self.redis_pubsub.get_message()
                 if message:
                     data = message['data']
+                    if isinstance(data, bytes):
+                        data = data.decode('utf-8')
                     if data == 'advance':
                         self.step()
                         self.redis.publish(self.site_id, 'complete')

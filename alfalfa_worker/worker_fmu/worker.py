@@ -77,7 +77,7 @@ class WorkerFmu(WorkerJobBase):
 
         p = 'alfalfa_worker/worker_fmu/step_fmu.py'
         # fmu needs to run with Python 2
-        python = 'python'
+        python = 'python3'
         arg_start_datetime = start_datetime
         arg_end_datetime = end_datetime
         if step_sim_type != 'external_clock':
