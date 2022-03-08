@@ -83,8 +83,6 @@ RUN curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
     && ln -s /usr/local/EnergyPlus-9-4-0/energyplus /usr/local/bin/ \
     && ln -s /usr/local/EnergyPlus-9-4-0/ExpandObjects /usr/local/bin/ \
     && ln -s /usr/local/EnergyPlus-9-4-0/runenergyplus /usr/local/bin/ \
-    # && ln -s /usr/local/EnergyPlus-9-4-0/PostProcess/ReadVarsESO /usr/local/bin/ \
-    # && ln -s /usr/local/EnergyPlus-9-4-0/PostProcess/HVAC-Diagram /usr/local/bin/ \
     && rm $ENERGYPLUS_DOWNLOAD_FILENAME
 
 RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
