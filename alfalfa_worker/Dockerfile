@@ -35,6 +35,9 @@ RUN apt-get update -y && apt-get install -y \
         git && \
     apt-get install -y git
 
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
+    ln -sf /usr/bin/pip3 /usr/bin/pip
+
 # Use set in update-alternatives instead of config to
 # provide non-interactive input.
 RUN apt-get update \
@@ -130,22 +133,25 @@ RUN git clone --branch $OPENBLAS_TAG --depth 1 https://github.com/xianyi/OpenBLA
     && make PREFIX=$OPENBLAS_HOME install
 
 
-COPY alfalfa_worker/requirements/requirements.txt $BUILD_DIR
+COPY pyproject.toml $BUILD_DIR
+COPY poetry.lock $BUILD_DIR
 
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
-RUN  python3 -m pip install --upgrade pip setuptools && \
-     python3 -m pip install --ignore-installed -r $BUILD_DIR/requirements.txt
+RUN  pip install --upgrade pip setuptools && \
+     pip install poetry==1.1.12 && \
+     python -m poetry config virtualenvs.create false && \
+     python -m poetry install --no-dev
 
 ENV LD_LIBRARY_PATH $SUNDIALS_HOME/lib:$OPENBLAS_HOME/lib:$LD_LIBRARY_PATH
 
 RUN git clone --branch $ASSIMULO_TAG --depth 1 https://github.com/modelon-community/Assimulo.git \
     && cd Assimulo \
-    && python3 setup.py install --sundials-home=$SUNDIALS_HOME --blas-home=$OPENBLAS_HOME/lib --blas-name=openblas --lapack-home=$OPENBLAS_HOME/lib
+    && python setup.py install --sundials-home=$SUNDIALS_HOME --blas-home=$OPENBLAS_HOME/lib --blas-name=openblas --lapack-home=$OPENBLAS_HOME/lib
 
 # Install PyFMI
 RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community/PyFMI.git \
      && cd PyFMI \
-     && python3 setup.py install
+     && python setup.py install
 
 # Clean up builds
 RUN rm -rf $BUILD_DIR
@@ -172,10 +178,10 @@ FROM base AS dev
 
 # Install poetry's dev dependencies by removing old lock
 RUN rm -f poetry.lock && \
-    python3 -m pip install --upgrade pip setuptools && \
-    python3 -m pip install poetry==1.1.12 && \
-    python3 -m poetry config virtualenvs.create false && \
-    python3 -m poetry install
+    pip install --upgrade pip setuptools && \
+    pip install poetry==1.1.12 && \
+    python -m poetry config virtualenvs.create false && \
+    python -m poetry install
 
 # for remote debugging
 RUN pip install remote-pdb

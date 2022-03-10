@@ -29,6 +29,8 @@ numpy = "1.19.5"
 
 # The influxdb dependency will be removed once filebeat is configured
 influxdb = "^5.3.1"
+Cython = "^0.29.28"
+matplotlib = "3.3.3"
 
 [tool.poetry.dev-dependencies]
 #alfalfa-client = "0.1.1"
