@@ -20,10 +20,6 @@ RUN apt-get update \
     && tar -xzf bcvtb-linux.tar.gz \
     && apt-get install -y ca-certificates nodejs
 
-ENV SPAWN_DOWNLOAD_BASE_URL https://spawn.s3.amazonaws.com/builds
-ENV SPAWN_DOWNLOAD_FILENAME Spawn-0.0.1-1ad59a6dbf-Linux.tar.gz
-ENV SPAWN_DOWNLOAD_URL ${SPAWN_DOWNLOAD_BASE_URL}/${SPAWN_DOWNLOAD_FILENAME}
-
 ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.1.0+e165090621-Linux.deb
 ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.1.0/OpenStudio-3.1.0+e165090621-Linux.deb
 
@@ -38,15 +34,6 @@ ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/NREL/EnergyPlus/releases/dow
 ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-Ubuntu18.04-x86_64.tar.gz
 ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
 
-# Extract Spawn executable
-RUN curl -SLO ${SPAWN_DOWNLOAD_URL} \
-    && mkdir /usr/local/Spawn-0.0.1 \
-    && tar -C /usr/local/Spawn-0.0.1/ --strip-components=1 -xzf ${SPAWN_DOWNLOAD_FILENAME} \
-    && ln -s /usr/local/Spawn-0.0.1/bin/spawn /usr/local/bin/ \
-    && rm ${SPAWN_DOWNLOAD_FILENAME}
-RUN spawn --version
-
-
 # We would rather use the self extracting tarball distribution of EnergyPlus, but there appears to
 # be a bug in the installation script so using the tar.gz manually here and making our own links
 RUN curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
@@ -60,6 +47,13 @@ RUN curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
 RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
+
+# Install commands for Spawn
+ENV SPAWN_VERSION=0.3.0-69040695f9
+RUN wget https://spawn.s3.amazonaws.com/custom/Spawn-$SPAWN_VERSION-Linux.tar.gz \
+    && tar -C /usr/local/ -xzf Spawn-$SPAWN_VERSION-Linux.tar.gz \
+    && ln -s /usr/local/Spawn-$SPAWN_VERSION-Linux/bin/spawn-$SPAWN_VERSION /usr/local/bin/ \
+    && rm Spawn-$SPAWN_VERSION-Linux.tar.gz
 
 # Need to set the lang to use Python 3.6 with Poetry
 ENV  LANG C.UTF-8
