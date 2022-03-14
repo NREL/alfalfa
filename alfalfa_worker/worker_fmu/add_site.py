@@ -155,7 +155,7 @@ class AddSite(AddSiteLoggerMixin, AlfalfaConnectionsBase):
         self.s3_bucket.download_file(self.key, self.fmu_path)
 
         # External call to python2 to create FMU tags
-        call(['python', 'alfalfa_worker/lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
+        call(['python3', 'alfalfa_worker/lib/fmu_create_tags.py', self.fmu_path, self.file_name, self.fmu_json])
 
         # insert tags into db
         self.insert_fmu_tags(self.fmu_json)

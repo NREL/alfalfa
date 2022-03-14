@@ -22,7 +22,7 @@ class TestAddSiteFmu(TestCase):
 
         # TODO: Need to run this with Python3, eventually
         # Better yet, convert the fmu_create_tags.py into a class.
-        r = call(['python', py_file, fmu_path, fmu_filename, fmu_json])
+        r = call(['python3', py_file, fmu_path, fmu_filename, fmu_json])
 
         assert r == 0, "fmu_create_tags failed to successfully run"
         assert os.path.exists(fmu_json)
