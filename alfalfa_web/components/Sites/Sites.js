@@ -23,31 +23,28 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import React, { PropTypes } from "react";
-import { FileUpload, MoreVert, ExpandLess, ExpandMore } from "@material-ui/icons";
-import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
+import Checkbox from "@material-ui/core/Checkbox";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
+import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import Grid from "@material-ui/core/Grid";
-import { graphql } from "react-apollo";
-import gql from "graphql-tag";
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Checkbox from "@material-ui/core/Checkbox";
-import { withStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import { ExpandMore, MoreVert } from "@material-ui/icons";
+import gql from "graphql-tag";
+import React from "react";
+import { graphql } from "react-apollo";
 import StartDialog from "../StartDialog/StartDialog.js";
 
 class PointDialogComponent extends React.Component {
@@ -125,7 +122,7 @@ class PointDialogComponent extends React.Component {
         </div>
       );
     } else {
-      return <div></div>;
+      return <div />;
     }
   };
 }
@@ -184,7 +181,7 @@ class Sites extends React.Component {
     const clickedSite = this.props.data.viewer.sites.find((s) => s.siteRef === siteRef);
     const firstSite = this.selectedSites()[0];
     const simType = clickedSite.simType;
-    if (firstSite && simType != firstSite.simType) {
+    if (firstSite && simType !== firstSite.simType) {
       return;
     }
 
@@ -286,12 +283,12 @@ class Sites extends React.Component {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell padding="checkbox"></TableCell>
+                  <TableCell padding="checkbox" />
                   <TableCell>Name</TableCell>
                   <TableCell>ID</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Time</TableCell>
-                  <TableCell></TableCell>
+                  <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -326,7 +323,8 @@ class Sites extends React.Component {
                 <StartDialog
                   type={this.state.startDialogType}
                   disabled={isStartDisabled}
-                  onStartSimulation={this.handleStartSimulation}></StartDialog>
+                  onStartSimulation={this.handleStartSimulation}
+                />
               </Grid>
               <Grid item>
                 <Button

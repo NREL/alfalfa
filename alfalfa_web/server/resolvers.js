@@ -24,17 +24,16 @@
  ***********************************************************************************************************************/
 
 import AWS from "aws-sdk";
-import request from "superagent";
-import { MongoClient } from "mongodb";
 import path from "path";
+import request from "superagent";
 import dbops from "./dbops";
 
 AWS.config.update({ region: process.env.REGION });
-var sqs = new AWS.SQS();
-var s3client = new AWS.S3({ endpoint: process.env.S3_URL });
+const sqs = new AWS.SQS();
+const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 function addSiteResolver(modelName, uploadID) {
-  var params = {
+  const params = {
     MessageBody: `{"op": "InvokeAction",
       "action": "addSite",
       "model_name": "${modelName}",
@@ -53,7 +52,7 @@ function addSiteResolver(modelName, uploadID) {
 }
 
 function runSimResolver(uploadFilename, uploadID, context) {
-  var params = {
+  const params = {
     MessageBody: `{"op": "InvokeAction",
     "action": "runSim",
     "upload_filename": "${uploadFilename}",
@@ -219,8 +218,8 @@ function simsResolver(user, args, context) {
         array.map((sim) => {
           sim = Object.assign(sim, { simRef: sim._id });
           if (sim.s3Key) {
-            var params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
-            var url = s3client.getSignedUrl("getObject", params);
+            const params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
+            const url = s3client.getSignedUrl("getObject", params);
             sim = Object.assign(sim, { url: url });
           }
           sims.push(sim);
@@ -264,20 +263,20 @@ function sitesResolver(user, siteRef) {
         } else {
           res.body.rows.map((row) => {
             let site = {
-              name: row.dis.replace(/[a-z]\:/, ""),
-              siteRef: row.id.replace(/[a-z]\:/, ""),
-              simStatus: row.simStatus.replace(/[a-z]\:/, ""),
-              simType: row.simType.replace(/[a-z]\:/, "")
+              name: row.dis.replace(/[a-z]:/, ""),
+              siteRef: row.id.replace(/[a-z]:/, ""),
+              simStatus: row.simStatus.replace(/[a-z]:/, ""),
+              simType: row.simType.replace(/[a-z]:/, "")
             };
             let datetime = row["datetime"];
             if (datetime) {
-              datetime = datetime.replace(/[a-z]\:/, "");
+              datetime = datetime.replace(/[a-z]:/, "");
               site.datetime = datetime;
             }
 
             let step = row["step"];
             if (step) {
-              step = step.replace(/[a-z]\:/, "");
+              step = step.replace(/[a-z]:/, "");
               site.step = step;
             }
 

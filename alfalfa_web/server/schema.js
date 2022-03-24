@@ -26,7 +26,6 @@
 import {
   GraphQLBoolean,
   GraphQLFloat,
-  GraphQLID,
   GraphQLInt,
   GraphQLList,
   GraphQLNonNull,
@@ -37,7 +36,7 @@ import {
 
 import resolvers from "./resolvers";
 
-var tagType = new GraphQLObjectType({
+const tagType = new GraphQLObjectType({
   name: "Tag",
   description: "A Haystack tag",
   fields: () => ({
@@ -52,7 +51,7 @@ var tagType = new GraphQLObjectType({
   })
 });
 
-var pointType = new GraphQLObjectType({
+const pointType = new GraphQLObjectType({
   name: "Point",
   description: "A Haystack point",
   fields: () => ({
@@ -67,7 +66,7 @@ var pointType = new GraphQLObjectType({
   })
 });
 
-var siteType = new GraphQLObjectType({
+const siteType = new GraphQLObjectType({
   name: "Site",
   description: "A site corresponding to an osm file upload",
   fields: () => ({
@@ -110,7 +109,7 @@ var siteType = new GraphQLObjectType({
   })
 });
 
-var simType = new GraphQLObjectType({
+const simType = new GraphQLObjectType({
   name: "Sim",
   description: "A completed simulation, including any that may have stopped with errors.",
   fields: () => ({
@@ -150,7 +149,7 @@ var simType = new GraphQLObjectType({
   })
 });
 
-var userType = new GraphQLObjectType({
+const userType = new GraphQLObjectType({
   name: "User",
   description: "A person who uses our app",
   fields: () => ({
@@ -184,7 +183,7 @@ var userType = new GraphQLObjectType({
   })
 });
 
-var queryType = new GraphQLObjectType({
+const queryType = new GraphQLObjectType({
   name: "Query",
   fields: () => ({
     viewer: {
@@ -291,7 +290,7 @@ const mutationType = new GraphQLObjectType({
   })
 });
 
-export var Schema = new GraphQLSchema({
+export const Schema = new GraphQLSchema({
   query: queryType,
   // Uncomment the following after adding some mutation fields:
   mutation: mutationType
