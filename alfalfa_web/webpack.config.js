@@ -23,30 +23,30 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-'use strict';
-const webpack = require('webpack');
-const fs = require('fs');
-const path = require('path');
+"use strict";
+const webpack = require("webpack");
+const fs = require("fs");
+const path = require("path");
 //const autoprefixer = require('autoprefixer');
 //const precss = require('precss');
-const {graphql} = require('graphql');
-const {introspectionQuery, printSchema} = require('graphql/utilities');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const MinifyPlugin = require('babel-minify-webpack-plugin');
-const CompressionPlugin = require('compression-webpack-plugin');
+const { graphql } = require("graphql");
+const { introspectionQuery, printSchema } = require("graphql/utilities");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const MinifyPlugin = require("babel-minify-webpack-plugin");
+const CompressionPlugin = require("compression-webpack-plugin");
 
-const title = 'Alfalfa';
-const template = './index.html';
-let devtool = '';
+const title = "Alfalfa";
+const template = "./index.html";
+let devtool = "";
 let plugins = [];
 
-const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+const mode = process.env.NODE_ENV === "production" ? "production" : "development";
 
-if (mode === 'production') {
+if (mode === "production") {
   plugins = [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production')
+      "process.env.NODE_ENV": JSON.stringify("production")
     }),
     new MinifyPlugin(),
     new webpack.optimize.AggressiveMergingPlugin(),
@@ -62,11 +62,11 @@ if (mode === 'production') {
     new UglifyJsPlugin()
   ];
 
-  devtool = 'eval';
+  devtool = "eval";
 } else {
   plugins = [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('development')
+      "process.env.NODE_ENV": JSON.stringify("development")
     }),
     new HtmlWebpackPlugin({
       title: title,
@@ -75,17 +75,17 @@ if (mode === 'production') {
     new webpack.HotModuleReplacementPlugin()
   ];
 
-  devtool = 'source-map';
+  devtool = "source-map";
 }
 
 module.exports = {
   mode,
   entry: {
-    app: ['./app.js']
+    app: ["./app.js"]
   },
   output: {
-    path: path.join(__dirname, 'build/app'),
-    filename: 'app.bundle.js'
+    path: path.join(__dirname, "build/app"),
+    filename: "app.bundle.js"
   },
   devtool: devtool,
   performance: {
@@ -103,7 +103,7 @@ module.exports = {
         exclude: /node_modules/,
         use: [
           {
-            loader: 'babel-loader'
+            loader: "babel-loader"
           }
         ]
       },
@@ -111,7 +111,7 @@ module.exports = {
         test: /\.json$/,
         use: [
           {
-            loader: 'json'
+            loader: "json"
           }
         ]
       },
@@ -119,7 +119,7 @@ module.exports = {
         test: /\.(png|jpg|jpeg|gif|svg|woff|woff2)$/,
         use: [
           {
-            loader: 'url-loader?limit=10000&name=assets/[hash].[ext]'
+            loader: "url-loader?limit=10000&name=assets/[hash].[ext]"
           }
         ]
       },
@@ -127,10 +127,10 @@ module.exports = {
         test: /\.css$/,
         use: [
           {
-            loader: 'style-loader' // creates style nodes from JS strings
+            loader: "style-loader" // creates style nodes from JS strings
           },
           {
-            loader: 'css-loader' // translates CSS into CommonJS
+            loader: "css-loader" // translates CSS into CommonJS
           }
         ]
       },
@@ -138,10 +138,10 @@ module.exports = {
         test: /\.scss$/,
         use: [
           {
-            loader: 'style-loader' // creates style nodes from JS strings
+            loader: "style-loader" // creates style nodes from JS strings
           },
           {
-            loader: 'css-loader', // translates CSS into CommonJS
+            loader: "css-loader", // translates CSS into CommonJS
             options: {
               importLoaders: true,
               modules: true
@@ -149,7 +149,7 @@ module.exports = {
             }
           },
           {
-            loader: 'postcss-loader'
+            loader: "postcss-loader"
           }
         ]
       }

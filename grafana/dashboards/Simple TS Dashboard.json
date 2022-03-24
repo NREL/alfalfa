@@ -87,9 +87,7 @@
           "alias": "$tag_dis",
           "groupBy": [
             {
-              "params": [
-                "dis"
-              ],
+              "params": ["dis"],
               "type": "tag"
             }
           ],
@@ -101,9 +99,7 @@
           "select": [
             [
               {
-                "params": [
-                  "value"
-                ],
+                "params": ["value"],
                 "type": "field"
               }
             ]

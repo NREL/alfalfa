@@ -2,9 +2,7 @@
   "networkMode": "awsvpc",
   "cpu": "256",
   "memory": "512",
-  "requiresCompatibilities": [
-      "FARGATE"
-  ], 
+  "requiresCompatibilities": ["FARGATE"],
   "family": "web",
   "taskRoleArn": "<%= @WORKER_ROLE_ARN%>",
   "executionRoleArn": "<%= @EXECUTION_ROLE_ARN%>",
@@ -14,30 +12,30 @@
       "image": "<%= @WEB_REGISTRY_URI%>:latest",
       "essential": true,
       "environment": [
-          {
-              "name": "JOB_QUEUE_URL",
-              "value": "<%= @JOB_QUEUE_URL%>"
-          },
-          {
-              "name": "NODE_ENV",
-              "value": "production"
-          },
-          {
-            "name": "MONGO_URL",
-            "value": "<%= @MONGO_URL %>"
-          },
-          {
-            "name": "S3_URL",
-            "value": "https://s3.amazonaws.com"
-          },
-          {
-            "name": "AWS_ACCESS_KEY_ID",
-            "value": "<%= @AWS_ACCESS_KEY_ID %>"
-          },
-          { 
-            "name": "AWS_SECRET_ACCESS_KEY",
-            "value": "<%= @AWS_SECRET_ACCESS_KEY %>"
-          }
+        {
+          "name": "JOB_QUEUE_URL",
+          "value": "<%= @JOB_QUEUE_URL%>"
+        },
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "MONGO_URL",
+          "value": "<%= @MONGO_URL %>"
+        },
+        {
+          "name": "S3_URL",
+          "value": "https://s3.amazonaws.com"
+        },
+        {
+          "name": "AWS_ACCESS_KEY_ID",
+          "value": "<%= @AWS_ACCESS_KEY_ID %>"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "value": "<%= @AWS_SECRET_ACCESS_KEY %>"
+        }
       ],
       "portMappings": [
         {
@@ -57,4 +55,3 @@
     }
   ]
 }
-
