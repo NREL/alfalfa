@@ -10,7 +10,7 @@ npm install
 npm run build
 ```
 
-To run this container locally, start goaws, minio, mc, mongo, and redis. Set the environment varialbes below in
+To run this container locally, start goaws, minio, mc, mongo, and redis. Set the environment variables below in
 your local shell.
 
 ```
