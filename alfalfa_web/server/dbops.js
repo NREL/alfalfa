@@ -7,7 +7,7 @@ class WriteArray {
     this.val = [];
     this.who = [];
 
-    for (var i = 0; i < 17; ++i) {
+    for (let i = 0; i < 17; ++i) {
       this.val[i] = null;
       this.who[i] = null;
     }
@@ -15,9 +15,9 @@ class WriteArray {
 }
 
 function currentWinningValue(array) {
-  for (var i = 0; i < array.val.length; ++i) {
+  for (let i = 0; i < array.val.length; ++i) {
     const v = array.val[i];
-    if (v || v == 0) {
+    if (v || v === 0) {
       return {
         val: v,
         level: i + 1
@@ -29,7 +29,7 @@ function currentWinningValue(array) {
 }
 
 function setOrNullArray(array, val, level, who) {
-  if (val || val == 0) {
+  if (val || val === 0) {
     array.val[level - 1] = val;
     array.who[level - 1] = who;
   } else {
@@ -40,14 +40,14 @@ function setOrNullArray(array, val, level, who) {
 
 // Get a point by siteRef and display name
 function getPoint(siteRef, name, db) {
-  let mrecs = db.collection("recs");
+  const mrecs = db.collection("recs");
   return mrecs.findOne({ site_ref: siteRef, "rec.dis": `s:${name}` });
 }
 
 function writePoint(id, siteRef, level, val, who, dur, db) {
   return new Promise((resolve, reject) => {
-    let writearrays = db.collection("writearrays");
-    let mrecs = db.collection("recs");
+    const writearrays = db.collection("writearrays");
+    const mrecs = db.collection("recs");
 
     if (!level) {
       level = 1;

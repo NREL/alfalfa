@@ -1,14 +1,11 @@
-FROM ubuntu:18.04 AS base
+FROM node:16-alpine AS base
 
-RUN apt-get update && \
-    apt-get -y install \
-        curl \
-        git \
-        vim
+RUN apk add --no-cache \
+    ca-certificates \
+    git \
+    vim
 
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
-    && apt-get update \
-    && apt-get install -y nodejs
+RUN npm install -g npm@latest
 
 RUN cd /srv
 WORKDIR /srv/alfalfa

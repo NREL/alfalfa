@@ -23,25 +23,25 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import React from "react";
-import PropTypes from "prop-types";
-import IconButton from "@material-ui/core/IconButton";
-import { FileUpload } from "@material-ui/icons";
-import Grid from "@material-ui/core/Grid";
-import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import Input from "@material-ui/core/Input";
-import { InputLabel, InputLabelProps } from "@material-ui/core/Input";
+import Grid from "@material-ui/core/Grid";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import "normalize.css/normalize.css";
-import styles from "./Upload.scss";
-import { cyan500, red500, greenA200 } from "@material-ui/core/colors";
-import { graphql } from "react-apollo";
-import gql from "graphql-tag";
-import { v1 as uuidv1 } from "uuid";
 import { withStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
+import gql from "graphql-tag";
+import "normalize.css/normalize.css";
+import PropTypes from "prop-types";
+import React from "react";
+import { graphql } from "react-apollo";
+import { v1 as uuidv1 } from "uuid";
+import styles from "./Upload.scss";
 
 class FileInput extends React.Component {
+  static propTypes = {
+    hint: PropTypes.string,
+    onFileChange: PropTypes.func
+  };
+
   constructor(props) {
     super(props);
     this.fileInputRef = React.createRef();
@@ -53,11 +53,6 @@ class FileInput extends React.Component {
       file: ""
     };
   }
-
-  static propTypes = {
-    hint: PropTypes.string,
-    onFileChange: PropTypes.func
-  };
 
   handleFileChange = (evt) => {
     const file = evt.target.files[0];
@@ -86,13 +81,22 @@ class FileInput extends React.Component {
           value={this.state.filename}
           InputLabelProps={{
             shrink: this.state.filename != ""
-          }}></TextField>
+          }}
+        />
       </div>
     );
   };
 }
 
 class Upload extends React.Component {
+  static propTypes = {
+    //className: PropTypes.string,
+  };
+  static contextTypes = {
+    authenticated: PropTypes.bool,
+    user: PropTypes.object
+  };
+
   constructor() {
     super();
     this.onModelFileChange = this.onModelFileChange.bind(this);
@@ -106,15 +110,6 @@ class Upload extends React.Component {
       completed: 0
     };
   }
-
-  static propTypes = {
-    //className: PropTypes.string,
-  };
-
-  static contextTypes = {
-    authenticated: PropTypes.bool,
-    user: PropTypes.object
-  };
 
   onModelFileChange(file) {
     this.setState({ modelFile: file, completed: 0, uploadID: uuidv1() });
@@ -144,7 +139,7 @@ class Upload extends React.Component {
 
       const uploadProgress = (evt) => {
         if (evt.lengthComputable) {
-          var percentComplete = Math.round((evt.loaded * 100) / evt.total);
+          const percentComplete = Math.round((evt.loaded * 100) / evt.total);
           if (percentComplete > 100) {
             this.setState({ completed: 100 });
           } else {
@@ -163,7 +158,7 @@ class Upload extends React.Component {
           return;
         }
 
-        var xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener("progress", uploadProgress, false);
         xhr.addEventListener("load", uploadComplete, false);

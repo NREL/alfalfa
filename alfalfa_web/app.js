@@ -23,13 +23,14 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import React from "react";
-import ReactDOM from "react-dom";
-import { BrowserRouter as Router, Route, HomeRoute, Redirect, Switch } from "react-router-dom";
+import "@fontsource/material-icons";
+import "@fontsource/roboto";
 import ApolloClient from "apollo-boost";
+import React from "react";
 import { ApolloProvider } from "react-apollo";
+import ReactDOM from "react-dom";
+import { BrowserRouter as Router, Route } from "react-router-dom";
 import App from "./components/App/App.js";
-import "typeface-roboto";
 
 const client = new ApolloClient();
 

@@ -23,45 +23,38 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import React, { PropTypes } from "react";
-import { FileUpload, MoreVert, ExpandLess, ExpandMore } from "@material-ui/icons";
-import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
+import Checkbox from "@material-ui/core/Checkbox";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import Grid from "@material-ui/core/Grid";
-import { graphql } from "react-apollo";
-import gql from "graphql-tag";
+import IconButton from "@material-ui/core/IconButton";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import Checkbox from "@material-ui/core/Checkbox";
-import { withStyles } from "@material-ui/core/styles";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import ListItemText from "@material-ui/core/ListItemText";
+import { MoreVert } from "@material-ui/icons";
 import downloadjs from "downloadjs";
-import * as moment from "moment";
+import gql from "graphql-tag";
+import { DateTime } from "luxon";
+import React from "react";
+import { graphql } from "react-apollo";
 
 class ResultsDialog extends React.Component {
   render = () => {
-    var sim = this.props.sim;
+    const sim = this.props.sim;
 
     const items = (content) => {
       return Object.entries(content).map(([key, value]) => {
-        if (key == "energy") {
+        if (key === "energy") {
           key = key + " [kWh]";
-        } else if (key == "comfort") {
+        } else if (key === "comfort") {
           key = key + " [K-h]";
         }
         return (
@@ -124,7 +117,7 @@ class Sims extends React.Component {
   };
 
   buttonsDisabled = () => {
-    return this.state.selected.length == 0;
+    return this.state.selected.length === 0;
   };
 
   handleRemove = () => {
@@ -139,7 +132,7 @@ class Sims extends React.Component {
         url.hostname = window.location.hostname;
         url.pathname = "/alfalfa" + url.pathname;
       }
-      var xhr = new XMLHttpRequest();
+      const xhr = new XMLHttpRequest();
       xhr.open("GET", url, true);
       xhr.responseType = "blob";
       xhr.onload = (e) => {
@@ -191,7 +184,9 @@ class Sims extends React.Component {
                         <Checkbox checked={isSelected} />
                       </TableCell>
                       <TableCell padding="none">{sim.name}</TableCell>
-                      <TableCell>{moment(sim.timeCompleted).format("MMMM Do YYYY, h:mm a")}</TableCell>
+                      <TableCell>
+                        {DateTime.fromISO(sim.timeCompleted.replace(" ", "T")).toFormat("LLLL dd y, h:mm a")}
+                      </TableCell>
                       <TableCell padding="none">{sim.simStatus}</TableCell>
                       <TableCell>
                         <IconButton onClick={(event) => this.handleShowResults(event, sim)}>
