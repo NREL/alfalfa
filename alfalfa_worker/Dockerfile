@@ -88,6 +88,8 @@ RUN curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
     && ln -s /usr/local/EnergyPlus-9-4-0/runenergyplus /usr/local/bin/ \
     && rm $ENERGYPLUS_DOWNLOAD_FILENAME
 
+ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-4-0
+
 RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
@@ -97,7 +99,7 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
 ENV FMIL_TAG 2.4
 ENV FMIL_HOME $ROOT_DIR/fmil
 
-ENV SUNDIALS_HOME $ROOT_DIR/sundials
+ENV SUNDIALS_HOME $ROOT_DIR
 ENV SUNDIALS_TAG v4.1.0
 
 ENV ASSIMULO_TAG Assimulo-3.2.9
@@ -105,13 +107,16 @@ ENV ASSIMULO_TAG Assimulo-3.2.9
 ENV PYFMI_TAG PyFMI-2.9.5
 
 ENV OPENBLAS_TAG v0.3.20
-ENV OPENBLAS_HOME $ROOT_DIR/OpenBLAS
+ENV OPENBLAS_HOME $ROOT_DIR
+
+ENV SUPERLU_TAG v5.3.0
+ENV SUPERLU_HOME $ROOT_DIR
 
 WORKDIR $BUILD_DIR
 
 # Build Sundials (for Assimulo)
 RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.git \
-    && mkdir $SUNDIALS_HOME \
+    #&& mkdir $SUNDIALS_HOME \
     && mkdir sundials_build \
     && cd sundials_build \
     && cmake -DLAPACK_ENABLE=ON -DCMAKE_INSTALL_PREFIX=$SUNDIALS_HOME ../sundials \
@@ -127,11 +132,20 @@ RUN git clone --branch $FMIL_TAG --depth 1 https://github.com/modelon-community/
 
 # Build OpenBLAS (provides BLAS for Assimulo)
 RUN git clone --branch $OPENBLAS_TAG --depth 1 https://github.com/xianyi/OpenBLAS.git \
-    && mkdir $OPENBLAS_HOME \
+    #&& mkdir $OPENBLAS_HOME \
     && cd OpenBLAS \
     && make \
     && make PREFIX=$OPENBLAS_HOME install
 
+ENV LD_LIBRARY_PATH $ROOT_DIR/lib:$LD_LIBRARY_PATH
+
+RUN git clone --branch $SUPERLU_TAG --depth 1 https://github.com/xiaoyeli/superlu.git \
+    #&& mkdir $SUPERLU_HOME \
+    && mkdir superlu_build \
+    && cd superlu_build \
+    && cmake ../superlu -DCMAKE_INSTALL_PREFIX=$SUPERLU_HOME -DTPL_BLAS_LIBRARIES=openblas -Denable_internal_blaslib=NO \
+    && make \
+    && make install
 
 COPY pyproject.toml $BUILD_DIR
 COPY poetry.lock $BUILD_DIR
@@ -142,11 +156,11 @@ RUN  pip install --upgrade pip setuptools && \
      python -m poetry config virtualenvs.create false && \
      python -m poetry install --no-dev
 
-ENV LD_LIBRARY_PATH $SUNDIALS_HOME/lib:$OPENBLAS_HOME/lib:$LD_LIBRARY_PATH
+
 
 RUN git clone --branch $ASSIMULO_TAG --depth 1 https://github.com/modelon-community/Assimulo.git \
     && cd Assimulo \
-    && python setup.py install --sundials-home=$SUNDIALS_HOME --blas-home=$OPENBLAS_HOME/lib --blas-name=openblas --lapack-home=$OPENBLAS_HOME/lib
+    && python setup.py install --sundials-home=$SUNDIALS_HOME --blas-home=$OPENBLAS_HOME/lib --blas-name=openblas --lapack-home=$OPENBLAS_HOME/lib --superlu-home=$SUPERLU_HOME
 
 # Install PyFMI
 RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community/PyFMI.git \
@@ -154,7 +168,7 @@ RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community
      && python setup.py install
 
 # Clean up builds
-RUN rm -rf $BUILD_DIR
+#RUN rm -rf $BUILD_DIR
 
 WORKDIR /alfalfa
 # Include the path to where alfalfa_worker is so that system calls can find it.
