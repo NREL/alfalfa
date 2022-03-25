@@ -23,35 +23,32 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-// Module dependencies.
-import path from "path";
-import hs from "nodehaystack";
-import express from "express";
-import url from "url";
-import bodyParser from "body-parser";
-import alfalfaServer from "./alfalfa-server";
-import { MongoClient } from "mongodb";
-import node_redis from "redis";
-import graphQLHTTP from "express-graphql";
-import { Schema } from "./schema";
-import { Advancer } from "./advancer";
-import historyApiFallback from "connect-history-api-fallback";
-import morgan from "morgan";
-import { URL } from "url";
 import AWS from "aws-sdk";
+import bodyParser from "body-parser";
+import historyApiFallback from "connect-history-api-fallback";
+import express from "express";
+import graphQLHTTP from "express-graphql";
+import { MongoClient } from "mongodb";
+import morgan from "morgan";
+import path from "path";
+import node_redis from "redis";
+import url from "url";
+import { Advancer } from "./advancer";
+import alfalfaServer from "./alfalfa-server";
+import { Schema } from "./schema";
 
-var client = new AWS.S3({ endpoint: process.env.S3_URL });
+const client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 const redis = node_redis.createClient({ host: process.env.REDIS_HOST });
 const pub = redis.duplicate();
 const sub = redis.duplicate();
 const advancer = new Advancer(redis, pub, sub);
 
-MongoClient.connect(process.env.MONGO_URL)
+MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
   .then((mongoClient) => {
-    var app = express();
+    const app = express();
 
-    if (process.env.NODE_ENV == "production") {
+    if (process.env.NODE_ENV === "production") {
       app.get("*.js", function (req, res, next) {
         req.url = req.url + ".gz";
         res.set("Content-Encoding", "gzip");
@@ -107,28 +104,25 @@ MongoClient.connect(process.env.MONGO_URL)
           // if you're running locally and using internal Docker networking ( "http://minio:9000")
           // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
           if (process.env.S3_URL_EXTERNAL) {
-            const url = process.env.S3_URL_EXTERNAL + "/" + process.env.S3_BUCKET;
-            data.url = url;
+            data.url = `${process.env.S3_URL_EXTERNAL}/${process.env.S3_BUCKET}`;
           } else {
-            const url = process.env.S3_URL + "/" + process.env.S3_BUCKET;
-            data.url = url;
+            data.url = `${process.env.S3_URL}/${process.env.S3_BUCKET}`;
           }
           res.send(JSON.stringify(data));
           res.end();
-          return;
         }
       });
     });
 
     app.all("/api/*", function (req, res) {
       // Remove this in production
-      var path = url.parse(req.url).pathname;
+      let path = url.parse(req.url).pathname;
       path = path.replace("/api", "");
 
       // parse URI path into "/{opName}/...."
-      var slash = path.indexOf("/", 1);
+      let slash = path.indexOf("/", 1);
       if (slash < 0) slash = path.length;
-      var opName = path.substring(1, slash);
+      const opName = path.substring(1, slash);
 
       // resolve the op
       app.locals.alfalfaServer.op(opName, false, function (err, op) {
@@ -154,12 +148,11 @@ MongoClient.connect(process.env.MONGO_URL)
     app.use("/", express.static(path.join(__dirname, "./app")));
 
     let server = app.listen(80, () => {
-      var host = server.address().address;
-      var port = server.address().port;
+      let { address: host, port } = server.address();
 
       if (host.length === 0 || host === "::") host = "localhost";
 
-      console.log("Node Haystack Toolkit listening at http://%s:%s", host, port);
+      console.log(`Node Haystack Toolkit listening at http://${host}:${port}`);
     });
   })
   .catch((err) => {

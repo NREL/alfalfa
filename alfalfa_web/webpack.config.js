@@ -41,7 +41,9 @@ const template = "./index.html";
 let devtool = "";
 let plugins = [];
 
-if (process.env.NODE_ENV === "production") {
+const mode = process.env.NODE_ENV === "production" ? "production" : "development";
+
+if (mode === "production") {
   plugins = [
     new webpack.DefinePlugin({
       "process.env.NODE_ENV": JSON.stringify("production")
@@ -77,7 +79,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 module.exports = {
-  mode: process.env.NODE_ENV,
+  mode,
   entry: {
     app: ["./app.js"]
   },
@@ -86,6 +88,11 @@ module.exports = {
     filename: "app.bundle.js"
   },
   devtool: devtool,
+  performance: {
+    hints: false,
+    maxEntrypointSize: 512000,
+    maxAssetSize: 512000
+  },
   //optimization: {
   //  minimizer: [new UglifyJsPlugin()]
   //},

@@ -24,8 +24,6 @@
  ***********************************************************************************************************************/
 
 const crypto = require("crypto-js");
-const Base64 = require("crypto-js/enc-base64");
-const Hex = require("crypto-js/enc-hex");
 
 const policy = {
   expiration: "2050-01-01T12:00:00.000Z",
@@ -41,10 +39,10 @@ const policy = {
 };
 
 function getSignatureKey(key, dateStamp, regionName, serviceName) {
-  var kDate = crypto.HmacSHA256(dateStamp, "AWS4" + key);
-  var kRegion = crypto.HmacSHA256(regionName, kDate);
-  var kService = crypto.HmacSHA256(serviceName, kRegion);
-  var kSigning = crypto.HmacSHA256("aws4_request", kService);
+  const kDate = crypto.HmacSHA256(dateStamp, "AWS4" + key);
+  const kRegion = crypto.HmacSHA256(regionName, kDate);
+  const kService = crypto.HmacSHA256(serviceName, kRegion);
+  const kSigning = crypto.HmacSHA256("aws4_request", kService);
   return kSigning;
 }
 

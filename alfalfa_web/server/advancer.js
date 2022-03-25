@@ -10,7 +10,7 @@ class Advancer {
   //
   // For each request to advance a simulation, communication involves
   // 1. A redis key of the form ${siteRef}:control which can have the value idle | advance | running
-  //    A request to advance can only be fulfilled if the simulatoin is currently in idle state
+  //    A request to advance can only be fulfilled if the simulation is currently in idle state
   // 2. A redis notification from the webserver on the channel "siteRef" with message "advance"
   // 3. A redis notification from the alfalfa_worker on the channel "siteRef" with message "complete",
   //    signaling that the simulation is done advancing to the simulation
@@ -21,7 +21,7 @@ class Advancer {
     this.handlers = {};
 
     this.sub.on("message", (channel, message) => {
-      if (message == "complete") {
+      if (message === "complete") {
         if (this.handlers.hasOwnProperty(channel)) {
           this.handlers[channel](message);
         }
@@ -30,21 +30,21 @@ class Advancer {
   }
 
   advance(siteRefs) {
-    let promise = new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       let response = {};
       let pending = siteRefs.length;
 
       const advanceSite = (siteref) => {
         const channel = siteref;
 
-        // Cleanup the resrouces for advance and finalize the promise
+        // Cleanup the resources for advance and finalize the promise
         let interval;
         const finalize = (success, message = "") => {
           clearInterval(interval);
           this.sub.unsubscribe(channel);
           response[siteref] = { status: success, message: message };
           pending = pending - 1;
-          if (pending == 0) {
+          if (pending === 0) {
             resolve(response);
           }
         };
@@ -63,9 +63,9 @@ class Advancer {
           let intervalCounts = 0;
           interval = setInterval(() => {
             const control = this.redis.hget(siteref, "control");
-            if (control == "idle") {
+            if (control === "idle") {
               // If the control state is idle, then assume the step has been made
-              // and reslve the advance promise, this might happen if we miss the notification for some reason
+              // and resolve the advance promise, this might happen if we miss the notification for some reason
               finalize(true, "success");
             } else {
               intervalCounts += 1;
@@ -84,7 +84,7 @@ class Advancer {
           this.redis.hget(siteref, "control", (err, control) => {
             if (err) throw err;
             // if control not equal idle then abort the request to advance and return to client
-            if (control == "idle") {
+            if (control === "idle") {
               // else proceed to advance state, this node has exclusive control over the simulation now
               this.redis
                 .multi()
@@ -100,7 +100,7 @@ class Advancer {
         });
       };
 
-      for (var site of siteRefs) {
+      for (const site of siteRefs) {
         advanceSite(site);
       }
     });

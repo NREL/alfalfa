@@ -24,14 +24,12 @@
  ***********************************************************************************************************************/
 
 import AWS from "aws-sdk";
-import os from "os";
-import fs from "fs";
 import hs from "nodehaystack";
-import HDict from "nodehaystack/HDict";
+import os from "os";
 import { v1 as uuidv1 } from "uuid";
 import dbops from "./dbops";
 
-var HBool = hs.HBool,
+const HBool = hs.HBool,
   HDateTime = hs.HDateTime,
   HDictBuilder = hs.HDictBuilder,
   //HDict = hs.HDict,
@@ -52,14 +50,14 @@ var HBool = hs.HBool,
   HJsonReader = hs.HJsonReader;
 
 AWS.config.update({ region: "us-east-1" });
-var sqs = new AWS.SQS();
+const sqs = new AWS.SQS();
 
 class WriteArray {
   constructor() {
     this.val = [];
     this.who = [];
 
-    for (var i = 0; i < 17; ++i) {
+    for (let i = 0; i < 17; ++i) {
       this.val[i] = null;
       this.who[i] = null;
     }
@@ -211,8 +209,8 @@ class AlfalfaServer extends HServer {
 
   recToDict(rec) {
     const keys = Object.keys(rec);
-    var db = new HDictBuilder();
-    for (let j = 0; j < keys.length; j++) {
+    const db = new HDictBuilder();
+    for (let j = 0; j < keys.length; ++j) {
       const key = keys[j];
       const r = new HJsonReader(rec[key]);
       try {
@@ -254,7 +252,7 @@ class AlfalfaServer extends HServer {
   }
 
   onAbout(callback) {
-    var aboutdict = new HDictBuilder()
+    const aboutdict = new HDictBuilder()
       .add("serverName", this.hostName())
       .add("vendorName", "Lynxspring, Inc.")
       .add("vendorUri", HUri.make("http://www.lynxspring.com/"))
@@ -296,12 +294,11 @@ class AlfalfaServer extends HServer {
 
         let it = {
           next: function () {
-            var dict;
             if (!this.hasNext()) {
               return null;
             }
-            dict = self.recToDict(array[index].rec);
-            index++;
+            const dict = self.recToDict(array[index].rec);
+            ++index;
             return dict;
           },
           hasNext: function () {
@@ -381,12 +378,12 @@ class AlfalfaServer extends HServer {
   onNav(navId, callback) {
     const _onNav = (base, callback) => {
       // map base record to site, equip, or point
-      var filter = "site";
+      let filter = "site";
       if (typeof base !== "undefined" && base !== null) {
         if (base.has("site")) {
-          filter = "equip and siteRef==" + base.id().toCode();
+          filter = `equip and siteRef==${base.id().toCode()}`;
         } else if (base.has("equip")) {
-          filter = "point and equipRef==" + base.id().toCode();
+          filter = `point and equipRef==${base.id().toCode()}`;
         } else {
           filter = "navNoChildren";
         }
@@ -397,9 +394,9 @@ class AlfalfaServer extends HServer {
         if (err) callback(err);
         else {
           // add navId column to results
-          var i;
-          var rows = [];
-          var it = grid.iterator();
+          let i;
+          const rows = [];
+          const it = grid.iterator();
           for (i = 0; it.hasNext(); ) {
             rows[i++] = it.next();
           }
@@ -434,7 +431,7 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
 
   onWatchOpen(dis, lease) {
-    let w = new AlfalfaWatch(this, null, dis, lease);
+    const w = new AlfalfaWatch(this, null, dis, lease);
     return w;
   }
 
@@ -443,7 +440,7 @@ class AlfalfaServer extends HServer {
   }
 
   onWatch(id) {
-    let w = new AlfalfaWatch(this, id, null, null);
+    const w = new AlfalfaWatch(this, id, null, null);
     return w;
   }
 
@@ -456,7 +453,7 @@ class AlfalfaServer extends HServer {
   //  level:
   //}
   currentWinningValue(array) {
-    for (var i = 0; i < array.val.length; ++i) {
+    for (let i = 0; i < array.val.length; ++i) {
       if (array.val[i]) {
         return {
           val: array.val[i],
@@ -475,7 +472,7 @@ class AlfalfaServer extends HServer {
     b.addCol("val");
     b.addCol("who");
 
-    for (var i = 0; i < array.val.length; ++i) {
+    for (let i = 0; i < array.val.length; ++i) {
       if (array.val[i] || array.val[i] === 0) {
         b.addRow([HNum.make(i + 1), HStr.make("" + (i + 1)), HNum.make(array.val[i]), HStr.make(array.who[i])]);
       } else {
@@ -543,13 +540,13 @@ class AlfalfaServer extends HServer {
 
   onHisRead(entity, range, callback) {
     // generate dummy 15min data
-    var acc = [];
-    var ts = range.start;
-    var unit = entity.get("unit");
-    var isBool = entity.get("kind").val === "Bool";
+    const acc = [];
+    let ts = range.start;
+    const unit = entity.get("unit");
+    const isBool = entity.get("kind").val === "Bool";
     while (ts.compareTo(range.end) <= 0) {
-      var val = isBool ? HBool.make(acc.length % 2 === 0) : HNum.make(acc.length, unit);
-      var item = HHisItem.make(ts, val);
+      const val = isBool ? HBool.make(acc.length % 2 === 0) : HNum.make(acc.length, unit);
+      const item = HHisItem.make(ts, val);
       if (ts !== range.start) {
         acc[acc.length] = item;
       }
@@ -568,18 +565,18 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
 
   onInvokeAction(rec, action, args, callback) {
-    if (action == "runSite") {
+    if (action === "runSite") {
       this.mrecs.updateOne({ _id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
         let body = { id: rec.id().val, op: "InvokeAction", action: action };
 
-        for (var it = args.iterator(); it.hasNext(); ) {
-          var entry = it.next();
-          var name = entry.getKey();
-          var val = entry.getValue();
+        for (const it = args.iterator(); it.hasNext(); ) {
+          const entry = it.next();
+          const name = entry.getKey();
+          const val = entry.getValue();
           body[name] = val.val;
         }
 
-        var params = {
+        const params = {
           MessageBody: JSON.stringify(body),
           QueueUrl: process.env.JOB_QUEUE_URL,
           MessageGroupId: "Alfalfa"
@@ -594,13 +591,13 @@ class AlfalfaServer extends HServer {
           }
         });
       });
-    } else if (action == "stopSite") {
+    } else if (action === "stopSite") {
       const siteRef = rec.id().val;
       this.mrecs.updateOne({ _id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
         this.pub.publish(siteRef, "stop");
       });
       callback(null, HGrid.EMPTY);
-    } else if (action == "removeSite") {
+    } else if (action === "removeSite") {
       this.mrecs.deleteMany({ site_ref: rec.id().val });
       this.writearrays.deleteMany({ siteRef: rec.id().val });
       callback(null, HGrid.EMPTY);

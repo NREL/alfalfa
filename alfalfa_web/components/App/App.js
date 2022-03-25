@@ -23,23 +23,19 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import React from "react";
-import PropTypes from "prop-types";
-import { Component } from "react";
-import { Link, Route, Switch } from "react-router-dom";
-import IconButton from "@material-ui/core/IconButton";
-import { FileCloudQueue, FileCloudDone, ActionAccountCircle } from "@material-ui/icons";
-import { MuiPickersUtilsProvider } from "@material-ui/pickers";
-import MomentUtils from "@date-io/moment";
-import Toolbar from "@material-ui/core/Toolbar";
+import LuxonUtils from "@date-io/luxon";
 import AppBar from "@material-ui/core/AppBar";
-import Badge from "@material-ui/core/Badge";
-import Upload from "../Upload/Upload.js";
-import Sites from "../Sites/Sites.js";
-import Sims from "../Sims/Sims.js";
-import Typography from "@material-ui/core/Typography";
-import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
+import { withStyles } from "@material-ui/core/styles";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import PropTypes from "prop-types";
+import React from "react";
+import { Link, Route, Switch } from "react-router-dom";
+import Sims from "../Sims/Sims.js";
+import Sites from "../Sites/Sites.js";
+import Upload from "../Upload/Upload.js";
 
 const styles = (theme) => ({
   root: {
@@ -60,7 +56,7 @@ class App extends React.Component {
     const { classes } = this.props;
 
     return (
-      <MuiPickersUtilsProvider utils={MomentUtils}>
+      <MuiPickersUtilsProvider utils={LuxonUtils}>
         <div className={this.props.classes.root}>
           <AppBar position="static">
             <Toolbar>

@@ -23,20 +23,19 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import React, { PropTypes } from "react";
+import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { DateTimePicker } from "@material-ui/pickers";
-import { withStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import TextField from "@material-ui/core/TextField";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Grid from "@material-ui/core/Grid";
+import { withStyles } from "@material-ui/core/styles";
 import Switch from "@material-ui/core/Switch";
-import * as moment from "moment";
+import TextField from "@material-ui/core/TextField";
+import { DateTimePicker } from "@material-ui/pickers";
+import { DateTime } from "luxon";
+import React from "react";
 
 const styles = (theme) => ({
   label: {
@@ -67,9 +66,10 @@ class StartDialog extends React.Component {
 
   componentWillMount = () => {
     console.log(this.props);
-    if (this.props.type == "osm") {
-      this.state.selectedStartTime = moment().format(timeFormat);
-      this.state.selectedEndTime = moment().format(timeFormat);
+    if (this.props.type === "osm") {
+      const time = DateTime.now().toFormat(timeFormat);
+      this.state.selectedStartTime = time;
+      this.state.selectedEndTime = time;
     } else {
       this.state.selectedStartSeconds = 0;
       this.state.selectedEndSeconds = 86400;
@@ -105,7 +105,7 @@ class StartDialog extends React.Component {
   };
 
   handleRequestStart = () => {
-    if (this.props.type == "osm") {
+    if (this.props.type === "osm") {
       this.props.onStartSimulation(
         this.state.selectedStartTime,
         this.state.selectedEndTime,
@@ -142,7 +142,7 @@ class StartDialog extends React.Component {
 
     let start;
     let stop;
-    if (this.props.type == "osm") {
+    if (this.props.type === "osm") {
       start = (
         <Grid item xs={6}>
           <DateTimePicker

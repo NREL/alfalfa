@@ -1,13 +1,16 @@
 [tool.poetry]
 name = "alfalfa"
-version = "0.1.0"
-description = "Alfalfa is a web based software service that implements a virtual building control system using an OpenStudio/EnergyPlus simulation or FMU as a backend."
+version = "0.2.0"
+description = "Alfalfa is a web service that converts building energy models in OpenStudio/EnergyPlus, Spawn of EnergyPlus, or Modelica to interactive virtual buildings."
 authors = [
     'Kyle Benne <kyle.benne@nrel.gov>',
-    'Cory Mosiman <cory.mosiman@nrel.gov>',
     'Anya Petersen <Anya.Petersen@nrel.gov>',
-    'Brian Ball <brian.ball@nrel.gov>',
     'Nicholas Long <nicholas.long@nrel.gov>',
+    'Tobias Shapinsky <tobias.shapinsky@nrel.gov>',
+    'Alex Swindler <alex.swindler@nrel.gov>',
+    'Tim Coleman <tim.coleman@nrel.gov>',
+    'Cory Mosiman <cory.mosiman12@gmail.com>',
+    'Brian Ball <brian.ball@nrel.gov>',
     'Willy Bernal <willy.bernalheredia@nrel.gov>',
 ]
 
@@ -33,8 +36,6 @@ Cython = "^0.29.28"
 matplotlib = "3.3.3"
 
 [tool.poetry.dev-dependencies]
-#alfalfa-client = "0.1.1"
-#alfalfa-client = {path = "../alfalfa-client/", develop = true}
 alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "develop"}
 autopep8 = "^1.4.4"
 pre-commit = "^2.10.1"
