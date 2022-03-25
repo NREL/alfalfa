@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "alfalfa"
 version = "0.2.0"
-description = "Alfalfa is a web service that generates converts building energy models in OpenStudio/EnergyPlus, Spawn of EnergyPlus, or Modelica to interactive virtual buildings."
+description = "Alfalfa is a web service that converts building energy models in OpenStudio/EnergyPlus, Spawn of EnergyPlus, or Modelica to interactive virtual buildings."
 authors = [
     'Kyle Benne <kyle.benne@nrel.gov>',
     'Anya Petersen <Anya.Petersen@nrel.gov>',
