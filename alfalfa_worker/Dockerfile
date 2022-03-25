@@ -32,6 +32,7 @@ RUN apt-get update -y && apt-get install -y \
         gfortran \
         libgfortran3 \
         cmake \
+        wget \
         git && \
     apt-get install -y git
 
@@ -130,11 +131,6 @@ RUN wget https://spawn.s3.amazonaws.com/custom/Spawn-$SPAWN_VERSION-Linux.tar.gz
     && ln -s /usr/local/Spawn-$SPAWN_VERSION-Linux/bin/spawn-$SPAWN_VERSION /usr/local/bin/ \
     && rm Spawn-$SPAWN_VERSION-Linux.tar.gz
 
-# Need to set the lang to use Python 3.6 with Poetry
-ENV  LANG C.UTF-8
-COPY pyproject.toml /alfalfa/
-COPY poetry.lock /alfalfa/
-COPY alfalfa_worker/requirements/py2-production.txt /alfalfa/
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
 RUN  pip install --upgrade pip setuptools && \
      pip install poetry==1.1.12 && \
