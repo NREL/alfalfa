@@ -24,11 +24,9 @@
 ########################################################################################################################
 
 import json
-from operator import ne
 import os
 import shutil
 import tarfile
-import time
 import uuid
 import zipfile
 from datetime import datetime, timedelta
@@ -91,7 +89,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
         # TODO make configurable
         # step_size in seconds
         self.step_size = 60
-        #TODO cleanup
+        # TODO cleanup
         self.realworld_timedelta = timedelta(seconds=float(self.step_size) / self.time_scale)
         print("real time per step: %", self.realworld_timedelta)
 
@@ -109,7 +107,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
         self.tc = TestCase(**config)
 
         # run the FMU simulation
-        self.kstep = 0 # todo remove if not used
+        self.kstep = 0  # todo remove if not used
         self.stop = False
         self.simtime = self.startTime
 
@@ -179,7 +177,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
             #     next
             current_time = datetime.now()
             next_step_time = current_time + self.realworld_timedelta
-            print("in run with current time: {} and next_step_time {}",current_time, next_step_time)
+            print("in run with current time: {} and next_step_time {}", current_time, next_step_time)
             self.advance = False
             while True:
                 current_time = datetime.now()
@@ -197,7 +195,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
                     break
 
                 if self.advance:
-                    print("in advance with current time: {} and next_step_time {}",current_time, next_step_time)
+                    print("in advance with current time: {} and next_step_time {}", current_time, next_step_time)
                     self.step()
                     next_step_time = next_step_time + self.realworld_timedelta
                     self.advance = False
@@ -205,7 +203,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
                 # update stop flag from db
                 self.db_stop_set()
 
-                #update stop flag from endTime
+                # update stop flag from endTime
                 if self.simtime >= self.endTime:
                     self.stop = True
 
