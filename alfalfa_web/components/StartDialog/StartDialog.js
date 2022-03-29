@@ -46,7 +46,7 @@ const styles = (theme) => ({
   }
 });
 
-const timeFormat = "YYYY-MM-DD HH:mm:ss";
+const timeFormat = "y-LL-dd HH:mm:ss";
 
 class StartDialog extends React.Component {
   constructor(props) {
@@ -77,7 +77,7 @@ class StartDialog extends React.Component {
   };
 
   handleStartTimeChange = (time) => {
-    this.setState({ selectedStartTime: time.format(timeFormat) });
+    this.setState({ selectedStartTime: time.toFormat(timeFormat) });
   };
 
   handleTimescaleChange = (event) => {
@@ -85,7 +85,7 @@ class StartDialog extends React.Component {
   };
 
   handleEndTimeChange = (time) => {
-    this.setState({ selectedEndTime: time.format(timeFormat) });
+    this.setState({ selectedEndTime: time.toFormat(timeFormat) });
   };
 
   handleStartSecondChange = (event) => {
