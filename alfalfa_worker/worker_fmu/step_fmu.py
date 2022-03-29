@@ -172,11 +172,11 @@ class RunFMUSite(AlfalfaConnectionsBase):
                         break
         else:
             # first step - AP not sure this is necessary
-            if self.simtime == self.startTime:
-                print("taking first step at {}",datetime.now())
-                self.step()
-                print("finished first step at {}",datetime.now())
-                next
+            # if self.simtime == self.startTime:
+            #     print("taking first step at {}",datetime.now())
+            #     self.step()
+            #     print("finished first step at {}",datetime.now())
+            #     next
             current_time = datetime.now()
             next_step_time = current_time + self.realworld_timedelta
             print("in run with current time: {} and next_step_time {}",current_time, next_step_time)
@@ -188,7 +188,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
                     self.advance = True
                     # sim is not keeping up with target timescale.
                     # TODO rethink arbitrary 20 s behind
-                    if (current_time > next_step_time + 20):
+                    if (current_time > next_step_time + timedelta(seconds=20)):
                         self.stop = True
                         print("stopping... simulation got more than 20s behind target timescale")
 
