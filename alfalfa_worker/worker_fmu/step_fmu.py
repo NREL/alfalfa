@@ -171,9 +171,9 @@ class RunFMUSite(AlfalfaConnectionsBase):
         else:
             # first step takes extra time
             if self.simtime == self.startTime:
-                print("taking first step at {}",datetime.now())
+                print("taking first step at ", datetime.now())
                 self.step()
-                print("finished first step at {}",datetime.now())
+                print("finished first step at ", datetime.now())
                 next
             current_time = datetime.now()
             next_step_time = current_time + self.realworld_timedelta
