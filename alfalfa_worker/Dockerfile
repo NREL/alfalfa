@@ -31,8 +31,9 @@ RUN apt-get update -y && apt-get install -y \
         build-essential \
         gfortran \
         libgfortran3 \
-        cmake \
         wget \
+        cmake \
+        libopenmpi-dev \
         git && \
     apt-get install -y git
 
@@ -51,6 +52,8 @@ RUN apt-get update \
     && curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz \
     && tar -xzf bcvtb-linux.tar.gz \
     && apt-get install -y ca-certificates nodejs
+
+WORKDIR $BUILD_DIR
 
 ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.1.0+e165090621-Linux.deb
 ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.1.0/OpenStudio-3.1.0+e165090621-Linux.deb
@@ -82,6 +85,13 @@ RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
     && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
 
+# Install commands for Spawn
+ENV SPAWN_VERSION=0.3.0-69040695f9
+RUN wget https://spawn.s3.amazonaws.com/custom/Spawn-$SPAWN_VERSION-Linux.tar.gz \
+    && tar -C /usr/local/ -xzf Spawn-$SPAWN_VERSION-Linux.tar.gz \
+    && ln -s /usr/local/Spawn-$SPAWN_VERSION-Linux/bin/spawn-$SPAWN_VERSION /usr/local/bin/ \
+    && rm Spawn-$SPAWN_VERSION-Linux.tar.gz
+
 ## MODELICA
 
 ENV FMIL_TAG 2.4
@@ -97,18 +107,8 @@ ENV PYFMI_TAG PyFMI-2.9.5
 ENV OPENBLAS_TAG v0.3.20
 ENV OPENBLAS_HOME $ROOT_DIR
 
-ENV SUPERLU_TAG v5.3.0
-ENV SUPERLU_HOME $ROOT_DIR
+ENV SUPERLU_HOME $ROOT_DIR/SuperLU_MT_3.1
 
-WORKDIR $BUILD_DIR
-
-# Build Sundials (for Assimulo)
-RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.git \
-    #&& mkdir $SUNDIALS_HOME \
-    && mkdir sundials_build \
-    && cd sundials_build \
-    && cmake -DLAPACK_ENABLE=ON -DCMAKE_INSTALL_PREFIX=$SUNDIALS_HOME ../sundials \
-    && make install
 
 # Build FMI Library (for PyFMI)
 RUN git clone --branch $FMIL_TAG --depth 1 https://github.com/modelon-community/fmi-library.git \
@@ -118,52 +118,72 @@ RUN git clone --branch $FMIL_TAG --depth 1 https://github.com/modelon-community/
     && cmake -DFMILIB_INSTALL_PREFIX=$FMIL_HOME ../fmi-library \
     && make install
 
+ENV LD_LIBRARY_PATH $ROOT_DIR/lib:/home/alfalfa/build/SuperLU_MT_3.1/lib:$LD_LIBRARY_PATH
+
 # Build OpenBLAS (provides BLAS for Assimulo)
 RUN git clone --branch $OPENBLAS_TAG --depth 1 https://github.com/xianyi/OpenBLAS.git \
-    #&& mkdir $OPENBLAS_HOME \
     && cd OpenBLAS \
     && make \
     && make PREFIX=$OPENBLAS_HOME install
 
-ENV LD_LIBRARY_PATH $ROOT_DIR/lib:$LD_LIBRARY_PATH
+# Build SuperLU (groan)
+RUN apt install -y libatlas-base-dev liblapack-dev libopenmpi-dev libsuitesparse-dev csh
+COPY alfalfa_worker/build/make.inc $BUILD_DIR
 
-RUN git clone --branch $SUPERLU_TAG --depth 1 https://github.com/xiaoyeli/superlu.git \
-    #&& mkdir $SUPERLU_HOME \
-    && mkdir superlu_build \
-    && cd superlu_build \
-    && cmake ../superlu -DCMAKE_INSTALL_PREFIX=$SUPERLU_HOME -DTPL_BLAS_LIBRARIES=openblas -Denable_internal_blaslib=NO \
+RUN cd $ROOT_DIR \
+    && curl -SLO http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_mt_3.1.tar.gz \
+    && tar -xzf superlu_mt_3.1.tar.gz \
+    && cd SuperLU_MT_3.1 \
+    && rm make.inc \
+    && cp $BUILD_DIR/make.inc make.inc \
+    && make lib
+
+# Build Sundials with SuperLU(for Assimulo)
+RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.git \
+    && mkdir sundials_build \
+    && cd sundials_build \
+    && cmake ../sundials \
+    -DPTHREAD_ENABLE=1 \
+    -DBLAS_ENABLE=1 \
+    -DLAPACK_LIBRARIES='-llapack -lblas' \
+    -DLAPACK_ENABLE=1 \
+    -DSUPERLUMT_ENABLE=1 \
+    -DSUNDIALS_INDEX_SIZE=32 \
+    -DSUPERLUMT_INCLUDE_DIR=$SUPERLU_HOME/SRC \
+    -DSUPERLUMT_LIBRARY_DIR=$SUPERLU_HOME/lib \
+    -DSUPERLUMT_LIBRARIES='-lblas' \
+    -DCMAKE_CXX_FLAGS='-fPIC' \
+    -DCMAKE_C_FLAGS='-fPIC' \
     && make \
     && make install
 
 COPY pyproject.toml $BUILD_DIR
 COPY poetry.lock $BUILD_DIR
 
-# Install commands for Spawn
-ENV SPAWN_VERSION=0.3.0-69040695f9
-RUN wget https://spawn.s3.amazonaws.com/custom/Spawn-$SPAWN_VERSION-Linux.tar.gz \
-    && tar -C /usr/local/ -xzf Spawn-$SPAWN_VERSION-Linux.tar.gz \
-    && ln -s /usr/local/Spawn-$SPAWN_VERSION-Linux/bin/spawn-$SPAWN_VERSION /usr/local/bin/ \
-    && rm Spawn-$SPAWN_VERSION-Linux.tar.gz
-
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
-RUN  pip install --upgrade pip setuptools && \
-     pip install poetry==1.1.12 && \
-     python -m poetry config virtualenvs.create false && \
-     python -m poetry install --no-dev
-
-
+RUN  pip3 install --upgrade pip setuptools && \
+     pip3 install poetry==1.1.12 && \
+     python3 -m poetry config virtualenvs.create false && \
+     python3 -m poetry install --no-dev
 
 RUN git clone --branch $ASSIMULO_TAG --depth 1 https://github.com/modelon-community/Assimulo.git \
-    && cd Assimulo \
-    && python setup.py install --sundials-home=$SUNDIALS_HOME --blas-home=$OPENBLAS_HOME/lib --blas-name=openblas --lapack-home=$OPENBLAS_HOME/lib --superlu-home=$SUPERLU_HOME
+     && cd Assimulo \
+     && python3 setup.py install \
+     --sundials-home=$SUNDIALS_HOME \
+     --blas-home=$OPENBLAS_HOME/lib \
+     --blas-name=openblas \
+     --lapack-home=$OPENBLAS_HOME/lib \
+     --superlu-home=$SUPERLU_HOME \
+     --extra-c-flags="-fPIC"
+
 
 # Install PyFMI
 RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community/PyFMI.git \
-     && cd PyFMI \
-     && python setup.py install
+    && cd PyFMI \
+    && python setup.py install
 
 # Clean up builds
-#RUN rm -rf $BUILD_DIR
+RUN rm -rf $BUILD_DIR
 
 WORKDIR /alfalfa
 # Include the path to where alfalfa_worker is so that system calls can find it.
