@@ -24,6 +24,7 @@
 ########################################################################################################################
 
 import json
+from operator import ne
 import os
 import shutil
 import tarfile
@@ -57,8 +58,11 @@ class RunFMUSite(AlfalfaConnectionsBase):
         self.endTime = kwargs['endTime']
         self.externalClock = kwargs['externalClock']
 
-        # Use arbitrary start datetime for now
-        self.current_datetime = datetime(1970, 1, 1, 0, 0, 0)
+        # since fmus "time" is in second offsets from start of an arbitrary year, this will be used to set year for historian.
+        # Spawn uses 2017, so match that here
+        historian_year = 2017
+        self.current_datetime = datetime(historian_year, 1, 1, 0, 0, 0) + timedelta(seconds=self.startTime)
+        print("current datetime at start of simulation: %", self.current_datetime)
 
         self.site = self.mongo_db_recs.find_one({"_id": self.site_id})
 
@@ -84,9 +88,12 @@ class RunFMUSite(AlfalfaConnectionsBase):
         zzip = zipfile.ZipFile(fmupath)
         zzip.extract('resources/kpis.json', self.directory)
 
-        # this shouldn't be hard coded.
+        # TODO make configurable
         # step_size in seconds
-        self.step_size = 300
+        self.step_size = 60
+        #TODO cleanup
+        self.realworld_timedelta = timedelta(seconds=float(self.step_size) / self.time_scale)
+        print("real time per step: %", self.realworld_timedelta)
 
         # Load fmu
         config = {
@@ -102,9 +109,9 @@ class RunFMUSite(AlfalfaConnectionsBase):
         self.tc = TestCase(**config)
 
         # run the FMU simulation
-        self.kstep = 0
+        self.kstep = 0 # todo remove if not used
         self.stop = False
-        self.simtime = 0
+        self.simtime = self.startTime
 
         if self.externalClock:
             self.redis_pubsub.subscribe(self.site_id)
@@ -164,14 +171,43 @@ class RunFMUSite(AlfalfaConnectionsBase):
                         self.set_idle_state()
                         break
         else:
-            while self.simtime < self.endTime:
-                if self.db_stop_set():
-                    break
+            # first step - AP not sure this is necessary
+            if self.simtime == self.startTime:
+                print("taking first step at {}",datetime.now())
                 self.step()
-                # TODO: Make this respect time scale provided by user
-                time.sleep(5)
+                print("finished first step at {}",datetime.now())
+                next
+            current_time = datetime.now()
+            next_step_time = current_time + self.realworld_timedelta
+            print("in run with current time: {} and next_step_time {}",current_time, next_step_time)
+            self.advance = False
+            while True:
+                current_time = datetime.now()
 
-        self.cleanup()
+                if current_time >= next_step_time:
+                    self.advance = True
+                    # sim is not keeping up with target timescale.
+                    # TODO rethink arbitrary 20 s behind
+                    if (current_time > next_step_time + 20):
+                        self.stop = True
+                        print("stopping... simulation got more than 20s behind target timescale")
+
+                if self.stop:
+                    self.cleanup()
+                    break
+
+                if self.advance:
+                    print("in advance with current time: {} and next_step_time {}",current_time, next_step_time)
+                    self.step()
+                    next_step_time = next_step_time + self.realworld_timedelta
+                    self.advance = False
+
+                # update stop flag from db
+                self.db_stop_set()
+
+                #update stop flag from endTime
+                if self.simtime >= self.endTime:
+                    self.stop = True
 
     # Check the database for a stop signal
     # and return true if stop is requested
