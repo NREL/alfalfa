@@ -26,6 +26,7 @@
 import "@fontsource/material-icons";
 import "@fontsource/roboto";
 import ApolloClient from "apollo-boost";
+import "normalize.css/normalize.css";
 import React from "react";
 import { ApolloProvider } from "react-apollo";
 import ReactDOM from "react-dom";

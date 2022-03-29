@@ -62,19 +62,13 @@ class StartDialog extends React.Component {
       selectedStartSeconds: 0,
       selectedEndSeconds: 86400
     };
-  }
 
-  componentWillMount = () => {
-    console.log(this.props);
     if (this.props.type === "osm") {
       const time = DateTime.now().toFormat(timeFormat);
       this.state.selectedStartTime = time;
       this.state.selectedEndTime = time;
-    } else {
-      this.state.selectedStartSeconds = 0;
-      this.state.selectedEndSeconds = 86400;
     }
-  };
+  }
 
   handleStartTimeChange = (time) => {
     this.setState({ selectedStartTime: time.toFormat(timeFormat) });
@@ -128,21 +122,22 @@ class StartDialog extends React.Component {
 
   render = () => {
     const {
-      selectedStartTime,
+      externalClock,
+      open,
+      realtime,
+      selectedEndSeconds,
       selectedEndTime,
       selectedStartSeconds,
-      selectedEndSeconds,
-      realtime,
-      timescale,
-      externalClock
+      selectedStartTime,
+      timescale
     } = this.state;
-    const { classes, type } = this.props;
+    const { classes, disabled, type } = this.props;
 
-    console.log("startDialogType: ", this.props.type);
+    console.log(`startDialogType: ${type}`);
 
     let start;
     let stop;
-    if (this.props.type === "osm") {
+    if (type === "osm") {
       start = (
         <Grid item xs={6}>
           <DateTimePicker
@@ -171,7 +166,7 @@ class StartDialog extends React.Component {
             label="FMU Start Time"
             value={selectedStartSeconds}
             onChange={this.handleStartSecondChange}
-            InputLabelProps={{ shrink: true, className: this.props.classes.label }}
+            InputLabelProps={{ shrink: true, className: classes.label }}
             disabled={realtime || externalClock}
             inputProps={{ type: "number", max: selectedEndSeconds }}
           />
@@ -184,7 +179,7 @@ class StartDialog extends React.Component {
             label="FMU Stop Time"
             value={selectedEndSeconds}
             onChange={this.handleEndSecondChange}
-            InputLabelProps={{ shrink: true, className: this.props.classes.label }}
+            InputLabelProps={{ shrink: true, className: classes.label }}
             disabled={realtime || externalClock}
             inputProps={{ type: "number", min: selectedStartSeconds }}
           />
@@ -194,14 +189,10 @@ class StartDialog extends React.Component {
 
     return (
       <div>
-        <Button
-          className={classes.button}
-          variant="contained"
-          disabled={this.props.disabled}
-          onClick={this.handleShowDialogClick}>
+        <Button className={classes.button} variant="contained" disabled={disabled} onClick={this.handleShowDialogClick}>
           Start Test
         </Button>
-        <Dialog fullWidth={true} maxWidth="sm" open={this.state.open}>
+        <Dialog fullWidth={true} maxWidth="sm" open={open}>
           <DialogTitle>Simulation Parameters</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
@@ -210,9 +201,9 @@ class StartDialog extends React.Component {
               <Grid item xs={12}>
                 <TextField
                   label="Timescale"
-                  value={this.state.timescale}
+                  value={timescale}
                   onChange={this.handleTimescaleChange}
-                  InputLabelProps={{ shrink: true, className: this.props.classes.label }}
+                  InputLabelProps={{ shrink: true, className: classes.label }}
                   disabled={realtime || externalClock}
                   inputProps={{ type: "number", min: 1, max: 200 }}
                 />

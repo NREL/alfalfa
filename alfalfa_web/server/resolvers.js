@@ -66,8 +66,8 @@ function runSimResolver(uploadFilename, uploadID, context) {
     if (err) {
       callback(err);
     } else {
-      const simcollection = context.db.collection("sims");
-      simcollection.insert({
+      const simCollection = context.db.collection("sims");
+      simCollection.insert({
         _id: uploadID,
         siteRef: uploadID,
         simStatus: "Queued",
@@ -210,8 +210,8 @@ function removeSiteResolver(args) {
 function simsResolver(user, args, context) {
   return new Promise((resolve, reject) => {
     let sims = [];
-    const simcollection = context.db.collection("sims");
-    simcollection
+    const simCollection = context.db.collection("sims");
+    simCollection
       .find(args)
       .toArray()
       .then((array) => {
@@ -307,8 +307,8 @@ function sitePointResolver(siteRef, args, context) {
           let point = {};
           point.tags = [];
           point.dis = rec.rec.dis;
-          for (const reckey in rec.rec) {
-            const tag = { key: reckey, value: rec.rec[reckey] };
+          for (const recKey in rec.rec) {
+            const tag = { key: recKey, value: rec.rec[recKey] };
             point.tags.push(tag);
           }
           points.push(point);

@@ -29,7 +29,6 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import gql from "graphql-tag";
-import "normalize.css/normalize.css";
 import PropTypes from "prop-types";
 import React from "react";
 import { graphql } from "react-apollo";
@@ -234,13 +233,13 @@ class Upload extends React.Component {
   }
 }
 
-const localstyles = (theme) => ({
+const localStyles = (theme) => ({
   button: {
     margin: theme.spacing(1)
   }
 });
 
-const withStyle = withStyles(localstyles)(Upload);
+const withStyle = withStyles(localStyles)(Upload);
 
 const addJobQL = gql`
   mutation addJobMutation($modelName: String!, $uploadID: String!) {

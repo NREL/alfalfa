@@ -27,8 +27,6 @@
 const webpack = require("webpack");
 const fs = require("fs");
 const path = require("path");
-//const autoprefixer = require('autoprefixer');
-//const precss = require('precss');
 const { graphql } = require("graphql");
 const { introspectionQuery, printSchema } = require("graphql/utilities");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
