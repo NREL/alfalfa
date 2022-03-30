@@ -191,7 +191,6 @@ class RunFMUSite(AlfalfaConnectionsBase):
                         print("stopping... simulation got more than 60s behind target timescale")
 
                 if self.stop:
-                    self.cleanup()
                     break
 
                 if self.advance:
@@ -205,6 +204,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
                 # update stop flag from endTime
                 if self.simtime >= self.endTime:
                     self.stop = True
+        self.cleanup()
 
     # Check the database for a stop signal
     # and return true if stop is requested
