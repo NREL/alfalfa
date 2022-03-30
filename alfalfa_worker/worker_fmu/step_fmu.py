@@ -192,6 +192,10 @@ class RunFMUSite(AlfalfaConnectionsBase):
                 # update stop flag from db
                 self.db_stop_set()
 
+                # update stop flag from endTime
+                if self.simtime >= self.endTime:
+                    self.stop = True
+
                 if self.stop:
                     break
 
@@ -200,9 +204,6 @@ class RunFMUSite(AlfalfaConnectionsBase):
                     next_step_time = next_step_time + self.realworld_timedelta
                     self.advance = False
 
-                # update stop flag from endTime
-                if self.simtime >= self.endTime:
-                    self.stop = True
         self.cleanup()
 
     # Check the database for a stop signal
