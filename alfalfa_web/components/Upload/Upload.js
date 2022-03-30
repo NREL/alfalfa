@@ -23,15 +23,12 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import { withStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import gql from "graphql-tag";
+import { gql } from "@apollo/client";
+import { graphql } from "@apollo/client/react/hoc";
+import { Button, Grid, LinearProgress, TextField } from "@mui/material";
+import { withStyles } from "@mui/styles";
 import PropTypes from "prop-types";
 import React from "react";
-import { graphql } from "react-apollo";
 import { v1 as uuidv1 } from "uuid";
 import styles from "./Upload.scss";
 

@@ -23,109 +23,14 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Dialog from "@material-ui/core/Dialog";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
-import { ExpandMore, MoreVert } from "@material-ui/icons";
-import gql from "graphql-tag";
+import { gql } from "@apollo/client";
+import { graphql } from "@apollo/client/react/hoc";
+import { MoreVert } from "@mui/icons-material";
+import { Button, Checkbox, Grid, IconButton, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import { withStyles } from "@mui/styles";
 import React from "react";
-import { graphql } from "react-apollo";
-import StartDialog from "../StartDialog/StartDialog.js";
-
-class PointDialogComponent extends React.Component {
-  //handleRequestClose = () => {
-  //  this.props.onClosePointsClick();
-  //}
-
-  state = {
-    expanded: null
-  };
-
-  handleChange = (pointId) => (event, expanded) => {
-    this.setState({
-      expanded: expanded ? pointId : false
-    });
-  };
-
-  table = () => {
-    if (this.props.data.networkStatus === 1) {
-      // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
-      return (
-        <Grid container justify="center" alignItems="center">
-          <Grid item>
-            <CircularProgress />
-          </Grid>
-        </Grid>
-      );
-    } else {
-      const points = this.props.data.viewer.sites[0].points;
-      const { expanded } = this.state;
-      return (
-        <div>
-          {points.map((point, i) => {
-            return (
-              <ExpansionPanel key={i} expanded={expanded === i} onChange={this.handleChange(i)}>
-                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                  <Typography>{point.dis}</Typography>
-                </ExpansionPanelSummary>
-                <ExpansionPanelDetails>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Key</TableCell>
-                        <TableCell>Value</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {point.tags.map((tag) => {
-                        return (
-                          <TableRow key={tag.key}>
-                            <TableCell>{tag.key}</TableCell>
-                            <TableCell>{tag.value}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </ExpansionPanelDetails>
-              </ExpansionPanel>
-            );
-          })}
-        </div>
-      );
-    }
-  };
-
-  render = () => {
-    if (this.props.site) {
-      return (
-        <div>
-          <Dialog fullWidth={true} maxWidth="lg" open={true} onBackdropClick={this.props.onBackdropClick}>
-            <DialogTitle>{this.props.site.name + " Points"}</DialogTitle>
-            <DialogContent>{this.table()}</DialogContent>
-          </Dialog>
-        </div>
-      );
-    } else {
-      return <div />;
-    }
-  };
-}
+import StartDialog from "../StartDialog/StartDialog";
+import PointDialogComponent from "./PointDialogComponent";
 
 const pointsQL = gql`
   query PointsQuery($siteRef: String!) {
@@ -318,7 +223,7 @@ class Sites extends React.Component {
             </Table>
           </Grid>
           <Grid item>
-            <Grid className={classes.controls} container justify="flex-start" alignItems="center">
+            <Grid className={classes.controls} container justifyContent="flex-start" alignItems="center">
               <Grid item>
                 <StartDialog
                   type={this.state.startDialogType}

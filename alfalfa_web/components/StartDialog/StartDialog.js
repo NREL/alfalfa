@@ -23,17 +23,19 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Grid from "@material-ui/core/Grid";
-import { withStyles } from "@material-ui/core/styles";
-import Switch from "@material-ui/core/Switch";
-import TextField from "@material-ui/core/TextField";
-import { DateTimePicker } from "@material-ui/pickers";
+import { DateTimePicker } from "@mui/lab";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  Grid,
+  Switch,
+  TextField
+} from "@mui/material";
+import { withStyles } from "@mui/styles";
 import { DateTime } from "luxon";
 import React from "react";
 
@@ -145,6 +147,7 @@ class StartDialog extends React.Component {
             onChange={this.handleStartTimeChange}
             label="EnergyPlus Start Time"
             disabled={realtime || externalClock}
+            renderInput={(params) => <TextField {...params} />}
           />
         </Grid>
       );
@@ -156,6 +159,7 @@ class StartDialog extends React.Component {
             onChange={this.handleEndTimeChange}
             label="EnergyPlus End Time"
             disabled={realtime || externalClock}
+            renderInput={(params) => <TextField {...params} />}
           />
         </Grid>
       );

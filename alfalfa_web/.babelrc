@@ -1,12 +1,15 @@
 {
-  "plugins": [
-    [
-      "@babel/plugin-proposal-class-properties",
-      {
-        "loose": true
-      }
-    ]
-  ],
+  "assumptions": {
+    "noDocumentAll": true,
+    "noClassCalls": true
+  },
+  "comments": false,
+  "env": {
+    "production": {
+      "presets": ["minify"]
+    }
+  },
+  "plugins": ["@babel/plugin-proposal-class-properties"],
   "presets": [
     "@babel/preset-react",
     [

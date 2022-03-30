@@ -23,39 +23,41 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
-import Dialog from "@material-ui/core/Dialog";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import { withStyles } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import { MoreVert } from "@material-ui/icons";
+import { gql } from "@apollo/client";
+import { graphql } from "@apollo/client/react/hoc";
+import { MoreVert } from "@mui/icons-material";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow
+} from "@mui/material";
+import { withStyles } from "@mui/styles";
 import downloadjs from "downloadjs";
-import gql from "graphql-tag";
 import { DateTime } from "luxon";
 import React from "react";
-import { graphql } from "react-apollo";
 
 class ResultsDialog extends React.Component {
   render = () => {
-    const sim = this.props.sim;
+    const { sim } = this.props;
 
     const items = (content) => {
       return Object.entries(content).map(([key, value]) => {
         if (key === "energy") {
-          key = key + " [kWh]";
+          key += " [kWh]";
         } else if (key === "comfort") {
-          key = key + " [K-h]";
+          key += " [K-h]";
         }
         return (
           <ListItem>
@@ -200,7 +202,7 @@ class Sims extends React.Component {
             </Table>
           </Grid>
           <Grid item>
-            <Grid className={classes.controls} container justify="flex-start" alignItems="center">
+            <Grid className={classes.controls} container justifyContent="flex-start" alignItems="center">
               <Grid item>
                 <Button className={classes.button} variant="contained" disabled={true} onClick={this.handleRemove}>
                   Remove Test Results
