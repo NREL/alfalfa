@@ -174,7 +174,6 @@ class RunFMUSite(AlfalfaConnectionsBase):
                 print("taking first step at ", datetime.now())
                 self.step()
                 print("finished first step at ", datetime.now())
-                next
             current_time = datetime.now()
             next_step_time = current_time + self.realworld_timedelta
             print("in run with current time & next_step_time: ", current_time, next_step_time)
@@ -190,6 +189,9 @@ class RunFMUSite(AlfalfaConnectionsBase):
                         self.stop = True
                         print("stopping... simulation got more than 60s behind target timescale")
 
+                # update stop flag from db
+                self.db_stop_set()
+
                 if self.stop:
                     break
 
@@ -197,9 +199,6 @@ class RunFMUSite(AlfalfaConnectionsBase):
                     self.step()
                     next_step_time = next_step_time + self.realworld_timedelta
                     self.advance = False
-
-                # update stop flag from db
-                self.db_stop_set()
 
                 # update stop flag from endTime
                 if self.simtime >= self.endTime:
