@@ -27,9 +27,10 @@ information, and calculating and reporting results.
 import copy
 
 import numpy as np
-from data.data_manager import Data_Manager
 from pyfmi import load_fmu
 from scipy.integrate import trapz
+
+from alfalfa_worker.lib.data.data_manager import Data_Manager
 
 
 class TestCase(object):

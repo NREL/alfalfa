@@ -1,3 +1,8 @@
 Dockerfile
 node_modules
 build/*
+
+alfala_web/.npm
+alfala_web/.config
+alfalfa_worker/*.tar.gz
+!alfalfa_worker/workflow_openstudio/lib/workflow.tar.gz

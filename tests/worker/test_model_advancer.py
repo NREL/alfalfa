@@ -1,9 +1,9 @@
 from unittest import TestCase
 
 
-class TestModelAdvancer(TestCase):
+class TestModelAdvancerBase(TestCase):
     def test_init(self):
-        pass
         # ignore this one for now because of the arg parser
-        # ma = ModelAdvancer()
+        # ma = ModelAdvancerBase()
         # self.assertIsNotNone(ma)
+        pass

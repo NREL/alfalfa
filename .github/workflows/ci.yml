@@ -10,18 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Install Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.6'
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.6"
 
-    - name: Run pre-commit
-      uses: pre-commit/action@v2.0.0
-      with:
-        extra_args: --all-files
+      - name: Run pre-commit
+        uses: pre-commit/action@v2.0.0
+        with:
+          extra_args: --all-files
 
   unit-tests:
     name: Run unit tests
@@ -34,7 +34,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.6'
+          python-version: "3.6"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
@@ -43,6 +43,42 @@ jobs:
         run: |
           poetry install
           poetry run pytest
+
+  fmu-tests:
+    name: Run fmu tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and run stack
+        run: |
+          printenv
+          docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+
+      - name: Wait for web server
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: "http://localhost/"
+          responseCode: 200
+          timeout: 120000
+          interval: 500
+
+      - name: Wait another 30s
+        uses: jakejarvis/wait-action@master
+        with:
+          time: "30s"
+
+      - name: Dump docker logs before tests
+        uses: jwalton/gh-docker-logs@v1
+
+      - name: Run tests in Docker worker container
+        run: |
+          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m fmu"
+
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v1
 
   integration-tests:
     name: Run integration tests
@@ -55,7 +91,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.6'
+          python-version: "3.6"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
@@ -68,7 +104,7 @@ jobs:
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1
         with:
-          url: 'http://localhost/'
+          url: "http://localhost/"
           responseCode: 200
           timeout: 120000
           interval: 500
@@ -76,7 +112,7 @@ jobs:
       - name: Wait another 30s
         uses: jakejarvis/wait-action@master
         with:
-          time: '30s'
+          time: "30s"
 
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
@@ -101,7 +137,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.6'
+          python-version: "3.6"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
@@ -110,12 +146,12 @@ jobs:
         run: |
           export HISTORIAN_ENABLE=true
           printenv
-          docker-compose -f docker-compose.yml -f docker-compose-historian.yml up --build -d
+          docker-compose -f docker-compose.yml -f docker-compose.historian.yml up --build -d
 
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1
         with:
-          url: 'http://localhost/'
+          url: "http://localhost/"
           responseCode: 200
           timeout: 120000
           interval: 500
@@ -123,7 +159,7 @@ jobs:
       - name: Wait another 30s
         uses: jakejarvis/wait-action@master
         with:
-          time: '30s'
+          time: "30s"
 
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
@@ -148,7 +184,7 @@ jobs:
         uses: lewagon/wait-on-check-action@v0.2
         with:
           ref: ${{ github.ref }}
-          running-workflow-name: 'publish' #this job shouldn't wait for itself
+          running-workflow-name: "publish" #this job shouldn't wait for itself
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 20 # seconds
 

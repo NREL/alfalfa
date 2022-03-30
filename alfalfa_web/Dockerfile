@@ -1,21 +1,39 @@
-FROM ubuntu:trusty
+FROM node:16-alpine AS base
 
-RUN apt-get update && apt-get -y install ca-certificates curl python-software-properties build-essential git
+RUN apk add --no-cache \
+    ca-certificates \
+    git \
+    vim
 
-RUN cd /root
+RUN npm install -g npm@latest
 
-WORKDIR /root
+RUN cd /srv
+WORKDIR /srv/alfalfa
 
-COPY alfalfa_web/package.json alfalfa_web/package-lock.json /root/
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1655A0AB68576280
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
-    && apt-get install -y ca-certificates nodejs \
-    && npm install
+COPY alfalfa_web/package.json alfalfa_web/package-lock.json /srv/alfalfa/
+RUN npm install
 
-COPY alfalfa_web /root
-COPY lib/dbops.js /root/server/
+COPY alfalfa_web /srv/alfalfa
 
 ARG NODE_ENV
 RUN npm run build
-RUN ls -alh build/app/
+CMD [ "npm", "start" ]
+
+
+# **** Staged build for running in development mode - Still WIP****
+FROM base AS dev
+
+# The docker-compose will require the mounting
+# of the files into the container, see docker-compose.dev.yml
+
+# Enable the ability to restart the service when
+# the files change
+RUN npm install watch
+COPY deploy/build_web.sh /srv/scripts/
+RUN chmod +x /srv/scripts/build_web.sh
+
+ENTRYPOINT /srv/scripts/build_web.sh
+
+# Run in watch mode so it will automatically restart
+# CMD [ "watch", "'npm run build'" "/srv/alfalfa" ]
 CMD [ "npm", "start" ]

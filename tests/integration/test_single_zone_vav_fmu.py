@@ -1,6 +1,7 @@
 import os
-import pytest
 from unittest import TestCase
+
+import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
 
 

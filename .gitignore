@@ -53,6 +53,9 @@ docs/_rst/*
 docs/_build/*
 cover/*
 MANIFEST
+alfalfa_web/.config
+alfalfa_web/.npm
+
 
 # Per-project virtualenvs
 .venv*/
@@ -85,5 +88,16 @@ tests/worker/lib/output
 socket.cfg
 fort.6
 
+# alfalfa simulation files
+alfalfa_worker/*.tar.gz
+alfalfa_worker/Buildings_HelloWorld_exportedModel*
+alfalfa_worker/wrapped_*
+wrapped_log.txt
+
 # Custom
 client/__pycache__/*
+
+# dev files when running locally
+*.tar.gz
+Buildings_HelloWorld_exportedModel*
+wrapped_result.mat

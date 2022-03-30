@@ -1,587 +1,586 @@
 apiVersion: v1
 items:
-- apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: goaws
-    name: goaws
-  spec:
-    ports:
-    - name: "4100"
-      port: 4100
-      targetPort: 4100
-    selector:
-      io.kompose.service: goaws
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: grafana
-    name: grafana
-  spec:
-    ports:
-    - name: "3000"
-      port: 3000
-      targetPort: 3000
-    selector:
-      io.kompose.service: grafana
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: influxdb
-    name: influxdb
-  spec:
-    ports:
-    - name: "8086"
-      port: 8086
-      targetPort: 8086
-    selector:
-      io.kompose.service: influxdb
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: minio
-    name: minio
-  spec:
-    ports:
-    - name: "9000"
-      port: 9000
-      targetPort: 9000
-    selector:
-      io.kompose.service: minio
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: mongo
-    name: mongo
-  spec:
-    ports:
-    - name: "27017"
-      port: 27017
-      targetPort: 27017
-    selector:
-      io.kompose.service: mongo
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: redis
-    name: redis
-  spec:
-    ports:
-    - name: "6379"
-      port: 6379
-      targetPort: 6379
-    selector:
-      io.kompose.service: redis
-  status:
-    loadBalancer: {}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: web
-    name: web
-  spec:
-    ports:
-    - name: "80"
-      port: 80
-      targetPort: 80
-    - name: "29043"
-      port: 29043
-      targetPort: 29043
-    selector:
-      io.kompose.service: web
-  status:
-    loadBalancer: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: goaws
-    name: goaws
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
         io.kompose.service: goaws
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
-          io.kompose.service: goaws
-      spec:
-        containers:
-        - image: pafortin/goaws
-          imagePullPolicy: ""
-          name: goaws
-          ports:
-          - containerPort: 4100
-          resources: {}
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: grafana
-    name: grafana
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+      name: goaws
+    spec:
+      ports:
+        - name: "4100"
+          port: 4100
+          targetPort: 4100
+      selector:
+        io.kompose.service: goaws
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
         io.kompose.service: grafana
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
-          io.kompose.service: grafana
-      spec:
-        containers:
-        - env:
-          - name: GF_SECURITY_ADMIN_PASSWORD
-            value: password
-          - name: GF_SECURITY_ADMIN_USER
-            value: admin
-          - name: INFLUXDB_ADMIN_PASSWORD
-            value: password
-          - name: INFLUXDB_ADMIN_USER
-            value: admin
-          - name: INFLUXDB_DB
-            value: alfalfa
-          - name: INFLUXDB_HOST
-            value: influxdb
-          image: nrel/alfalfa-grafana:develop
-          imagePullPolicy: ""
-          name: grafana
-          ports:
-          - containerPort: 3000
-          resources: {}
-        hostname: grafana
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: influxdb
-    name: influxdb
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+      name: grafana
+    spec:
+      ports:
+        - name: "3000"
+          port: 3000
+          targetPort: 3000
+      selector:
+        io.kompose.service: grafana
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
         io.kompose.service: influxdb
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
-          io.kompose.service: influxdb
-      spec:
-        containers:
-        - env:
-          - name: INFLUXDB_ADMIN_PASSWORD
-            value: password
-          - name: INFLUXDB_ADMIN_USER
-            value: admin
-          - name: INFLUXDB_DB
-            value: alfalfa
-          - name: INFLUXDB_HTTP_AUTH_ENABLED
-            value: "true"
-          image: influxdb:1.8
-          imagePullPolicy: ""
-          name: influxdb
-          ports:
-          - containerPort: 8086
-          resources: {}
-        hostname: influxdb
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: mc
-    name: mc
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
-        io.kompose.service: mc
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
-          io.kompose.service: mc
-      spec:
-        containers:
-        - command:
-          - /bin/sh
-          - -c
-          - ' sleep 5; /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ACCESS_KEY}
-            ${MINIO_SECRET_KEY}; /usr/bin/mc mb myminio/alfalfa; /usr/bin/mc policy
-            public myminio/alfalfa; '
-          env:
-          - name: MINIO_ACCESS_KEY
-            value: user
-          - name: MINIO_SECRET_KEY
-            value: password
-          image: minio/mc
-          imagePullPolicy: ""
-          name: mc
-          resources: {}
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: minio
-    name: minio
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+      name: influxdb
+    spec:
+      ports:
+        - name: "8086"
+          port: 8086
+          targetPort: 8086
+      selector:
+        io.kompose.service: influxdb
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
         io.kompose.service: minio
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
-          io.kompose.service: minio
-      spec:
-        containers:
-        - command:
-          - minio
-          - server
-          - /data
-          env:
-          - name: MINIO_ACCESS_KEY
-            value: user
-          - name: MINIO_SECRET_KEY
-            value: password
-          image: minio/minio
-          imagePullPolicy: ""
-          name: minio
-          ports:
-          - containerPort: 9000
-          resources: {}
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: mongo
-    name: mongo
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+      name: minio
+    spec:
+      ports:
+        - name: "9000"
+          port: 9000
+          targetPort: 9000
+      selector:
+        io.kompose.service: minio
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
         io.kompose.service: mongo
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
-          io.kompose.service: mongo
-      spec:
-        containers:
-        - image: mongo
-          imagePullPolicy: ""
-          name: mongo
-          ports:
-          - containerPort: 27017
-          resources: {}
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: redis
-    name: redis
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+      name: mongo
+    spec:
+      ports:
+        - name: "27017"
+          port: 27017
+          targetPort: 27017
+      selector:
+        io.kompose.service: mongo
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
         io.kompose.service: redis
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
-          io.kompose.service: redis
-      spec:
-        containers:
-        - image: redis
-          imagePullPolicy: ""
-          name: redis
-          ports:
-          - containerPort: 6379
-          resources: {}
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: web
-    name: web
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+      name: redis
+    spec:
+      ports:
+        - name: "6379"
+          port: 6379
+          targetPort: 6379
+      selector:
+        io.kompose.service: redis
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
         io.kompose.service: web
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
+      name: web
+    spec:
+      ports:
+        - name: "80"
+          port: 80
+          targetPort: 80
+        - name: "29043"
+          port: 29043
+          targetPort: 29043
+      selector:
+        io.kompose.service: web
+    status:
+      loadBalancer: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
+        io.kompose.service: goaws
+      name: goaws
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: goaws
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: goaws
+        spec:
+          containers:
+            - image: pafortin/goaws
+              imagePullPolicy: ""
+              name: goaws
+              ports:
+                - containerPort: 4100
+              resources: {}
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
+        io.kompose.service: grafana
+      name: grafana
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: grafana
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: grafana
+        spec:
+          containers:
+            - env:
+                - name: GF_SECURITY_ADMIN_PASSWORD
+                  value: password
+                - name: GF_SECURITY_ADMIN_USER
+                  value: admin
+                - name: INFLUXDB_ADMIN_PASSWORD
+                  value: password
+                - name: INFLUXDB_ADMIN_USER
+                  value: admin
+                - name: INFLUXDB_DB
+                  value: alfalfa
+                - name: INFLUXDB_HOST
+                  value: influxdb
+              image: nrel/alfalfa-grafana:develop
+              imagePullPolicy: ""
+              name: grafana
+              ports:
+                - containerPort: 3000
+              resources: {}
+          hostname: grafana
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
+        io.kompose.service: influxdb
+      name: influxdb
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: influxdb
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: influxdb
+        spec:
+          containers:
+            - env:
+                - name: INFLUXDB_ADMIN_PASSWORD
+                  value: password
+                - name: INFLUXDB_ADMIN_USER
+                  value: admin
+                - name: INFLUXDB_DB
+                  value: alfalfa
+                - name: INFLUXDB_HTTP_AUTH_ENABLED
+                  value: "true"
+              image: influxdb:1.8
+              imagePullPolicy: ""
+              name: influxdb
+              ports:
+                - containerPort: 8086
+              resources: {}
+          hostname: influxdb
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
+        io.kompose.service: mc
+      name: mc
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: mc
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: mc
+        spec:
+          containers:
+            - command:
+                - /bin/sh
+                - -c
+                - " sleep 5; /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ACCESS_KEY}
+                  ${MINIO_SECRET_KEY}; /usr/bin/mc mb myminio/alfalfa; /usr/bin/mc policy
+                  public myminio/alfalfa; "
+              env:
+                - name: MINIO_ACCESS_KEY
+                  value: user
+                - name: MINIO_SECRET_KEY
+                  value: password
+              image: minio/mc
+              imagePullPolicy: ""
+              name: mc
+              resources: {}
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
+        io.kompose.service: minio
+      name: minio
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: minio
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: minio
+        spec:
+          containers:
+            - command:
+                - minio
+                - server
+                - /data
+              env:
+                - name: MINIO_ACCESS_KEY
+                  value: user
+                - name: MINIO_SECRET_KEY
+                  value: password
+              image: minio/minio
+              imagePullPolicy: ""
+              name: minio
+              ports:
+                - containerPort: 9000
+              resources: {}
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
+        io.kompose.service: mongo
+      name: mongo
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: mongo
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: mongo
+        spec:
+          containers:
+            - image: mongo
+              imagePullPolicy: ""
+              name: mongo
+              ports:
+                - containerPort: 27017
+              resources: {}
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
+        io.kompose.service: redis
+      name: redis
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: redis
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: redis
+        spec:
+          containers:
+            - image: redis
+              imagePullPolicy: ""
+              name: redis
+              ports:
+                - containerPort: 6379
+              resources: {}
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
+        io.kompose.service: web
+      name: web
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
           io.kompose.service: web
-      spec:
-        containers:
-        - env:
-          - name: AWS_ACCESS_KEY_ID
-            value: user
-          - name: AWS_SECRET_ACCESS_KEY
-            value: password
-          - name: JOB_QUEUE_URL
-            value: http://goaws:4100/queue/local-queue1
-          - name: MONGO_DB_NAME
-            value: alfalfa
-          - name: MONGO_URL
-            value: mongodb://mongo:27017/
-          - name: NODE_ENV
-            value: production
-          - name: REDIS_HOST
-            value: redis
-          - name: REGION
-            value: us-west-1
-          - name: S3_BUCKET
-            value: alfalfa
-          - name: S3_URL
-            value: http://minio:9000
-          - name: S3_URL_EXTERNAL
-            value: http://localhost:9000
-          image: nrel/alfalfa-web:develop
-          imagePullPolicy: ""
-          name: web
-          ports:
-          - containerPort: 80
-          - containerPort: 29043
-          resources: {}
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    annotations:
-      kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml -o
-        k8s-historian.yml convert
-      kompose.version: 1.21.0 ()
-    creationTimestamp: null
-    labels:
-      io.kompose.service: worker
-    name: worker
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: web
+        spec:
+          containers:
+            - env:
+                - name: AWS_ACCESS_KEY_ID
+                  value: user
+                - name: AWS_SECRET_ACCESS_KEY
+                  value: password
+                - name: JOB_QUEUE_URL
+                  value: http://goaws:4100/queue/local-queue1
+                - name: MONGO_DB_NAME
+                  value: alfalfa
+                - name: MONGO_URL
+                  value: mongodb://mongo:27017/
+                - name: NODE_ENV
+                  value: production
+                - name: REDIS_HOST
+                  value: redis
+                - name: REGION
+                  value: us-west-1
+                - name: S3_BUCKET
+                  value: alfalfa
+                - name: S3_URL
+                  value: http://minio:9000
+                - name: S3_URL_EXTERNAL
+                  value: http://localhost:9000
+              image: nrel/alfalfa-web:develop
+              imagePullPolicy: ""
+              name: web
+              ports:
+                - containerPort: 80
+                - containerPort: 29043
+              resources: {}
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml -o
+          k8s-historian.yml convert
+        kompose.version: 1.21.0 ()
+      creationTimestamp: null
+      labels:
         io.kompose.service: worker
-    strategy: {}
-    template:
-      metadata:
-        annotations:
-          kompose.cmd: kompose -f docker-compose.yml -f docker-compose-historian.yml
-            -o k8s-historian.yml convert
-          kompose.version: 1.21.0 ()
-        creationTimestamp: null
-        labels:
+      name: worker
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
           io.kompose.service: worker
-      spec:
-        containers:
-        - env:
-          - name: AWS_ACCESS_KEY_ID
-            value: user
-          - name: AWS_SECRET_ACCESS_KEY
-            value: password
-          - name: HISTORIAN_ENABLE
-            value: "true"
-          - name: INFLUXDB_ADMIN_PASSWORD
-            value: password
-          - name: INFLUXDB_ADMIN_USER
-            value: admin
-          - name: INFLUXDB_DB
-            value: alfalfa
-          - name: INFLUXDB_HOST
-            value: influxdb
-          - name: JOB_QUEUE_URL
-            value: http://goaws:4100/queue/local-queue1
-          - name: LOGLEVEL
-            value: INFO
-          - name: MONGO_DB_NAME
-            value: alfalfa
-          - name: MONGO_URL
-            value: mongodb://mongo:27017/
-          - name: NODE_ENV
-            value: production
-          - name: REDIS_HOST
-            value: redis
-          - name: REGION
-            value: us-west-1
-          - name: S3_BUCKET
-            value: alfalfa
-          - name: S3_URL
-            value: http://minio:9000
-          image: nrel/alfalfa-worker:develop
-          imagePullPolicy: ""
-          name: worker
-          resources: {}
-        restartPolicy: Always
-        serviceAccountName: ""
-        volumes: null
-  status: {}
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose -f docker-compose.yml -f docker-compose.historian.yml
+              -o k8s-historian.yml convert
+            kompose.version: 1.21.0 ()
+          creationTimestamp: null
+          labels:
+            io.kompose.service: worker
+        spec:
+          containers:
+            - env:
+                - name: AWS_ACCESS_KEY_ID
+                  value: user
+                - name: AWS_SECRET_ACCESS_KEY
+                  value: password
+                - name: HISTORIAN_ENABLE
+                  value: "true"
+                - name: INFLUXDB_ADMIN_PASSWORD
+                  value: password
+                - name: INFLUXDB_ADMIN_USER
+                  value: admin
+                - name: INFLUXDB_DB
+                  value: alfalfa
+                - name: INFLUXDB_HOST
+                  value: influxdb
+                - name: JOB_QUEUE_URL
+                  value: http://goaws:4100/queue/local-queue1
+                - name: LOGLEVEL
+                  value: INFO
+                - name: MONGO_DB_NAME
+                  value: alfalfa
+                - name: MONGO_URL
+                  value: mongodb://mongo:27017/
+                - name: NODE_ENV
+                  value: production
+                - name: REDIS_HOST
+                  value: redis
+                - name: REGION
+                  value: us-west-1
+                - name: S3_BUCKET
+                  value: alfalfa
+                - name: S3_URL
+                  value: http://minio:9000
+              image: nrel/alfalfa-worker:develop
+              imagePullPolicy: ""
+              name: worker
+              resources: {}
+          restartPolicy: Always
+          serviceAccountName: ""
+          volumes: null
+    status: {}
 kind: List
 metadata: {}
-

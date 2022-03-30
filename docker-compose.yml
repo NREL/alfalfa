@@ -1,5 +1,4 @@
-version: '3.2'
-
+version: "3.4"
 services:
   web: # main haystack application
     build:
@@ -7,15 +6,16 @@ services:
       # is to utilize shared code, specifically in db
       dockerfile: alfalfa_web/Dockerfile
       context: .
+      target: base
       args:
         - NODE_ENV
     image: ${WEB_REGISTRY_URI}:${VERSION_TAG}
     ports:
-     - target: 80
-       published: 80
-       protocol: tcp
-       mode: host
-     - "29043:29043"
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - "29043:29043"
     environment:
       - NODE_ENV
       - AWS_ACCESS_KEY_ID
@@ -34,7 +34,7 @@ services:
       - goaws
       - worker
       - mc
-  # Provides a local queue, conforming to aws Queue API
+  # Provides a local queue, conforming to aws Queue (SQS) API
   goaws:
     image: pafortin/goaws
     ports:
@@ -68,9 +68,10 @@ services:
   worker:
     build:
       # the purpose of context one level above is to install the entire alfalfa package
-      # and to copy the wait-for-it.sh file in deploy
+      # and to copy the wait-for-it.sh and start_worker.sh files in the deploy directory
       dockerfile: alfalfa_worker/Dockerfile
       context: .
+      target: base
     image: ${WORKER_REGISTRY_URI}:${VERSION_TAG}
     environment:
       - AWS_ACCESS_KEY_ID
@@ -94,6 +95,9 @@ services:
       - mongo
       - goaws
       - mc
+    #volumes:
+    # TODO: Add in worker fmu volume
+    # TODO: Add in worker openstudio volume
   mongo:
     image: mongo
     ports:

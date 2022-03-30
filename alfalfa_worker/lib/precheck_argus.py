@@ -1,5 +1,5 @@
 ########################################################################################################################
-#  Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
+#  Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 #  following conditions are met:
@@ -27,6 +27,7 @@
 # This file can be called from python 2 due to the older JModelica version support of Python. Make sure
 # to keep the __future__ print_function import
 from __future__ import print_function
+
 import os
 import sys
 
