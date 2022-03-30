@@ -169,7 +169,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
                         self.set_idle_state()
                         break
         else:
-            # first step takes extra time
+            # first step takes extra time and needs to happen outside timescale loop
             if self.simtime == self.startTime:
                 print("taking first step at ", datetime.now())
                 self.step()
@@ -177,7 +177,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
                 next
             current_time = datetime.now()
             next_step_time = current_time + self.realworld_timedelta
-            print("in run with current time: {} and next_step_time {}", current_time, next_step_time)
+            print("in run with current time & next_step_time: ", current_time, next_step_time)
             self.advance = False
             while True:
                 current_time = datetime.now()
@@ -185,7 +185,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
                 if current_time >= next_step_time:
                     self.advance = True
                     # sim is not keeping up with target timescale.
-                    # TODO rethink arbitrary 20 s behind
+                    # TODO rethink arbitrary 60s behind
                     if (current_time > next_step_time + timedelta(seconds=60)):
                         self.stop = True
                         print("stopping... simulation got more than 60s behind target timescale")
@@ -195,7 +195,6 @@ class RunFMUSite(AlfalfaConnectionsBase):
                     break
 
                 if self.advance:
-                    print("in advance with current time: {} and next_step_time {}", current_time, next_step_time)
                     self.step()
                     next_step_time = next_step_time + self.realworld_timedelta
                     self.advance = False
