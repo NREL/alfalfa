@@ -1,0 +1,10 @@
+filebeat.inputs:
+- type: container
+  paths:
+    - '/var/lib/docker/containers/*/*.log'
+  processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+output.elasticsearch:
+  hosts: ["elasticsearch-master:9200"]
+
