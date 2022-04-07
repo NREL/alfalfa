@@ -1,7 +1,13 @@
+ # Docker-compose setup for local development with ELK log stack.
+ #
+ # Usage:
+ #   docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.elk.yml  up
+
 version: "3.4"
 services:
   elasticsearch-master:
     container_name: elasticsearch
+    restart: always
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
     environment:
       - bootstrap.memory_lock=true
@@ -18,6 +24,8 @@ services:
     tty: true
   kibana:
     container_name: kibana
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
     image: kibana:7.17.1
     environment:
       - bootstrap.memory_lock=true
@@ -37,6 +45,8 @@ services:
   filebeat:
     user: root
     container_name: filebeat
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
     image: docker.elastic.co/beats/filebeat:7.17.1
     depends_on:
       - elasticsearch-master
@@ -56,6 +66,8 @@ services:
   metricbeat:
     user: root
     container_name: metricbeat
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
     image: docker.elastic.co/beats/metricbeat:7.17.1
     depends_on:
       - elasticsearch-master
@@ -85,109 +97,3 @@ services:
        "
      depends_on:
        - elasticsearch-master
-  web: # main haystack application
-    build:
-      # the purpose of context one level above dockerfile
-      # is to utilize shared code, specifically in db
-      dockerfile: alfalfa_web/Dockerfile
-      context: .
-      target: base
-      args:
-        - NODE_ENV
-    image: ${WEB_REGISTRY_URI}:${VERSION_TAG}
-    ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-        mode: host
-      - "29043:29043"
-    environment:
-      - NODE_ENV
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - JOB_QUEUE_URL
-      - MONGO_URL
-      - MONGO_DB_NAME
-      - S3_URL
-      - S3_URL_EXTERNAL
-      - REDIS_HOST
-      - S3_BUCKET
-      - REGION
-    depends_on:
-      - redis
-      - mongo
-      - goaws
-      - worker
-      - mc
-  # Provides a local queue, conforming to aws Queue (SQS) API
-  goaws:
-    image: pafortin/goaws
-    ports:
-      - "4100:4100"
-  # Local implementation of s3
-  minio:
-    image: minio/minio
-    entrypoint:
-      - minio
-      - server
-      - /data
-    ports:
-      - "9000:9000"
-    environment:
-      - MINIO_ACCESS_KEY=${AWS_ACCESS_KEY_ID}
-      - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
-  mc:
-    image: minio/mc
-    environment:
-      - MINIO_ACCESS_KEY=${AWS_ACCESS_KEY_ID}
-      - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
-    entrypoint: >
-      /bin/sh -c "
-      sleep 5;
-      /usr/bin/mc config host add myminio http://minio:9000 $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY};
-      /usr/bin/mc mb myminio/alfalfa;
-      /usr/bin/mc policy public myminio/alfalfa;
-      "
-    depends_on:
-      - minio
-  worker:
-    build:
-      # the purpose of context one level above is to install the entire alfalfa package
-      # and to copy the wait-for-it.sh and start_worker.sh files in the deploy directory
-      dockerfile: alfalfa_worker/Dockerfile
-      context: .
-      target: base
-    image: ${WORKER_REGISTRY_URI}:${VERSION_TAG}
-    environment:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - JOB_QUEUE_URL
-      - MONGO_URL
-      - MONGO_DB_NAME
-      - LOGLEVEL=INFO
-      - NODE_ENV
-      - S3_URL
-      - REDIS_HOST
-      - S3_BUCKET
-      - REGION
-      - INFLUXDB_DB
-      - INFLUXDB_HOST
-      - INFLUXDB_ADMIN_USER
-      - INFLUXDB_ADMIN_PASSWORD
-      - HISTORIAN_ENABLE
-    depends_on:
-      - redis
-      - mongo
-      - goaws
-      - mc
-    #volumes:
-    # TODO: Add in worker fmu volume
-    # TODO: Add in worker openstudio volume
-  mongo:
-    image: mongo
-    ports:
-      - "27017:27017"
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"
