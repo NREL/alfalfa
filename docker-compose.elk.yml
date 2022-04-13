@@ -84,16 +84,3 @@ services:
     tty: true
     deploy:
       mode: global
-  elastic-populate:
-     image: elasticdump/elasticsearch-dump
-     entrypoint: >
-       /bin/sh -c "
-       apt-get update;
-       apt-get install -y curl;
-       curl -SLO https://boptest-resources.s3.us-west-2.amazonaws.com/elasticsearch-data/kibana_data.json;
-       curl -SLO https://boptest-resources.s3.us-west-2.amazonaws.com/elasticsearch-data/kibana_mapping.json;
-       elasticdump --input=kibana_mapping.json --output=http://elasticsearch-master:9200/.kibana  --type=mapping;
-       elasticdump --input=kibana_data.json --output=http://elasticsearch-master:9200/.kibana  --type=data;
-       "
-     depends_on:
-       - elasticsearch-master
