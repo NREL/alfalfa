@@ -1,7 +1,7 @@
- # Docker-compose setup for local development with ELK log stack.
- #
- # Usage:
- #   docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.elk.yml  up
+# Docker-compose setup for local development with ELK log stack.
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.elk.yml  up
 
 version: "3.4"
 services:
@@ -25,7 +25,6 @@ services:
   kibana:
     container_name: kibana
     restart: always
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
     image: kibana:7.17.1
     environment:
       - bootstrap.memory_lock=true
@@ -46,7 +45,6 @@ services:
     user: root
     container_name: filebeat
     restart: always
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
     image: docker.elastic.co/beats/filebeat:7.17.1
     depends_on:
       - elasticsearch-master
@@ -67,7 +65,6 @@ services:
     user: root
     container_name: metricbeat
     restart: always
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
     image: docker.elastic.co/beats/metricbeat:7.17.1
     depends_on:
       - elasticsearch-master
