@@ -82,7 +82,7 @@ class PrepareIDF < OpenStudio::Ruleset::WorkspaceUserScript
     # modify python plugin search paths
     workspace.getObjectsByType('PythonPlugin_SearchPaths'.to_IddObjectType).each do |o|
       if (RUBY_PLATFORM =~ /linux/) != nil
-        o.setString(3,'/usr/local/lib/python3.6/dist-packages')
+        o.setString(3,'/usr/local/lib/python3.7/dist-packages')
         o.setString(4,'/usr/local/EnergyPlus-9-4-0')
       elsif (RUBY_PLATFORM =~ /darwin/) != nil
         o.setString(3,'/usr/local/lib/python3.8/site-packages')
