@@ -104,6 +104,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa \
     cmake \
     python3.7-dev \
     python3.7 \
+    python3.7-distutils \
     python3-pip \
     libblas-dev \
     && ln -sf /usr/bin/python3.7 /usr/bin/python \
