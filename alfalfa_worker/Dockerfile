@@ -12,28 +12,43 @@ ENV BUILD_DIR $HOME/build
 
 WORKDIR /home/alfalfa
 
-RUN apt-get update -y && apt-get install -y \
-        ca-certificates \
-        curl \
-        gdebi-core \
-        vim \
-        wget \
-        git && \
-    apt-get install -y git
+# Until we can support E+ 22.1.0 we need to install python 3.7 (thus deadsnakes/ppa)
+# This step should probably be connected tot he next one, but due to the nature of NREL's
+# firewall this step must be run off VPN. This way you don't need to log off everytime you
+# update apt packaged, at least.
+RUN apt-get update \
+    && apt install -y software-properties-common \
+    && add-apt-repository ppa:openjdk-r/ppa \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update \
+    && apt-get install -y \
+    ca-certificates \
+    curl \
+    gdebi-core \
+    vim \
+    wget \
+    git \
+    openjdk-8-jdk-headless \
+    liblapack-dev \
+    gfortran \
+    libgfortran4 \
+    cmake \
+    python3.7-dev \
+    python3.7 \
+    python3.7-distutils \
+    python3-pip \
+    libblas-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Use set in update-alternatives instead of config to
 # provide non-interactive input.
-RUN apt-get update \
-    && apt-get install -y software-properties-common \
-    && add-apt-repository -y ppa:openjdk-r/ppa \
-    && apt-get update -y \
-    && apt-get install -y openjdk-8-jdk-headless \
-    && update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java \
+RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java \
     && update-alternatives --set javac /usr/lib/jvm/java-8-openjdk-amd64/bin/javac \
     && curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz \
     && tar -xzf bcvtb-linux.tar.gz \
-    && rm bcvtb-linux.tar.gz \
-    && apt-get install -y ca-certificates nodejs
+    && rm bcvtb-linux.tar.gz
 
 WORKDIR $BUILD_DIR
 
@@ -89,27 +104,7 @@ ENV ASSIMULO_TAG Assimulo-3.2.9
 
 ENV PYFMI_TAG PyFMI-2.9.5
 
-ENV OPENBLAS_TAG v0.3.20
-ENV OPENBLAS_HOME $ROOT_DIR
-
 ENV SUPERLU_HOME $ROOT_DIR/SuperLU_MT_3.1
-
-# Until we can support E+ 22.1.0 we need to install python 3.7 (thus deadsnakes/ppa)
-RUN add-apt-repository ppa:deadsnakes/ppa \
-    && apt update \
-    && apt install -y \
-    liblapack-dev \
-    gfortran \
-    libgfortran4 \
-    cmake \
-    python3.7-dev \
-    python3.7 \
-    python3.7-distutils \
-    python3-pip \
-    libblas-dev \
-    && ln -sf /usr/bin/python3.7 /usr/bin/python \
-    && ln -sf /usr/bin/python3.7 /usr/bin/python3 \
-    && ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Modelica requires libgfortran3 which is not in apt for 20.04
 RUN wget http://archive.ubuntu.com/ubuntu/pool/universe/g/gcc-6/gcc-6-base_6.4.0-17ubuntu1_amd64.deb \
@@ -163,9 +158,12 @@ COPY pyproject.toml $BUILD_DIR
 COPY poetry.lock $BUILD_DIR
 
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
-RUN python -m pip install poetry==1.1.12 setuptools==62.1.0 && \
-     python -m poetry config virtualenvs.create false && \
-     python -m poetry install --no-dev
+RUN ln -sf /usr/bin/python3.7 /usr/bin/python \
+    && ln -sf /usr/bin/python3.7 /usr/bin/python3 \
+    && ln -sf /usr/bin/pip3 /usr/bin/pip \
+    && python -m pip install poetry==1.1.12 setuptools==62.1.0 \
+    && python -m poetry config virtualenvs.create false \
+    && python -m poetry install --no-dev
 
 # This is required for Assimulo to build correctly with setuptools 60+
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
