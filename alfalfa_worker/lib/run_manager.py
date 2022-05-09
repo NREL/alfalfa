@@ -1,9 +1,11 @@
+import datetime
 import os
 import tarfile
 import zipfile
 from typing import List
 
 import boto3
+import pytz
 
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 from alfalfa_worker.lib.logger_mixins import RunManagerLoggerMixin
@@ -18,6 +20,7 @@ class RunManager(RunManagerLoggerMixin, AlfalfaConnectionsBase):
         self.s3_bucket.download_file(key, zip_file_path)
         zip_file = zipfile.ZipFile(zip_file_path)
         zip_file.extractall(dir_path)
+        os.remove(zip_file_path)
         run = Run(dir_path, upload_id)
         # TODO register run and give unique id from model_id
         return run
@@ -34,8 +37,9 @@ class RunManager(RunManagerLoggerMixin, AlfalfaConnectionsBase):
         tar.add(run.dir, filter=reset, arcname=run.id)
         tar.close()
 
-        upload_location = "parsed/%s" % tarname
+        upload_location = "run/%s" % tarname
         try:
+            self.logger.info(f"uploading {tarname} to {upload_location}")
             self.s3_bucket.upload_file(tarname, upload_location)
             return True, upload_location
         except boto3.exceptions.S3UploadFailedError as e:
@@ -45,13 +49,27 @@ class RunManager(RunManagerLoggerMixin, AlfalfaConnectionsBase):
 
     def checkout_run(self, run_id: str, dir_path: str):
         tar_file_path = os.path.join(dir_path, "../in.tar.gz")
-        key = f'parsed/{run_id}.tar.gz'
+        key = f'run/{run_id}.tar.gz'
+        self.logger.info(f"downloading {tar_file_path} from {key}")
         self.s3_bucket.download_file(key, tar_file_path)
 
         tar = tarfile.open(tar_file_path)
         tar.extractall(dir_path)
         tar.close()
-        return Run(dir_path, run_id)
+        os.remove(tar_file_path)
+        return Run(os.path.join(dir_path, run_id), run_id)
+
+    def set_run_status(self, run: Run, status: str):
+        self.mongo_db_sims.update_one({'_id': run.id},
+                                      {"$set": {"simStatus": status}},
+                                      False)
+
+    def complete_run(self, run: Run):
+        self.checkin_run(run)
+        time = str(datetime.now(tz=pytz.UTC))
+        self.mongo_db_sims.update_one({"_id": run.id},
+                                      {"$set": {"simStatus": "Complete", "timeCompleted": time, "s3Key": f"run/{run.id}"}},
+                                      False)
 
     def add_points(self, run: Run, points: List[Point]):
         array_to_insert = []

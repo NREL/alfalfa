@@ -5,8 +5,9 @@ import tarfile
 import threading
 from enum import Enum
 from glob import glob
-from queue import SimpleQueue
 from typing import List
+
+from redis import Redis
 
 # from alfalfa_jobs.run import Run
 from alfalfa_worker.lib.point import Point
@@ -41,8 +42,11 @@ class JobMetaclass(type):
             del kwargs['run_manager']
             self._message_handlers = {}
             self._status = JobStatus.INITIALIZING
-            self._message_queue = SimpleQueue()
             self._result_paths = []
+            # Redis
+            self.redis = Redis(host=os.environ['REDIS_HOST'])
+            self.redis_pubsub = self.redis.pubsub()
+            self.runs = []
             logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
             self.base_logger = logging.getLogger("job_base")
 
@@ -144,25 +148,47 @@ class Job(metaclass=JobMetaclass):
 
     def _message_loop(self):
         self.base_logger.info("message loop starting")
+        for run in self.runs:
+            self.redis.hset(run.id, 'control', 'idle')
         while self._status.value < JobStatus.STOPPING.value:
-            self._status = JobStatus.WAITING
-            message = self._message_queue.get()
-            if message in self._message_handlers.keys():
-                self._status = JobStatus.RUNNING
-                self._message_handlers[message]()
+            self._check_messages()
         self.base_logger.info("message loop over")
 
+    def _check_messages(self):
+        self._status = JobStatus.WAITING
+        message = self.redis_pubsub.get_message()
+        if message and message['data'].__class__ == bytes:
+            self.base_logger.info(f"recieved message: {message}")
+            data = message['data'].decode('utf-8')
+            if data in self._message_handlers.keys():
+                self._status = JobStatus.RUNNING
+                self._message_handlers[data]()
+                self._redis_idle()
+
+    def _redis_idle(self):
+        for run in self.runs:
+            self.redis.publish(run.id, 'complete')
+            self.redis.hset(run.id, 'control', 'idle')
+
     def checkout_run(self, run_id, path='.') -> Run:
-        return self.run_manager.checkout_run(run_id, self.join(path))
+        run = self.run_manager.checkout_run(run_id, self.join(path))
+        self.listen_to_run(run)
+        return run
 
     def checkin_run(self, run) -> Run:
         return self.run_manager.checkin_run(run)
 
     def create_run(self, upload_id: str, model_name: str, path='.') -> Run:
-        return self.run_manager.create_run_from_model(upload_id, model_name, self.join(path))
+        run = self.run_manager.create_run_from_model(upload_id, model_name, self.join(path))
+        self.listen_to_run(run)
+        return run
 
     def add_points(self, run: Run, points: List[Point]):
         return self.run_manager.add_points(run, points)
+
+    def listen_to_run(self, run: Run):
+        self.runs.append(run)
+        self.redis_pubsub.subscribe(run.id)
 
 
 class JobStatus(Enum):
@@ -177,9 +203,13 @@ class JobStatus(Enum):
     ERROR = 63
 
 
-class JobExceptionInvalidModel(Exception):
+class BaseJobException(Exception):
     pass
 
 
-class JobExceptionInvalidRun(Exception):
+class JobExceptionInvalidModel(BaseJobException):
+    pass
+
+
+class JobExceptionInvalidRun(BaseJobException):
     pass

@@ -35,7 +35,7 @@ from pathlib import Path
 # from a new class that just handles the alfalfa connections, then
 # the WorkerJobBase and Dispatcher can both inherit from the new class.
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
-from alfalfa_worker.lib.Job import Job
+from alfalfa_worker.lib.job import Job
 from alfalfa_worker.lib.logger_mixins import DispatcherLoggerMixin
 from alfalfa_worker.lib.run_manager import RunManager
 from alfalfa_worker.worker_fmu.worker import WorkerFmu
@@ -125,7 +125,17 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
                     self.logger.info(f"Dispatching {action} with sim_type {sim_type} to worker {worker_class}")
                     if action == 'runSite':
                         # TODO: Strongly type the step_sim, add_site, and run_sim (add mypy???)
-                        worker_class.step_sim(message_body)
+                        if worker_class.__class__ is WorkerOpenStudio:
+                            # self.logger()
+                            self.start_job('alfalfa_worker.StepRun',
+                                           {'run_id': message_body.get('id'),
+                                            'realtime': message_body.get('realtime'),
+                                            'timescale': message_body.get('timescale'),
+                                            'external_clock': message_body.get('externalClock'),
+                                            'start_datetime': message_body.get('startDatetime'),
+                                            'end_datetime': message_body.get('endDatetime')})
+                        else:
+                            worker_class.step_sim(message_body)
                     elif action == 'runSim':
                         worker_class.run_sim(message_body)
 

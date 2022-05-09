@@ -2,6 +2,7 @@
 from pkg_resources import DistributionNotFound, get_distribution
 
 from alfalfa_worker.jobs.openstudio.create_run import CreateRun
+from alfalfa_worker.jobs.openstudio.step_run import StepRun
 
 try:
     # Change here if project is renamed and does not equal the package name
