@@ -48,6 +48,13 @@ class AddSiteLoggerMixin(LoggerMixinBase):
         super().__init__('add_site', *args, **kwargs)
 
 
+class RunManagerLoggerMixin(LoggerMixinBase):
+    """A logger specific for the tasks of adding a site"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__('add_site', *args, **kwargs)
+
+
 class ModelLoggerMixin(object):
     """A logger specific for the tasks of the ModelAdvancer, does not stream"""
 

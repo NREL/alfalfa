@@ -24,7 +24,10 @@
 ########################################################################################################################
 
 import json
+import os
 import traceback
+import uuid
+from importlib import import_module
 from pathlib import Path
 
 # Currently this is a child of WorkerJobBase, but mostly for the
@@ -32,7 +35,9 @@ from pathlib import Path
 # from a new class that just handles the alfalfa connections, then
 # the WorkerJobBase and Dispatcher can both inherit from the new class.
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
+from alfalfa_worker.lib.Job import Job
 from alfalfa_worker.lib.logger_mixins import DispatcherLoggerMixin
+from alfalfa_worker.lib.run_manager import RunManager
 from alfalfa_worker.worker_fmu.worker import WorkerFmu
 # Workers that are defined in this dispatcher
 from alfalfa_worker.worker_openstudio.worker import WorkerOpenStudio
@@ -55,6 +60,10 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         # create classes for the workers that this dispatcher supports
         self.worker_openstudio_class = WorkerOpenStudio()
         self.worker_fmu_class = WorkerFmu()
+        self.run_manager = RunManager()
+        self.workdir = '/jobs'
+        if not os.path.exists(self.workdir):
+            os.mkdir(self.workdir)
 
     def determine_worker_class(self, test_str):
         """This is the only place where we should decide
@@ -99,7 +108,13 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
                         # worker class that was assigned
                         return worker_class
                     elif action == 'addSite':
-                        worker_class.add_site(message_body)
+                        if worker_class.__class__ is WorkerOpenStudio:
+                            self.start_job('alfalfa_worker.CreateRun',
+                                           {'model_name': message_body.get('model_name'),
+                                            'upload_id': message_body.get('upload_id')})
+                            self.logger.info("add site job has completed")
+                        else:
+                            worker_class.add_site(message_body)
                 elif action in ['runSite', 'runSim']:
                     # get the site ID out of the message
                     site_id = message_body.get('id')
@@ -135,3 +150,38 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
             except BaseException as e:
                 tb = traceback.format_exc()
                 self.logger.info("Exception caught in dispatcher.run: {} with {}".format(e, tb))
+
+    def start_job(self, job_name, parameters):
+        """Start job in thread by Python class path"""
+        klazz = self.find_class(job_name)
+        job_id = str(uuid.uuid4())
+        job_dir = os.path.join(self.workdir, job_id)
+        os.mkdir(job_dir)
+        parameters['working_dir'] = job_dir
+        parameters['run_manager'] = self.run_manager
+        job = klazz(**parameters)
+        job.start()
+        return job_id
+
+    @staticmethod
+    def find_class(path):
+        """Gets class from class path"""
+        components = path.split('.')
+        module = import_module('.'.join(components[:-1]))
+        klazz = getattr(module, components[-1])
+        return klazz
+
+    @staticmethod
+    def print_job(job_name):
+        klazz = Dispatcher.find_class(job_name)
+        print(f"Name: \t{klazz.__name__}")
+        print(f"Description: \t{klazz.__doc__}")
+        print("Message Handlers:")
+        for attr_name in dir(klazz):
+            attr = getattr(klazz, attr_name)
+            if hasattr(attr, 'message_handler'):
+                print(f"{attr.__name__}: \t {attr.__doc__}")
+
+    @staticmethod
+    def get_jobs():
+        return Job.jobs.copy()
