@@ -1,0 +1,25 @@
+{
+  "seed_file": "in.osm",
+  "weather_file": "USA_CA_Long.Beach-Daugherty.Field.722970_TMY3.epw",
+  "measure_paths": [
+    "./measures/"
+  ],
+  "file_paths": [
+    "./weather/"
+  ],
+  "run_directory": "./run/",
+  "steps": [
+    {
+      "measure_dir_name": "shed_signal",
+      "name": "Load shed signal",
+      "description": "Add load shed signal variable for Alfalfa",
+      "modeler_description": "Add EMS global variables required by Alfalfa to represent a load shed signal"
+    },
+    {
+      "measure_dir_name": "shed_lights",
+      "name": "Shed lights",
+      "description": "Shed lighting load",
+      "modeler_description": "Halve lighting schedule value at every timestep that the shed signal is true"
+    }
+  ]
+}
