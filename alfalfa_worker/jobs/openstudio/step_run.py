@@ -382,3 +382,4 @@ class StepRun(StepRunBase):
                                        False)
         self.ep.stop(True)
         self.ep.is_running = 0
+        self.checkin_run(self.run)

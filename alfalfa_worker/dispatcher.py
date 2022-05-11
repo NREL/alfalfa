@@ -30,6 +30,7 @@ import uuid
 from importlib import import_module
 from pathlib import Path
 
+from alfalfa_worker.jobs import openstudio
 # Currently this is a child of WorkerJobBase, but mostly for the
 # alfalfa connections. WorkerJobBase could/should be updated to inherit
 # from a new class that just handles the alfalfa connections, then
@@ -109,12 +110,14 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
                         return worker_class
                     elif action == 'addSite':
                         if worker_class.__class__ is WorkerOpenStudio:
-                            self.start_job('alfalfa_worker.CreateRun',
+                            self.start_job(openstudio.CreateRun.job_path(),
                                            {'model_name': message_body.get('model_name'),
                                             'upload_id': message_body.get('upload_id')})
                             self.logger.info("add site job has completed")
                         else:
-                            worker_class.add_site(message_body)
+                            self.start_job("alfalfa_worker.jobs.modelica.CreateRun",
+                                           {'model_name': message_body.get('model_name'),
+                                            'upload_id': message_body.get('upload_id')})
                 elif action in ['runSite', 'runSim']:
                     # get the site ID out of the message
                     site_id = message_body.get('id')
@@ -124,18 +127,17 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
                     worker_class = self.determine_worker_class(sim_type)
                     self.logger.info(f"Dispatching {action} with sim_type {sim_type} to worker {worker_class}")
                     if action == 'runSite':
+                        params = {'run_id': message_body.get('id'),
+                                  'realtime': message_body.get('realtime'),
+                                  'timescale': message_body.get('timescale'),
+                                  'external_clock': message_body.get('externalClock'),
+                                  'start_datetime': message_body.get('startDatetime'),
+                                  'end_datetime': message_body.get('endDatetime')}
                         # TODO: Strongly type the step_sim, add_site, and run_sim (add mypy???)
                         if worker_class.__class__ is WorkerOpenStudio:
-                            # self.logger()
-                            self.start_job('alfalfa_worker.StepRun',
-                                           {'run_id': message_body.get('id'),
-                                            'realtime': message_body.get('realtime'),
-                                            'timescale': message_body.get('timescale'),
-                                            'external_clock': message_body.get('externalClock'),
-                                            'start_datetime': message_body.get('startDatetime'),
-                                            'end_datetime': message_body.get('endDatetime')})
+                            self.start_job(openstudio.StepRun.job_path(), params)
                         else:
-                            worker_class.step_sim(message_body)
+                            self.start_job('alfalfa_worker.jobs.modelica.StepRun', params)
                     elif action == 'runSim':
                         worker_class.run_sim(message_body)
 

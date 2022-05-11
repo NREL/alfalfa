@@ -11,7 +11,7 @@ from redis import Redis
 
 # from alfalfa_jobs.run import Run
 from alfalfa_worker.lib.point import Point
-from alfalfa_worker.lib.run import Run
+from alfalfa_worker.lib.run import Run, RunStatus
 from alfalfa_worker.lib.run_manager import RunManager
 
 
@@ -92,6 +92,7 @@ class Job(metaclass=JobMetaclass):
         except Exception as e:
             print(e)
             self._set_status(JobStatus.ERROR)
+            self.base_logger.info("Error in Job")
             raise
 
     def exec(self) -> None:
@@ -172,6 +173,8 @@ class Job(metaclass=JobMetaclass):
 
     def checkout_run(self, run_id, path='.') -> Run:
         run = self.run_manager.checkout_run(run_id, self.join(path))
+        run.job_history.append(self.job_path())
+        self.run_manager.update_db(run)
         self.listen_to_run(run)
         return run
 
@@ -181,14 +184,24 @@ class Job(metaclass=JobMetaclass):
     def create_run(self, upload_id: str, model_name: str, path='.') -> Run:
         run = self.run_manager.create_run_from_model(upload_id, model_name, self.join(path))
         self.listen_to_run(run)
+        run.job_history.append(self.job_path())
+        self.run_manager.update_db(run)
         return run
 
-    def add_points(self, run: Run, points: List[Point]):
-        return self.run_manager.add_points(run, points)
+    @classmethod
+    def job_path(cls):
+        return f'{cls.__module__}.{cls.__name__}'
+
+    def set_run_status(self, run: Run, status: RunStatus):
+        run.status = status
+        self.run_manager.update_db(run)
 
     def listen_to_run(self, run: Run):
         self.runs.append(run)
         self.redis_pubsub.subscribe(run.id)
+
+    def add_points(self, run: Run, points: List[Point]):
+        return self.run_manager.add_points(run, points)
 
 
 class JobStatus(Enum):

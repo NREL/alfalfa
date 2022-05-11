@@ -7,6 +7,7 @@ from subprocess import call
 from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
 from alfalfa_worker.lib.logger_mixins import AddSiteLoggerMixin
 from alfalfa_worker.lib.point import Point, PointType
+from alfalfa_worker.lib.run import RunStatus
 from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
 from alfalfa_worker.lib.utils import rel_symlink
 
@@ -16,9 +17,10 @@ class CreateRun(AddSiteLoggerMixin, Job):
     def __init__(self, upload_id, model_name):
         super().__init__()
         self.run = self.create_run(upload_id, model_name)
-        # self.logger.info("starting job")
+        self.set_run_status(self.run, RunStatus.STARTING)
 
     def exec(self):
+        self.set_run_status(self.run, RunStatus.RUNNING)
         osws = self.run.glob("**/*.osw")
         if osws:
             # there is only support for one osw at this time
@@ -114,7 +116,6 @@ class CreateRun(AddSiteLoggerMixin, Job):
         for json_point in points_json:
             point = Point(json_point['dis'], PointType.BIDIRECTIONAL, json_point, json_point['id'].replace('r:', ''))
             points.append(point)
-            self.logger.info(point)
 
         # save "fixed up" json
         with open(points_json_path, 'w') as fp:
@@ -124,4 +125,4 @@ class CreateRun(AddSiteLoggerMixin, Job):
             json.dump(mapping_json, fp)
 
         # add points to database
-        self.add_points(self.run, points)
+        self.run_manager.add_site_to_mongo(points_json, self.run)

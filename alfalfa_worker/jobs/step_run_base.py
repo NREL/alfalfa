@@ -18,7 +18,7 @@ class StepRunBase(ModelLoggerMixin, AlfalfaConnectionsBase, Job):
         elif self.step_sim_type == 'realtime':
             self.step_sim_value = 1
         else:
-            self.step_sim_value = None
+            self.step_sim_value = 5
 
         # Store the site for later use
         self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
