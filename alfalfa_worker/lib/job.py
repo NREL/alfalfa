@@ -1,10 +1,9 @@
+import json
 import logging
 import os
-import shutil
-import tarfile
 import threading
 from enum import Enum
-from glob import glob
+from json.decoder import JSONDecodeError
 from typing import List
 
 from redis import Redis
@@ -48,7 +47,7 @@ class JobMetaclass(type):
             self.redis_pubsub = self.redis.pubsub()
             self.runs = []
             logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
-            self.base_logger = logging.getLogger("job_base")
+            self.logger = logging.getLogger(self.__class__.__name__)
 
             for attr_name in dir(self):
                 attr = getattr(self, attr_name)
@@ -82,17 +81,17 @@ class Job(metaclass=JobMetaclass):
         try:
             self._set_status(JobStatus.STARTING)
             self._set_status(JobStatus.RUNNING)
-            self.base_logger.info("Job running")
+            self.logger.info("Job running")
             self.exec()
             self._message_loop()
             # self._set_status(JobStatus.CLEANING_UP)
             # self.cleanup()
             self._set_status(JobStatus.STOPPED)
-            self.base_logger.info("Job stopped")
+            self.logger.info("Job stopped")
         except Exception as e:
             print(e)
             self._set_status(JobStatus.ERROR)
-            self.base_logger.info("Error in Job")
+            self.logger.info("Error in Job")
             raise
 
     def exec(self) -> None:
@@ -102,7 +101,7 @@ class Job(metaclass=JobMetaclass):
     @message
     def stop(self) -> None:
         """Stop job"""
-        self.base_logger.info("stop called")
+        self.logger.info("stop called")
         self._set_status(JobStatus.STOPPING)
 
     def cleanup(self) -> None:
@@ -111,32 +110,8 @@ class Job(metaclass=JobMetaclass):
         self.tar_working_dir()
         self.delete_working_dir()
 
-    def add_results_path(self, path):
-        if len(os.path.commonpath([self.working_dir, path])) == 0:
-            path = os.path.join(self.working_dir, path)
-        self._result_paths.append(path)
-
     def join(self, *args):
         return os.path.join(self.working_dir, *args)
-
-    def tar_working_dir(self) -> str:
-        """tars job working dir
-        if results_paths has stuff just add those, if not tar whole directory"""
-        dir_name = os.path.split(self.working_dir)[-1]
-        tar_path = os.path.join(self.working_dir, '..', f'{dir_name}.tar')
-        tar = tarfile.TarFile(tar_path, 'w')
-        if len(self._result_paths) > 0:
-            for path in self._result_paths:
-                files = glob(path)
-                for file in files:
-                    tar.add(file, arcname=os.path.relpath(file, start=self.working_dir))
-        else:
-            tar.add(self.working_dir, arcname='.')
-        tar.close()
-        return tar_path
-
-    def delete_working_dir(self):
-        shutil.rmtree(self.working_dir)
 
     def status(self) -> "JobStatus":
         """Get job status
@@ -148,23 +123,26 @@ class Job(metaclass=JobMetaclass):
         self._status = status
 
     def _message_loop(self):
-        self.base_logger.info("message loop starting")
+        self.logger.info("message loop starting")
         for run in self.runs:
             self.redis.hset(run.id, 'control', 'idle')
         while self._status.value < JobStatus.STOPPING.value:
             self._check_messages()
-        self.base_logger.info("message loop over")
+        self.logger.info("message loop over")
 
     def _check_messages(self):
         self._status = JobStatus.WAITING
         message = self.redis_pubsub.get_message()
-        if message and message['data'].__class__ == bytes:
-            self.base_logger.info(f"recieved message: {message}")
-            data = message['data'].decode('utf-8')
-            if data in self._message_handlers.keys():
-                self._status = JobStatus.RUNNING
-                self._message_handlers[data]()
-                self._redis_idle()
+        try:
+            if message and message['data'].__class__ == bytes:
+                self.logger.info(f"recieved message: {message}")
+                data = json.loads(message['data'].decode('utf-8'))
+                if data['method'] in self._message_handlers.keys():
+                    self._status = JobStatus.RUNNING
+                    self._message_handlers[data['method']](**data.get('params', {}))
+                    self._redis_idle()
+        except JSONDecodeError:
+            self.logger.info("received malformed message")
 
     def _redis_idle(self):
         for run in self.runs:
@@ -199,6 +177,10 @@ class Job(metaclass=JobMetaclass):
     def listen_to_run(self, run: Run):
         self.runs.append(run)
         self.redis_pubsub.subscribe(run.id)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        fh = logging.FileHandler(run.join('jobs.log'))
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
 
     def add_points(self, run: Run, points: List[Point]):
         return self.run_manager.add_points(run, points)

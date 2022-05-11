@@ -5,17 +5,15 @@ import os
 from subprocess import call
 
 from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
-from alfalfa_worker.lib.logger_mixins import AddSiteLoggerMixin
 from alfalfa_worker.lib.point import Point, PointType
 from alfalfa_worker.lib.run import RunStatus
 from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
 from alfalfa_worker.lib.utils import rel_symlink
 
 
-class CreateRun(AddSiteLoggerMixin, Job):
+class CreateRun(Job):
 
     def __init__(self, upload_id, model_name):
-        super().__init__()
         self.run = self.create_run(upload_id, model_name)
         self.set_run_status(self.run, RunStatus.STARTING)
 

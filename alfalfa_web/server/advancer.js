@@ -55,7 +55,7 @@ class Advancer {
           };
 
           this.sub.subscribe(channel);
-          this.pub.publish(channel, "advance");
+          this.pub.publish(channel, JSON.stringify({ method: "advance" }));
 
           // This is a failsafe if for some reason we miss a notification
           // that the step is complete

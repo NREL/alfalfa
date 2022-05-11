@@ -7,14 +7,12 @@ from uuid import uuid4
 from pyfmi import load_fmu
 
 from alfalfa_worker.lib.job import Job
-from alfalfa_worker.lib.logger_mixins import AddSiteLoggerMixin
 from alfalfa_worker.lib.run import RunStatus
 
 
-class CreateRun(AddSiteLoggerMixin, Job):
+class CreateRun(Job):
 
     def __init__(self, upload_id, model_name):
-        super().__init__()
         self.run = self.create_run(upload_id, model_name)
         self.set_run_status(self.run, RunStatus.STARTING)
         # Define FMU specific attributes

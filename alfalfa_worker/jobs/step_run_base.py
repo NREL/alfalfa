@@ -3,13 +3,11 @@ import os
 
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 from alfalfa_worker.lib.job import BaseJobException, Job
-from alfalfa_worker.lib.logger_mixins import ModelLoggerMixin
 
 
-class StepRunBase(ModelLoggerMixin, AlfalfaConnectionsBase, Job):
+class StepRunBase(AlfalfaConnectionsBase, Job):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
-        ModelLoggerMixin.__init__(self)
-        AlfalfaConnectionsBase.__init__(self)
+        super().__init__()
         self.run = self.checkout_run(run_id)
         self.step_sim_type, self.step_sim_value, self.start_datetime, self.end_datetime = self.process_inputs(realtime, timescale, external_clock, start_datetime, end_datetime)
         self.logger.info(f"sim_type is {self.step_sim_type}")

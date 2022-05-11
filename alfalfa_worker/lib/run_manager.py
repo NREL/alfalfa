@@ -6,14 +6,14 @@ from typing import List
 import boto3
 from pymongo import MongoClient
 
-from alfalfa_worker.lib.logger_mixins import RunManagerLoggerMixin
+from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
 from alfalfa_worker.lib.point import Point
 from alfalfa_worker.lib.run import Run, RunStatus
 
 
-class RunManager(RunManagerLoggerMixin):
+class RunManager(LoggerMixinBase):
     def __init__(self):
-        super().__init__()
+        super().__init__("RunManager")
         # Setup S3
         self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
         self.s3_bucket = self.s3.Bucket(os.environ['S3_BUCKET'])
