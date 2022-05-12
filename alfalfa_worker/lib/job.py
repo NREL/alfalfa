@@ -11,7 +11,6 @@ from redis import Redis
 # from alfalfa_jobs.run import Run
 from alfalfa_worker.lib.point import Point
 from alfalfa_worker.lib.run import Run, RunStatus
-from alfalfa_worker.lib.run_manager import RunManager
 
 
 def message(func):
@@ -39,16 +38,19 @@ class JobMetaclass(type):
             del kwargs['working_dir']
             self.run_manager = kwargs.get('run_manager')
             del kwargs['run_manager']
-            self._message_handlers = {}
             self._status = JobStatus.INITIALIZING
-            self._result_paths = []
+
+            # Variables
+            self.runs = []
+
             # Redis
             self.redis = Redis(host=os.environ['REDIS_HOST'])
-            self.redis_pubsub = self.redis.pubsub()
-            self.runs = []
+            self.redis_pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
             logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
             self.logger = logging.getLogger(self.__class__.__name__)
 
+            # Message Handlers
+            self._message_handlers = {}
             for attr_name in dir(self):
                 attr = getattr(self, attr_name)
                 if hasattr(attr, 'message_handler'):
@@ -66,8 +68,6 @@ class JobMetaclass(type):
 
 
 class Job(metaclass=JobMetaclass):
-    run_manager: RunManager
-    working_dir: str
 
     def start(self):
         if os.environ.get('THREADED_JOBS', '0') == '1':
@@ -84,8 +84,6 @@ class Job(metaclass=JobMetaclass):
             self.logger.info("Job running")
             self.exec()
             self._message_loop()
-            # self._set_status(JobStatus.CLEANING_UP)
-            # self.cleanup()
             self._set_status(JobStatus.STOPPED)
             self.logger.info("Job stopped")
         except Exception as e:
@@ -107,8 +105,6 @@ class Job(metaclass=JobMetaclass):
     def cleanup(self) -> None:
         """Clean up job
         called after stopping"""
-        self.tar_working_dir()
-        self.delete_working_dir()
 
     def join(self, *args):
         return os.path.join(self.working_dir, *args)
@@ -119,6 +115,7 @@ class Job(metaclass=JobMetaclass):
         return self._status
 
     def _set_status(self, status: "JobStatus"):
+        self.logger.info(f"Job Status: {status.name}")
         # A callback could be added here to tell the client what the status is
         self._status = status
 
@@ -131,37 +128,49 @@ class Job(metaclass=JobMetaclass):
         self.logger.info("message loop over")
 
     def _check_messages(self):
-        self._status = JobStatus.WAITING
+        self._set_status(JobStatus.WAITING)
         message = self.redis_pubsub.get_message()
         try:
             if message and message['data'].__class__ == bytes:
                 self.logger.info(f"recieved message: {message}")
                 data = json.loads(message['data'].decode('utf-8'))
-                if data['method'] in self._message_handlers.keys():
-                    self._status = JobStatus.RUNNING
-                    self._message_handlers[data['method']](**data.get('params', {}))
-                    self._redis_idle()
+                message_id = data.get('message_id')
+                if data.get('method', None) in self._message_handlers.keys():
+                    self._set_status(JobStatus.RUNNING)
+                    response = {}
+                    try:
+                        response['response'] = self._message_handlers[data['method']](**data.get('params', {}))
+                        response['status'] = "ok"
+                    except JobExceptionMessageHandler as e:
+                        # JobExceptionMessageHandler errors are thrown when the operation fails but the job isn't tainted.
+                        # They are caught here so they don't cause the job to exit.
+                        self.logger.error(e)
+                        response['status'] = 'error'
+                        response['response'] = str(e)
+                    self.logger.info(f"message_id: {message_id}, response: {response}")
+                    for run in self.runs:
+                        self.redis.hset(run.id, message_id, json.dumps(response))
+                        self.redis.hset(run.id, 'control', 'idle')
         except JSONDecodeError:
             self.logger.info("received malformed message")
-
-    def _redis_idle(self):
-        for run in self.runs:
-            self.redis.publish(run.id, 'complete')
-            self.redis.hset(run.id, 'control', 'idle')
 
     def checkout_run(self, run_id, path='.') -> Run:
         run = self.run_manager.checkout_run(run_id, self.join(path))
         run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
-        self.listen_to_run(run)
+        self.regster_run(run)
         return run
+
+    def checkin_runs(self):
+        for run in self.runs:
+            self.checkin_run(run)
 
     def checkin_run(self, run) -> Run:
         return self.run_manager.checkin_run(run)
 
     def create_run(self, upload_id: str, model_name: str, path='.') -> Run:
         run = self.run_manager.create_run_from_model(upload_id, model_name, self.join(path))
-        self.listen_to_run(run)
+        self.regster_run(run)
         run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
         return run
@@ -174,7 +183,7 @@ class Job(metaclass=JobMetaclass):
         run.status = status
         self.run_manager.update_db(run)
 
-    def listen_to_run(self, run: Run):
+    def regster_run(self, run: Run):
         self.runs.append(run)
         self.redis_pubsub.subscribe(run.id)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -202,9 +211,16 @@ class BaseJobException(Exception):
     pass
 
 
+class JobExceptionMessageHandler(BaseJobException):
+    """Thrown when there is an execption that occurs in an message handler.
+    This is caught and reported back to the caller via redis."""
+
+
 class JobExceptionInvalidModel(BaseJobException):
-    pass
+    """Thrown when working on a model.
+    ex: missing osw"""
 
 
 class JobExceptionInvalidRun(BaseJobException):
-    pass
+    """Thrown when working on run.
+    ex. run does not have necessary files"""

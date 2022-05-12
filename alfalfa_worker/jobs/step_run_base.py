@@ -130,9 +130,6 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
     def config_paths_for_model(self):
         """Placeholder for configuring necessary files for running model"""
 
-    def cleanup(self):
-        """Placeholder for cleaning up after simulation has completed"""
-
     def run_external_clock(self):
         """Placeholder for running using an external_clock"""
 

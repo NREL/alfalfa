@@ -26,13 +26,7 @@ class RunStatus(AutoName):
 
 
 class Run:
-    dir: str
-    model: str
-    id: str
-    _job_history: list
-    _status: RunStatus
-    created: datetime
-    modified: datetime
+    # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
 
     def __init__(self, dir, model, _id=str(uuid4()), job_history=[], status=RunStatus.CREATED, created=datetime.now(tz=pytz.UTC), modified=datetime.now(tz=pytz.UTC)):
         self.dir = dir

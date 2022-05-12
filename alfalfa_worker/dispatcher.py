@@ -133,7 +133,6 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
                                   'external_clock': message_body.get('externalClock'),
                                   'start_datetime': message_body.get('startDatetime'),
                                   'end_datetime': message_body.get('endDatetime')}
-                        # TODO: Strongly type the step_sim, add_site, and run_sim (add mypy???)
                         if worker_class.__class__ is WorkerOpenStudio:
                             self.start_job(openstudio.StepRun.job_path(), params)
                         else:

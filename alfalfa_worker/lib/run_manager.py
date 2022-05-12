@@ -36,7 +36,6 @@ class RunManager(LoggerMixinBase):
             os.remove(file_path)
         run = Run(dir_path, key, upload_id)
         self.register_run(run)
-        # TODO register run and give unique id from model_id
         return run
 
     def register_run(self, run: Run):
@@ -44,11 +43,9 @@ class RunManager(LoggerMixinBase):
         self.mongo_db_runs.insert_one(run_dict)
 
     def update_db(self, run: Run):
+        # If we used some sort of ORM we could possibly just have db objects which sync themselves automagically
         self.mongo_db_runs.update_one({'_id': run.id},
                                       {'$set': run.to_dict()}, False)
-        self.logger.info(run.status)
-        self.mongo_db_recs.update_one({'_id': run.id},
-                                      {'$set': {'simStatus': run.status.value}}, False)
 
     def checkin_run(self, run: Run):
         run.status = RunStatus.COMPLETE
