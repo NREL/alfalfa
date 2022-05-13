@@ -170,6 +170,7 @@ class OSMModelAdvancer(ModelAdvancerBase):
         self.write_outputs_to_mongo()
         if self.historian_enabled:
             self.write_outputs_to_influx()
+            self.write_outputs_to_elastic()
         self.update_sim_time_in_mongo()
 
     def create_tag_dictionaries(self):
@@ -488,3 +489,45 @@ class OSMModelAdvancer(ModelAdvancerBase):
         else:
             self.logger.info(
                 f"Successful write to influx.  Length of JSON: {len(json_body)}")
+
+
+    def write_outputs_to_elastic(self):
+        """
+        Write output data to elasticsearch
+        :return:
+        """
+        json_body = []
+        base = {
+            "measurement": self.site_id,
+            "time": f"{self.get_energyplus_datetime()}",
+        }
+        response = False
+        for output_id in self.variables.get_output_ids():
+            output_index = self.variables.get_output_index(output_id)
+            if output_index == -1:
+                self.logger.error('bad output index for: %s' % output_id)
+            else:
+                output_value = self.ep.outputs[output_index]
+                dis = self.variables.get_haystack_dis_given_id(output_id)
+                base["fields"] = {
+                    "value": output_value
+                }
+                base["tags"] = {
+                    "id": output_id,
+                    "dis": dis,
+                    "siteRef": self.site_id,
+                    "point": True,
+                    "source": 'alfalfa'
+                }
+                json_body.append(base.copy())
+            
+        for record in json_body:
+            try:
+                resp = self.es.index(index="data-results", document=record)
+                if not resp['result'] == "created":
+                    self.logger.warning(f"Unsuccessful write to elasticsearch.  Response: {resp}")
+                    self.logger.info(f"Attempted to write: {record}")
+                else:
+                    self.logger.info("Successful write to elasticsearch")    
+            except ConnectionError as e:
+                self.logger.error(f"Elasticsearch ConnectionError on write: {e}")

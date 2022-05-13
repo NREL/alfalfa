@@ -9,6 +9,7 @@ import tarfile
 import boto3
 from influxdb import InfluxDBClient
 from pymongo import MongoClient
+from elasticsearch import Elasticsearch
 from redis import Redis
 
 
@@ -46,6 +47,9 @@ class AlfalfaConnectionsBase(object):
         else:
             self.influx_db_name = None
             self.influx_client = None
+            
+        # ElasticSearch
+        self.es = Elasticsearch("http://elasticsearch-master:9200")
 
     def add_site_to_mongo(self, haystack_json, site_ref):
         """

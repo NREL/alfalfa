@@ -300,6 +300,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
 
         if self.historian_enabled:
             self.write_outputs_to_influx(y_output)
+            self.write_outputs_to_elastic(y_output) 
 
     def increment_datetime(self):
         """
@@ -309,6 +310,7 @@ class RunFMUSite(AlfalfaConnectionsBase):
         self.current_datetime += timedelta(seconds=self.step_size)
 
     def write_outputs_to_influx(self, outputs):
+        
         """
         Write output data to influx
         :return:
@@ -345,8 +347,48 @@ class RunFMUSite(AlfalfaConnectionsBase):
                 print("Influx response received %s" % response)
         except ConnectionError as e:
             print("Unable to write to influx: %s" % e)
-
-
+    
+    def write_outputs_to_elastic(self, outputs):
+        
+        """
+        Write output data to influx
+        :return:
+        """
+        json_body = []
+        base = {
+            "measurement": self.site_id,
+            "time": "%s" % self.current_datetime,
+        }
+        response = False
+        # get each of the simulation output values and feed to the database
+        for key in outputs.keys():
+            if key != 'time':
+                output_id = self.tagid_and_outputs[key]
+                value = outputs[key]
+                dis = self.id_and_dis[output_id]
+                base["fields"] = {
+                    "value": value
+                }
+                base["tags"] = {
+                    "id": output_id,
+                    "dis": dis,
+                    "siteRef": self.site_id,
+                    "point": True,
+                    "source": 'alfalfa'
+                }
+                json_body.append(base.copy())
+                
+        for record in json_body:
+            try:
+                resp = self.es.index(index="data-results", document=record)
+                if not resp['result'] == "created":
+                    self.logger.warning(f"Unsuccessful write to elasticsearch.  Response: {resp}")
+                    self.logger.info(f"Attempted to write: {record}")
+                else:
+                    self.logger.info("Successful write to elasticsearch")    
+            except ConnectionError as e:
+                self.logger.error(f"Elasticsearch ConnectionError on write: {e}")
+  
 # Main Program Entry
 
 args = step_sim_arg_parser()
