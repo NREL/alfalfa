@@ -7,7 +7,7 @@ import boto3
 from pymongo import MongoClient
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
-from alfalfa_worker.lib.point import Point
+from alfalfa_worker.lib.point import Point, PointType
 from alfalfa_worker.lib.run import Run, RunStatus
 
 
@@ -24,6 +24,7 @@ class RunManager(LoggerMixinBase):
         self.mongo_db_runs = self.mongo_db.runs
         self.mongo_db_recs = self.mongo_db.recs
         self.mongo_db_sims = self.mongo_db.sims
+        self.mongo_db_points = self.mongo_db.points
 
     def create_run_from_model(self, upload_id: str, model_name: str, dir_path: str) -> Run:
         file_path = os.path.join(dir_path, model_name)
@@ -46,6 +47,13 @@ class RunManager(LoggerMixinBase):
         # If we used some sort of ORM we could possibly just have db objects which sync themselves automagically
         self.mongo_db_runs.update_one({'_id': run.id},
                                       {'$set': run.to_dict()}, False)
+        for point in run.points:
+            if point.type == PointType.OUTPUT and point._pending_value:
+                self.mongo_db_points.update_one({'_id': point.id},
+                                                {'$set': {'val': point.val}}, False)
+            else:
+                point_dict = self.mongo_db_points.find_one({'_id': point.id})
+                point._val = point_dict['val']
 
     def checkin_run(self, run: Run):
         run.status = RunStatus.COMPLETE
@@ -83,24 +91,47 @@ class RunManager(LoggerMixinBase):
         tar.close()
         os.remove(tar_file_path)
 
-        run_dict = self.mongo_db_runs.find_one({'_id': run_id})
-        self.logger.info(run_dict)
-        run = Run(os.path.join(dir_path, run_id), **run_dict)
+        run = self.get_run(run_id)
+        run.dir = os.path.join(dir_path, run_id)
         run.status = RunStatus.STARTING
         self.update_db(run)
         return run
 
-    def add_points(self, run: Run, points: List[Point]):
+    def get_run(self, run_id: str) -> Run:
+        """Get a run by id from the database"""
+        run_dict = self.mongo_db_runs.find_one({'_id': run_id})
+        # self.logger.info(run_dict)
+        run = Run(**run_dict)
+        run.points = self.get_points(run)
+        return run
+
+    def get_points(self, run: Run):
+        """Get a list of all points that exist in a run"""
+        points_res = self.mongo_db_points.find({'run_id': run.id})
+        points: List[Point] = []
+        for point_dict in points_res:
+            point_dict['id'] = point_dict['_id']
+            del point_dict['_id']
+            del point_dict['run_id']
+            points.append(Point(**point_dict))
+        return points
+
+    def add_points_to_run(self, run: Run, points: List[Point]):
         array_to_insert = []
         for point in points:
-            array_to_insert.append({
+            point_dict = {
                 '_id': point.id,
-                'site_ref': run.id,
-                'type': point.type.name,
-                'rec': point.rec
-            })
+                'key': point.key,
+                'name': point.name,
+                'run_id': run.id,
+                'val': point.val
+            }
+            array_to_insert.append(point_dict)
+            self.logger.info(f"point key: {point.key}")
+            # self.logger.info(point_dict)
 
-        response = self.mongo_db_recs.insert_many(array_to_insert)
+        response = self.mongo_db_points.insert_many(array_to_insert)
+        run.points = points
         return response
 
     def add_site_to_mongo(self, haystack_json, run: Run):

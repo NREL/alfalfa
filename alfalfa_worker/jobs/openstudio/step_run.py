@@ -7,6 +7,8 @@ import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
 from alfalfa_worker.lib.job import BaseJobException, JobStatus, message
+from alfalfa_worker.lib.point import Point, PointType
+from alfalfa_worker.lib.run import RunStatus
 from alfalfa_worker.worker_openstudio.lib.parse_variables import ParseVariables
 
 
@@ -308,6 +310,10 @@ class StepRun(StepRunBase):
                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
                              "rec.cur": "m:"}}, False)
 
+                # Write to points
+                self.run.get_point_by_key(output_id).val = output_value
+                self.run_manager.update_db(self.run)
+
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
         output_time_string = "s:" + str(self.get_energyplus_datetime())
@@ -359,6 +365,30 @@ class StepRun(StepRunBase):
             self.logger.info(
                 f"Successful write to influx.  Length of JSON: {len(json_body)}")
 
+    def setup_points(self):
+        self.logger.info('setting up points')
+        points = []
+        for output_id in self.variables.get_output_ids():
+            output_index = self.variables.get_output_index(output_id)
+            if output_index == -1:
+                self.logger.error('bad output index for: %s' % output_id)
+            else:
+                dis = self.variables.get_haystack_dis_given_id(output_id)
+                point = Point(output_id, dis, PointType.OUTPUT)
+                points.append(point)
+
+        for input_id in self.variables.get_input_ids():
+            input_index = self.variables.get_input_index(input_id)
+            if input_index == -1:
+                self.logger.error('bad input index for: %s' % input_id)
+            else:
+                self.logger.info(f'input point: {input_id}')
+                dis = self.variables.get_haystack_dis_given_id(input_id)
+                point = Point(input_id, dis, PointType.INPUT)
+                points.append(point)
+
+        self.run_manager.add_points_to_run(self.run, points)
+
     @message
     def advance(self):
         self.logger.info("advance called")
@@ -368,6 +398,9 @@ class StepRun(StepRunBase):
     @message
     def stop(self):
         self._set_status(JobStatus.STOPPING)
+        self.set_run_status(self.run, RunStatus.STOPPING)
+
+        # DELETE
         name = self.site.get("rec", {}).get("dis", "Unknown") if self.site else "Unknown"
         name = name.replace("s:", "")
         t = str(datetime.now(tz=pytz.UTC))
@@ -380,6 +413,9 @@ class StepRun(StepRunBase):
                                        {"$unset": {"rec.curVal": "", "rec.curErr": ""},
                                            "$set": {"rec.curStatus": "s:disabled"}},
                                        False)
+        # END DELETE
+
         self.ep.stop(True)
         self.ep.is_running = 0
         self.checkin_run(self.run)
+        self.set_run_status(self.run, RunStatus.COMPLETE)

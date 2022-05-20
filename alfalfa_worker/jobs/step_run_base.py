@@ -3,12 +3,14 @@ import os
 
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 from alfalfa_worker.lib.job import BaseJobException, Job
+from alfalfa_worker.lib.run import RunStatus
 
 
 class StepRunBase(AlfalfaConnectionsBase, Job):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
         super().__init__()
         self.run = self.checkout_run(run_id)
+        self.set_run_status(self.run, RunStatus.STARTING)
         self.step_sim_type, self.step_sim_value, self.start_datetime, self.end_datetime = self.process_inputs(realtime, timescale, external_clock, start_datetime, end_datetime)
         self.logger.info(f"sim_type is {self.step_sim_type}")
         if self.step_sim_type == 'timescale':
@@ -25,6 +27,7 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
         self.end_datetime = datetime.datetime.strptime(end_datetime, '%Y-%m-%d %H:%M:%S')
 
         self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
+        self.set_run_status(self.run, RunStatus.STARTED)
 
     def process_inputs(self, realtime, timescale, external_clock, start_datetime, end_datetime):
         # TODO change server side message: startDatetime to start_datetime
@@ -70,6 +73,7 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
 
     def exec(self) -> None:
         self.init_sim()
+        self.setup_points()
         self.set_db_status_running()
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
             self.logger.info("Running timescale / realtime")
@@ -135,3 +139,7 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
 
     def run_timescale(self):
         """Placeholder for running using  an internal clock and a timescale"""
+
+    def setup_points(self):
+        """Placeholder for setting up points for I/O"""
+        raise NotImplementedError

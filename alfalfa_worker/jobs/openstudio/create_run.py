@@ -5,7 +5,6 @@ import os
 from subprocess import call
 
 from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
-from alfalfa_worker.lib.point import Point, PointType
 from alfalfa_worker.lib.run import RunStatus
 from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
 from alfalfa_worker.lib.utils import rel_symlink
@@ -15,10 +14,9 @@ class CreateRun(Job):
 
     def __init__(self, upload_id, model_name):
         self.run = self.create_run(upload_id, model_name)
-        self.set_run_status(self.run, RunStatus.STARTING)
 
     def exec(self):
-        self.set_run_status(self.run, RunStatus.RUNNING)
+        self.set_run_status(self.run, RunStatus.PREPROCESSING)
         osws = self.run.glob("**/*.osw")
         if osws:
             # there is only support for one osw at this time
@@ -85,6 +83,7 @@ class CreateRun(Job):
 
         self.logger.info("checking in run")
         self.checkin_run(self.run)
+        self.set_run_status(self.run, RunStatus.READY)
 
         # Should the default behavior be to stop the job after running the `exec` function?
         # or to start spinning the message handler
@@ -110,10 +109,6 @@ class CreateRun(Job):
         # more than one time
         points_json, mapping_json = make_ids_unique(points_json, mapping_json)
         points_json = replace_site_id(self.run.id, points_json)
-        points = []
-        for json_point in points_json:
-            point = Point(json_point['dis'], PointType.BIDIRECTIONAL, json_point, json_point['id'].replace('r:', ''))
-            points.append(point)
 
         # save "fixed up" json
         with open(points_json_path, 'w') as fp:

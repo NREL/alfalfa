@@ -4,12 +4,10 @@ import os
 import threading
 from enum import Enum
 from json.decoder import JSONDecodeError
-from typing import List
 
 from redis import Redis
 
 # from alfalfa_jobs.run import Run
-from alfalfa_worker.lib.point import Point
 from alfalfa_worker.lib.run import Run, RunStatus
 
 
@@ -21,8 +19,12 @@ def message(func):
 
 
 class JobMetaclass(type):
-
-    # Wrap Subclass __init__
+    """The purpose of the metaclass is to wrap the __init__ of the subclass.
+    This allows the working_dir and run_manager arguments to be handled the same way
+    in every job. These arguments are removed before calling the old __init__ function.
+    This wrapper also does other setup functions like initializing redis and setting
+    up message handlers for annotated functions."""
+    # Wrap Subclass __init__. Called once for every class of Job
     def __new__(cls, name, bases, cls_dicts):
         if '__init__' in cls_dicts.keys():
             __old_init__ = cls_dicts['__init__']
@@ -60,6 +62,7 @@ class JobMetaclass(type):
         cls_dicts['__init__'] = __new_init__
         klazz = super().__new__(cls, name, bases, cls_dicts)
 
+        # This adds the job class to a list of all of the loaded jobs
         if len(bases) == 0:
             klazz.jobs = []
         if len(bases) > 0:
@@ -68,6 +71,7 @@ class JobMetaclass(type):
 
 
 class Job(metaclass=JobMetaclass):
+    """Job Base Class"""
 
     def start(self):
         if os.environ.get('THREADED_JOBS', '0') == '1':
@@ -81,11 +85,9 @@ class Job(metaclass=JobMetaclass):
         try:
             self._set_status(JobStatus.STARTING)
             self._set_status(JobStatus.RUNNING)
-            self.logger.info("Job running")
             self.exec()
             self._message_loop()
             self._set_status(JobStatus.STOPPED)
-            self.logger.info("Job stopped")
         except Exception as e:
             print(e)
             self._set_status(JobStatus.ERROR)
@@ -99,7 +101,6 @@ class Job(metaclass=JobMetaclass):
     @message
     def stop(self) -> None:
         """Stop job"""
-        self.logger.info("stop called")
         self._set_status(JobStatus.STOPPING)
 
     def cleanup(self) -> None:
@@ -107,6 +108,8 @@ class Job(metaclass=JobMetaclass):
         called after stopping"""
 
     def join(self, *args):
+        """Create a path relative to the job working directory
+        like calling os.path.join(job.working_dir, *args)"""
         return os.path.join(self.working_dir, *args)
 
     def status(self) -> "JobStatus":
@@ -115,6 +118,8 @@ class Job(metaclass=JobMetaclass):
         return self._status
 
     def _set_status(self, status: "JobStatus"):
+        if self._status is status:
+            return
         self.logger.info(f"Job Status: {status.name}")
         # A callback could be added here to tell the client what the status is
         self._status = status
@@ -190,9 +195,6 @@ class Job(metaclass=JobMetaclass):
         fh = logging.FileHandler(run.join('jobs.log'))
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
-
-    def add_points(self, run: Run, points: List[Point]):
-        return self.run_manager.add_points(run, points)
 
 
 class JobStatus(Enum):

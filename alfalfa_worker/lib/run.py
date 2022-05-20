@@ -2,10 +2,13 @@ import glob
 import os
 from datetime import datetime
 from enum import Enum, auto
+from typing import List
 from uuid import uuid4
 
 import pytz
 from dateutil import parser
+
+from alfalfa_worker.lib.point import Point
 
 
 class AutoName(Enum):
@@ -15,7 +18,10 @@ class AutoName(Enum):
 
 class RunStatus(AutoName):
     CREATED = auto()
+    PREPROCESSING = auto()
+    READY = auto()
     STARTING = auto()
+    STARTED = auto()
     RUNNING = auto()
     STOPPING = auto()
     COMPLETE = auto()
@@ -28,7 +34,7 @@ class RunStatus(AutoName):
 class Run:
     # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
 
-    def __init__(self, dir, model, _id=str(uuid4()), job_history=[], status=RunStatus.CREATED, created=datetime.now(tz=pytz.UTC), modified=datetime.now(tz=pytz.UTC)):
+    def __init__(self, dir=None, model=None, _id=str(uuid4()), job_history=[], status=RunStatus.CREATED, created=datetime.now(tz=pytz.UTC), modified=datetime.now(tz=pytz.UTC)):
         self.dir = dir
         self.model = model
         self.id = _id
@@ -36,6 +42,7 @@ class Run:
         self._status = status if status.__class__ == RunStatus else RunStatus(status)
         self.created = created if created.__class__ == datetime else parser.parse(created)
         self.modified = modified if modified.__class__ == datetime else parser.parse(modified)
+        self.points: List[Point] = []
 
     def join(self, *args):
         return os.path.join(self.dir, *args)
@@ -60,6 +67,12 @@ class Run:
     def status(self, value):
         self.modified = datetime.now(tz=pytz.UTC)
         self._status = value
+
+    def get_point_by_key(self, key):
+        for point in self.points:
+            if key == point.key:
+                return point
+        return None
 
     def to_dict(self):
         return {

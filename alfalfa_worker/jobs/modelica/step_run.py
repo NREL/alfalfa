@@ -6,6 +6,7 @@ import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
 from alfalfa_worker.lib.job import JobStatus, message
+from alfalfa_worker.lib.run import RunStatus
 from alfalfa_worker.lib.testcase import TestCase
 
 
@@ -217,6 +218,9 @@ class StepRun(StepRunBase):
         except ConnectionError as e:
             print("Unable to write to influx: %s" % e)
 
+    def setup_points(self):
+        pass
+
     @message
     def advance(self):
         self.logger.info("advance called")
@@ -225,6 +229,7 @@ class StepRun(StepRunBase):
     @message
     def stop(self):
         self._set_status(JobStatus.STOPPING)
+        self.set_run_status(self.run, RunStatus.STOPPING)
         # Clear all current values from the database when the simulation is no longer running
         self.mongo_db_recs.update_one({"_id": self.run.id},
                                       {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""}},
@@ -242,3 +247,5 @@ class StepRun(StepRunBase):
         self.mongo_db_sims.insert_one(
             {"_id": str(uuid4()), "name": name, "siteRef": self.run.id, "simStatus": "Complete", "timeCompleted": time,
              "s3Key": f'run/{self.run.id}.tar.gz', "results": str(kpis)})
+        self.checkin_run(self.run)
+        self.set_run_status(self.run, RunStatus.COMPLETE)

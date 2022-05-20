@@ -14,7 +14,6 @@ class CreateRun(Job):
 
     def __init__(self, upload_id, model_name):
         self.run = self.create_run(upload_id, model_name)
-        self.set_run_status(self.run, RunStatus.STARTING)
         # Define FMU specific attributes
         self.upload_fmu = self.run.join(model_name)
         self.fmu_path = self.run.join('model.fmu')
@@ -25,7 +24,7 @@ class CreateRun(Job):
         self.site_ref = None
 
     def exec(self):
-        self.set_run_status(self.run, RunStatus.RUNNING)
+        self.set_run_status(self.run, RunStatus.PREPROCESSING)
         """
         Workflow for fmu.  External call to python2 must be made since currently we are using an
         old version of the Modelica Buildings Library and JModelica.
@@ -42,6 +41,7 @@ class CreateRun(Job):
 
         self.logger.info("checking in run")
         self.checkin_run(self.run)
+        self.set_run_status(self.run, RunStatus.READY)
 
         # Should the default behavior be to stop the job after running the `exec` function?
         # or to start spinning the message handler
