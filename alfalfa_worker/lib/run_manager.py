@@ -1,4 +1,5 @@
 import os
+import shutil
 import tarfile
 import zipfile
 from typing import List
@@ -12,7 +13,7 @@ from alfalfa_worker.lib.run import Run, RunStatus
 
 
 class RunManager(LoggerMixinBase):
-    def __init__(self):
+    def __init__(self, run_dir: str):
         super().__init__("RunManager")
         # Setup S3
         self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
@@ -26,17 +27,78 @@ class RunManager(LoggerMixinBase):
         self.mongo_db_sims = self.mongo_db.sims
         self.mongo_db_points = self.mongo_db.points
 
-    def create_run_from_model(self, upload_id: str, model_name: str, dir_path: str) -> Run:
-        file_path = os.path.join(dir_path, model_name)
+        self.run_dir = run_dir
+        self.tmp_dir = os.path.join(run_dir, 'tmp')
+        if not os.path.exists(self.tmp_dir):
+            os.mkdir(self.tmp_dir)
+
+    def create_run_from_model(self, upload_id: str, model_name: str) -> Run:
+        file_path = os.path.join(self.tmp_dir, model_name)
+        run_path = os.path.join(self.run_dir, upload_id)
+        if os.path.exists(run_path):
+            os.removedirs(run_path)
+        os.mkdir(run_path)
         key = "uploads/%s/%s" % (upload_id, model_name)
         self.s3_bucket.download_file(key, file_path)
         ext = os.path.splitext(model_name)[1]
         if ext == '.zip':
             zip_file = zipfile.ZipFile(file_path)
-            zip_file.extractall(dir_path)
+            zip_file.extractall(run_path)
             os.remove(file_path)
-        run = Run(dir_path, key, upload_id)
+        else:
+            shutil.copy(file_path, run_path)
+        run = Run(run_path, key, upload_id)
         self.register_run(run)
+        return run
+
+    def create_empty_run(self) -> Run:
+        run = Run()
+        run_path = os.path.join(self.run_dir, run.id)
+        os.mkdir(run_path)
+
+    def checkin_run(self, run: Run):
+        run.status = RunStatus.COMPLETE
+
+        def reset(tarinfo):
+            tarinfo.uid = tarinfo.gid = 0
+            tarinfo.uname = tarinfo.gname = "root"
+
+            return tarinfo
+
+        tarname = "%s.tar.gz" % run.id
+        tar_path = os.path.join(self.tmp_dir, tarname)
+        tar = tarfile.open(tar_path, "w:gz")
+        tar.add(run.dir, filter=reset, arcname=run.id)
+        tar.close()
+
+        upload_location = "run/%s" % tarname
+        try:
+            self.logger.info(f"uploading {tarname} to {upload_location}")
+            self.s3_bucket.upload_file(tar_path, upload_location)
+            self.update_db(run)
+            os.remove(tar_path)
+            return True, upload_location
+        except boto3.exceptions.S3UploadFailedError as e:
+            return False, e
+        except FileNotFoundError as e:
+            return False, e
+
+    def checkout_run(self, run_id: str) -> Run:
+        tar_file_path = os.path.join(self.tmp_dir, f"{run_id}.tar.gz")
+        run_path = os.path.join(self.run_dir, run_id)
+        key = f'run/{run_id}.tar.gz'
+        self.logger.info(f"downloading {tar_file_path} from {key}")
+        self.s3_bucket.download_file(key, tar_file_path)
+
+        tar = tarfile.open(tar_file_path)
+        tar.extractall(run_path)
+        tar.close()
+        os.remove(tar_file_path)
+
+        run = self.get_run(run_id)
+        run.dir = os.path.join(run_path, run_id)
+        run.status = RunStatus.STARTING
+        self.update_db(run)
         return run
 
     def register_run(self, run: Run):
@@ -54,48 +116,6 @@ class RunManager(LoggerMixinBase):
             else:
                 point_dict = self.mongo_db_points.find_one({'_id': point.id})
                 point._val = point_dict['val']
-
-    def checkin_run(self, run: Run):
-        run.status = RunStatus.COMPLETE
-
-        def reset(tarinfo):
-            tarinfo.uid = tarinfo.gid = 0
-            tarinfo.uname = tarinfo.gname = "root"
-
-            return tarinfo
-
-        tarname = "%s.tar.gz" % run.id
-        tar = tarfile.open(tarname, "w:gz")
-        tar.add(run.dir, filter=reset, arcname=run.id)
-        tar.close()
-
-        upload_location = "run/%s" % tarname
-        try:
-            self.logger.info(f"uploading {tarname} to {upload_location}")
-            self.s3_bucket.upload_file(tarname, upload_location)
-            self.update_db(run)
-            return True, upload_location
-        except boto3.exceptions.S3UploadFailedError as e:
-            return False, e
-        except FileNotFoundError as e:
-            return False, e
-
-    def checkout_run(self, run_id: str, dir_path: str) -> Run:
-        tar_file_path = os.path.join(dir_path, "../in.tar.gz")
-        key = f'run/{run_id}.tar.gz'
-        self.logger.info(f"downloading {tar_file_path} from {key}")
-        self.s3_bucket.download_file(key, tar_file_path)
-
-        tar = tarfile.open(tar_file_path)
-        tar.extractall(dir_path)
-        tar.close()
-        os.remove(tar_file_path)
-
-        run = self.get_run(run_id)
-        run.dir = os.path.join(dir_path, run_id)
-        run.status = RunStatus.STARTING
-        self.update_db(run)
-        return run
 
     def get_run(self, run_id: str) -> Run:
         """Get a run by id from the database"""

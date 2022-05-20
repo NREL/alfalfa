@@ -13,10 +13,10 @@ from alfalfa_worker.lib.utils import rel_symlink
 class CreateRun(Job):
 
     def __init__(self, upload_id, model_name):
-        self.run = self.create_run(upload_id, model_name)
+        self.create_run_from_model(upload_id, model_name)
 
     def exec(self):
-        self.set_run_status(self.run, RunStatus.PREPROCESSING)
+        self.set_run_status(RunStatus.PREPROCESSING)
         osws = self.run.glob("**/*.osw")
         if osws:
             # there is only support for one osw at this time
@@ -82,8 +82,8 @@ class CreateRun(Job):
             rel_symlink(epw_src_path, epw_dst_path)
 
         self.logger.info("checking in run")
-        self.checkin_run(self.run)
-        self.set_run_status(self.run, RunStatus.READY)
+        self.checkin_run()
+        self.set_run_status(RunStatus.READY)
 
         # Should the default behavior be to stop the job after running the `exec` function?
         # or to start spinning the message handler

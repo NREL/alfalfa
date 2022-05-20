@@ -2,15 +2,15 @@ import datetime
 import os
 
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
-from alfalfa_worker.lib.job import BaseJobException, Job
+from alfalfa_worker.lib.job import Job, JobException
 from alfalfa_worker.lib.run import RunStatus
 
 
 class StepRunBase(AlfalfaConnectionsBase, Job):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
         super().__init__()
-        self.run = self.checkout_run(run_id)
-        self.set_run_status(self.run, RunStatus.STARTING)
+        self.checkout_run(run_id)
+        self.set_run_status(RunStatus.STARTING)
         self.step_sim_type, self.step_sim_value, self.start_datetime, self.end_datetime = self.process_inputs(realtime, timescale, external_clock, start_datetime, end_datetime)
         self.logger.info(f"sim_type is {self.step_sim_type}")
         if self.step_sim_type == 'timescale':
@@ -27,7 +27,7 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
         self.end_datetime = datetime.datetime.strptime(end_datetime, '%Y-%m-%d %H:%M:%S')
 
         self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
-        self.set_run_status(self.run, RunStatus.STARTED)
+        self.set_run_status(RunStatus.STARTED)
 
     def process_inputs(self, realtime, timescale, external_clock, start_datetime, end_datetime):
         # TODO change server side message: startDatetime to start_datetime
@@ -53,7 +53,7 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
             # TODO: If exiting, what logging type to use?
             self.logger.info(
                 "At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
-            raise BaseJobException("At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
+            raise JobException("At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
 
         if external_clock:
             step_sim_type = "external_clock"
@@ -67,7 +67,7 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
                 step_sim_value = int(timescale)
             else:
                 self.logger.info(f"timescale: {timescale} must be an integer value")
-                raise BaseJobException(f"timescale: {timescale} must be an integer value")
+                raise JobException(f"timescale: {timescale} must be an integer value")
 
         return (step_sim_type, step_sim_value, start_datetime, end_datetime)
 

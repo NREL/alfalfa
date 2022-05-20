@@ -25,8 +25,8 @@ class StepRun(StepRunBase):
 
         self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
 
-        fmupath = self.run.join('model.fmu')
-        tagpath = self.run.join('tags.json')
+        fmupath = self.join('model.fmu')
+        tagpath = self.join('tags.json')
 
         # TODO make configurable
         # step_size in seconds
@@ -40,7 +40,7 @@ class StepRun(StepRunBase):
             'fmupath': fmupath,
             'start_time': self.sim_start_time,
             'step': self.step_size,
-            'kpipath': self.run.join('resources', 'kpis.json')
+            'kpipath': self.join('resources', 'kpis.json')
         }
 
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)
@@ -229,7 +229,7 @@ class StepRun(StepRunBase):
     @message
     def stop(self):
         self._set_status(JobStatus.STOPPING)
-        self.set_run_status(self.run, RunStatus.STOPPING)
+        self.set_run_status(RunStatus.STOPPING)
         # Clear all current values from the database when the simulation is no longer running
         self.mongo_db_recs.update_one({"_id": self.run.id},
                                       {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""}},
@@ -247,5 +247,5 @@ class StepRun(StepRunBase):
         self.mongo_db_sims.insert_one(
             {"_id": str(uuid4()), "name": name, "siteRef": self.run.id, "simStatus": "Complete", "timeCompleted": time,
              "s3Key": f'run/{self.run.id}.tar.gz', "results": str(kpis)})
-        self.checkin_run(self.run)
-        self.set_run_status(self.run, RunStatus.COMPLETE)
+        self.checkin_run()
+        self.set_run_status(RunStatus.COMPLETE)

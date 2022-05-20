@@ -34,10 +34,10 @@ class RunStatus(AutoName):
 class Run:
     # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
 
-    def __init__(self, dir=None, model=None, _id=str(uuid4()), job_history=[], status=RunStatus.CREATED, created=datetime.now(tz=pytz.UTC), modified=datetime.now(tz=pytz.UTC)):
+    def __init__(self, dir=None, model=None, _id=None, job_history=[], status=RunStatus.CREATED, created=datetime.now(tz=pytz.UTC), modified=datetime.now(tz=pytz.UTC)):
         self.dir = dir
         self.model = model
-        self.id = _id
+        self.id = _id if _id is not None else str(uuid4())
         self._job_history = job_history
         self._status = status if status.__class__ == RunStatus else RunStatus(status)
         self.created = created if created.__class__ == datetime else parser.parse(created)
@@ -83,3 +83,7 @@ class Run:
             'created': str(self.created),
             'modified': str(self.modified)
         }
+
+
+class RunException(Exception):
+    pass

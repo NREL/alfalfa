@@ -4,9 +4,11 @@ import os
 import threading
 from enum import Enum
 from json.decoder import JSONDecodeError
+from typing import List
 
 from redis import Redis
 
+from alfalfa_worker.lib.point import Point
 # from alfalfa_jobs.run import Run
 from alfalfa_worker.lib.run import Run, RunStatus
 
@@ -16,6 +18,17 @@ def message(func):
     Overriding a function that has a decorator in the base class (like 'stop') will need to be decorated again."""
     setattr(func, 'message_handler', True)
     return func
+
+
+def with_run(func):
+    """Decorator for methods which require a run.
+    Will throw an error if called before a run is associated with the job."""
+
+    def wrap(self, *args, **kwargs):
+        if self.run is None:
+            raise JobExceptionInvalidRun("Job has no associated run")
+        return func(self, *args, **kwargs)
+    return wrap
 
 
 class JobMetaclass(type):
@@ -43,7 +56,7 @@ class JobMetaclass(type):
             self._status = JobStatus.INITIALIZING
 
             # Variables
-            self.runs = []
+            self.run = None
 
             # Redis
             self.redis = Redis(host=os.environ['REDIS_HOST'])
@@ -110,7 +123,7 @@ class Job(metaclass=JobMetaclass):
     def join(self, *args):
         """Create a path relative to the job working directory
         like calling os.path.join(job.working_dir, *args)"""
-        return os.path.join(self.working_dir, *args)
+        return self.run.join(*args)
 
     def status(self) -> "JobStatus":
         """Get job status
@@ -126,8 +139,7 @@ class Job(metaclass=JobMetaclass):
 
     def _message_loop(self):
         self.logger.info("message loop starting")
-        for run in self.runs:
-            self.redis.hset(run.id, 'control', 'idle')
+        self.redis.hset(self.run.id, 'control', 'idle')
         while self._status.value < JobStatus.STOPPING.value:
             self._check_messages()
         self.logger.info("message loop over")
@@ -153,48 +165,49 @@ class Job(metaclass=JobMetaclass):
                         response['status'] = 'error'
                         response['response'] = str(e)
                     self.logger.info(f"message_id: {message_id}, response: {response}")
-                    for run in self.runs:
-                        self.redis.hset(run.id, message_id, json.dumps(response))
-                        self.redis.hset(run.id, 'control', 'idle')
+                    self.redis.hset(self.run.id, message_id, json.dumps(response))
+                    self.redis.hset(self.run.id, 'control', 'idle')
         except JSONDecodeError:
             self.logger.info("received malformed message")
 
-    def checkout_run(self, run_id, path='.') -> Run:
-        run = self.run_manager.checkout_run(run_id, self.join(path))
+    def checkout_run(self, run_id: str) -> Run:
+        run = self.run_manager.checkout_run(run_id)
         run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
         self.regster_run(run)
         return run
 
-    def checkin_runs(self):
-        for run in self.runs:
-            self.checkin_run(run)
+    @with_run
+    def checkin_run(self):
+        return self.run_manager.checkin_run(self.run)
 
-    def checkin_run(self, run) -> Run:
-        return self.run_manager.checkin_run(run)
-
-    def create_run(self, upload_id: str, model_name: str, path='.') -> Run:
-        run = self.run_manager.create_run_from_model(upload_id, model_name, self.join(path))
+    def create_run_from_model(self, upload_id: str, model_name: str, path='.') -> None:
+        run = self.run_manager.create_run_from_model(upload_id, model_name)
         self.regster_run(run)
         run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
-        return run
 
-    @classmethod
-    def job_path(cls):
-        return f'{cls.__module__}.{cls.__name__}'
+    @with_run
+    def add_points(self, points: List[Point]):
+        self.run_manager.add_points_to_run(self.run, points)
 
-    def set_run_status(self, run: Run, status: RunStatus):
-        run.status = status
-        self.run_manager.update_db(run)
+    @with_run
+    def set_run_status(self, status: RunStatus):
+        self.run.status = status
+        self.run_manager.update_db(self.run)
 
     def regster_run(self, run: Run):
-        self.runs.append(run)
+        self.run = run
+        self.logger.info(run.dir)
         self.redis_pubsub.subscribe(run.id)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh = logging.FileHandler(run.join('jobs.log'))
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
+
+    @classmethod
+    def job_path(cls):
+        return f'{cls.__module__}.{cls.__name__}'
 
 
 class JobStatus(Enum):
@@ -209,20 +222,20 @@ class JobStatus(Enum):
     ERROR = 63
 
 
-class BaseJobException(Exception):
+class JobException(Exception):
     pass
 
 
-class JobExceptionMessageHandler(BaseJobException):
+class JobExceptionMessageHandler(JobException):
     """Thrown when there is an execption that occurs in an message handler.
     This is caught and reported back to the caller via redis."""
 
 
-class JobExceptionInvalidModel(BaseJobException):
+class JobExceptionInvalidModel(JobException):
     """Thrown when working on a model.
     ex: missing osw"""
 
 
-class JobExceptionInvalidRun(BaseJobException):
+class JobExceptionInvalidRun(JobException):
     """Thrown when working on run.
     ex. run does not have necessary files"""

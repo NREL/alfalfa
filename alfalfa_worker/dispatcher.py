@@ -61,10 +61,10 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         # create classes for the workers that this dispatcher supports
         self.worker_openstudio_class = WorkerOpenStudio()
         self.worker_fmu_class = WorkerFmu()
-        self.run_manager = RunManager()
-        self.workdir = '/jobs'
+        self.workdir = '/runs'
         if not os.path.exists(self.workdir):
             os.mkdir(self.workdir)
+        self.run_manager = RunManager(self.workdir)
 
     def determine_worker_class(self, test_str):
         """This is the only place where we should decide

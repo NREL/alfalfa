@@ -6,7 +6,7 @@ import mlep
 import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
-from alfalfa_worker.lib.job import BaseJobException, JobStatus, message
+from alfalfa_worker.lib.job import JobException, JobStatus, message
 from alfalfa_worker.lib.point import Point, PointType
 from alfalfa_worker.lib.run import RunStatus
 from alfalfa_worker.worker_openstudio.lib.parse_variables import ParseVariables
@@ -21,13 +21,13 @@ class StepRun(StepRunBase):
         # If idf_file is named "in.idf" we need to change the name because in.idf is not accepted by mlep
         # (likely mlep is using that name internally)
         # simulation/sim.idf is the assumed convention, but sim.idf may be a symlink
-        original_idf_file = self.run.join('simulation', 'sim.idf')
+        original_idf_file = self.join('simulation', 'sim.idf')
         # Follow any symlink
         dst_idf_file = os.path.realpath(original_idf_file)
         self.idf_file = os.path.join(os.path.dirname(dst_idf_file), 'sim.idf')
         os.rename(dst_idf_file, self.idf_file)
 
-        self.weather_file = os.path.realpath(self.run.join('simulation', 'sim.epw'))
+        self.weather_file = os.path.realpath(self.join('simulation', 'sim.epw'))
         self.str_format = "%Y-%m-%d %H:%M:%S"
 
         # EnergyPlus MLEP initializations
@@ -35,15 +35,15 @@ class StepRun(StepRunBase):
         self.ep.bcvtbDir = '/home/alfalfa/bcvtb/'
         self.ep.env = {'BCVTB_HOME': '/home/alfalfa/bcvtb'}
         self.ep.accept_timeout = 60000
-        self.ep.mapping = os.path.realpath(self.run.join('simulation', 'haystack_report_mapping.json'))
+        self.ep.mapping = os.path.realpath(self.join('simulation', 'haystack_report_mapping.json'))
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
         self.ep.kStep = 1  # simulation step indexed at 1
         self.ep.deltaT = 60  # the simulation step size represented in seconds - on 'step', the model will advance 1min
 
         # Parse variables after Haystack measure
-        self.variables_file = os.path.realpath(self.run.join('simulation', 'variables.cfg'))
-        self.haystack_json_file = os.path.realpath(self.run.join('simulation', 'haystack_report_haystack.json'))
+        self.variables_file = os.path.realpath(self.join('simulation', 'variables.cfg'))
+        self.haystack_json_file = os.path.realpath(self.join('simulation', 'haystack_report_haystack.json'))
         self.variables = ParseVariables(self.variables_file, self.ep.mapping, self.haystack_json_file)
 
         # Define MLEP inputs
@@ -264,7 +264,7 @@ class StepRun(StepRunBase):
                         f.write(line)
         except BaseException as e:
             self.logger.error('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
-            raise BaseJobException('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
+            raise JobException('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
 
     def osm_idf_files_prep(self):
         """
@@ -387,7 +387,7 @@ class StepRun(StepRunBase):
                 point = Point(input_id, dis, PointType.INPUT)
                 points.append(point)
 
-        self.run_manager.add_points_to_run(self.run, points)
+        self.add_points(points)
 
     @message
     def advance(self):
@@ -398,7 +398,7 @@ class StepRun(StepRunBase):
     @message
     def stop(self):
         self._set_status(JobStatus.STOPPING)
-        self.set_run_status(self.run, RunStatus.STOPPING)
+        self.set_run_status(RunStatus.STOPPING)
 
         # DELETE
         name = self.site.get("rec", {}).get("dis", "Unknown") if self.site else "Unknown"
@@ -417,5 +417,5 @@ class StepRun(StepRunBase):
 
         self.ep.stop(True)
         self.ep.is_running = 0
-        self.checkin_run(self.run)
-        self.set_run_status(self.run, RunStatus.COMPLETE)
+        self.checkin_run()
+        self.set_run_status(RunStatus.COMPLETE)
