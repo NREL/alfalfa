@@ -50,6 +50,7 @@ services:
       - elasticsearch-master
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/overlay2:/var/lib/docker/overlay2
       - /var/lib/docker:/var/lib/docker
       - ./elk/filebeat.yml:/usr/share/filebeat/filebeat.yml
     command: ["--strict.perms=false"]
