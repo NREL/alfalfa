@@ -143,3 +143,7 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
     def setup_points(self):
         """Placeholder for setting up points for I/O"""
         raise NotImplementedError
+
+    def cleanup(self) -> None:
+        super().cleanup()
+        self.set_run_status(RunStatus.COMPLETE)

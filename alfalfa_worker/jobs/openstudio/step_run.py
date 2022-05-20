@@ -6,9 +6,8 @@ import mlep
 import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
-from alfalfa_worker.lib.job import JobException, JobStatus, message
+from alfalfa_worker.lib.job import JobException, message
 from alfalfa_worker.lib.point import Point, PointType
-from alfalfa_worker.lib.run import RunStatus
 from alfalfa_worker.worker_openstudio.lib.parse_variables import ParseVariables
 
 
@@ -92,7 +91,7 @@ class StepRun(StepRunBase):
         self.advance_to_start_time()
 
         next_step_time = datetime.now() + self.step_delta_time()
-        while True:
+        while self.is_running:
             current_time = datetime.now()
 
             if current_time >= next_step_time:
@@ -103,13 +102,13 @@ class StepRun(StepRunBase):
             if advance:
                 self.step()
                 self.update_db()
-                self._redis_idle()
                 next_step_time = next_step_time + self.step_delta_time()
                 self.advance = False
 
     def run_external_clock(self):
         self.logger.info("run external clock called")
         self.advance_to_start_time()
+        self.start_message_loop()
 
     def advance_to_start_time(self):
         """ We get near the requested start time by manipulating the idf file,
@@ -397,8 +396,7 @@ class StepRun(StepRunBase):
 
     @message
     def stop(self):
-        self._set_status(JobStatus.STOPPING)
-        self.set_run_status(RunStatus.STOPPING)
+        super().stop()
 
         # DELETE
         name = self.site.get("rec", {}).get("dis", "Unknown") if self.site else "Unknown"
@@ -417,5 +415,3 @@ class StepRun(StepRunBase):
 
         self.ep.stop(True)
         self.ep.is_running = 0
-        self.checkin_run()
-        self.set_run_status(RunStatus.COMPLETE)

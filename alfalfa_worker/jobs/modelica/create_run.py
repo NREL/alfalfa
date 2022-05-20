@@ -39,14 +39,9 @@ class CreateRun(Job):
 
         os.rename(self.upload_fmu, self.fmu_path)
 
-        self.logger.info("checking in run")
-        self.checkin_run()
+    def cleanup(self) -> None:
+        super().cleanup()
         self.set_run_status(RunStatus.READY)
-
-        # Should the default behavior be to stop the job after running the `exec` function?
-        # or to start spinning the message handler
-        self.logger.info("trying to stop")
-        self.stop()
 
     def get_site_ref(self, haystack_json):
         """

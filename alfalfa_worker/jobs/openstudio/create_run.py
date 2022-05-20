@@ -81,14 +81,9 @@ class CreateRun(Job):
             epw_dst_path = os.path.join(simulation_dir, 'sim.epw')
             rel_symlink(epw_src_path, epw_dst_path)
 
-        self.logger.info("checking in run")
-        self.checkin_run()
+    def cleanup(self) -> None:
+        super().cleanup()
         self.set_run_status(RunStatus.READY)
-
-        # Should the default behavior be to stop the job after running the `exec` function?
-        # or to start spinning the message handler
-        self.logger.info("trying to stop")
-        self.stop()
 
     def insert_os_tags(self, points_json_path, mapping_json_path):
         """

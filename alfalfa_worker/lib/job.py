@@ -1,10 +1,11 @@
 import json
 import logging
 import os
-import threading
+import time
 from enum import Enum
 from json.decoder import JSONDecodeError
 from typing import List
+from xmlrpc.client import Boolean
 
 from redis import Redis
 
@@ -72,6 +73,7 @@ class JobMetaclass(type):
                     self._message_handlers[attr_name] = attr
             if __old_init__:
                 __old_init__(self, *args, **kwargs)
+            self.set_job_status(JobStatus.INITIALIZED)
         cls_dicts['__init__'] = __new_init__
         klazz = super().__new__(cls, name, bases, cls_dicts)
 
@@ -86,39 +88,39 @@ class JobMetaclass(type):
 class Job(metaclass=JobMetaclass):
     """Job Base Class"""
 
-    def start(self):
-        if os.environ.get('THREADED_JOBS', '0') == '1':
-            self.thread = threading.Thread(target=self._start)
-            self.thread.start()
-        else:
-            self._start()
-
-    def _start(self) -> None:
+    def start(self) -> None:
         """Job workflow"""
         try:
-            self._set_status(JobStatus.STARTING)
-            self._set_status(JobStatus.RUNNING)
+            self.set_job_status(JobStatus.RUNNING)
             self.exec()
-            self._message_loop()
-            self._set_status(JobStatus.STOPPED)
+            if self.is_running:
+                self.set_job_status(JobStatus.STOPPING)
+                self.stop()
+            self.set_job_status(JobStatus.CLEANING_UP)
+            self.cleanup()
+            self.set_job_status(JobStatus.STOPPED)
+
         except Exception as e:
-            print(e)
-            self._set_status(JobStatus.ERROR)
-            self.logger.info("Error in Job")
+            self.logger.error(e)
+            self.set_job_status(JobStatus.ERROR)
             raise
 
     def exec(self) -> None:
         """Runs job
-        called by start()"""
+        called by start()
+        If not overridden it will by default start the message loop."""
+        self.start_message_loop()
 
     @message
     def stop(self) -> None:
         """Stop job"""
-        self._set_status(JobStatus.STOPPING)
 
     def cleanup(self) -> None:
         """Clean up job
-        called after stopping"""
+        called after stopping.
+        If not overidden it will by default checkin the run"""
+        if self.run is not None:
+            self.checkin_run()
 
     def join(self, *args):
         """Create a path relative to the job working directory
@@ -130,34 +132,47 @@ class Job(metaclass=JobMetaclass):
         gives general status of job workflow"""
         return self._status
 
-    def _set_status(self, status: "JobStatus"):
+    @property
+    def is_running(self) -> Boolean:
+        return self._status.value < JobStatus.STOPPING.value
+
+    def set_job_status(self, status: "JobStatus"):
         if self._status is status:
             return
         self.logger.info(f"Job Status: {status.name}")
         # A callback could be added here to tell the client what the status is
         self._status = status
 
-    def _message_loop(self):
-        self.logger.info("message loop starting")
-        self.redis.hset(self.run.id, 'control', 'idle')
-        while self._status.value < JobStatus.STOPPING.value:
+    def start_message_loop(self, timeout=None):
+        # Should the timeout be total time since loop started? or time since last message?
+        start_time = time.time()
+        while self.is_running and self.run is not None:
+            if timeout is not None and time.time() - start_time > timeout:
+                break
             self._check_messages()
         self.logger.info("message loop over")
 
+    @with_run
     def _check_messages(self):
-        self._set_status(JobStatus.WAITING)
+        self.set_job_status(JobStatus.WAITING)
         message = self.redis_pubsub.get_message()
+        self.redis.hset(self.run.id, 'control', 'idle')
+        # self.logger.info(message)
         try:
             if message and message['data'].__class__ == bytes:
                 self.logger.info(f"recieved message: {message}")
                 data = json.loads(message['data'].decode('utf-8'))
                 message_id = data.get('message_id')
-                if data.get('method', None) in self._message_handlers.keys():
-                    self._set_status(JobStatus.RUNNING)
+                method = data.get('method', None)
+                if method == "stop":
+                    self.set_job_status(JobStatus.STOPPING)
+                if method in self._message_handlers.keys():
+                    if self.is_running:
+                        self.set_job_status(JobStatus.RUNNING)
                     response = {}
                     try:
                         response['response'] = self._message_handlers[data['method']](**data.get('params', {}))
-                        response['status'] = "ok"
+                        response['status'] = 'ok'
                     except JobExceptionMessageHandler as e:
                         # JobExceptionMessageHandler errors are thrown when the operation fails but the job isn't tainted.
                         # They are caught here so they don't cause the job to exit.
@@ -166,7 +181,6 @@ class Job(metaclass=JobMetaclass):
                         response['response'] = str(e)
                     self.logger.info(f"message_id: {message_id}, response: {response}")
                     self.redis.hset(self.run.id, message_id, json.dumps(response))
-                    self.redis.hset(self.run.id, 'control', 'idle')
         except JSONDecodeError:
             self.logger.info("received malformed message")
 
@@ -200,6 +214,7 @@ class Job(metaclass=JobMetaclass):
         self.run = run
         self.logger.info(run.dir)
         self.redis_pubsub.subscribe(run.id)
+        self.redis.hset(self.run.id, 'control', 'idle')
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh = logging.FileHandler(run.join('jobs.log'))
         fh.setFormatter(formatter)
@@ -212,13 +227,13 @@ class Job(metaclass=JobMetaclass):
 
 class JobStatus(Enum):
     """Enumeration of job states"""
-    INITIALIZING = 0,
-    STARTING = 2,
-    RUNNING = 3,
-    WAITING = 4,
-    STOPPING = 8,
-    CLEANING_UP = 9,
-    STOPPED = 10,
+    INITIALIZING = 0
+    INITIALIZED = 1
+    RUNNING = 2
+    WAITING = 4
+    STOPPING = 8
+    CLEANING_UP = 9
+    STOPPED = 10
     ERROR = 63
 
 

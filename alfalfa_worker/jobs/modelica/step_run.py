@@ -5,8 +5,7 @@ from uuid import uuid4
 import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
-from alfalfa_worker.lib.job import JobStatus, message
-from alfalfa_worker.lib.run import RunStatus
+from alfalfa_worker.lib.job import message
 from alfalfa_worker.lib.testcase import TestCase
 
 
@@ -90,7 +89,7 @@ class StepRun(StepRunBase):
         return (outputs_and_ID, id_and_dis, default_input)
 
     def run_external_clock(self):
-        pass
+        self.start_message_loop()
 
     def run_timescale(self):
         # first step takes extra time and needs to happen outside timescale loop
@@ -101,7 +100,7 @@ class StepRun(StepRunBase):
         current_time = datetime.now()
         next_step_time = current_time + self.realworld_timedelta
         print("in run with current time & next_step_time: ", current_time, next_step_time)
-        while True:
+        while self.is_running:
             current_time = datetime.now()
 
             if current_time >= next_step_time:
@@ -109,7 +108,7 @@ class StepRun(StepRunBase):
                 # sim is not keeping up with target timescale.
                 # TODO rethink arbitrary 60s behind
                 if (current_time > next_step_time + timedelta(seconds=60)):
-                    self.stop = True
+                    self.stop()
                     print("stopping... simulation got more than 60s behind target timescale")
 
             # update stop flag from db
@@ -228,8 +227,9 @@ class StepRun(StepRunBase):
 
     @message
     def stop(self):
-        self._set_status(JobStatus.STOPPING)
-        self.set_run_status(RunStatus.STOPPING)
+        super().stop()
+
+        # DELETE
         # Clear all current values from the database when the simulation is no longer running
         self.mongo_db_recs.update_one({"_id": self.run.id},
                                       {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""}},
@@ -247,5 +247,4 @@ class StepRun(StepRunBase):
         self.mongo_db_sims.insert_one(
             {"_id": str(uuid4()), "name": name, "siteRef": self.run.id, "simStatus": "Complete", "timeCompleted": time,
              "s3Key": f'run/{self.run.id}.tar.gz', "results": str(kpis)})
-        self.checkin_run()
-        self.set_run_status(RunStatus.COMPLETE)
+        # END DELETE
