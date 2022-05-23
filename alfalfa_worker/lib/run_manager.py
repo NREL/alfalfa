@@ -10,6 +10,7 @@ from pymongo import MongoClient
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
 from alfalfa_worker.lib.point import Point, PointType
 from alfalfa_worker.lib.run import Run, RunStatus
+from alfalfa_worker.lib.sim_type import SimType
 
 
 class RunManager(LoggerMixinBase):
@@ -32,7 +33,7 @@ class RunManager(LoggerMixinBase):
         if not os.path.exists(self.tmp_dir):
             os.mkdir(self.tmp_dir)
 
-    def create_run_from_model(self, upload_id: str, model_name: str) -> Run:
+    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> Run:
         file_path = os.path.join(self.tmp_dir, model_name)
         run_path = os.path.join(self.run_dir, upload_id)
         if os.path.exists(run_path):
@@ -47,7 +48,7 @@ class RunManager(LoggerMixinBase):
             os.remove(file_path)
         else:
             shutil.copy(file_path, run_path)
-        run = Run(run_path, key, upload_id)
+        run = Run(dir=run_path, model=key, _id=upload_id, sim_type=sim_type)
         self.register_run(run)
         return run
 
@@ -120,7 +121,7 @@ class RunManager(LoggerMixinBase):
     def get_run(self, run_id: str) -> Run:
         """Get a run by id from the database"""
         run_dict = self.mongo_db_runs.find_one({'_id': run_id})
-        # self.logger.info(run_dict)
+        self.logger.info(run_dict)
         run = Run(**run_dict)
         run.points = self.get_points(run)
         return run

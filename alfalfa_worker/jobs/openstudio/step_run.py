@@ -5,10 +5,10 @@ from uuid import uuid4
 import mlep
 import pytz
 
+from alfalfa_worker.jobs.openstudio.lib.parse_variables import ParseVariables
 from alfalfa_worker.jobs.step_run_base import StepRunBase
 from alfalfa_worker.lib.job import JobException, message
 from alfalfa_worker.lib.point import Point, PointType
-from alfalfa_worker.worker_openstudio.lib.parse_variables import ParseVariables
 
 
 class StepRun(StepRunBase):

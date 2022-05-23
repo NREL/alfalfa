@@ -4,8 +4,10 @@ import json
 import os
 from subprocess import call
 
+from alfalfa_worker.jobs.openstudio import lib_dir
 from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
 from alfalfa_worker.lib.run import RunStatus
+from alfalfa_worker.lib.sim_type import SimType
 from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
 from alfalfa_worker.lib.utils import rel_symlink
 
@@ -13,7 +15,7 @@ from alfalfa_worker.lib.utils import rel_symlink
 class CreateRun(Job):
 
     def __init__(self, upload_id, model_name):
-        self.create_run_from_model(upload_id, model_name)
+        self.create_run_from_model(upload_id, model_name, SimType.OPENSTUDIO)
 
     def exec(self):
         self.set_run_status(RunStatus.PREPROCESSING)
@@ -26,10 +28,10 @@ class CreateRun(Job):
             raise JobExceptionInvalidModel("No .osw file found")
 
         # locate the "default" workflow
-        default_workflow_path: str = '/alfalfa/alfalfa_worker/worker_openstudio/lib/workflow/workflow.osw'
+        default_workflow_path: str = os.path.join(lib_dir, 'workflow/workflow.osw')
 
         # Merge the default workflow measures into the user submitted workflow
-        call(['openstudio', '/alfalfa/alfalfa_worker/worker_openstudio/lib/merge_osws.rb', default_workflow_path, submitted_osw_path])
+        call(['openstudio', os.path.join(lib_dir, 'merge_osws.rb'), default_workflow_path, submitted_osw_path])
 
         # run workflow
         call(['openstudio', 'run', '-m', '-w', submitted_osw_path])

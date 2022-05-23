@@ -33,11 +33,16 @@ const sqs = new AWS.SQS();
 const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 function addSiteResolver(modelName, uploadID) {
+  var job = "alfalfa_worker.jobs.openstudio.CreateRun";
+  if (modelName.endsWith(".fmu")) {
+    job = "alfalfa_worker.jobs.modelica.CreateRun";
+  }
   const params = {
-    MessageBody: `{"op": "InvokeAction",
-      "action": "addSite",
-      "model_name": "${modelName}",
-      "upload_id": "${uploadID}"
+    MessageBody: `{"job": "${job}",
+      "params": {
+        "model_name": "${modelName}",
+        "upload_id": "${uploadID}"
+      }
     }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
     MessageGroupId: "Alfalfa"
@@ -77,7 +82,7 @@ function runSimResolver(uploadFilename, uploadID, context) {
   });
 }
 
-function runSiteResolver(args) {
+function runSiteResolver(args, context) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //  startDatetime : { type: GraphQLString },
@@ -86,52 +91,32 @@ function runSiteResolver(args) {
   //  realtime : { type: GraphQLBoolean },
   //  externalClock : { type: GraphQLBoolean },
   //},
-  console.log("args: ", args);
-  return new Promise((resolve, reject) => {
-    request
-      .post("/api/invokeAction")
-      .set("Accept", "application/json")
-      .set("Content-Type", "application/json")
-      .send({
-        meta: {
-          ver: "2.0",
-          id: `r:${args.siteRef}`,
-          action: "s:runSite"
-        },
-        cols: [
-          {
-            name: "timescale"
-          },
-          {
-            name: "startDatetime"
-          },
-          {
-            name: "endDatetime"
-          },
-          {
-            name: "realtime"
-          },
-          {
-            name: "externalClock"
-          }
-        ],
-        rows: [
-          {
-            timescale: `s:${args.timescale}`,
-            startDatetime: `s:${args.startDatetime}`,
-            endDatetime: `s:${args.endDatetime}`,
-            realtime: `s:${args.realtime}`,
-            externalClock: `s:${args.externalClock}`
-          }
-        ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res.body);
+  const runs = context.db.collection("runs");
+  runs.findOne({ _id: args.siteRef }).then((doc) => {
+    var job = "alfalfa_worker.jobs.openstudio.StepRun";
+    if (doc.sim_type == "MODELICA") {
+      job = "alfalfa_worker.jobs.modelica.StepRun";
+    }
+    const params = {
+      MessageBody: `{"job": "${job}",
+        "params": {
+          "run_id": "${args.siteRef}",
+          "timescale": "${args.timescale}",
+          "start_datetime": "${args.startDatetime}",
+          "end_datetime": "${args.endDatetime}",
+          "realtime": "${args.realtime}",
+          "external_clock": "${args.externalClock}"
         }
-      });
+      }`,
+      QueueUrl: process.env.JOB_QUEUE_URL,
+      MessageGroupId: "Alfalfa"
+    };
+    sqs.sendMessage(params, (err, data) => {
+      if (err) {
+        console.log(err);
+        callback(err);
+      }
+    });
   });
 }
 

@@ -8,12 +8,13 @@ from pyfmi import load_fmu
 
 from alfalfa_worker.lib.job import Job
 from alfalfa_worker.lib.run import RunStatus
+from alfalfa_worker.lib.sim_type import SimType
 
 
 class CreateRun(Job):
 
     def __init__(self, upload_id, model_name):
-        self.create_run_from_model(upload_id, model_name)
+        self.create_run_from_model(upload_id, model_name, SimType.MODELICA)
         # Define FMU specific attributes
         self.upload_fmu = self.run.join(model_name)
         self.fmu_path = self.run.join('model.fmu')

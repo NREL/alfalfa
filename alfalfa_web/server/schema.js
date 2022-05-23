@@ -240,8 +240,8 @@ const mutationType = new GraphQLObjectType({
         realtime: { type: GraphQLBoolean },
         externalClock: { type: GraphQLBoolean }
       },
-      resolve: (_, args, request) => {
-        resolvers.runSiteResolver(args);
+      resolve: (_, args, context) => {
+        resolvers.runSiteResolver(args, context);
       }
     },
     stopSite: {

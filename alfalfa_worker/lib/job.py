@@ -12,6 +12,7 @@ from redis import Redis
 from alfalfa_worker.lib.point import Point
 # from alfalfa_jobs.run import Run
 from alfalfa_worker.lib.run import Run, RunStatus
+from alfalfa_worker.lib.sim_type import SimType
 
 
 def message(func):
@@ -195,8 +196,8 @@ class Job(metaclass=JobMetaclass):
     def checkin_run(self):
         return self.run_manager.checkin_run(self.run)
 
-    def create_run_from_model(self, upload_id: str, model_name: str, path='.') -> None:
-        run = self.run_manager.create_run_from_model(upload_id, model_name)
+    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> None:
+        run = self.run_manager.create_run_from_model(upload_id, model_name, sim_type)
         self.regster_run(run)
         run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
@@ -254,3 +255,8 @@ class JobExceptionInvalidModel(JobException):
 class JobExceptionInvalidRun(JobException):
     """Thrown when working on run.
     ex. run does not have necessary files"""
+
+
+class JobExceptionExternalProcess(JobException):
+    """Thrown when an external process throws an error.
+    ex. E+ can't run idf"""
