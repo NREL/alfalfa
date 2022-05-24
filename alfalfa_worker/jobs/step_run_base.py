@@ -74,7 +74,6 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
     def exec(self) -> None:
         self.init_sim()
         self.setup_points()
-        self.set_db_status_running()
         self.set_run_status(RunStatus.RUNNING)
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
             self.logger.info("Running timescale / realtime")
@@ -82,26 +81,6 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
         elif self.step_sim_type == 'external_clock':
             self.logger.info("Running external_clock")
             self.run_external_clock()
-
-    def check_sim_status_stop(self):
-        """
-        Check if the simulation status is either stopped or stopping
-
-        :return:
-        """
-        status = self.site.get("rec", {}).get("simStatus")
-        if status == "s:Stopped" or status == "s:Stopping":
-            self.stop = True
-
-    def set_db_status_running(self):
-        """
-        Set an idle state in Redis and update the simulation status in Mongo to Running.
-
-        :return:
-        """
-        output_time_string = 's:{}'.format(self.start_datetime.strftime("%Y-%m-%d %H:%M"))
-        self.mongo_db_recs.update_one({"_id": self.run.id},
-                                      {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
 
     def init_sim(self):
         """Placeholder for all things necessary to initialize simulation"""
@@ -143,7 +122,6 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
 
     def setup_points(self):
         """Placeholder for setting up points for I/O"""
-        raise NotImplementedError
 
     @message
     def stop(self) -> None:

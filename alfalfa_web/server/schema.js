@@ -172,6 +172,10 @@ const runType = new GraphQLObjectType({
     modified: {
       type: GraphQLString,
       description: "When the run was last modified"
+    },
+    sim_time: {
+      type: GraphQLString,
+      description: "The current simulation time"
     }
   })
 });

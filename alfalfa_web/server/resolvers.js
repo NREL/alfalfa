@@ -229,7 +229,8 @@ function runResolver(user, run_id, context) {
           sim_type: doc.sim_type,
           status: doc.status,
           created: doc.created,
-          modified: doc.modified
+          modified: doc.modified,
+          sim_time: doc.sim_time
         };
         console.log(doc.status);
         resolve(run);

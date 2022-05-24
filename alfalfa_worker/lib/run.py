@@ -28,7 +28,7 @@ class RunStatus(AutoName):
 class Run:
     # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
 
-    def __init__(self, dir=None, model=None, _id=None, job_history=[], sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None):
+    def __init__(self, dir=None, model=None, _id=None, job_history=[], sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None, sim_time=None):
         self.dir = dir
         self.model = model
         self.id = _id if _id is not None else str(uuid4())
@@ -41,6 +41,7 @@ class Run:
         if modified is None:
             modified = datetime.now(tz=pytz.UTC)
         self.modified = modified if modified.__class__ == datetime else parser.parse(modified)
+        self.sim_time = sim_time
         self.points: List[Point] = []
 
     def join(self, *args):
@@ -81,7 +82,8 @@ class Run:
             'sim_type': str(self.sim_type),
             'status': str(self._status),
             'created': str(self.created),
-            'modified': str(self.modified)
+            'modified': str(self.modified),
+            'sim_time': str(self.sim_time)
         }
 
 

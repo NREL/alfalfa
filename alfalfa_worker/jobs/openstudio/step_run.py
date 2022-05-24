@@ -60,7 +60,6 @@ class StepRun(StepRunBase):
 
     def check_stop_conditions(self):
         """Placeholder to check for all stopping conditions"""
-        self.check_sim_status_stop()
         if self.ep.status != 0:
             self.stop()
         if not self.ep.is_running:
@@ -80,6 +79,8 @@ class StepRun(StepRunBase):
         [self.ep.status, self.ep.msg] = self.ep.accept_socket()
         if self.ep.status != 0:
             self.logger.info('Could not connect to EnergyPlus: {}'.format(self.ep.msg))
+
+        self.set_run_time(self.start_datetime)
 
     def step_delta_time(self):
         """
@@ -318,9 +319,7 @@ class StepRun(StepRunBase):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
         output_time_string = "s:" + str(self.get_energyplus_datetime())
         self.logger.info(f"updating db time to: {output_time_string}")
-        self.mongo_db_recs.update_one({"_id": self.run.id}, {
-            "$set": {"rec.datetime": output_time_string, "rec.step": "n:" + str(self.ep.kStep),
-                     "rec.simStatus": "s:Running"}}, False)
+        self.set_run_time(self.get_energyplus_datetime())
 
     def write_outputs_to_influx(self):
         """

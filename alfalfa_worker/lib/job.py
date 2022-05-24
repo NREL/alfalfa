@@ -209,6 +209,11 @@ class Job(metaclass=JobMetaclass):
         self.run.status = status
         self.run_manager.update_db(self.run)
 
+    @with_run
+    def set_run_time(self, sim_time):
+        self.run.sim_time = sim_time
+        self.run_manager.update_db(self.run)
+
     def regster_run(self, run: Run):
         self.run = run
         self.logger.info(run.dir)

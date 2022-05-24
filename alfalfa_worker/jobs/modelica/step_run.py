@@ -50,6 +50,7 @@ class StepRun(StepRunBase):
         # run the FMU simulation
         self.kstep = 0  # todo remove if not used
         self.simtime = self.sim_start_time
+        self.set_run_time(self.simtime)
 
         if self.historian_enabled:
             self.logger.info("Historian enabled")
@@ -111,33 +112,13 @@ class StepRun(StepRunBase):
                     self.stop()
                     print("stopping... simulation got more than 60s behind target timescale")
 
-            # update stop flag from db
-            self.db_stop_set()
-
             # update stop flag from endTime
             if self.simtime >= self.sim_end_time:
                 self.stop()
 
-    # Check the database for a stop signal
-    # and return true if stop is requested
-    def db_stop_set(self):
-        # A client may have requested that the simulation stop early,
-        # look for a signal to stop from the database
-        self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
-        if self.site and (self.site.get("rec", {}).get("simStatus") == "s:Stopping"):
-            self.stop()
-
-    def set_db_status_running(self):
-        output_time_string = 's:%s' % (self.simtime)
-        self.logger.info(f"output_time_string: {output_time_string}")
-        self.mongo_db_recs.update_one({"_id": self.run.id},
-                                      {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
-
     def update_sim_status(self):
         self.simtime = self.tc.final_time
-        output_time_string = 's:%s' % (self.simtime)
-        self.mongo_db_recs.update_one({"_id": self.run.id},
-                                      {"$set": {"rec.datetime": output_time_string, "rec.simStatus": "s:Running"}})
+        self.set_run_time(self.simtime)
 
     def step(self):
         # u represents simulation input values
@@ -231,9 +212,6 @@ class StepRun(StepRunBase):
 
         # DELETE
         # Clear all current values from the database when the simulation is no longer running
-        self.mongo_db_recs.update_one({"_id": self.run.id},
-                                      {"$set": {"rec.simStatus": "s:Stopped"}, "$unset": {"rec.datetime": ""}},
-                                      False)
         self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.cur": "m:"},
                                        {"$unset": {"rec.curVal": "", "rec.curErr": ""},
                                            "$set": {"rec.curStatus": "s:disabled"}}, False)
