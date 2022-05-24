@@ -13,7 +13,7 @@ class TestSingleZoneVAVFMU(TestCase):
         fmu_path = os.path.join(os.path.dirname(__file__), 'models', 'single_zone_vav.fmu')
         model_id = alfalfa.submit(fmu_path)
 
-        alfalfa.wait(model_id, "Stopped")
+        alfalfa.wait(model_id, "READY")
 
         alfalfa.start(
             model_id,
@@ -23,6 +23,6 @@ class TestSingleZoneVAVFMU(TestCase):
             timescale=5
         )
 
-        alfalfa.wait(model_id, "Running")
+        alfalfa.wait(model_id, "RUNNING")
         alfalfa.stop(model_id)
-        alfalfa.wait(model_id, "Stopped")
+        alfalfa.wait(model_id, "COMPLETE")

@@ -2,7 +2,7 @@ import datetime
 import os
 
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
-from alfalfa_worker.lib.job import Job, JobException
+from alfalfa_worker.lib.job import Job, JobException, message
 from alfalfa_worker.lib.run import RunStatus
 
 
@@ -75,6 +75,7 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
         self.init_sim()
         self.setup_points()
         self.set_db_status_running()
+        self.set_run_status(RunStatus.RUNNING)
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
             self.logger.info("Running timescale / realtime")
             self.run_timescale()
@@ -143,6 +144,11 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
     def setup_points(self):
         """Placeholder for setting up points for I/O"""
         raise NotImplementedError
+
+    @message
+    def stop(self) -> None:
+        super().stop()
+        self.set_run_status(RunStatus.STOPPING)
 
     def cleanup(self) -> None:
         super().cleanup()

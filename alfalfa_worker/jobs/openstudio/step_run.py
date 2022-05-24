@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from time import sleep
 from uuid import uuid4
 
 import mlep
@@ -415,3 +416,7 @@ class StepRun(StepRunBase):
 
         self.ep.stop(True)
         self.ep.is_running = 0
+
+        # If E+ doesn't exit properly it can spin and delete/create files during tarring.
+        # This causes an error when files that were added to the archive disappear.
+        sleep(5)

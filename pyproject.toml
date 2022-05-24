@@ -36,7 +36,8 @@ influxdb = "^5.3.1"
 matplotlib = "3.3.3"
 
 [tool.poetry.dev-dependencies]
-alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "develop"}
+alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "job_refactor"}
+# alfalfa-client = { path = "../alfalfa-client", develop = false}
 autopep8 = "^1.4.4"
 pre-commit = "^2.10.1"
 pytest = "^6.2.5"

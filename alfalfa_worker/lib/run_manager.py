@@ -9,7 +9,7 @@ from pymongo import MongoClient
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
 from alfalfa_worker.lib.point import Point, PointType
-from alfalfa_worker.lib.run import Run, RunStatus
+from alfalfa_worker.lib.run import Run
 from alfalfa_worker.lib.sim_type import SimType
 
 
@@ -56,9 +56,10 @@ class RunManager(LoggerMixinBase):
         run = Run()
         run_path = os.path.join(self.run_dir, run.id)
         os.mkdir(run_path)
+        run.dir = run_path
+        self.register_run(run)
 
     def checkin_run(self, run: Run):
-        run.status = RunStatus.COMPLETE
 
         def reset(tarinfo):
             tarinfo.uid = tarinfo.gid = 0
@@ -78,6 +79,7 @@ class RunManager(LoggerMixinBase):
             self.s3_bucket.upload_file(tar_path, upload_location)
             self.update_db(run)
             os.remove(tar_path)
+            shutil.rmtree(run.dir)
             return True, upload_location
         except boto3.exceptions.S3UploadFailedError as e:
             return False, e
@@ -92,14 +94,12 @@ class RunManager(LoggerMixinBase):
         self.s3_bucket.download_file(key, tar_file_path)
 
         tar = tarfile.open(tar_file_path)
-        tar.extractall(run_path)
+        tar.extractall(self.run_dir)
         tar.close()
         os.remove(tar_file_path)
 
         run = self.get_run(run_id)
-        run.dir = os.path.join(run_path, run_id)
-        run.status = RunStatus.STARTING
-        self.update_db(run)
+        run.dir = run_path
         return run
 
     def register_run(self, run: Run):

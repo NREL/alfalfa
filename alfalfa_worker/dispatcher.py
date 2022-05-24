@@ -70,7 +70,6 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         }
         """
         try:
-            self.logger.info(message.body)
             message_body = json.loads(message.body)
             self.logger.info(message_body)
             message.delete()
@@ -103,11 +102,12 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
 
     def start_job(self, job_name, parameters):
         """Start job in thread by Python class path"""
+        # Now that we aren't running as subprocesses we need this
+        # because mlep likes to chdir into a directory which is then deleted
+        os.chdir(self.workdir)
+
         klazz = self.find_class(job_name)
         job_id = str(uuid.uuid4())
-        job_dir = os.path.join(self.workdir, job_id)
-        os.mkdir(job_dir)
-        parameters['working_dir'] = job_dir
         parameters['run_manager'] = self.run_manager
         job = klazz(**parameters)
         job.start()

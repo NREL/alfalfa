@@ -149,6 +149,33 @@ const simType = new GraphQLObjectType({
   })
 });
 
+const runType = new GraphQLObjectType({
+  name: "Run",
+  description: "A run",
+  fields: () => ({
+    id: {
+      type: GraphQLString,
+      description: "A unique identifier for the run"
+    },
+    sim_type: {
+      type: GraphQLString,
+      description: "The run simulation type"
+    },
+    status: {
+      type: GraphQLString,
+      description: "The run status"
+    },
+    created: {
+      type: GraphQLString,
+      description: "When the run was created"
+    },
+    modified: {
+      type: GraphQLString,
+      description: "When the run was last modified"
+    }
+  })
+});
+
 const userType = new GraphQLObjectType({
   name: "User",
   description: "A person who uses our app",
@@ -167,6 +194,16 @@ const userType = new GraphQLObjectType({
       resolve: (user, { siteRef }, request) => {
         //return ['site a', 'site b', 'site c']},
         return resolvers.sitesResolver(user, siteRef);
+      }
+    },
+    runs: {
+      type: runType,
+      description: "The Alfalfa Runs",
+      args: {
+        run_id: { type: GraphQLString }
+      },
+      resolve: (user, { run_id }, context) => {
+        return resolvers.runResolver(user, run_id, context);
       }
     },
     sims: {

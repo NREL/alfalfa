@@ -172,7 +172,7 @@ class Data_Generator(object):
             f.write(newText)
 
         # Change to Resources directory
-        currdir = os.curdir
+        currdir = os.getcwd()
         os.chdir(self.weather_dir)
 
         # Compile the ReaderTMY3 from IBPSA using JModelica

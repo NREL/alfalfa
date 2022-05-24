@@ -35,7 +35,7 @@ def with_run(func):
 
 class JobMetaclass(type):
     """The purpose of the metaclass is to wrap the __init__ of the subclass.
-    This allows the working_dir and run_manager arguments to be handled the same way
+    This allows the run_manager argument to be handled the same way
     in every job. These arguments are removed before calling the old __init__ function.
     This wrapper also does other setup functions like initializing redis and setting
     up message handlers for annotated functions."""
@@ -51,8 +51,6 @@ class JobMetaclass(type):
                 if __old_init__:
                     __old_init__(self, *args, **kwargs)
                 return
-            self.working_dir = kwargs.get('working_dir')
-            del kwargs['working_dir']
             self.run_manager = kwargs.get('run_manager')
             del kwargs['run_manager']
             self._status = JobStatus.INITIALIZING
@@ -125,7 +123,7 @@ class Job(metaclass=JobMetaclass):
 
     def join(self, *args):
         """Create a path relative to the job working directory
-        like calling os.path.join(job.working_dir, *args)"""
+        like calling os.path.join(self.run.dir, *args)"""
         return self.run.join(*args)
 
     def status(self) -> "JobStatus":

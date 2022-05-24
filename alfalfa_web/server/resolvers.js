@@ -217,6 +217,29 @@ function simsResolver(user, args, context) {
   });
 }
 
+function runResolver(user, run_id, context) {
+  return new Promise((resolve, reject) => {
+    const runs = context.db.collection("runs");
+    console.log(run_id);
+    runs
+      .findOne({ _id: run_id })
+      .then((doc) => {
+        let run = {
+          id: run_id,
+          sim_type: doc.sim_type,
+          status: doc.status,
+          created: doc.created,
+          modified: doc.modified
+        };
+        console.log(doc.status);
+        resolve(run);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
 function sitesResolver(user, siteRef) {
   let filter = "s:site";
   if (siteRef) {
@@ -329,6 +352,7 @@ module.exports = {
   stopSiteResolver,
   removeSiteResolver,
   sitePointResolver,
+  runResolver,
   simsResolver,
   advanceResolver,
   writePointResolver
