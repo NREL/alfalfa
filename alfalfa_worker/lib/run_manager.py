@@ -33,6 +33,12 @@ class RunManager(LoggerMixinBase):
         if not os.path.exists(self.tmp_dir):
             os.mkdir(self.tmp_dir)
 
+    def s3_download(self, key: str, file_path: str):
+        self.s3_bucket.download_file(key, file_path)
+
+    def s3_upload(self, file_path: str, key: str):
+        self.s3_bucket.upload_file(file_path, key)
+
     def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> Run:
         file_path = os.path.join(self.tmp_dir, model_name)
         run_path = os.path.join(self.run_dir, upload_id)
@@ -40,7 +46,7 @@ class RunManager(LoggerMixinBase):
             os.removedirs(run_path)
         os.mkdir(run_path)
         key = "uploads/%s/%s" % (upload_id, model_name)
-        self.s3_bucket.download_file(key, file_path)
+        self.s3_download(key, file_path)
         ext = os.path.splitext(model_name)[1]
         if ext == '.zip':
             zip_file = zipfile.ZipFile(file_path)
@@ -58,6 +64,7 @@ class RunManager(LoggerMixinBase):
         os.mkdir(run_path)
         run.dir = run_path
         self.register_run(run)
+        return run
 
     def checkin_run(self, run: Run):
 
@@ -76,7 +83,7 @@ class RunManager(LoggerMixinBase):
         upload_location = "run/%s" % tarname
         try:
             self.logger.info(f"uploading {tarname} to {upload_location}")
-            self.s3_bucket.upload_file(tar_path, upload_location)
+            self.s3_upload(tar_path, upload_location)
             self.update_db(run)
             os.remove(tar_path)
             shutil.rmtree(run.dir)
@@ -91,7 +98,7 @@ class RunManager(LoggerMixinBase):
         run_path = os.path.join(self.run_dir, run_id)
         key = f'run/{run_id}.tar.gz'
         self.logger.info(f"downloading {tar_file_path} from {key}")
-        self.s3_bucket.download_file(key, tar_file_path)
+        self.s3_download(key, tar_file_path)
 
         tar = tarfile.open(tar_file_path)
         tar.extractall(self.run_dir)

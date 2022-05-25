@@ -26,15 +26,16 @@
 import json
 import os
 import traceback
-import uuid
 from importlib import import_module
+from pathlib import Path
+from typing import Dict
 
 # Currently this is a child of WorkerJobBase, but mostly for the
 # alfalfa connections. WorkerJobBase could/should be updated to inherit
 # from a new class that just handles the alfalfa connections, then
 # the WorkerJobBase and Dispatcher can both inherit from the new class.
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
-from alfalfa_worker.lib.job import Job
+from alfalfa_worker.lib.job import Job, JobStatus
 from alfalfa_worker.lib.logger_mixins import DispatcherLoggerMixin
 from alfalfa_worker.lib.run_manager import RunManager
 
@@ -53,9 +54,9 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         super().__init__()
         self.logger.info(f"Job queue url is {self.sqs_queue}")
 
-        self.workdir = '/runs'
-        if not os.path.exists(self.workdir):
-            os.mkdir(self.workdir)
+        self.workdir = Path(os.environ.get('RUN_DIR', '/runs'))
+        if not Path.exists(self.workdir):
+            self.workdir.mkdir()
         self.run_manager = RunManager(self.workdir)
 
     def process_message(self, message):
@@ -100,18 +101,21 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
                 tb = traceback.format_exc()
                 self.logger.info("Exception caught in dispatcher.run: {} with {}".format(e, tb))
 
-    def start_job(self, job_name, parameters):
-        """Start job in thread by Python class path"""
+    def start_job(self, job_name, parameters) -> JobStatus:
+        """Start job by Python class path"""
         # Now that we aren't running as subprocesses we need this
         # because mlep likes to chdir into a directory which is then deleted
         os.chdir(self.workdir)
 
-        klazz = self.find_class(job_name)
-        job_id = str(uuid.uuid4())
-        parameters['run_manager'] = self.run_manager
-        job = klazz(**parameters)
+        job = self.create_job(job_name, parameters)
         job.start()
-        return job_id
+        return job
+
+    def create_job(self, job_name, parameters: Dict = {}) -> Job:
+        """Create a job by python class path"""
+        class_ = self.find_class(job_name)
+        parameters['run_manager'] = self.run_manager
+        return class_(**parameters)
 
     @staticmethod
     def find_class(path):

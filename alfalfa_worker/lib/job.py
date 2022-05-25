@@ -10,7 +10,6 @@ from xmlrpc.client import Boolean
 from redis import Redis
 
 from alfalfa_worker.lib.point import Point
-# from alfalfa_jobs.run import Run
 from alfalfa_worker.lib.run import Run, RunStatus
 from alfalfa_worker.lib.sim_type import SimType
 
@@ -126,6 +125,7 @@ class Job(metaclass=JobMetaclass):
         like calling os.path.join(self.run.dir, *args)"""
         return self.run.join(*args)
 
+    @property
     def status(self) -> "JobStatus":
         """Get job status
         gives general status of job workflow"""
@@ -199,6 +199,10 @@ class Job(metaclass=JobMetaclass):
         self.regster_run(run)
         run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
+
+    def create_empty_run(self):
+        run = self.run_manager.create_empty_run()
+        self.regster_run(run)
 
     @with_run
     def add_points(self, points: List[Point]):
