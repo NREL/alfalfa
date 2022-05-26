@@ -17,7 +17,7 @@ def wait_for_status(job: Job, desired_status: JobStatus, timeout: int = 10):
             return True
         time.sleep(0.5)
     print(f"{job.status} != {desired_status}", file=sys.stderr)
-    return False
+    assert False, f"Desired Job Status: {desired_status} not reached. Current Status: {job.status}"
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@
 
 import json
 import os
-from subprocess import call
+from subprocess import check_call
 
 from alfalfa_worker.jobs.openstudio import lib_dir
 from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
@@ -31,10 +31,10 @@ class CreateRun(Job):
         default_workflow_path: str = os.path.join(lib_dir, 'workflow/workflow.osw')
 
         # Merge the default workflow measures into the user submitted workflow
-        call(['openstudio', os.path.join(lib_dir, 'merge_osws.rb'), default_workflow_path, submitted_osw_path])
+        check_call(['openstudio', os.path.join(lib_dir, 'merge_osws.rb'), default_workflow_path, submitted_osw_path])
 
         # run workflow
-        call(['openstudio', 'run', '-m', '-w', submitted_osw_path])
+        check_call(['openstudio', 'run', '-m', '-w', submitted_osw_path])
 
         points_json_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_haystack.json')
         mapping_json_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_mapping.json')

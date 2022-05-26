@@ -4,6 +4,7 @@ import os
 import time
 from enum import Enum
 from json.decoder import JSONDecodeError
+from subprocess import CalledProcessError
 from typing import List
 from xmlrpc.client import Boolean
 
@@ -21,15 +22,19 @@ def message(func):
     return func
 
 
-def with_run(func):
+def with_run(return_on_fail=False):
     """Decorator for methods which require a run.
     Will throw an error if called before a run is associated with the job."""
+    def inner(func):
+        def wrap(self, *args, **kwargs):
+            if self.run is None:
+                if return_on_fail:
+                    return
+                raise JobExceptionInvalidRun("Job has no associated run")
+            return func(self, *args, **kwargs)
+        return wrap
 
-    def wrap(self, *args, **kwargs):
-        if self.run is None:
-            raise JobExceptionInvalidRun("Job has no associated run")
-        return func(self, *args, **kwargs)
-    return wrap
+    return inner
 
 
 class JobMetaclass(type):
@@ -73,14 +78,14 @@ class JobMetaclass(type):
                 __old_init__(self, *args, **kwargs)
             self.set_job_status(JobStatus.INITIALIZED)
         cls_dicts['__init__'] = __new_init__
-        klazz = super().__new__(cls, name, bases, cls_dicts)
+        class_ = super().__new__(cls, name, bases, cls_dicts)
 
         # This adds the job class to a list of all of the loaded jobs
         if len(bases) == 0:
-            klazz.jobs = []
+            class_.jobs = []
         if len(bases) > 0:
-            Job.jobs.append(klazz)
-        return klazz
+            Job.jobs.append(class_)
+        return class_
 
 
 class Job(metaclass=JobMetaclass):
@@ -98,10 +103,14 @@ class Job(metaclass=JobMetaclass):
             self.cleanup()
             self.set_job_status(JobStatus.STOPPED)
 
+        except CalledProcessError as e:
+            self.logger.error(e.output)
+            self.record_run_error(e.output)
+            self.set_job_status(JobStatus.ERROR)
         except Exception as e:
             self.logger.error(e)
+            self.record_run_error(str(e))
             self.set_job_status(JobStatus.ERROR)
-            raise
 
     def exec(self) -> None:
         """Runs job
@@ -112,6 +121,7 @@ class Job(metaclass=JobMetaclass):
     @message
     def stop(self) -> None:
         """Stop job"""
+        self.set_job_status(JobStatus.STOPPING)
 
     def cleanup(self) -> None:
         """Clean up job
@@ -138,6 +148,10 @@ class Job(metaclass=JobMetaclass):
     def set_job_status(self, status: "JobStatus"):
         if self._status is status:
             return
+        # Once stopping we can't go back
+        # this makes sure that the message loop will exit
+        if not self.is_running and status.value < JobStatus.STOPPING.value:
+            return
         self.logger.info(f"Job Status: {status.name}")
         # A callback could be added here to tell the client what the status is
         self._status = status
@@ -151,7 +165,7 @@ class Job(metaclass=JobMetaclass):
             self._check_messages()
         self.logger.info("message loop over")
 
-    @with_run
+    @with_run()
     def _check_messages(self):
         self.set_job_status(JobStatus.WAITING)
         message = self.redis_pubsub.get_message()
@@ -178,8 +192,13 @@ class Job(metaclass=JobMetaclass):
                         self.logger.error(e)
                         response['status'] = 'error'
                         response['response'] = str(e)
-                    self.logger.info(f"message_id: {message_id}, response: {response}")
-                    self.redis.hset(self.run.id, message_id, json.dumps(response))
+                    except Exception as e:
+                        response['status'] = 'error'
+                        response['response'] = str(e)
+                        raise e
+                    finally:
+                        self.redis.hset(self.run.id, message_id, json.dumps(response))
+                        self.logger.info(f"message_id: {message_id}, response: {response}")
         except JSONDecodeError:
             self.logger.info("received malformed message")
 
@@ -190,7 +209,7 @@ class Job(metaclass=JobMetaclass):
         self.regster_run(run)
         return run
 
-    @with_run
+    @with_run()
     def checkin_run(self):
         return self.run_manager.checkin_run(self.run)
 
@@ -204,18 +223,24 @@ class Job(metaclass=JobMetaclass):
         run = self.run_manager.create_empty_run()
         self.regster_run(run)
 
-    @with_run
+    @with_run()
     def add_points(self, points: List[Point]):
         self.run_manager.add_points_to_run(self.run, points)
 
-    @with_run
+    @with_run()
     def set_run_status(self, status: RunStatus):
         self.run.status = status
         self.run_manager.update_db(self.run)
 
-    @with_run
+    @with_run()
     def set_run_time(self, sim_time):
         self.run.sim_time = sim_time
+        self.run_manager.update_db(self.run)
+
+    @with_run(return_on_fail=True)
+    def record_run_error(self, error_log: str):
+        self.set_run_status(RunStatus.ERROR)
+        self.run.error_log = error_log
         self.run_manager.update_db(self.run)
 
     def regster_run(self, run: Run):
