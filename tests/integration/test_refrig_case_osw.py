@@ -7,6 +7,7 @@ from unittest import TestCase
 
 import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
+from alfalfa_client.lib import AlfalfaException
 
 
 # Consider factoring this out of the test file
@@ -29,6 +30,13 @@ def create_zip(model_dir):
 
 @pytest.mark.integration
 class TestRefrigCaseOSW(TestCase):
+
+    def test_error_run(self):
+        zip_file_path = create_zip('refrig_case_osw')
+        alfalfa = AlfalfaClient(url='http://localhost')
+        model_id = alfalfa.submit(zip_file_path)
+        with pytest.raises(AlfalfaException):
+            alfalfa.start(model_id)
 
     def test_simple_internal_clock(self):
         zip_file_path = create_zip('refrig_case_osw')

@@ -56,28 +56,26 @@ function addSiteResolver(modelName, uploadID) {
   });
 }
 
-function runSimResolver(uploadFilename, uploadID, context) {
+function runSimResolver(modelName, uploadID) {
+  var job = "alfalfa_worker.jobs.openstudio.AnnualRun";
+  if (modelName.endsWith(".fmu")) {
+    job = "alfalfa_worker.jobs.modelica.AnnualRun";
+  }
   const params = {
-    MessageBody: `{"op": "InvokeAction",
-    "action": "runSim",
-    "upload_filename": "${uploadFilename}",
-    "upload_id": "${uploadID}"
-   }`,
+    MessageBody: `{"job": "${job}",
+      "params": {
+        "model_name": "${modelName}",
+        "upload_id": "${uploadID}"
+      }
+    }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
     MessageGroupId: "Alfalfa"
   };
 
   sqs.sendMessage(params, (err, data) => {
     if (err) {
+      console.log(err);
       callback(err);
-    } else {
-      const simcollection = context.db.collection("sims");
-      simcollection.insert({
-        _id: uploadID,
-        siteRef: uploadID,
-        simStatus: "Queued",
-        name: path.parse(uploadFilename).name.replace(".tar", "")
-      });
     }
   });
 }
@@ -230,7 +228,8 @@ function runResolver(user, run_id, context) {
           status: doc.status,
           created: doc.created,
           modified: doc.modified,
-          sim_time: doc.sim_time
+          sim_time: doc.sim_time,
+          error_log: doc.error_log
         };
         console.log(doc.status);
         resolve(run);

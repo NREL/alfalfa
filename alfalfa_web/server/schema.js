@@ -176,6 +176,10 @@ const runType = new GraphQLObjectType({
     sim_time: {
       type: GraphQLString,
       description: "The current simulation time"
+    },
+    error_log: {
+      type: GraphQLString,
+      description: "The log of any errors in the Run"
     }
   })
 });

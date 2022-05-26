@@ -50,7 +50,7 @@ class JobMetaclass(type):
         else:
             __old_init__ = None
 
-        def __new_init__(self, *args, **kwargs):
+        def __new_init__(self: "Job", *args, **kwargs):
             if hasattr(self, '_status') and self._status.value >= JobStatus.INITIALIZING.value:
                 if __old_init__:
                     __old_init__(self, *args, **kwargs)
@@ -75,7 +75,11 @@ class JobMetaclass(type):
                 if hasattr(attr, 'message_handler'):
                     self._message_handlers[attr_name] = attr
             if __old_init__:
-                __old_init__(self, *args, **kwargs)
+                try:
+                    __old_init__(self, *args, **kwargs)
+                except Exception as e:
+                    self.record_run_error(str(e))
+                    raise e
             self.set_job_status(JobStatus.INITIALIZED)
         cls_dicts['__init__'] = __new_init__
         class_ = super().__new__(cls, name, bases, cls_dicts)
@@ -123,12 +127,12 @@ class Job(metaclass=JobMetaclass):
         """Stop job"""
         self.set_job_status(JobStatus.STOPPING)
 
+    @with_run(return_on_fail=True)
     def cleanup(self) -> None:
         """Clean up job
         called after stopping.
         If not overidden it will by default checkin the run"""
-        if self.run is not None:
-            self.checkin_run()
+        self.checkin_run()
 
     def join(self, *args):
         """Create a path relative to the job working directory
