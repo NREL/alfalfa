@@ -1,4 +1,5 @@
 import shutil
+import sys
 from os import PathLike
 from pathlib import Path
 from typing import Dict, List
@@ -15,7 +16,13 @@ class MockRunManager(RunManager, LoggerMixinBase):
     def __init__(self, run_dir: Path, s3_dir: Path):
         self.run_dir = run_dir
         self.s3_dir = s3_dir
+        if not self.s3_dir.exists():
+            self.s3_dir.mkdir()
+        (self.s3_dir / 'run').mkdir()
+        (self.s3_dir / 'uploads').mkdir()
         self.tmp_dir = run_dir / 'tmp'
+        if not self.tmp_dir.exists():
+            self.tmp_dir.mkdir()
         LoggerMixinBase.__init__(self, "MockRunManager")
 
     def s3_download(self, key: str, file_path: PathLike):
@@ -24,7 +31,10 @@ class MockRunManager(RunManager, LoggerMixinBase):
 
     def s3_upload(self, file_path: PathLike, key: str):
         dest = self.s3_dir / key
-        shutil.copy(file_path, dest)
+        try:
+            shutil.copy(file_path, dest)
+        except Exception as e:
+            print(e, file=sys.stderr)
 
     def register_run(self, run: Run):
         self.runs[run.id] = run

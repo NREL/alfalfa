@@ -2,8 +2,8 @@ from alfalfa_worker.dispatcher import Dispatcher
 from alfalfa_worker.jobs.openstudio.create_run import CreateRun
 from alfalfa_worker.jobs.openstudio.step_run import StepRun
 from alfalfa_worker.lib.job import JobStatus
-from tests.worker.conftest import wait_for_status
 from tests.worker.jobs.basic_mock_job import BasicMockJob
+from tests.worker.utilities import wait_for_status
 
 
 def test_valid_init(dispatcher):
