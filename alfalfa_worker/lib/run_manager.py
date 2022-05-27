@@ -2,6 +2,7 @@ import os
 import shutil
 import tarfile
 import zipfile
+from pathlib import Path
 from typing import List
 
 import boto3
@@ -14,7 +15,9 @@ from alfalfa_worker.lib.sim_type import SimType
 
 
 class RunManager(LoggerMixinBase):
-    def __init__(self, run_dir: str):
+    """RunManager is a utility class for handling operations related to runs"""
+
+    def __init__(self, run_dir: os.PathLike):
         super().__init__("RunManager")
         # Setup S3
         self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
@@ -28,30 +31,34 @@ class RunManager(LoggerMixinBase):
         self.mongo_db_sims = self.mongo_db.sims
         self.mongo_db_points = self.mongo_db.points
 
-        self.run_dir = run_dir
-        self.tmp_dir = os.path.join(run_dir, 'tmp')
-        if not os.path.exists(self.tmp_dir):
-            os.mkdir(self.tmp_dir)
+        self.run_dir = Path(run_dir)
+        self.tmp_dir = self.run_dir / 'tmp'
+        if not Path.exists(self.tmp_dir):
+            self.tmp_dir.mkdir()
 
-    def s3_download(self, key: str, file_path: str):
-        self.s3_bucket.download_file(key, file_path)
+    def s3_download(self, key: str, file_path: os.PathLike):
+        """Download a file from s3"""
+        self.s3_bucket.download_file(key, str(file_path))
 
-    def s3_upload(self, file_path: str, key: str):
-        self.s3_bucket.upload_file(file_path, key)
+    def s3_upload(self, file_path: os.PathLike, key: str):
+        """Upload a file to s3"""
+        self.s3_bucket.upload_file(str(file_path), key)
 
     def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> Run:
-        file_path = os.path.join(self.tmp_dir, model_name)
-        run_path = os.path.join(self.run_dir, upload_id)
-        if os.path.exists(run_path):
-            os.removedirs(run_path)
-        os.mkdir(run_path)
+        """Create a new Run with the contents of a model"""
+        file_path = self.tmp_dir / model_name
+        run_path = self.run_dir / upload_id
+        if Path.exists(run_path):
+            shutil.rmtree(run_path)
+        run_path.mkdir()
+
         key = "uploads/%s/%s" % (upload_id, model_name)
         self.s3_download(key, file_path)
         ext = os.path.splitext(model_name)[1]
         if ext == '.zip':
             zip_file = zipfile.ZipFile(file_path)
             zip_file.extractall(run_path)
-            os.remove(file_path)
+            file_path.unlink()
         else:
             shutil.copy(file_path, run_path)
         run = Run(dir=run_path, model=key, _id=upload_id, sim_type=sim_type)
@@ -59,14 +66,16 @@ class RunManager(LoggerMixinBase):
         return run
 
     def create_empty_run(self) -> Run:
+        """Create a new Run with an empty directory"""
         run = Run()
-        run_path = os.path.join(self.run_dir, run.id)
-        os.mkdir(run_path)
+        run_path = self.run_dir / run.id
+        run_path.mkdir()
         run.dir = run_path
         self.register_run(run)
         return run
 
     def checkin_run(self, run: Run):
+        """Upload Run to s3 and delete local files"""
 
         def reset(tarinfo):
             tarinfo.uid = tarinfo.gid = 0
@@ -75,7 +84,7 @@ class RunManager(LoggerMixinBase):
             return tarinfo
 
         tarname = "%s.tar.gz" % run.id
-        tar_path = os.path.join(self.tmp_dir, tarname)
+        tar_path = self.tmp_dir / tarname
         tar = tarfile.open(tar_path, "w:gz")
         tar.add(run.dir, filter=reset, arcname=run.id)
         tar.close()
@@ -94,8 +103,9 @@ class RunManager(LoggerMixinBase):
             return False, e
 
     def checkout_run(self, run_id: str) -> Run:
-        tar_file_path = os.path.join(self.tmp_dir, f"{run_id}.tar.gz")
-        run_path = os.path.join(self.run_dir, run_id)
+        """Download Run contents and create Run object"""
+        tar_file_path = self.tmp_dir / f"{run_id}.tar.gz"
+        run_path = self.run_dir / run_id
         key = f'run/{run_id}.tar.gz'
         self.logger.info(f"downloading {tar_file_path} from {key}")
         self.s3_download(key, tar_file_path)
@@ -110,10 +120,12 @@ class RunManager(LoggerMixinBase):
         return run
 
     def register_run(self, run: Run):
+        """Insert a new run into mongo"""
         run_dict = run.to_dict()
         self.mongo_db_runs.insert_one(run_dict)
 
     def update_db(self, run: Run):
+        """Update Run object and associated points in mongo. Writes output points and reads input points"""
         # If we used some sort of ORM we could possibly just have db objects which sync themselves automagically
         self.mongo_db_runs.update_one({'_id': run.id},
                                       {'$set': run.to_dict()}, False)
@@ -145,6 +157,7 @@ class RunManager(LoggerMixinBase):
         return points
 
     def add_points_to_run(self, run: Run, points: List[Point]):
+        """Add a list of points to a Run"""
         array_to_insert = []
         for point in points:
             point_dict = {
@@ -162,6 +175,7 @@ class RunManager(LoggerMixinBase):
         run.points = points
         return response
 
+    # TODO depricate
     def add_site_to_mongo(self, haystack_json, run: Run):
         """
         Upload JSON documents to mongo.  The documents look as follows:

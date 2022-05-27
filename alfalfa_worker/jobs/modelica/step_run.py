@@ -24,8 +24,8 @@ class StepRun(StepRunBase):
 
         self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
 
-        fmupath = self.join('model.fmu')
-        tagpath = self.join('tags.json')
+        fmupath = self.dir / 'model.fmu'
+        tagpath = self.dir / 'tags.json'
 
         # TODO make configurable
         # step_size in seconds
@@ -39,7 +39,7 @@ class StepRun(StepRunBase):
             'fmupath': fmupath,
             'start_time': self.sim_start_time,
             'step': self.step_size,
-            'kpipath': self.join('resources', 'kpis.json')
+            'kpipath': self.dir / 'resources' / 'kpis.json'
         }
 
         (self.tagid_and_outputs, self.id_and_dis, self.default_input) = self.create_tag_dictionaries(tagpath)

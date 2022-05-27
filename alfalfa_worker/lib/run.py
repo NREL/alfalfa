@@ -1,7 +1,7 @@
 import glob
-import os
 from datetime import datetime
 from enum import auto
+from pathlib import Path
 from typing import List
 from uuid import uuid4
 
@@ -28,8 +28,8 @@ class RunStatus(AutoName):
 class Run:
     # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
 
-    def __init__(self, dir=None, model=None, _id=None, job_history=[], sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None, sim_time=None, error_log=""):
-        self.dir = dir
+    def __init__(self, dir: Path = None, model=None, _id=None, job_history=[], sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None, sim_time=None, error_log=""):
+        self.dir: Path = dir
         self.model = model
         self.id = _id if _id is not None else str(uuid4())
         self._job_history = job_history
@@ -45,11 +45,8 @@ class Run:
         self.points: List[Point] = []
         self.error_log: str = error_log
 
-    def join(self, *args):
-        return os.path.join(self.dir, *args)
-
     def glob(self, search_str, recursive=True):
-        return glob.glob(self.join(search_str), recursive=recursive)
+        return glob.glob(str(self.dir / Path(search_str)), recursive=recursive)
 
     @property
     def job_history(self) -> list:

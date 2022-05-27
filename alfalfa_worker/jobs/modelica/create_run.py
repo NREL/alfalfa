@@ -1,7 +1,6 @@
-
-
 import json
 import os
+from pathlib import Path
 from uuid import uuid4
 
 from pyfmi import load_fmu
@@ -16,9 +15,9 @@ class CreateRun(Job):
     def __init__(self, upload_id, model_name):
         self.create_run_from_model(upload_id, model_name, SimType.MODELICA)
         # Define FMU specific attributes
-        self.upload_fmu = self.run.join(model_name)
-        self.fmu_path = self.run.join('model.fmu')
-        self.fmu_json = self.run.join('tags.json')
+        self.upload_fmu: Path = self.dir / model_name
+        self.fmu_path = self.dir / 'model.fmu'
+        self.fmu_json = self.dir / 'tags.json'
         self.model_name = model_name
 
         # Needs to be set after files are uploaded / parsed.
@@ -37,8 +36,7 @@ class CreateRun(Job):
         self.create_tags()
         # insert tags into db
         self.insert_fmu_tags()
-
-        os.rename(self.upload_fmu, self.fmu_path)
+        self.upload_fmu.rename(self.fmu_path)
 
     def cleanup(self) -> None:
         super().cleanup()

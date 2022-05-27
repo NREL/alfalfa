@@ -2,8 +2,10 @@ import json
 import logging
 import os
 import time
+import traceback
 from enum import Enum
 from json.decoder import JSONDecodeError
+from pathlib import Path
 from subprocess import CalledProcessError
 from typing import List
 from xmlrpc.client import Boolean
@@ -112,7 +114,8 @@ class Job(metaclass=JobMetaclass):
             self.record_run_error(e.output)
             self.set_job_status(JobStatus.ERROR)
         except Exception as e:
-            self.logger.error(e)
+            self.logger.error(e, exc_info=True)
+            self.logger.error(str(traceback.format_exc()))
             self.record_run_error(str(e))
             self.set_job_status(JobStatus.ERROR)
 
@@ -134,11 +137,6 @@ class Job(metaclass=JobMetaclass):
         If not overidden it will by default checkin the run"""
         self.checkin_run()
 
-    def join(self, *args):
-        """Create a path relative to the job working directory
-        like calling os.path.join(self.run.dir, *args)"""
-        return self.run.join(*args)
-
     @property
     def status(self) -> "JobStatus":
         """Get job status
@@ -148,6 +146,11 @@ class Job(metaclass=JobMetaclass):
     @property
     def is_running(self) -> Boolean:
         return self._status.value < JobStatus.STOPPING.value
+
+    @property
+    @with_run(return_on_fail=True)
+    def dir(self) -> Path:
+        return self.run.dir
 
     def set_job_status(self, status: "JobStatus"):
         if self._status is status:
@@ -253,7 +256,7 @@ class Job(metaclass=JobMetaclass):
         self.redis_pubsub.subscribe(run.id)
         self.redis.hset(self.run.id, 'control', 'idle')
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        fh = logging.FileHandler(run.join('jobs.log'))
+        fh = logging.FileHandler(self.dir / 'jobs.log')
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
 

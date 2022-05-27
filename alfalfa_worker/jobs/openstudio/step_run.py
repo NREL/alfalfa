@@ -21,13 +21,13 @@ class StepRun(StepRunBase):
         # If idf_file is named "in.idf" we need to change the name because in.idf is not accepted by mlep
         # (likely mlep is using that name internally)
         # simulation/sim.idf is the assumed convention, but sim.idf may be a symlink
-        original_idf_file = self.join('simulation', 'sim.idf')
+        original_idf_file = self.dir / 'simulation' / 'sim.idf'
         # Follow any symlink
-        dst_idf_file = os.path.realpath(original_idf_file)
-        self.idf_file = os.path.join(os.path.dirname(dst_idf_file), 'sim.idf')
-        os.rename(dst_idf_file, self.idf_file)
+        dst_idf_file = original_idf_file.resolve()
+        self.idf_file = dst_idf_file.parents[0] / 'sim.idf'
+        dst_idf_file.rename(self.idf_file)
 
-        self.weather_file = os.path.realpath(self.join('simulation', 'sim.epw'))
+        self.weather_file = os.path.realpath(self.dir / 'simulation' / 'sim.epw')
         self.str_format = "%Y-%m-%d %H:%M:%S"
 
         # EnergyPlus MLEP initializations
@@ -35,15 +35,15 @@ class StepRun(StepRunBase):
         self.ep.bcvtbDir = '/home/alfalfa/bcvtb/'
         self.ep.env = {'BCVTB_HOME': '/home/alfalfa/bcvtb'}
         self.ep.accept_timeout = 60000
-        self.ep.mapping = os.path.realpath(self.join('simulation', 'haystack_report_mapping.json'))
+        self.ep.mapping = os.path.realpath(self.dir / 'simulation' / 'haystack_report_mapping.json')
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
         self.ep.kStep = 1  # simulation step indexed at 1
         self.ep.deltaT = 60  # the simulation step size represented in seconds - on 'step', the model will advance 1min
 
         # Parse variables after Haystack measure
-        self.variables_file = os.path.realpath(self.join('simulation', 'variables.cfg'))
-        self.haystack_json_file = os.path.realpath(self.join('simulation', 'haystack_report_haystack.json'))
+        self.variables_file = os.path.realpath(self.dir / 'simulation' / 'variables.cfg')
+        self.haystack_json_file = os.path.realpath(self.dir / 'simulation' / 'haystack_report_haystack.json')
         self.variables = ParseVariables(self.variables_file, self.ep.mapping, self.haystack_json_file)
 
         # Define MLEP inputs

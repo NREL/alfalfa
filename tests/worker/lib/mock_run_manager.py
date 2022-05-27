@@ -1,4 +1,5 @@
 import shutil
+from os import PathLike
 from pathlib import Path
 from typing import Dict, List
 
@@ -17,11 +18,11 @@ class MockRunManager(RunManager, LoggerMixinBase):
         self.tmp_dir = run_dir / 'tmp'
         LoggerMixinBase.__init__(self, "MockRunManager")
 
-    def s3_download(self, key: str, file_path: str):
+    def s3_download(self, key: str, file_path: PathLike):
         src = self.s3_dir / key
         shutil.copy(src, file_path)
 
-    def s3_upload(self, file_path: str, key: str):
+    def s3_upload(self, file_path: PathLike, key: str):
         dest = self.s3_dir / key
         shutil.copy(file_path, dest)
 

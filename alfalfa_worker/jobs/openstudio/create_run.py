@@ -1,7 +1,6 @@
-
-
 import json
 import os
+from pathlib import Path
 from subprocess import check_call
 
 from alfalfa_worker.jobs.openstudio import lib_dir
@@ -23,53 +22,53 @@ class CreateRun(Job):
         if osws:
             # there is only support for one osw at this time
             submitted_osw_path = osws[0]
-            submitted_workflow_path = os.path.dirname(submitted_osw_path)
+            submitted_workflow_path = Path(os.path.dirname(submitted_osw_path))
         else:
             raise JobExceptionInvalidModel("No .osw file found")
 
         # locate the "default" workflow
-        default_workflow_path: str = os.path.join(lib_dir, 'workflow/workflow.osw')
+        default_workflow_path: str = lib_dir / 'workflow/workflow.osw'
 
         # Merge the default workflow measures into the user submitted workflow
-        check_call(['openstudio', os.path.join(lib_dir, 'merge_osws.rb'), default_workflow_path, submitted_osw_path])
+        check_call(['openstudio', str(lib_dir / 'merge_osws.rb'), str(default_workflow_path), str(submitted_osw_path)])
 
         # run workflow
-        check_call(['openstudio', 'run', '-m', '-w', submitted_osw_path])
+        check_call(['openstudio', 'run', '-m', '-w', str(submitted_osw_path)])
 
-        points_json_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_haystack.json')
-        mapping_json_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_mapping.json')
+        points_json_path = submitted_workflow_path / 'reports/haystack_report_haystack.json'
+        mapping_json_path = submitted_workflow_path / 'reports/haystack_report_mapping.json'
         self.insert_os_tags(points_json_path, mapping_json_path)
 
         # create a "simulation" directory that has everything required for simulation
-        simulation_dir = self.join('simulation/')
-        os.mkdir(simulation_dir)
+        simulation_dir = self.dir / 'simulation'
+        simulation_dir.mkdir()
 
-        idf_src_path = os.path.join(submitted_workflow_path, 'run/in.idf')
-        idf_dest_path = os.path.join(simulation_dir, 'sim.idf')
+        idf_src_path = submitted_workflow_path / 'run' / 'in.idf'
+        idf_dest_path = simulation_dir / 'sim.idf'
         rel_symlink(idf_src_path, idf_dest_path)
 
-        haystack_src_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_mapping.json')
-        haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_mapping.json')
+        haystack_src_path = submitted_workflow_path / 'reports' / 'haystack_report_mapping.json'
+        haystack_dest_path = simulation_dir / 'haystack_report_mapping.json'
         rel_symlink(haystack_src_path, haystack_dest_path)
 
-        haystack_src_path = os.path.join(submitted_workflow_path, 'reports/haystack_report_haystack.json')
-        haystack_dest_path = os.path.join(simulation_dir, 'haystack_report_haystack.json')
+        haystack_src_path = submitted_workflow_path / 'reports' / 'haystack_report_haystack.json'
+        haystack_dest_path = simulation_dir / 'haystack_report_haystack.json'
         rel_symlink(haystack_src_path, haystack_dest_path)
 
-        variables_src_path = os.path.join(submitted_workflow_path, 'reports/export_bcvtb_report_variables.cfg')
-        variables_dest_path = os.path.join(simulation_dir, 'variables.cfg')
+        variables_src_path = submitted_workflow_path / 'reports/export_bcvtb_report_variables.cfg'
+        variables_dest_path = simulation_dir / 'variables.cfg'
         rel_symlink(variables_src_path, variables_dest_path)
 
         # variables.cfg also needs to be located next to the idf to satisfy EnergyPlus conventions
-        idf_src_dir = os.path.dirname(idf_src_path)
-        variables_ep_path = os.path.join(idf_src_dir, 'variables.cfg')
+        idf_src_dir = idf_src_path.parents[0]
+        variables_ep_path = idf_src_dir / 'variables.cfg'
         rel_symlink(variables_src_path, variables_ep_path)
 
         # hack. need to find a more general approach to preserve osw resources that might be needed at simulation time
-        for file in self.run.glob(submitted_workflow_path + '/python/*'):
-            idfdir = os.path.dirname(idf_src_path)
+        for file in self.run.glob(submitted_workflow_path / 'python' / '*'):
+            idfdir = idf_src_path.parents[0]
             filename = os.path.basename(file)
-            dst = os.path.join(idfdir, filename)
+            dst = idfdir / filename
             rel_symlink(file, dst)
 
         # find weather file (if) defined by osw and copy into simulation directory
@@ -79,8 +78,8 @@ class CreateRun(Job):
 
         epw_name = submitted_osw['weather_file']
         if epw_name:
-            epw_src_path = self.run.glob(os.path.join(submitted_workflow_path, '**', epw_name))[0]
-            epw_dst_path = os.path.join(simulation_dir, 'sim.epw')
+            epw_src_path = self.run.glob(submitted_workflow_path / '**' / epw_name)[0]
+            epw_dst_path = simulation_dir / 'sim.epw'
             rel_symlink(epw_src_path, epw_dst_path)
 
     def cleanup(self) -> None:
