@@ -25,6 +25,7 @@
 
 import AWS from "aws-sdk";
 import path from "path";
+import { cursorTo } from "readline";
 import request from "superagent";
 import dbops from "./dbops";
 
@@ -240,11 +241,21 @@ function runResolver(user, run_id, context) {
   });
 }
 
-function sitesResolver(user, siteRef) {
+async function sitesResolver(user, siteRef, context) {
   let filter = "s:site";
   if (siteRef) {
     filter = `${filter} and id==@${siteRef}`;
   }
+  const runs = context.db.collection("runs");
+  const cursor = runs.find();
+  var run_dict = {};
+  cursor.each(function (err, item) {
+    if (item == null) {
+      return;
+    }
+    run_dict[item._id] = item;
+  });
+
   return new Promise((resolve, reject) => {
     let sites = [];
     request
@@ -276,12 +287,10 @@ function sitesResolver(user, siteRef) {
               simStatus: row.simStatus.replace(/[a-z]:/, ""),
               simType: row.simType.replace(/[a-z]:/, "")
             };
-            let datetime = row["datetime"];
-            if (datetime) {
-              datetime = datetime.replace(/[a-z]:/, "");
-              site.datetime = datetime;
+            if (site.siteRef in run_dict) {
+              site.simStatus = run_dict[site.siteRef]["status"];
+              site.datetime = run_dict[site.siteRef]["sim_time"];
             }
-
             let step = row["step"];
             if (step) {
               step = step.replace(/[a-z]:/, "");

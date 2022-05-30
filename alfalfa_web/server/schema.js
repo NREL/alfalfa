@@ -199,9 +199,9 @@ const userType = new GraphQLObjectType({
       args: {
         siteRef: { type: GraphQLString }
       },
-      resolve: (user, { siteRef }, request) => {
+      resolve: (user, { siteRef }, context) => {
         //return ['site a', 'site b', 'site c']},
-        return resolvers.sitesResolver(user, siteRef);
+        return resolvers.sitesResolver(user, siteRef, context);
       }
     },
     runs: {
