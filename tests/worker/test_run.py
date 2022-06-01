@@ -1,7 +1,7 @@
 from alfalfa_worker.dispatcher import Dispatcher
 from alfalfa_worker.lib.job import JobStatus
 from tests.worker.jobs.file_io_mock_job import FileIOMockJob
-from tests.worker.utilities import send_message_and_wait, wait_for_status
+from tests.worker.utilities import send_message_and_wait, wait_for_job_status
 
 
 def test_run_file_conveyance(dispatcher: Dispatcher):
@@ -10,7 +10,7 @@ def test_run_file_conveyance(dispatcher: Dispatcher):
 
     run_id = file_io_job.run.id
 
-    wait_for_status(file_io_job, JobStatus.WAITING)
+    wait_for_job_status(file_io_job, JobStatus.WAITING)
 
     test_file_name = 'test.txt'
     test_file_contents = 'this is a test'
@@ -26,10 +26,10 @@ def test_run_file_conveyance(dispatcher: Dispatcher):
     response = send_message_and_wait(file_io_job, 'read', {'file_name': 'non-existant-file.io'})
     assert response['status'] == 'error'
 
-    wait_for_status(file_io_job, JobStatus.WAITING)
+    wait_for_job_status(file_io_job, JobStatus.WAITING)
 
     file_io_job.stop()
-    wait_for_status(file_io_job, JobStatus.STOPPED)
+    wait_for_job_status(file_io_job, JobStatus.STOPPED)
 
     file_io_job = dispatcher.create_job(FileIOMockJob.job_path(), {'run_id': run_id})
     file_io_job.start()
@@ -39,4 +39,4 @@ def test_run_file_conveyance(dispatcher: Dispatcher):
     assert response['response'] == test_file_contents
 
     file_io_job.stop()
-    wait_for_status(file_io_job, JobStatus.STOPPED)
+    wait_for_job_status(file_io_job, JobStatus.STOPPED)

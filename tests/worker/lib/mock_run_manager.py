@@ -3,6 +3,7 @@ import sys
 from os import PathLike
 from pathlib import Path
 from typing import Dict, List
+from uuid import uuid4
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
 from alfalfa_worker.lib.point import Point
@@ -47,3 +48,18 @@ class MockRunManager(RunManager, LoggerMixinBase):
 
     def add_points_to_run(self, run: Run, points: List[Point]):
         self.runs[run.id].points = points
+
+    def add_model(self, model_path: PathLike):
+        upload_id = str(uuid4())
+        model_path = Path(model_path)
+        upload_path = self.s3_dir / 'uploads' / upload_id
+        upload_path.mkdir()
+        if model_path.is_dir:
+            archive_name = model_path.name + '.zip'
+            upload_path = upload_path / archive_name
+            archive_path = shutil.make_archive(archive_name, 'zip', model_path)
+            shutil.copy(archive_path, upload_path)
+        else:
+            upload_path = upload_path / model_path.name
+            shutil.copy(str(model_path), upload_path.parents[0])
+        return upload_id, upload_path.name

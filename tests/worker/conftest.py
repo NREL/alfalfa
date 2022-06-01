@@ -1,17 +1,18 @@
-import os
-from pathlib import Path
 
 import pytest
 
-from alfalfa_worker.dispatcher import Dispatcher
-from tests.worker.lib.mock_run_manager import MockRunManager
 
-
-@pytest.fixture
-def dispatcher(tmp_path: Path):
-    run_dir = tmp_path / 'runs'
-    s3_dir = tmp_path / 's3'
-    os.environ['RUN_DIR'] = str(run_dir)
-    dispatcher = Dispatcher()
-    dispatcher.run_manager = MockRunManager(run_dir, s3_dir)
-    yield dispatcher
+@pytest.fixture(autouse=True)
+def env_setup(monkeypatch):
+    monkeypatch.setenv('WEB_REGISTRY_URI', '313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web')
+    monkeypatch.setenv('WORKER_REGISTRY_URI', '313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/worker')
+    monkeypatch.setenv('AWS_ACCESS_KEY_ID', 'user')
+    monkeypatch.setenv('AWS_SECRET_ACCESS_KEY', 'password')
+    monkeypatch.setenv('NODE_ENV', 'production')
+    monkeypatch.setenv('S3_URL', 'http://localhost:9000')
+    monkeypatch.setenv('REDIS_HOST', 'redis')
+    monkeypatch.setenv('S3_BUCKET', 'alfalfa')
+    monkeypatch.setenv('JOB_QUEUE_URL', 'http://localhost:4100/queue/local-queue1')
+    monkeypatch.setenv('MONGO_URL', 'mongodb://localhost:27017/')
+    monkeypatch.setenv('MONGO_DB_NAME', 'alfalfa')
+    monkeypatch.setenv('REGION', 'us-west-1')

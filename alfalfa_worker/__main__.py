@@ -25,8 +25,10 @@
 
 print("Starting Alfalfa Dispatcher")
 
+import os
 import sys
 import traceback
+from pathlib import Path
 
 # Determine which worker to load based on the QUEUE.
 # This may be temporary for now, not sure on how else
@@ -35,7 +37,8 @@ from alfalfa_worker.dispatcher import Dispatcher
 
 if __name__ == '__main__':
     try:
-        dispatcher = Dispatcher()
+        workdir = Path(os.environ.get('RUN_DIR', '/runs'))
+        dispatcher = Dispatcher(workdir)
         dispatcher.logger.info("Dispatcher initialized")
     except BaseException as e:  # TODO: what exceptions to catch?
         tb = traceback.format_exc()

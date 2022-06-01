@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 from uuid import uuid4
 
@@ -87,25 +87,21 @@ class StepRun(StepRunBase):
         Return a timedelta object to represent the real time between steps
         This is used by the internal clock. Does not apply to the external clock
         """
-        return datetime.timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
+        return timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
 
     def run_timescale(self):
         self.advance_to_start_time()
 
         next_step_time = datetime.now() + self.step_delta_time()
         while self.is_running:
-            current_time = datetime.now()
-
-            if current_time >= next_step_time:
-                advance = True
 
             self._check_messages()
 
-            if advance:
+            current_time = datetime.now()
+            if current_time >= next_step_time:
                 self.step()
                 self.update_db()
                 next_step_time = next_step_time + self.step_delta_time()
-                self.advance = False
 
     def run_external_clock(self):
         self.logger.info("run external clock called")

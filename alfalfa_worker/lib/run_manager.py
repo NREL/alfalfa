@@ -4,6 +4,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 from typing import List
+from uuid import uuid4
 
 import boto3
 from pymongo import MongoClient
@@ -201,3 +202,18 @@ class RunManager(LoggerMixinBase):
             })
         response = self.mongo_db_recs.insert_many(array_to_insert)
         return response
+
+    def add_model(self, model_path: os.PathLike):
+        upload_id = str(uuid4())
+        model_path = Path(model_path)
+        upload_path = Path('uploads') / upload_id
+        if model_path.is_dir():
+            archive_name = model_path.name + '.zip'
+            upload_path = upload_path / archive_name
+            archive_path = shutil.make_archive(archive_name, 'zip', model_path)
+            self.s3_upload(archive_path, str(upload_path))
+        else:
+            upload_path = upload_path / model_path.name
+            self.s3_upload(model_path, str(upload_path))
+
+        return upload_id, upload_path.name

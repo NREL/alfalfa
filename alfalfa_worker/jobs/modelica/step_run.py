@@ -5,7 +5,7 @@ from uuid import uuid4
 import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
-from alfalfa_worker.lib.job import message
+from alfalfa_worker.lib.job import JobException, message
 from alfalfa_worker.lib.testcase import TestCase
 
 
@@ -104,13 +104,14 @@ class StepRun(StepRunBase):
         while self.is_running:
             current_time = datetime.now()
 
+            self._check_messages()
+
             if current_time >= next_step_time:
                 self.advance()
                 # sim is not keeping up with target timescale.
                 # TODO rethink arbitrary 60s behind
                 if (current_time > next_step_time + timedelta(seconds=60)):
-                    self.stop()
-                    print("stopping... simulation got more than 60s behind target timescale")
+                    raise JobException("stopping... simulation got more than 60s behind target timescale")
 
             # update stop flag from endTime
             if self.simtime >= self.sim_end_time:

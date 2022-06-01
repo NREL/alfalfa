@@ -50,11 +50,11 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
     queue and submit the job to another worker with the requisite files.
     """
 
-    def __init__(self):
+    def __init__(self, workdir: Path):
         super().__init__()
         self.logger.info(f"Job queue url is {self.sqs_queue}")
 
-        self.workdir = Path(os.environ.get('RUN_DIR', '/runs'))
+        self.workdir = workdir
         if not Path.exists(self.workdir):
             self.workdir.mkdir()
         self.run_manager = RunManager(self.workdir)

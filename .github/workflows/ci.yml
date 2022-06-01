@@ -46,8 +46,8 @@ jobs:
           poetry install
           poetry run pytest
 
-  fmu-tests:
-    name: Run fmu tests
+  simulation-tests:
+    name: Run simulation tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -74,9 +74,13 @@ jobs:
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
 
-      - name: Run tests in Docker worker container
+      - name: Run modelica job tests in Docker worker container
         run: |
-          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m fmu"
+          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m docker tests/jobs/modelica"
+
+      - name: Run openstudio job tests in Docker worker container
+        run: |
+          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m docker tests/jobs/openstudio"
 
       - name: Dump docker logs on failure
         if: failure()
