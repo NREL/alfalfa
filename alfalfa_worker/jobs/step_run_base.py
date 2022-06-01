@@ -72,9 +72,9 @@ class StepRunBase(AlfalfaConnectionsBase, Job):
         return (step_sim_type, step_sim_value, start_datetime, end_datetime)
 
     def exec(self) -> None:
-        self.set_run_status(RunStatus.RUNNING)
         self.init_sim()
         self.setup_points()
+        self.set_run_status(RunStatus.RUNNING)
         if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
             self.logger.info("Running timescale / realtime")
             self.run_timescale()

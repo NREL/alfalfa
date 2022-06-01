@@ -205,6 +205,8 @@ FROM base AS dev
 
 # Install poetry's dev dependencies by removing old lock
 RUN rm -f poetry.lock && \
+    python -m pip install poetry==1.1.12 setuptools==62.1.0 &&\
+    python -m poetry config virtualenvs.create false &&\
     python -m poetry install
 
 # for remote debugging

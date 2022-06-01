@@ -105,6 +105,11 @@ class Job(metaclass=JobMetaclass):
             if self.is_running:
                 self.set_job_status(JobStatus.STOPPING)
                 self.stop()
+            self.set_job_status(JobStatus.VALIDATING)
+            try:
+                self.validate()
+            except AssertionError as e:
+                raise JobExceptionFailedValidation(e)
             self.set_job_status(JobStatus.CLEANING_UP)
             self.cleanup()
             self.set_job_status(JobStatus.STOPPED)
@@ -129,6 +134,10 @@ class Job(metaclass=JobMetaclass):
     def stop(self) -> None:
         """Stop job"""
         self.set_job_status(JobStatus.STOPPING)
+
+    def validate(self) -> None:
+        """Placeholder method for validating a job completed successfully.
+        It is reccommended to validate using assert statements"""
 
     @with_run(return_on_fail=True)
     def cleanup(self) -> None:
@@ -272,8 +281,9 @@ class JobStatus(Enum):
     RUNNING = 2
     WAITING = 4
     STOPPING = 8
-    CLEANING_UP = 9
-    STOPPED = 10
+    VALIDATING = 9
+    CLEANING_UP = 10
+    STOPPED = 11
     ERROR = 63
 
 
@@ -299,3 +309,8 @@ class JobExceptionInvalidRun(JobException):
 class JobExceptionExternalProcess(JobException):
     """Thrown when an external process throws an error.
     ex. E+ can't run idf"""
+
+
+class JobExceptionFailedValidation(JobException):
+    """Throw when the job fails validation for any reason.
+    ex. file that should have been generated was not"""

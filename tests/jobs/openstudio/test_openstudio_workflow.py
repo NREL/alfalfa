@@ -82,6 +82,7 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
         # The above should hold in advance state.
         wait_for_job_status(step_run_job, JobStatus.WAITING)
         updated_dt += datetime.timedelta(minutes=1)
+        print(run.sim_time)
         assert updated_dt == run.sim_time
 
     # -- Advance a single time step

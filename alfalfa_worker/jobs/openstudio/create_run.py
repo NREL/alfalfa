@@ -82,6 +82,13 @@ class CreateRun(Job):
             epw_dst_path = simulation_dir / 'sim.epw'
             rel_symlink(epw_src_path, epw_dst_path)
 
+    def validate(self) -> None:
+        assert (self.dir / 'simulation' / 'sim.idf').exists(), "Idf was not created"
+        assert (self.dir / 'simulation' / 'sim.epw').exists(), "Weather file was not created"
+        assert (self.dir / 'simulation' / 'haystack_report_mapping.json').exists(), "haystack report json was not created"
+        assert (self.dir / 'simulation' / 'variables.cfg').exists(), "variables file was not created"
+        assert (self.dir / 'simulation' / 'haystack_report_haystack.json').exists(), "haystack mappign json was not created"
+
     def cleanup(self) -> None:
         super().cleanup()
         self.set_run_status(RunStatus.READY)

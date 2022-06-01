@@ -38,6 +38,10 @@ class CreateRun(Job):
         self.insert_fmu_tags()
         self.upload_fmu.rename(self.fmu_path)
 
+    def validate(self) -> None:
+        assert (self.dir / 'model.fmu').exists(), "model file not created"
+        assert (self.dir / 'tags.json').exists(), "tags file not created"
+
     def cleanup(self) -> None:
         super().cleanup()
         self.set_run_status(RunStatus.READY)
