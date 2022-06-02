@@ -8,7 +8,11 @@ import pytz
 
 from alfalfa_worker.jobs.openstudio.lib.parse_variables import ParseVariables
 from alfalfa_worker.jobs.step_run_base import StepRunBase
-from alfalfa_worker.lib.job import JobException, message
+from alfalfa_worker.lib.job import (
+    JobException,
+    JobExceptionExternalProcess,
+    message
+)
 from alfalfa_worker.lib.point import Point, PointType
 
 
@@ -55,15 +59,21 @@ class StepRun(StepRunBase):
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
 
-    def seconds_per_time_step(self):
-        return 3600.0 / self.time_steps_per_hour
+        self.mongo_db_recs = self.run_manager.mongo_db.recs
+        self.mongo_db_sims = self.run_manager.mongo_db.sims
+        self.mongo_db_write_arrays = self.run_manager.mongo_db.writearrays
 
-    def check_stop_conditions(self):
-        """Placeholder to check for all stopping conditions"""
+        # Store the site for later use
+        self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
+
+    def time_per_step(self):
+        return timedelta(seconds=3600.0 / self.time_steps_per_hour)
+
+    def check_simulation_stop_conditions(self) -> bool:
         if self.ep.status != 0:
-            self.stop()
+            return True
         if not self.ep.is_running:
-            self.stop()
+            return True
 
     def init_sim(self):
         """
@@ -74,39 +84,13 @@ class StepRun(StepRunBase):
         self.osm_idf_files_prep()
         (self.ep.status, self.ep.msg) = self.ep.start()
         if self.ep.status != 0:
-            self.logger.info('Could not start EnergyPlus: {}'.format(self.ep.msg))
+            raise JobExceptionExternalProcess('Could not start EnergyPlus: {}'.format(self.ep.msg))
 
         [self.ep.status, self.ep.msg] = self.ep.accept_socket()
         if self.ep.status != 0:
-            self.logger.info('Could not connect to EnergyPlus: {}'.format(self.ep.msg))
+            raise JobExceptionExternalProcess('Could not start EnergyPlus: {}'.format(self.ep.msg))
 
         self.set_run_time(self.start_datetime)
-
-    def step_delta_time(self):
-        """
-        Return a timedelta object to represent the real time between steps
-        This is used by the internal clock. Does not apply to the external clock
-        """
-        return timedelta(seconds=(self.seconds_per_time_step() / self.step_sim_value))
-
-    def run_timescale(self):
-        self.advance_to_start_time()
-
-        next_step_time = datetime.now() + self.step_delta_time()
-        while self.is_running:
-
-            self._check_messages()
-
-            current_time = datetime.now()
-            if current_time >= next_step_time:
-                self.step()
-                self.update_db()
-                next_step_time = next_step_time + self.step_delta_time()
-
-    def run_external_clock(self):
-        self.logger.info("run external clock called")
-        self.advance_to_start_time()
-        self.start_message_loop()
 
     def advance_to_start_time(self):
         """ We get near the requested start time by manipulating the idf file,
@@ -399,7 +383,7 @@ class StepRun(StepRunBase):
         name = name.replace("s:", "")
         t = str(datetime.now(tz=pytz.UTC))
         self.mongo_db_sims.insert_one(
-            {"_id": str(uuid4()), "siteRef": self.run.id, "s3Key": f"run/{self.run.id}", "name": name, "timeCompleted": t})
+            {"_id": str(uuid4()), "siteRef": self.run.id, "s3Key": f"runs/{self.run.id}.tar.gz", "name": name, "timeCompleted": t})
         self.mongo_db_recs.update_one({"_id": self.run.id},
                                       {"$set": {"rec.simStatus": "s:Stopped"},
                                           "$unset": {"rec.datetime": "", "rec.step": ""}}, False)

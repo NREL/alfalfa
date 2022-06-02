@@ -178,12 +178,12 @@ class Job(metaclass=JobMetaclass):
         while self.is_running and self.run is not None:
             if timeout is not None and time.time() - start_time > timeout:
                 break
+            self.set_job_status(JobStatus.WAITING)
             self._check_messages()
         self.logger.info("message loop over")
 
     @with_run()
     def _check_messages(self):
-        self.set_job_status(JobStatus.WAITING)
         message = self.redis_pubsub.get_message()
         self.redis.hset(self.run.id, 'control', 'idle')
         # self.logger.info(message)
@@ -312,5 +312,10 @@ class JobExceptionExternalProcess(JobException):
 
 
 class JobExceptionFailedValidation(JobException):
-    """Throw when the job fails validation for any reason.
+    """Thrown when the job fails validation for any reason.
     ex. file that should have been generated was not"""
+
+
+class JobExceptionSimulation(JobException):
+    """Thrown when there is a simulation issue.
+    ex. Simulation falls too far behind in timescale run"""

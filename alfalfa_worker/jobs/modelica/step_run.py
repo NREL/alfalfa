@@ -5,7 +5,7 @@ from uuid import uuid4
 import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
-from alfalfa_worker.lib.job import JobException, message
+from alfalfa_worker.lib.job import message
 from alfalfa_worker.lib.testcase import TestCase
 
 
@@ -21,6 +21,10 @@ class StepRun(StepRunBase):
 
         self.current_datetime = datetime(historian_year, 1, 1, 0, 0, 0) + timedelta(seconds=self.sim_start_time)
         print("current datetime at start of simulation: %", self.current_datetime)
+
+        self.mongo_db_recs = self.run_manager.mongo_db.recs
+        self.mongo_db_sims = self.run_manager.mongo_db.sims
+        self.mongo_db_write_arrays = self.run_manager.mongo_db.writearrays
 
         self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
 
@@ -51,6 +55,9 @@ class StepRun(StepRunBase):
         self.kstep = 0  # todo remove if not used
         self.simtime = self.sim_start_time
         self.set_run_time(self.simtime)
+
+        # Allow model to warm up in first timestep without failing due to falling behind timescale
+        self.first_step_warmup = True
 
         if self.historian_enabled:
             self.logger.info("Historian enabled")
@@ -89,33 +96,8 @@ class StepRun(StepRunBase):
 
         return (outputs_and_ID, id_and_dis, default_input)
 
-    def run_external_clock(self):
-        self.start_message_loop()
-
-    def run_timescale(self):
-        # first step takes extra time and needs to happen outside timescale loop
-        if self.simtime == self.sim_start_time:
-            print("taking first step at ", datetime.now())
-            self.step()
-            print("finished first step at ", datetime.now())
-        current_time = datetime.now()
-        next_step_time = current_time + self.realworld_timedelta
-        print("in run with current time & next_step_time: ", current_time, next_step_time)
-        while self.is_running:
-            current_time = datetime.now()
-
-            self._check_messages()
-
-            if current_time >= next_step_time:
-                self.advance()
-                # sim is not keeping up with target timescale.
-                # TODO rethink arbitrary 60s behind
-                if (current_time > next_step_time + timedelta(seconds=60)):
-                    raise JobException("stopping... simulation got more than 60s behind target timescale")
-
-            # update stop flag from endTime
-            if self.simtime >= self.sim_end_time:
-                self.stop()
+    def time_per_step(self):
+        return timedelta(seconds=self.step_size)
 
     def update_sim_status(self):
         self.simtime = self.tc.final_time
