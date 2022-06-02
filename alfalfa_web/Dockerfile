@@ -1,11 +1,10 @@
-FROM node:16-alpine AS base
+FROM node:16 AS base
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     ca-certificates \
     git \
-    vim
-
-RUN npm install -g npm@latest
+    vim \
+    && rm -rf /var/lib/apt/lists/* \
 
 RUN cd /srv
 WORKDIR /srv/alfalfa

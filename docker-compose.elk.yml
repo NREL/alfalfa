@@ -1,0 +1,84 @@
+# Docker-compose setup for local development with ELK log stack.
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.elk.yml  up
+
+version: "3.4"
+services:
+  elasticsearch-master:
+    container_name: elasticsearch
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
+    environment:
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+      - 9300:9300
+    stdin_open: true
+    tty: true
+  kibana:
+    container_name: kibana
+    restart: always
+    image: kibana:7.17.1
+    environment:
+      - bootstrap.memory_lock=true
+      - ELASTICSEARCH_HOSTS=http://elasticsearch-master:9200
+      - SERVER_HOST=0.0.0.0
+      - NODE_OPTIONS=--max-old-space-size=1800
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch-master
+    stdin_open: true
+    tty: true
+  filebeat:
+    user: root
+    container_name: filebeat
+    restart: always
+    image: docker.elastic.co/beats/filebeat:7.17.1
+    depends_on:
+      - elasticsearch-master
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/overlay2:/var/lib/docker/overlay2
+      - /var/lib/docker:/var/lib/docker
+      - ./elk/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    command: ["--strict.perms=false"]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    stdin_open: true
+    tty: true
+    deploy:
+      mode: global
+  metricbeat:
+    user: root
+    container_name: metricbeat
+    restart: always
+    image: docker.elastic.co/beats/metricbeat:7.17.1
+    depends_on:
+      - elasticsearch-master
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker:/var/lib/docker
+      - ./elk/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+    command: ["--strict.perms=false"]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    stdin_open: true
+    tty: true
+    deploy:
+      mode: global

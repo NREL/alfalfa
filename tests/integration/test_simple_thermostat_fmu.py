@@ -46,7 +46,7 @@ class TestSimpleThermostat(TestCase):
         # See issue https://github.com/NREL/alfalfa/issues/119
         self.alfalfa.advance([self.model_id])
         time = self.alfalfa.get_sim_time(self.model_id)
-        assert float(time) == pytest.approx(300.0)
+        assert float(time) == pytest.approx(60.0)
 
         # Having not set any inputs the fmu will be at the initial state.
         # The control signal output "rea" is at 0.0
@@ -64,7 +64,7 @@ class TestSimpleThermostat(TestCase):
         # so that there is no method to set inputs without advancing
         self.alfalfa.advance([self.model_id])
         time = self.alfalfa.get_sim_time(self.model_id)
-        assert float(time) == pytest.approx(600.0)
+        assert float(time) == pytest.approx(120.0)
 
         # When temperature is over setpoint controller returns 0.0
         outputs = self.alfalfa.outputs(self.model_id)
@@ -76,7 +76,7 @@ class TestSimpleThermostat(TestCase):
 
         self.alfalfa.advance([self.model_id])
         time = self.alfalfa.get_sim_time(self.model_id)
-        assert float(time) == pytest.approx(900.0)
+        assert float(time) == pytest.approx(180.0)
 
         # When temperature is below setpoint controller returns 1.0
         outputs = self.alfalfa.outputs(self.model_id)
@@ -87,7 +87,7 @@ class TestSimpleThermostat(TestCase):
         self.alfalfa.setInputs(self.model_id, {"oveWriActuatorSignal_u": 0.0})
         self.alfalfa.advance([self.model_id])
         time = self.alfalfa.get_sim_time(self.model_id)
-        assert float(time) == pytest.approx(1200.0)
+        assert float(time) == pytest.approx(240.0)
         outputs = self.alfalfa.outputs(self.model_id)
         rea = outputs.get("rea")
         assert rea == pytest.approx(0.0)

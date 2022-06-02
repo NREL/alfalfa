@@ -1,4 +1,4 @@
-FROM ubuntu:18.04 AS base
+FROM ubuntu:20.04 AS base
 
 USER root
 
@@ -12,78 +12,78 @@ ENV BUILD_DIR $HOME/build
 
 WORKDIR /home/alfalfa
 
-RUN apt-get update -y && apt-get install -y \
-        ca-certificates \
-        curl \
-        libglu1 \
-        libjpeg8 \
-        libfreetype6 \
-        libxi6 \
-        libdbus-glib-1-2 \
-        libfontconfig1 \
-        libsm6 \
-        gdebi-core \
-        python3 \
-        python3-pip \
-        python3-dev \
-        vim \
-        liblapack-dev \
-        build-essential \
-        gfortran \
-        libgfortran3 \
-        wget \
-        cmake \
-        libopenmpi-dev \
-        git && \
-    apt-get install -y git
+# Until we can support E+ 22.1.0 we need to install python 3.7 (thus deadsnakes/ppa)
+# This step should probably be connected tot he next one, but due to the nature of NREL's
+# firewall this step must be run off VPN. This way you don't need to log off everytime you
+# update apt packaged, at least.
+RUN apt-get update \
+    && apt install -y software-properties-common \
+    && add-apt-repository ppa:openjdk-r/ppa \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN ln -sf /usr/bin/python3 /usr/bin/python && \
-    ln -sf /usr/bin/pip3 /usr/bin/pip
+RUN apt-get update \
+    && apt-get install -y \
+    ca-certificates \
+    curl \
+    gdebi-core \
+    vim \
+    wget \
+    git \
+    openjdk-8-jdk-headless \
+    liblapack-dev \
+    gfortran \
+    libgfortran4 \
+    cmake \
+    python3.7-dev \
+    python3.7 \
+    python3.7-distutils \
+    python3-pip \
+    libblas-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Use set in update-alternatives instead of config to
 # provide non-interactive input.
-RUN apt-get update \
-    && apt-get install -y software-properties-common \
-    && add-apt-repository -y ppa:openjdk-r/ppa \
-    && apt-get update -y \
-    && apt-get install -y openjdk-8-jdk-headless \
-    && update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java \
+RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java \
     && update-alternatives --set javac /usr/lib/jvm/java-8-openjdk-amd64/bin/javac \
     && curl -SLO http://openstudio-resources.s3.amazonaws.com/bcvtb-linux.tar.gz \
     && tar -xzf bcvtb-linux.tar.gz \
-    && apt-get install -y ca-certificates nodejs
+    && rm bcvtb-linux.tar.gz
 
 WORKDIR $BUILD_DIR
 
-ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.1.0+e165090621-Linux.deb
-ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.1.0/OpenStudio-3.1.0+e165090621-Linux.deb
+ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
+ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.3.0/OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 
-ENV ENERGYPLUS_VERSION 9.4.0
-ENV ENERGYPLUS_TAG v9.4.0
-ENV ENERGYPLUS_SHA 998c4b761e
+ENV ENERGYPLUS_VERSION 9.6.0
+ENV ENERGYPLUS_TAG v9.6.0
+ENV ENERGYPLUS_SHA f420c06a69
+ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-4-0
 
 # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
 # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
 # might be revaluated
 ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/NREL/EnergyPlus/releases/download/$ENERGYPLUS_TAG
-ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-Ubuntu18.04-x86_64.tar.gz
+ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-Ubuntu20.04-x86_64.tar.gz
 ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
 
 # We would rather use the self extracting tarball distribution of EnergyPlus, but there appears to
 # be a bug in the installation script so using the tar.gz manually here and making our own links
 RUN curl -SLO $ENERGYPLUS_DOWNLOAD_URL \
-    && mkdir /usr/local/EnergyPlus-9-4-0 \
-    && tar -C /usr/local/EnergyPlus-9-4-0/ --strip-components=1 -xzf $ENERGYPLUS_DOWNLOAD_FILENAME \
-    && ln -s /usr/local/EnergyPlus-9-4-0/energyplus /usr/local/bin/ \
-    && ln -s /usr/local/EnergyPlus-9-4-0/ExpandObjects /usr/local/bin/ \
-    && ln -s /usr/local/EnergyPlus-9-4-0/runenergyplus /usr/local/bin/ \
+    && mkdir $ENERGYPLUS_DIR \
+    && tar -C $ENERGYPLUS_DIR/ --strip-components=1 -xzf $ENERGYPLUS_DOWNLOAD_FILENAME \
+    && ln -s $ENERGYPLUS_DIR/energyplus /usr/local/bin/ \
+    && ln -s $ENERGYPLUS_DIR/ExpandObjects /usr/local/bin/ \
+    && ln -s $ENERGYPLUS_DIR/runenergyplus /usr/local/bin/ \
     && rm $ENERGYPLUS_DOWNLOAD_FILENAME
 
-ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-4-0
 
 RUN curl -SLO $OPENSTUDIO_DOWNLOAD_URL \
     && gdebi -n $OPENSTUDIO_DOWNLOAD_FILENAME \
-    && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME
+    && rm -f $OPENSTUDIO_DOWNLOAD_FILENAME \
+    && cd /usr/local/openstudio* \
+    && rm -rf EnergyPlus \
+    && ln -s $ENERGYPLUS_DIR EnergyPlus
 
 # Install commands for Spawn
 ENV SPAWN_VERSION=0.3.0-69040695f9
@@ -104,11 +104,15 @@ ENV ASSIMULO_TAG Assimulo-3.2.9
 
 ENV PYFMI_TAG PyFMI-2.9.5
 
-ENV OPENBLAS_TAG v0.3.20
-ENV OPENBLAS_HOME $ROOT_DIR
-
 ENV SUPERLU_HOME $ROOT_DIR/SuperLU_MT_3.1
 
+# Modelica requires libgfortran3 which is not in apt for 20.04
+RUN wget http://archive.ubuntu.com/ubuntu/pool/universe/g/gcc-6/gcc-6-base_6.4.0-17ubuntu1_amd64.deb \
+    && wget http://archive.ubuntu.com/ubuntu/pool/universe/g/gcc-6/libgfortran3_6.4.0-17ubuntu1_amd64.deb \
+    && dpkg -i gcc-6-base_6.4.0-17ubuntu1_amd64.deb \
+    && dpkg -i libgfortran3_6.4.0-17ubuntu1_amd64.deb \
+    && ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6 \
+    && rm *.deb
 
 # Build FMI Library (for PyFMI)
 RUN git clone --branch $FMIL_TAG --depth 1 https://github.com/modelon-community/fmi-library.git \
@@ -116,18 +120,10 @@ RUN git clone --branch $FMIL_TAG --depth 1 https://github.com/modelon-community/
     && mkdir fmil_build \
     && cd fmil_build \
     && cmake -DFMILIB_INSTALL_PREFIX=$FMIL_HOME ../fmi-library \
-    && make install
-
-ENV LD_LIBRARY_PATH $ROOT_DIR/lib:/home/alfalfa/build/SuperLU_MT_3.1/lib:$LD_LIBRARY_PATH
-
-# Build OpenBLAS (provides BLAS for Assimulo)
-RUN git clone --branch $OPENBLAS_TAG --depth 1 https://github.com/xianyi/OpenBLAS.git \
-    && cd OpenBLAS \
-    && make \
-    && make PREFIX=$OPENBLAS_HOME install
+    && make install \
+    && cd .. && rm -rf fmi-library fmil_build
 
 # Build SuperLU (groan)
-RUN apt install -y libatlas-base-dev liblapack-dev libopenmpi-dev libsuitesparse-dev csh
 COPY alfalfa_worker/build/make.inc $BUILD_DIR
 
 RUN cd $ROOT_DIR \
@@ -137,6 +133,8 @@ RUN cd $ROOT_DIR \
     && rm make.inc \
     && cp $BUILD_DIR/make.inc make.inc \
     && make lib
+
+ENV LD_LIBRARY_PATH $ROOT_DIR/lib:$SUPERLU_HOME/lib:$LD_LIBRARY_PATH
 
 # Build Sundials with SuperLU(for Assimulo)
 RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.git \
@@ -152,38 +150,38 @@ RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.
     -DSUPERLUMT_INCLUDE_DIR=$SUPERLU_HOME/SRC \
     -DSUPERLUMT_LIBRARY_DIR=$SUPERLU_HOME/lib \
     -DSUPERLUMT_LIBRARIES='-lblas' \
-    -DCMAKE_CXX_FLAGS='-fPIC' \
-    -DCMAKE_C_FLAGS='-fPIC' \
     && make \
-    && make install
+    && make install \
+    && cd .. && rm -rf sundials sundials_build
 
 COPY pyproject.toml $BUILD_DIR
 COPY poetry.lock $BUILD_DIR
 
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
-RUN  pip3 install --upgrade pip setuptools && \
-     pip3 install poetry==1.1.12 && \
-     python3 -m poetry config virtualenvs.create false && \
-     python3 -m poetry install --no-dev
+RUN ln -sf /usr/bin/python3.7 /usr/bin/python \
+    && ln -sf /usr/bin/python3.7 /usr/bin/python3 \
+    && ln -sf /usr/bin/pip3 /usr/bin/pip \
+    && python -m pip install poetry==1.1.12 setuptools==62.1.0 \
+    && python -m poetry config virtualenvs.create false \
+    && python -m poetry install --no-dev
+
+# This is required for Assimulo to build correctly with setuptools 60+
+ENV SETUPTOOLS_USE_DISTUTILS stdlib
 
 RUN git clone --branch $ASSIMULO_TAG --depth 1 https://github.com/modelon-community/Assimulo.git \
      && cd Assimulo \
-     && python3 setup.py install \
+     && python setup.py install \
      --sundials-home=$SUNDIALS_HOME \
-     --blas-home=$OPENBLAS_HOME/lib \
-     --blas-name=openblas \
-     --lapack-home=$OPENBLAS_HOME/lib \
+     --blas-home=/usr/lib/x86_64-linux-gnu \
+     --lapack-home=/usr/lib/x86_64-linux-gnu/lapack/ \
      --superlu-home=$SUPERLU_HOME \
-     --extra-c-flags="-fPIC"
-
+     && cd .. && rm -rf Assimulo
 
 # Install PyFMI
 RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community/PyFMI.git \
     && cd PyFMI \
-    && python setup.py install
-
-# Clean up builds
-RUN rm -rf $BUILD_DIR
+    && python setup.py install \
+    && cd .. && rm -rf PyFMI
 
 WORKDIR /alfalfa
 # Include the path to where alfalfa_worker is so that system calls can find it.
@@ -226,7 +224,7 @@ RUN pip install watchdog[watchmedo]
 CMD ["watchmedo", "auto-restart", "--directory=/alfalfa/alfalfa_worker/worker_openstudio", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
 
 # **** Image with just OpenStudio and EnergyPlus ****
-FROM ubuntu:18.04 AS alfalfa-openstudio
+FROM ubuntu:20.04 AS alfalfa-openstudio
 COPY --from=base /usr/local/EnergyPlus-9-4-0 /usr/local/EnergyPlus-9-4-0
 # This is a WIP, need to decide how where the base libraries go because ./energyplus requires
 # several libraries to already be installed on the core OS
