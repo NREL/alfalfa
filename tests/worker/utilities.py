@@ -17,7 +17,7 @@ def send_message(job: Job, method: str, params: Dict = {}):
     return message_id
 
 
-def send_message_and_wait(job: Job, method: str, params: Dict = {}, timeout=5):
+def send_message_and_wait(job: Job, method: str, params: Dict = {}, timeout=20):
     redis = job.redis
     run_id = job.run.id
 
@@ -32,7 +32,7 @@ def send_message_and_wait(job: Job, method: str, params: Dict = {}, timeout=5):
     assert False, f"No response to message of method {method}"
 
 
-def wait_for_job_status(job: Job, desired_status: JobStatus, timeout: int = 10):
+def wait_for_job_status(job: Job, desired_status: JobStatus, timeout: int = 20):
     start_time = time.time()
     while timeout > time.time() - start_time:
         if job.status == desired_status:
@@ -41,7 +41,7 @@ def wait_for_job_status(job: Job, desired_status: JobStatus, timeout: int = 10):
     assert False, f"Desired Job Status: {desired_status} not reached. Current Status: {job.status}"
 
 
-def wait_for_run_status(run: Run, desired_status: RunStatus, timeout: int = 10):
+def wait_for_run_status(run: Run, desired_status: RunStatus, timeout: int = 20):
     start_time = time.time()
     while timeout > time.time() - start_time:
         if run.status == desired_status:
