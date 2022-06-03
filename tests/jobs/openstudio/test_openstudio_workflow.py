@@ -41,7 +41,6 @@ def test_simple_internal_clock(mock_dispatcher: MockDispatcher, model_path: Path
     wait_for_job_status(step_run_job, JobStatus.RUNNING)
     wait_for_run_status(run, RunStatus.RUNNING)
 
-    wait_for_job_status(step_run_job, JobStatus.WAITING)
     send_message_and_wait(step_run_job, 'stop', timeout=20)
     wait_for_job_status(step_run_job, JobStatus.STOPPED)
     wait_for_run_status(run, RunStatus.COMPLETE)
