@@ -121,7 +121,7 @@ class Job(metaclass=JobMetaclass):
         except Exception as e:
             self.logger.error(e, exc_info=True)
             self.logger.error(str(traceback.format_exc()))
-            self.record_run_error(traceback.format_exception(e))
+            self.record_run_error(traceback.format_exc())
             self.set_job_status(JobStatus.ERROR)
 
     def exec(self) -> None:
