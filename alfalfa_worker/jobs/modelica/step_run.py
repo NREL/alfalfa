@@ -22,9 +22,7 @@ class StepRun(StepRunBase):
         self.current_datetime = datetime(historian_year, 1, 1, 0, 0, 0) + timedelta(seconds=self.sim_start_time)
         print("current datetime at start of simulation: %", self.current_datetime)
 
-        self.mongo_db_recs = self.run_manager.mongo_db.recs
-        self.mongo_db_sims = self.run_manager.mongo_db.sims
-        self.mongo_db_write_arrays = self.run_manager.mongo_db.writearrays
+        self.setup_connections()
 
         self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
 

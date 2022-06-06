@@ -1,6 +1,8 @@
 import datetime
 import os
 
+from influxdb import InfluxDBClient
+
 from alfalfa_worker.lib.job import (
     Job,
     JobException,
@@ -155,6 +157,23 @@ class StepRunBase(Job):
 
     def setup_points(self):
         """Placeholder for setting up points for I/O"""
+
+    def setup_connections(self):
+        """Placeholder until all db/connections operations can be completely moved out of the job"""
+        self.mongo_db_recs = self.run_manager.mongo_db.recs
+        self.mongo_db_sims = self.run_manager.mongo_db.sims
+        self.mongo_db_write_arrays = self.run_manager.mongo_db.writearrays
+
+        # InfluxDB
+        self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
+        if self.historian_enabled:
+            self.influx_db_name = os.environ['INFLUXDB_DB']
+            self.influx_client = InfluxDBClient(host=os.environ['INFLUXDB_HOST'],
+                                                username=os.environ['INFLUXDB_ADMIN_USER'],
+                                                password=os.environ['INFLUXDB_ADMIN_PASSWORD'])
+        else:
+            self.influx_db_name = None
+            self.influx_client = None
 
     @message
     def advance(self) -> None:
