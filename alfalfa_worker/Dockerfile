@@ -165,6 +165,9 @@ RUN ln -sf /usr/bin/python3.7 /usr/bin/python \
     && python -m poetry config virtualenvs.create false \
     && python -m poetry install --no-dev
 
+# TODO move into pyproject.toml - this is currently not working w/poetry.
+RUN pip install pysindy sklearn CoolProp
+
 # This is required for Assimulo to build correctly with setuptools 60+
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
 
