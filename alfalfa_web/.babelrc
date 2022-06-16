@@ -4,11 +4,6 @@
     "noClassCalls": true
   },
   "comments": false,
-  "env": {
-    "production": {
-      "presets": ["minify"]
-    }
-  },
   "plugins": ["@babel/plugin-proposal-class-properties"],
   "presets": [
     "@babel/preset-react",
@@ -18,6 +13,7 @@
         "corejs": "3.21",
         "useBuiltIns": "usage"
       }
-    ]
+    ],
+    "minify"
   ]
 }

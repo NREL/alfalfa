@@ -4,9 +4,8 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     git \
     vim \
-    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN cd /srv
 WORKDIR /srv/alfalfa
 
 COPY alfalfa_web/package.json alfalfa_web/package-lock.json /srv/alfalfa/
