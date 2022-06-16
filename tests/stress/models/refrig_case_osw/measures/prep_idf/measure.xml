@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>prepare_idf</name>
+  <uid>28ad6cb2-e1e3-4f7c-82ab-8ef22aca2c39</uid>
+  <version_id>6e75d5c3-39ee-45ba-b7f1-d5c57722c3c7</version_id>
+  <version_modified>20201216T214230Z</version_modified>
+  <xml_checksum>9D2F1A23</xml_checksum>
+  <class_name>PrepareIDF</class_name>
+  <display_name>Prepare IDF</display_name>
+  <description>Add python script path to IDF</description>
+  <modeler_description>Add python script path to IDF</modeler_description>
+  <arguments>
+    <argument>
+      <name>py_name</name>
+      <display_name>Python File Name</display_name>
+      <description>Name of the python script without the extension</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>main</default_value>
+    </argument>
+  </arguments>
+  <outputs />
+  <provenances />
+  <tags />
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>EnergyPlusMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.3.0</identifier>
+        <min_compatible>2.3.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>0D590B51</checksum>
+    </file>
+  </files>
+</measure>
