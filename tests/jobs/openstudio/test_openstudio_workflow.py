@@ -20,8 +20,6 @@ def test_simple_internal_clock(mock_dispatcher: MockDispatcher, model_path: Path
 
     create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.CreateRun", {'upload_id': upload_id, 'model_name': model_name})
     run = create_run_job.run
-    wait_for_job_status(create_run_job, JobStatus.RUNNING)
-    wait_for_run_status(run, RunStatus.PREPROCESSING)
 
     wait_for_job_status(create_run_job, JobStatus.STOPPED)
     wait_for_run_status(run, RunStatus.READY)

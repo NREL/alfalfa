@@ -220,7 +220,7 @@ RUN pip install watchdog[watchmedo]
 
 # Enable the ability to restart the service when
 # the files change
-CMD ["watchmedo", "auto-restart", "--directory=/alfalfa/alfalfa_worker", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
+CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
 
 # **** Image with just OpenStudio and EnergyPlus ****
 FROM ubuntu:20.04 AS alfalfa-openstudio
