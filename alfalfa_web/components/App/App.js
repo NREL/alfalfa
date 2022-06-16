@@ -23,21 +23,21 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import LuxonUtils from "@date-io/luxon";
-import AppBar from "@material-ui/core/AppBar";
-import Grid from "@material-ui/core/Grid";
-import { withStyles } from "@material-ui/core/styles";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import AdapterLuxon from "@mui/lab/AdapterLuxon";
+import LocalizationProvider from "@mui/lab/LocalizationProvider";
+import { AppBar, Grid, Toolbar, Typography } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { withStyles } from "@mui/styles";
 import PropTypes from "prop-types";
 import React from "react";
-import { Link, Route, Switch } from "react-router-dom";
-import Sims from "../Sims/Sims.js";
-import Sites from "../Sites/Sites.js";
-import Upload from "../Upload/Upload.js";
+import { Link, Route, Routes } from "react-router-dom";
+import Sims from "../Sims/Sims";
+import Sites from "../Sites/Sites";
+import Upload from "../Upload/Upload";
 
-const styles = (theme) => ({
+const theme = createTheme();
+
+const styles = {
   root: {
     display: "flex",
     flexDirection: "column",
@@ -49,47 +49,49 @@ const styles = (theme) => ({
   button: {
     margin: theme.spacing(1)
   }
-});
+};
 
 class App extends React.Component {
   render = () => {
     const { classes } = this.props;
 
     return (
-      <MuiPickersUtilsProvider utils={LuxonUtils}>
-        <div className={this.props.classes.root}>
-          <AppBar position="static">
-            <Toolbar>
-              <Link to={"/"} className={this.props.classes.title} style={{ textDecoration: "none", color: "unset" }}>
-                <Typography variant="h5" color="inherit">
-                  Alfalfa
-                </Typography>
-              </Link>
-              <Grid container justify="flex-end">
-                <Grid item>
-                  <Link to={"/sites"} style={{ textDecoration: "none", color: "unset" }}>
-                    <Typography className={classes.button} variant="button" color="inherit">
-                      Models
-                    </Typography>
-                  </Link>
+      <ThemeProvider theme={theme}>
+        <LocalizationProvider dateAdapter={AdapterLuxon}>
+          <div className={this.props.classes.root}>
+            <AppBar position="static">
+              <Toolbar>
+                <Link to={"/"} className={this.props.classes.title} style={{ textDecoration: "none", color: "unset" }}>
+                  <Typography variant="h5" color="inherit">
+                    Alfalfa
+                  </Typography>
+                </Link>
+                <Grid container justifyContent="flex-end" spacing={2}>
+                  <Grid item>
+                    <Link to={"/sites"} style={{ textDecoration: "none", color: "unset" }}>
+                      <Typography className={classes.button} variant="button" color="inherit">
+                        Models
+                      </Typography>
+                    </Link>
+                  </Grid>
+                  <Grid item>
+                    <Link to={"/sims"} style={{ textDecoration: "none", color: "unset" }}>
+                      <Typography className={classes.button} variant="button" color="inherit">
+                        Completed-Simulations
+                      </Typography>
+                    </Link>
+                  </Grid>
                 </Grid>
-                <Grid item>
-                  <Link to={"/sims"} style={{ textDecoration: "none", color: "unset" }}>
-                    <Typography className={classes.button} variant="button" color="inherit">
-                      Completed-Simulations
-                    </Typography>
-                  </Link>
-                </Grid>
-              </Grid>
-            </Toolbar>
-          </AppBar>
-          <Switch>
-            <Route path="/sites" component={Sites} />
-            <Route path="/sims" component={Sims} />
-            <Route component={Upload} />
-          </Switch>
-        </div>
-      </MuiPickersUtilsProvider>
+              </Toolbar>
+            </AppBar>
+            <Routes>
+              <Route path="/" element={<Upload />} />
+              <Route path="sims" element={<Sims />} />
+              <Route path="sites" element={<Sites />} />
+            </Routes>
+          </div>
+        </LocalizationProvider>
+      </ThemeProvider>
     );
   };
 }

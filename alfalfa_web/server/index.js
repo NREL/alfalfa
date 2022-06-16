@@ -27,7 +27,7 @@ import AWS from "aws-sdk";
 import bodyParser from "body-parser";
 import historyApiFallback from "connect-history-api-fallback";
 import express from "express";
-import graphQLHTTP from "express-graphql";
+import { graphqlHTTP } from "express-graphql";
 import { MongoClient } from "mongodb";
 import morgan from "morgan";
 import path from "path";
@@ -35,7 +35,7 @@ import node_redis from "redis";
 import url from "url";
 import { Advancer } from "./advancer";
 import alfalfaServer from "./alfalfa-server";
-import { Schema } from "./schema";
+import { schema } from "./schema";
 
 const client = new AWS.S3({ endpoint: process.env.S3_URL });
 
@@ -71,10 +71,10 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
     app.locals.alfalfaServer = new alfalfaServer(db, redis, pub, sub);
 
     app.use("/graphql", (request, response) => {
-      return graphQLHTTP({
+      return graphqlHTTP({
         graphiql: true,
         pretty: true,
-        schema: Schema,
+        schema,
         context: {
           ...request,
           db,
