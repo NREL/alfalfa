@@ -290,7 +290,7 @@ const mutationType = new GraphQLObjectType({
   })
 });
 
-export const Schema = new GraphQLSchema({
+export const schema = new GraphQLSchema({
   query: queryType,
   // Uncomment the following after adding some mutation fields:
   mutation: mutationType
