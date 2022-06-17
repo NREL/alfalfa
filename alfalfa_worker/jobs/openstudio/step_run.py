@@ -359,7 +359,6 @@ class StepRun(StepRunBase):
             if input_index == -1:
                 self.logger.error('bad input index for: %s' % input_id)
             else:
-                self.logger.info(f'input point: {input_id}')
                 dis = self.variables.get_haystack_dis_given_id(input_id)
                 point = Point(input_id, dis, PointType.INPUT)
                 points.append(point)
@@ -368,7 +367,7 @@ class StepRun(StepRunBase):
 
     @message
     def advance(self):
-        self.logger.info("advance called")
+        self.logger.info(f"advance called at time {self.get_energyplus_datetime()}")
         self.step()
         self.update_db()
 

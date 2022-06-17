@@ -169,8 +169,6 @@ class RunManager(LoggerMixinBase):
                 'val': point.val
             }
             array_to_insert.append(point_dict)
-            self.logger.info(f"point key: {point.key}")
-            # self.logger.info(point_dict)
 
         response = self.mongo_db_points.insert_many(array_to_insert)
         run.points = points
