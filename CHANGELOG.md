@@ -1,3 +1,7 @@
+## Alfalfa Version 0.2.0 (Unreleased)
+
+- <Fill out change log>
+
 ## Alfalfa Version 0.1.0
 
 EnergyPlus Version: 9.4.0
