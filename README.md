@@ -8,7 +8,7 @@ Documentation resides in the [GitHub wiki](https://github.com/NREL/alfalfa/wiki)
 
 ## Developer Documentation
 
-We are currently working on increasing our developer documentation. See how to run the tests on the [GitHub wiki](https://github.com/NREL/alfalfa/wiki/Running-Tests). For realeasing, see the wiki's [release instructions](https://github.com/NREL/alfalfa/wiki/Release-Instructions).
+We are currently working on increasing our developer documentation. See how to run the tests on the [GitHub wiki](https://github.com/NREL/alfalfa/wiki/Running-Tests). For releasing, see the wiki's [release instructions](https://github.com/NREL/alfalfa/wiki/Release-Instructions).
 
 # Related Repositories
 
