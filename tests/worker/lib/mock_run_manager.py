@@ -54,7 +54,7 @@ class MockRunManager(RunManager, LoggerMixinBase):
         model_path = Path(model_path)
         upload_path = self.s3_dir / 'uploads' / upload_id
         upload_path.mkdir()
-        if model_path.is_dir:
+        if model_path.is_dir():
             archive_name = model_path.name + '.zip'
             upload_path = upload_path / archive_name
             archive_path = shutil.make_archive(archive_name, 'zip', model_path)
