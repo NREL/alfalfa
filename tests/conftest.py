@@ -8,6 +8,7 @@
 """
 
 
+import threading
 from pathlib import Path
 
 import pytest
@@ -34,3 +35,15 @@ def mock_dispatcher(tmp_path: Path):
     Use for running regular jobs in Docker"""
     dispatcher = MockDispatcher(tmp_path)
     yield dispatcher
+
+
+@pytest.fixture(autouse=True)
+def stop_threads():
+    """Automatically terminate threads that test started after test completes"""
+    yield
+    all_child_threads = [thread for thread in threading.enumerate() if thread != threading.main_thread()]
+    for thread in all_child_threads:
+        try:
+            thread.daemon = True
+        except RuntimeError:
+            pass
