@@ -25,6 +25,7 @@
 
 import AWS from "aws-sdk";
 import path from "path";
+import { cursorTo } from "readline";
 import request from "superagent";
 import dbops from "./dbops";
 
@@ -33,11 +34,16 @@ const sqs = new AWS.SQS();
 const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 function addSiteResolver(modelName, uploadID) {
+  var job = "alfalfa_worker.jobs.openstudio.CreateRun";
+  if (modelName.endsWith(".fmu")) {
+    job = "alfalfa_worker.jobs.modelica.CreateRun";
+  }
   const params = {
-    MessageBody: `{"op": "InvokeAction",
-      "action": "addSite",
-      "model_name": "${modelName}",
-      "upload_id": "${uploadID}"
+    MessageBody: `{"job": "${job}",
+      "params": {
+        "model_name": "${modelName}",
+        "upload_id": "${uploadID}"
+      }
     }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
     MessageGroupId: "Alfalfa"
@@ -51,19 +57,25 @@ function addSiteResolver(modelName, uploadID) {
   });
 }
 
-function runSimResolver(uploadFilename, uploadID, context) {
+function runSimResolver(modelName, uploadID) {
+  var job = "alfalfa_worker.jobs.openstudio.AnnualRun";
+  if (modelName.endsWith(".fmu")) {
+    job = "alfalfa_worker.jobs.modelica.AnnualRun";
+  }
   const params = {
-    MessageBody: `{"op": "InvokeAction",
-    "action": "runSim",
-    "upload_filename": "${uploadFilename}",
-    "upload_id": "${uploadID}"
-   }`,
+    MessageBody: `{"job": "${job}",
+      "params": {
+        "model_name": "${modelName}",
+        "upload_id": "${uploadID}"
+      }
+    }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
     MessageGroupId: "Alfalfa"
   };
 
   sqs.sendMessage(params, (err, data) => {
     if (err) {
+      console.log(err);
       callback(err);
     } else {
       const simCollection = context.db.collection("sims");
@@ -71,13 +83,13 @@ function runSimResolver(uploadFilename, uploadID, context) {
         _id: uploadID,
         siteRef: uploadID,
         simStatus: "Queued",
-        name: path.parse(uploadFilename).name.replace(".tar", "")
+        name: path.parse(modelName).name.replace(".tar", "")
       });
     }
   });
 }
 
-function runSiteResolver(args) {
+function runSiteResolver(args, context) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //  startDatetime : { type: GraphQLString },
@@ -86,52 +98,32 @@ function runSiteResolver(args) {
   //  realtime : { type: GraphQLBoolean },
   //  externalClock : { type: GraphQLBoolean },
   //},
-  console.log("args: ", args);
-  return new Promise((resolve, reject) => {
-    request
-      .post("/api/invokeAction")
-      .set("Accept", "application/json")
-      .set("Content-Type", "application/json")
-      .send({
-        meta: {
-          ver: "2.0",
-          id: `r:${args.siteRef}`,
-          action: "s:runSite"
-        },
-        cols: [
-          {
-            name: "timescale"
-          },
-          {
-            name: "startDatetime"
-          },
-          {
-            name: "endDatetime"
-          },
-          {
-            name: "realtime"
-          },
-          {
-            name: "externalClock"
-          }
-        ],
-        rows: [
-          {
-            timescale: `s:${args.timescale}`,
-            startDatetime: `s:${args.startDatetime}`,
-            endDatetime: `s:${args.endDatetime}`,
-            realtime: `s:${args.realtime}`,
-            externalClock: `s:${args.externalClock}`
-          }
-        ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res.body);
+  const runs = context.db.collection("runs");
+  runs.findOne({ _id: args.siteRef }).then((doc) => {
+    var job = "alfalfa_worker.jobs.openstudio.StepRun";
+    if (doc.sim_type == "MODELICA") {
+      job = "alfalfa_worker.jobs.modelica.StepRun";
+    }
+    const params = {
+      MessageBody: `{"job": "${job}",
+        "params": {
+          "run_id": "${args.siteRef}",
+          "timescale": "${args.timescale}",
+          "start_datetime": "${args.startDatetime}",
+          "end_datetime": "${args.endDatetime}",
+          "realtime": "${args.realtime}",
+          "external_clock": "${args.externalClock}"
         }
-      });
+      }`,
+      QueueUrl: process.env.JOB_QUEUE_URL,
+      MessageGroupId: "Alfalfa"
+    };
+    sqs.sendMessage(params, (err, data) => {
+      if (err) {
+        console.log(err);
+        callback(err);
+      }
+    });
   });
 }
 
@@ -232,11 +224,46 @@ function simsResolver(user, args, context) {
   });
 }
 
-function sitesResolver(user, siteRef) {
+function runResolver(user, run_id, context) {
+  return new Promise((resolve, reject) => {
+    const runs = context.db.collection("runs");
+    console.log(run_id);
+    runs
+      .findOne({ _id: run_id })
+      .then((doc) => {
+        let run = {
+          id: run_id,
+          sim_type: doc.sim_type,
+          status: doc.status,
+          created: doc.created,
+          modified: doc.modified,
+          sim_time: doc.sim_time,
+          error_log: doc.error_log
+        };
+        console.log(doc.status);
+        resolve(run);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+}
+
+async function sitesResolver(user, siteRef, context) {
   let filter = "s:site";
   if (siteRef) {
     filter = `${filter} and id==@${siteRef}`;
   }
+  const runs = context.db.collection("runs");
+  const cursor = runs.find();
+  var run_dict = {};
+  cursor.each(function (err, item) {
+    if (item == null) {
+      return;
+    }
+    run_dict[item._id] = item;
+  });
+
   return new Promise((resolve, reject) => {
     let sites = [];
     request
@@ -268,12 +295,10 @@ function sitesResolver(user, siteRef) {
               simStatus: row.simStatus.replace(/[a-z]:/, ""),
               simType: row.simType.replace(/[a-z]:/, "")
             };
-            let datetime = row["datetime"];
-            if (datetime) {
-              datetime = datetime.replace(/[a-z]:/, "");
-              site.datetime = datetime;
+            if (site.siteRef in run_dict) {
+              site.simStatus = run_dict[site.siteRef]["status"];
+              site.datetime = run_dict[site.siteRef]["sim_time"];
             }
-
             let step = row["step"];
             if (step) {
               step = step.replace(/[a-z]:/, "");
@@ -344,6 +369,7 @@ module.exports = {
   stopSiteResolver,
   removeSiteResolver,
   sitePointResolver,
+  runResolver,
   simsResolver,
   advanceResolver,
   writePointResolver

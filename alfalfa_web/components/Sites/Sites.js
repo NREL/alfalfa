@@ -104,16 +104,22 @@ class Sites extends React.Component {
   };
 
   isStartButtonDisabled = () => {
-    const stoppedItem = this.selectedSites().some((item) => {
-      return item.simStatus === "Stopped";
+    const readyItem = this.selectedSites().some((item) => {
+      return item.simStatus === "READY";
     });
 
-    return !stoppedItem;
+    return !readyItem;
   };
 
   isStopButtonDisabled = () => {
     const runningItem = this.selectedSites().some((item) => {
-      return item.simStatus === "Running";
+      return (
+        item.simStatus === "RUNNING" ||
+        item.simStatus == "PREPROCESSING" ||
+        item.simStatus == "STARTING" ||
+        item.simStatus == "STARTED" ||
+        item.simStatus == "STOPPING"
+      );
     });
 
     return !runningItem;
@@ -121,7 +127,7 @@ class Sites extends React.Component {
 
   isRemoveButtonDisabled = () => {
     const stoppedItem = this.selectedSites().some((item) => {
-      return item.simStatus === "Stopped";
+      return item.simStatus === "READY" || item.simStatus == "COMPLETE" || item.simStatus == "ERROR";
     });
 
     return !stoppedItem;

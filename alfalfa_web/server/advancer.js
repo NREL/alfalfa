@@ -1,3 +1,4 @@
+import { v1 as uuidv1 } from "uuid";
 class Advancer {
   // This class pertains to advancing a simulation.
   //
@@ -55,14 +56,25 @@ class Advancer {
           };
 
           this.sub.subscribe(channel);
-          this.pub.publish(channel, "advance");
+          var message_id = uuidv1();
+          this.pub.publish(channel, JSON.stringify({ message_id: message_id, method: "advance" }));
 
           // This is a failsafe if for some reason we miss a notification
           // that the step is complete
           // Check if the simulation has gone back to idle
           let intervalCounts = 0;
           interval = setInterval(() => {
-            const control = this.redis.hget(siteref, "control");
+            const control = this.redis.hget(siteref, "control"); // I think this doesn't work... see below for how to get values from redis
+            this.redis.hget(siteref, message_id, (error, value) => {
+              if (!value) {
+                return;
+              }
+              if (JSON.parse(value)["status"] == "ok") {
+                finalize(true, value);
+              } else {
+                finalize(false, value);
+              }
+            });
             if (control === "idle") {
               // If the control state is idle, then assume the step has been made
               // and resolve the advance promise, this might happen if we miss the notification for some reason

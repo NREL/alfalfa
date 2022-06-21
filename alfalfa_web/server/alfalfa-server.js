@@ -594,7 +594,7 @@ class AlfalfaServer extends HServer {
     } else if (action === "stopSite") {
       const siteRef = rec.id().val;
       this.mrecs.updateOne({ _id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
-        this.pub.publish(siteRef, "stop");
+        this.pub.publish(siteRef, JSON.stringify({ message_id: uuidv1(), method: "stop" }));
       });
       callback(null, HGrid.EMPTY);
     } else if (action === "removeSite") {

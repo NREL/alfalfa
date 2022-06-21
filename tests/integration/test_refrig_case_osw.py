@@ -7,6 +7,7 @@ from unittest import TestCase
 
 import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
+from alfalfa_client.lib import AlfalfaException
 
 
 # Consider factoring this out of the test file
@@ -30,12 +31,19 @@ def create_zip(model_dir):
 @pytest.mark.integration
 class TestRefrigCaseOSW(TestCase):
 
+    def test_error_run(self):
+        zip_file_path = create_zip('refrig_case_osw')
+        alfalfa = AlfalfaClient(url='http://localhost')
+        model_id = alfalfa.submit(zip_file_path)
+        with pytest.raises(AlfalfaException):
+            alfalfa.start(model_id)
+
     def test_simple_internal_clock(self):
         zip_file_path = create_zip('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
 
-        alfalfa.wait(model_id, "Stopped")
+        alfalfa.wait(model_id, "READY")
 
         alfalfa.start(
             model_id,
@@ -45,16 +53,16 @@ class TestRefrigCaseOSW(TestCase):
             timescale=5
         )
 
-        alfalfa.wait(model_id, "Running")
+        alfalfa.wait(model_id, "RUNNING")
         alfalfa.stop(model_id)
-        alfalfa.wait(model_id, "Stopped")
+        alfalfa.wait(model_id, "COMPLETE")
 
     def test_simple_external_clock(self):
         zip_file_path = create_zip('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
 
-        alfalfa.wait(model_id, "Stopped")
+        alfalfa.wait(model_id, "READY")
         start_dt = datetime.datetime(2019, 1, 2, 0, 2, 0)
         alfalfa.start(
             model_id,
@@ -64,7 +72,7 @@ class TestRefrigCaseOSW(TestCase):
             timescale=1
         )
 
-        alfalfa.wait(model_id, "Running")
+        alfalfa.wait(model_id, "RUNNING")
 
         # -- Assert model gets to expected start time
         model_time = alfalfa.get_sim_time(model_id)
@@ -91,4 +99,4 @@ class TestRefrigCaseOSW(TestCase):
 
         # Shut down
         alfalfa.stop(model_id)
-        alfalfa.wait(model_id, "Stopped")
+        alfalfa.wait(model_id, "COMPLETE")

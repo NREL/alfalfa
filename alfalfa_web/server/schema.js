@@ -149,6 +149,41 @@ const simType = new GraphQLObjectType({
   })
 });
 
+const runType = new GraphQLObjectType({
+  name: "Run",
+  description: "A run",
+  fields: () => ({
+    id: {
+      type: GraphQLString,
+      description: "A unique identifier for the run"
+    },
+    sim_type: {
+      type: GraphQLString,
+      description: "The run simulation type"
+    },
+    status: {
+      type: GraphQLString,
+      description: "The run status"
+    },
+    created: {
+      type: GraphQLString,
+      description: "When the run was created"
+    },
+    modified: {
+      type: GraphQLString,
+      description: "When the run was last modified"
+    },
+    sim_time: {
+      type: GraphQLString,
+      description: "The current simulation time"
+    },
+    error_log: {
+      type: GraphQLString,
+      description: "The log of any errors in the Run"
+    }
+  })
+});
+
 const userType = new GraphQLObjectType({
   name: "User",
   description: "A person who uses our app",
@@ -164,9 +199,19 @@ const userType = new GraphQLObjectType({
       args: {
         siteRef: { type: GraphQLString }
       },
-      resolve: (user, { siteRef }, request) => {
+      resolve: (user, { siteRef }, context) => {
         //return ['site a', 'site b', 'site c']},
-        return resolvers.sitesResolver(user, siteRef);
+        return resolvers.sitesResolver(user, siteRef, context);
+      }
+    },
+    runs: {
+      type: runType,
+      description: "The Alfalfa Runs",
+      args: {
+        run_id: { type: GraphQLString }
+      },
+      resolve: (user, { run_id }, context) => {
+        return resolvers.runResolver(user, run_id, context);
       }
     },
     sims: {
@@ -240,8 +285,8 @@ const mutationType = new GraphQLObjectType({
         realtime: { type: GraphQLBoolean },
         externalClock: { type: GraphQLBoolean }
       },
-      resolve: (_, args, request) => {
-        resolvers.runSiteResolver(args);
+      resolve: (_, args, context) => {
+        resolvers.runSiteResolver(args, context);
       }
     },
     stopSite: {

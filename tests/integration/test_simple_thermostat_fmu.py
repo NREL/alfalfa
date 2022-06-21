@@ -25,7 +25,7 @@ class TestSimpleThermostat(TestCase):
         fmu_path = os.path.join(os.path.dirname(__file__), 'models', 'simple_thermostat.fmu')
         self.model_id = self.alfalfa.submit(fmu_path)
 
-        self.alfalfa.wait(self.model_id, "Stopped")
+        self.alfalfa.wait(self.model_id, "READY")
 
         self.alfalfa.start(
             self.model_id,
@@ -34,7 +34,7 @@ class TestSimpleThermostat(TestCase):
             end_datetime=10000,
             timescale=5
         )
-        self.alfalfa.wait(self.model_id, "Running")
+        self.alfalfa.wait(self.model_id, "RUNNING")
 
     def test_io_with_external_clock(self):
         # Simulation is running, but time should still be at 0
@@ -94,4 +94,4 @@ class TestSimpleThermostat(TestCase):
 
     def tearDown(self):
         self.alfalfa.stop(self.model_id)
-        self.alfalfa.wait(self.model_id, "Stopped")
+        self.alfalfa.wait(self.model_id, "COMPLETE")

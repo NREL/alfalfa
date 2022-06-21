@@ -205,9 +205,8 @@ FROM base AS dev
 
 # Install poetry's dev dependencies by removing old lock
 RUN rm -f poetry.lock && \
-    pip install --upgrade pip setuptools && \
-    pip install poetry==1.1.12 && \
-    python -m poetry config virtualenvs.create false && \
+    python -m pip install poetry==1.1.12 setuptools==62.1.0 &&\
+    python -m poetry config virtualenvs.create false &&\
     python -m poetry install
 
 # for remote debugging
@@ -221,7 +220,7 @@ RUN pip install watchdog[watchmedo]
 
 # Enable the ability to restart the service when
 # the files change
-CMD ["watchmedo", "auto-restart", "--directory=/alfalfa/alfalfa_worker/worker_openstudio", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
+CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
 
 # **** Image with just OpenStudio and EnergyPlus ****
 FROM ubuntu:20.04 AS alfalfa-openstudio
