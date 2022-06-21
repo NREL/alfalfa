@@ -29,7 +29,6 @@ const path = require("path");
 const webpack = require("webpack");
 const { graphql } = require("graphql");
 const { introspectionQuery, printSchema } = require("graphql/utilities");
-const CompressionPlugin = require("compression-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
