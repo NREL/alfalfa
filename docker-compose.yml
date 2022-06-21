@@ -41,7 +41,7 @@ services:
       - "4100:4100"
   # Local implementation of s3
   minio:
-    image: minio/minio
+    image: minio/minio::RELEASE.2021-01-16T02-19-44Z
     entrypoint:
       - minio
       - server
