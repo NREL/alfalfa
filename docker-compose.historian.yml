@@ -2,6 +2,7 @@ version: "3.2"
 
 services:
   influxdb:
+    container_name: alfalfa_influxdb
     image: influxdb:1.8
     hostname: ${INFLUXDB_HOST}
     ports:
@@ -13,6 +14,7 @@ services:
       - INFLUXDB_ADMIN_PASSWORD
     restart: always
   grafana:
+    container_name: alfalfa_grafana
     build:
       context: "./grafana"
       args:
