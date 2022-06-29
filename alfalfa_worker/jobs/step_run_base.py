@@ -15,7 +15,6 @@ from alfalfa_worker.lib.run import RunStatus
 class StepRunBase(Job):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
         super().__init__()
-        self.checkout_run(run_id)
         self.set_run_status(RunStatus.STARTING)
         self.step_sim_type, self.step_sim_value, self.start_datetime, self.end_datetime = self.process_inputs(realtime, timescale, external_clock, start_datetime, end_datetime)
         self.logger.info(f"sim_type is {self.step_sim_type}")
