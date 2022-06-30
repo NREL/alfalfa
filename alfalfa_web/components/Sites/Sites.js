@@ -104,22 +104,14 @@ class Sites extends React.Component {
   };
 
   isStartButtonDisabled = () => {
-    const readyItem = this.selectedSites().some((item) => {
-      return item.simStatus === "READY";
-    });
+    const readyItem = this.selectedSites().some((item) => item.simStatus === "READY");
 
     return !readyItem;
   };
 
   isStopButtonDisabled = () => {
     const runningItem = this.selectedSites().some((item) => {
-      return (
-        item.simStatus === "RUNNING" ||
-        item.simStatus == "PREPROCESSING" ||
-        item.simStatus == "STARTING" ||
-        item.simStatus == "STARTED" ||
-        item.simStatus == "STOPPING"
-      );
+      return ["RUNNING", "PREPROCESSING", "STARTING", "STARTED", "STOPPING"].includes(item.simStatus);
     });
 
     return !runningItem;
@@ -127,7 +119,7 @@ class Sites extends React.Component {
 
   isRemoveButtonDisabled = () => {
     const stoppedItem = this.selectedSites().some((item) => {
-      return item.simStatus === "READY" || item.simStatus == "COMPLETE" || item.simStatus == "ERROR";
+      return ["READY", "COMPLETE", "ERROR"].includes(item.simStatus);
     });
 
     return !stoppedItem;
@@ -153,9 +145,7 @@ class Sites extends React.Component {
 
   selectedSites = () => {
     return this.props.data.viewer.sites.filter((site) => {
-      return this.state.selected.some((siteRef) => {
-        return siteRef === site.siteRef;
-      });
+      return this.state.selected.some((siteRef) => siteRef === site.siteRef);
     });
   };
 
@@ -168,19 +158,10 @@ class Sites extends React.Component {
     this.setState({ showSite: null });
   };
 
-  showSiteRef = () => {
-    if (this.state.showSite) {
-      return this.state.showSite.siteRef;
-    } else {
-      return "";
-    }
-  };
-
-  render = (props) => {
+  render = () => {
     const { classes } = this.props;
 
-    if (this.props.data.networkStatus === 1) {
-      // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
+    if (this.props.data.loading) {
       return null;
     } else {
       const isStartDisabled = this.isStartButtonDisabled();
@@ -209,6 +190,7 @@ class Sites extends React.Component {
                     <TableRow
                       key={site.siteRef}
                       selected={false}
+                      style={{ cursor: "default" }}
                       onClick={(event) => this.handleRowClick(event, site.siteRef)}>
                       <TableCell padding="checkbox">
                         <Checkbox checked={isSelected} />
@@ -229,7 +211,12 @@ class Sites extends React.Component {
             </Table>
           </Grid>
           <Grid item>
-            <Grid className={classes.controls} container justifyContent="flex-start" alignItems="center">
+            <Grid
+              className={classes.controls}
+              container
+              justifyContent="flex-start"
+              alignItems="center"
+              style={{ marginLeft: 0, paddingLeft: 16 }}>
               <Grid item>
                 <StartDialog
                   type={this.state.startDialogType}
@@ -268,14 +255,13 @@ const styles = (theme) => ({
     marginLeft: 16
   },
   button: {
-    margin: theme.spacing(1)
+    margin: `${theme.spacing(1)}!important`
   }
 });
 
 const sitesQL = gql`
   query QueueQuery {
     viewer {
-      username
       sites {
         name
         datetime

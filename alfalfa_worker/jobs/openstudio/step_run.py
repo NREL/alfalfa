@@ -56,7 +56,7 @@ class StepRun(StepRunBase):
 
         # The idf RunPeriod is manipulated in order to get close to the desired start time,
         # but we can only get within 24 hours. We use "bypass" steps to quickly get to the
-        # exact right start time. This flag indicates we are interating in bypass mode
+        # exact right start time. This flag indicates we are iterating in bypass mode
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
 
@@ -197,7 +197,7 @@ class StepRun(StepRunBase):
 
             # Overwrite File
             # the basic idea is to locate the pattern first (e.g. Timestep, RunPeriod)
-            # then find the relavant lines by couting how many lines away from the patten.
+            # then find the relevant lines by counting how many lines away from the patten.
             count = -1
             with open(self.idf_file, 'r+') as f:
                 lines = f.readlines()

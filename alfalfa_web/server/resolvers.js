@@ -24,22 +24,22 @@
  ***********************************************************************************************************************/
 
 import AWS from "aws-sdk";
+import got from "got";
 import path from "path";
-import { cursorTo } from "readline";
-import request from "superagent";
 import dbops from "./dbops";
 
-AWS.config.update({ region: process.env.REGION });
+AWS.config.update({ region: process.env.REGION || "us-east-1" });
 const sqs = new AWS.SQS();
 const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 function addSiteResolver(modelName, uploadID) {
-  var job = "alfalfa_worker.jobs.openstudio.CreateRun";
+  let job = "alfalfa_worker.jobs.openstudio.CreateRun";
   if (modelName.endsWith(".fmu")) {
     job = "alfalfa_worker.jobs.modelica.CreateRun";
   }
   const params = {
-    MessageBody: `{"job": "${job}",
+    MessageBody: `{
+      "job": "${job}",
       "params": {
         "model_name": "${modelName}",
         "upload_id": "${uploadID}"
@@ -51,19 +51,19 @@ function addSiteResolver(modelName, uploadID) {
 
   sqs.sendMessage(params, (err, data) => {
     if (err) {
-      console.log(err);
-      callback(err);
+      console.error(err);
     }
   });
 }
 
 function runSimResolver(modelName, uploadID) {
-  var job = "alfalfa_worker.jobs.openstudio.AnnualRun";
+  let job = "alfalfa_worker.jobs.openstudio.AnnualRun";
   if (modelName.endsWith(".fmu")) {
     job = "alfalfa_worker.jobs.modelica.AnnualRun";
   }
   const params = {
-    MessageBody: `{"job": "${job}",
+    MessageBody: `{
+      "job": "${job}",
       "params": {
         "model_name": "${modelName}",
         "upload_id": "${uploadID}"
@@ -75,8 +75,7 @@ function runSimResolver(modelName, uploadID) {
 
   sqs.sendMessage(params, (err, data) => {
     if (err) {
-      console.log(err);
-      callback(err);
+      console.error(err);
     } else {
       const simCollection = context.db.collection("sims");
       simCollection.insert({
@@ -100,19 +99,20 @@ function runSiteResolver(args, context) {
   //},
   const runs = context.db.collection("runs");
   runs.findOne({ _id: args.siteRef }).then((doc) => {
-    var job = "alfalfa_worker.jobs.openstudio.StepRun";
-    if (doc.sim_type == "MODELICA") {
+    let job = "alfalfa_worker.jobs.openstudio.StepRun";
+    if (doc.sim_type === "MODELICA") {
       job = "alfalfa_worker.jobs.modelica.StepRun";
     }
     const params = {
-      MessageBody: `{"job": "${job}",
+      MessageBody: `{
+        "job": "${job}",
         "params": {
           "run_id": "${args.siteRef}",
-          "timescale": "${args.timescale}",
+          "timescale": ${args.timescale},
           "start_datetime": "${args.startDatetime}",
           "end_datetime": "${args.endDatetime}",
-          "realtime": "${args.realtime}",
-          "external_clock": "${args.externalClock}"
+          "realtime": ${args.realtime},
+          "external_clock": ${args.externalClock}
         }
       }`,
       QueueUrl: process.env.JOB_QUEUE_URL,
@@ -120,83 +120,48 @@ function runSiteResolver(args, context) {
     };
     sqs.sendMessage(params, (err, data) => {
       if (err) {
-        console.log(err);
-        callback(err);
+        console.error(err);
       }
     });
   });
+}
+
+function invokeAction(action, siteRef) {
+  return got
+    .post("http://localhost/haystack/invokeAction", {
+      headers: {
+        Accept: "application/json"
+      },
+      json: {
+        meta: {
+          ver: "2.0",
+          id: `r:${siteRef}`,
+          action: `s:${action}`
+        },
+        cols: [
+          {
+            name: "empty" // At least one column is required
+          }
+        ],
+        rows: []
+      },
+      responseType: "json"
+    })
+    .then(({ body }) => body);
 }
 
 function stopSiteResolver(args) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //},
-  return new Promise((resolve, reject) => {
-    request
-      .post("/api/invokeAction")
-      .set("Accept", "application/json")
-      .set("Content-Type", "application/json")
-      .send({
-        meta: {
-          ver: "2.0",
-          id: `r:${args.siteRef}`,
-          action: "s:stopSite"
-        },
-        cols: [
-          {
-            name: "foo" // because node Haystack craps out if there are no columns
-          }
-        ],
-        rows: [
-          {
-            foo: "s:bar"
-          }
-        ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res.body);
-        }
-      });
-  });
+  return invokeAction("stopSite", args.siteRef);
 }
 
 function removeSiteResolver(args) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //},
-  return new Promise((resolve, reject) => {
-    request
-      .post("/api/invokeAction")
-      .set("Accept", "application/json")
-      .set("Content-Type", "application/json")
-      .send({
-        meta: {
-          ver: "2.0",
-          id: `r:${args.siteRef}`,
-          action: "s:removeSite"
-        },
-        cols: [
-          {
-            name: "foo" // because node Haystack craps out if there are no columns
-          }
-        ],
-        rows: [
-          {
-            foo: "s:bar"
-          }
-        ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res.body);
-        }
-      });
-  });
+  return invokeAction("removeSite", args.siteRef);
 }
 
 function simsResolver(user, args, context) {
@@ -225,51 +190,41 @@ function simsResolver(user, args, context) {
 }
 
 function runResolver(user, run_id, context) {
-  return new Promise((resolve, reject) => {
-    const runs = context.db.collection("runs");
-    console.log(run_id);
-    runs
-      .findOne({ _id: run_id })
-      .then((doc) => {
-        let run = {
-          id: run_id,
-          sim_type: doc.sim_type,
-          status: doc.status,
-          created: doc.created,
-          modified: doc.modified,
-          sim_time: doc.sim_time,
-          error_log: doc.error_log
-        };
-        console.log(doc.status);
-        resolve(run);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
+  return context.db
+    .collection("runs")
+    .findOne({ _id: run_id })
+    .then((doc) => {
+      return {
+        id: run_id,
+        sim_type: doc.sim_type,
+        status: doc.status,
+        created: doc.created,
+        modified: doc.modified,
+        sim_time: doc.sim_time,
+        error_log: doc.error_log
+      };
+    });
 }
 
 async function sitesResolver(user, siteRef, context) {
-  let filter = "s:site";
-  if (siteRef) {
-    filter = `${filter} and id==@${siteRef}`;
-  }
-  const runs = context.db.collection("runs");
-  const cursor = runs.find();
-  var run_dict = {};
-  cursor.each(function (err, item) {
-    if (item == null) {
-      return;
-    }
-    run_dict[item._id] = item;
-  });
+  const runs = {};
 
-  return new Promise((resolve, reject) => {
-    let sites = [];
-    request
-      .post("/api/read")
-      .set("Accept", "application/json")
-      .send({
+  if (siteRef) {
+    const doc = await context.db.collection("runs").findOne({ _id: siteRef });
+    if (doc) runs[doc._id] = doc;
+  } else {
+    const cursor = context.db.collection("runs").find();
+    for await (const doc of cursor) {
+      if (doc) runs[doc._id] = doc;
+    }
+  }
+
+  return got
+    .post("http://localhost/haystack/read", {
+      headers: {
+        Accept: "application/json"
+      },
+      json: {
         meta: {
           ver: "2.0"
         },
@@ -280,37 +235,32 @@ async function sitesResolver(user, siteRef, context) {
         ],
         rows: [
           {
-            filter: filter
+            filter: `s:site${siteRef ? " and id==@" + siteRef : ""}`
           }
         ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          res.body.rows.map((row) => {
-            let site = {
-              name: row.dis.replace(/[a-z]:/, ""),
-              siteRef: row.id.replace(/[a-z]:/, ""),
-              simStatus: row.simStatus.replace(/[a-z]:/, ""),
-              simType: row.simType.replace(/[a-z]:/, "")
-            };
-            if (site.siteRef in run_dict) {
-              site.simStatus = run_dict[site.siteRef]["status"];
-              site.datetime = run_dict[site.siteRef]["sim_time"];
-            }
-            let step = row["step"];
-            if (step) {
-              step = step.replace(/[a-z]:/, "");
-              site.step = step;
-            }
-
-            sites.push(site);
-          });
-          resolve(sites);
+      },
+      responseType: "json"
+    })
+    .then(({ body }) => {
+      return body.rows.map((row) => {
+        const site = {
+          name: row.dis.replace(/^[a-z]:/, ""),
+          siteRef: row.id.replace(/^[a-z]:/, ""),
+          simStatus: row.simStatus.replace(/^[a-z]:/, ""),
+          simType: row.simType.replace(/^[a-z]:/, "")
+        };
+        if (site.siteRef in runs) {
+          site.simStatus = runs[site.siteRef].status;
+          site.datetime = runs[site.siteRef].sim_time;
         }
+        const { step } = row;
+        if (step) {
+          site.step = step.replace(/^[a-z]:/, "");
+        }
+
+        return site;
       });
-  });
+    });
 }
 
 function sitePointResolver(siteRef, args, context) {

@@ -27,6 +27,7 @@ import AWS from "aws-sdk";
 import bodyParser from "body-parser";
 import compression from "compression";
 import historyApiFallback from "connect-history-api-fallback";
+import cors from "cors";
 import express from "express";
 import { graphqlHTTP } from "express-graphql";
 import { MongoClient } from "mongodb";
@@ -36,7 +37,10 @@ import { createClient } from "redis";
 import url from "url";
 import { Advancer } from "./advancer";
 import alfalfaServer from "./alfalfa-server";
+import apiv2 from "./api-v2";
 import { schema } from "./schema";
+
+const isProd = process.env.NODE_ENV === "production";
 
 const client = new AWS.S3({ endpoint: process.env.S3_URL });
 
@@ -50,8 +54,14 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
   .then((mongoClient) => {
     const app = express();
     app.use(compression());
+    app.disable("x-powered-by");
 
-    if (process.env.NODE_ENV !== "production") {
+    if (!isProd) {
+      // Apollo Studio
+      app.use(cors());
+    }
+
+    if (process.env.LOGGING === "true") {
       app.use(morgan("combined"));
     }
 
@@ -61,11 +71,11 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
 
     app.use("/graphql", (request, response) => {
       return graphqlHTTP({
-        graphiql: true,
-        pretty: true,
+        graphiql: !isProd,
+        pretty: !isProd,
         schema,
         context: {
-          ...request,
+          request,
           db,
           advancer
         }
@@ -74,6 +84,10 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
 
     app.use(bodyParser.text({ type: "text/*" }));
     app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
+
+    app.get("/docs", (req, res) => {
+      res.sendFile(path.join(__dirname, "/app/docs.html"));
+    });
 
     // Create a post url for file uploads
     // from a browser
@@ -103,10 +117,10 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
       });
     });
 
-    app.all("/api/*", function (req, res) {
-      // Remove this in production
-      let path = url.parse(req.url).pathname;
-      path = path.replace("/api", "");
+    app.use("/api/v2/", apiv2({ db }));
+
+    app.all("/haystack/*", function (req, res) {
+      const path = url.parse(req.url).pathname.replace(/^\/haystack/, "");
 
       // parse URI path into "/{opName}/...."
       let slash = path.indexOf("/", 1);

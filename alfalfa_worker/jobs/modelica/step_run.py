@@ -71,7 +71,7 @@ class StepRun(StepRunBase):
         '''
         outputs_and_ID = {}
         id_and_dis = {}
-        # default_input is a dictionay
+        # default_input is a dictionary
         # with keys for every "_enable" input, set to value 0
         # in other words, disable everything
         default_input = {}
