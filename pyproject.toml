@@ -39,7 +39,7 @@ matplotlib = "3.5.2"
 # required for tests to pass right now. There are often issues when pinning to a branch
 # and calling poetry update. I have had to completely remove my venv and reinstall in order
 # to get the latest updates.
-alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", branch = "develop"}
+alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", rev = "bc2ba85"}
 # alfalfa-client = { path = "../alfalfa-client", develop = false}
 autopep8 = "^1.4.4"
 pre-commit = "^2.10.1"
