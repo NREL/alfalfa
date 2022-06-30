@@ -23,7 +23,7 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import { DateTimePicker } from "@mui/lab";
+import { DateTimePicker } from "@mui/x-date-pickers";
 import {
   Button,
   Dialog,
@@ -44,7 +44,7 @@ const styles = (theme) => ({
     whiteSpace: "nowrap"
   },
   button: {
-    margin: theme.spacing(1)
+    margin: `${theme.spacing(1)}!important`
   }
 });
 
@@ -135,8 +135,6 @@ class StartDialog extends React.Component {
     } = this.state;
     const { classes, disabled, type } = this.props;
 
-    console.log(`startDialogType: ${type}`);
-
     let start;
     let stop;
     if (type === "osm") {
@@ -199,7 +197,7 @@ class StartDialog extends React.Component {
         <Dialog fullWidth={true} maxWidth="sm" open={open}>
           <DialogTitle>Simulation Parameters</DialogTitle>
           <DialogContent>
-            <Grid container spacing={2}>
+            <Grid container spacing={2} style={{ paddingTop: 8 }}>
               {start}
               {stop}
               <Grid item xs={12}>
