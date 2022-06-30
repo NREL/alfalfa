@@ -380,7 +380,7 @@ class StepRun(StepRunBase):
         name = name.replace("s:", "")
         t = str(datetime.now(tz=pytz.UTC))
         self.mongo_db_sims.insert_one(
-            {"_id": str(uuid4()), "siteRef": self.run.id, "s3Key": f"runs/{self.run.id}.tar.gz", "name": name, "timeCompleted": t})
+            {"_id": str(uuid4()), "siteRef": self.run.id, "s3Key": f"run/{self.run.id}.tar.gz", "name": name, "timeCompleted": t})
         self.mongo_db_recs.update_one({"_id": self.run.id},
                                       {"$set": {"rec.simStatus": "s:Stopped"},
                                           "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
