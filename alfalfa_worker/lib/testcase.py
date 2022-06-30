@@ -19,7 +19,7 @@ Note: The license is a revised 3 clause BSD license with an ADDED paragraph at t
 
 """
 This module defines the API to the test case used by the REST requests to
-perform functions such as advancing the simulation, retreiving test case
+perform functions such as advancing the simulation, retrieving test case
 information, and calculating and reporting results.
 
 """
@@ -159,7 +159,7 @@ class TestCase(object):
             self.u_store[key] = self.u_store[key] + res[key].tolist()[1:]
         # Advance start time
         self.start_time = self.final_time
-        # Prevent inialize
+        # Prevent initialize
         self.initialize = False
 
         return self.y
@@ -269,7 +269,7 @@ class TestCase(object):
         '''
 
         kpis = dict()
-        # Calculate each KPI using json for signalsand save in dictionary
+        # Calculate each KPI using json for signals and save in dictionary
         for kpi in self.kpi_json.keys():
             print(kpi, type(kpi))
             if 'Power' in kpi:
@@ -338,7 +338,7 @@ class TestCase(object):
 
         '''
 
-        # Inititalize
+        # Initialize
         var_metadata = dict()
         # Get metadata
         for var in var_list:

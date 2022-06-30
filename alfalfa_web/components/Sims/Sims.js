@@ -53,6 +53,9 @@ class ResultsDialog extends React.Component {
     const { sim } = this.props;
 
     const items = (content) => {
+      if (!content) {
+        return <></>;
+      }
       return Object.entries(content).map(([key, value]) => {
         if (key === "energy") {
           key += " [kWh]";
@@ -157,8 +160,7 @@ class Sims extends React.Component {
   render = () => {
     const { classes } = this.props;
 
-    if (this.props.data.networkStatus === 1) {
-      // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
+    if (this.props.data.loading) {
       return null;
     } else {
       const sims = this.props.data.viewer.sims;
@@ -181,7 +183,10 @@ class Sims extends React.Component {
                 {sims.map((sim) => {
                   const isSelected = this.isSelected(sim.simRef);
                   return (
-                    <TableRow key={sim.simRef} onClick={(event) => this.handleRowClick(event, sim.simRef)}>
+                    <TableRow
+                      key={sim.simRef}
+                      style={{ cursor: "default" }}
+                      onClick={(event) => this.handleRowClick(event, sim.simRef)}>
                       <TableCell padding="checkbox">
                         <Checkbox checked={isSelected} />
                       </TableCell>
@@ -202,7 +207,12 @@ class Sims extends React.Component {
             </Table>
           </Grid>
           <Grid item>
-            <Grid className={classes.controls} container justifyContent="flex-start" alignItems="center">
+            <Grid
+              className={classes.controls}
+              container
+              justifyContent="flex-start"
+              alignItems="center"
+              style={{ marginLeft: 0, paddingLeft: 16 }}>
               <Grid item>
                 <Button className={classes.button} variant="contained" disabled={true} onClick={this.handleRemove}>
                   Remove Test Results
@@ -252,7 +262,7 @@ const styles = (theme) => ({
     marginLeft: 16
   },
   button: {
-    margin: theme.spacing(1)
+    margin: `${theme.spacing(1)}!important`
   }
 });
 

@@ -49,7 +49,7 @@ const HBool = hs.HBool,
   HStdOps = hs.HStdOps,
   HJsonReader = hs.HJsonReader;
 
-AWS.config.update({ region: "us-east-1" });
+AWS.config.update({ region: process.env.REGION || "us-east-1" });
 const sqs = new AWS.SQS();
 
 class WriteArray {

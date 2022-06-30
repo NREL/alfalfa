@@ -51,9 +51,11 @@ class FileInput extends React.Component {
   }
 
   handleFileChange = (evt) => {
-    const file = evt.target.files[0];
-    this.props.onFileChange(file);
-    this.setState({ filename: file.name, file: file });
+    if (evt.target.files.length > 0) {
+      const file = evt.target.files[0];
+      this.props.onFileChange(file);
+      this.setState({ filename: file.name, file: file });
+    }
   };
 
   handleTextInputClick = (evt) => {
@@ -75,6 +77,12 @@ class FileInput extends React.Component {
           label="Select Model"
           onClick={this.handleTextInputClick}
           value={this.state.filename}
+          inputProps={{
+            readOnly: true,
+            style: {
+              cursor: "pointer"
+            }
+          }}
           InputLabelProps={{
             shrink: this.state.filename != ""
           }}
@@ -125,7 +133,7 @@ class Upload extends React.Component {
         onCompleteProp(this.state.modelFile.name, this.state.uploadID);
       };
 
-      const uploadFailed = () => {
+      const uploadFailed = (evt) => {
         console.log("There was an error attempting to upload the file." + evt);
       };
 
@@ -232,7 +240,7 @@ class Upload extends React.Component {
 
 const localStyles = (theme) => ({
   button: {
-    margin: theme.spacing(1)
+    margin: `${theme.spacing(1)}!important`
   }
 });
 

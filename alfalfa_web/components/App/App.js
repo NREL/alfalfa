@@ -23,8 +23,8 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-import AdapterLuxon from "@mui/lab/AdapterLuxon";
-import LocalizationProvider from "@mui/lab/LocalizationProvider";
+import { AdapterLuxon } from "@mui/x-date-pickers/AdapterLuxon";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AppBar, Grid, Toolbar, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { withStyles } from "@mui/styles";
@@ -47,7 +47,7 @@ const styles = {
     flex: 1
   },
   button: {
-    margin: theme.spacing(1)
+    margin: `${theme.spacing(1)}!important`
   }
 };
 
@@ -66,9 +66,9 @@ class App extends React.Component {
                     Alfalfa
                   </Typography>
                 </Link>
-                <Grid container justifyContent="flex-end" spacing={2}>
+                <Grid container justifyContent="flex-end" spacing={2} style={{ marginLeft: 0 }}>
                   <Grid item>
-                    <Link to={"/sites"} style={{ textDecoration: "none", color: "unset" }}>
+                    <Link to={"/models"} style={{ textDecoration: "none", color: "unset" }}>
                       <Typography className={classes.button} variant="button" color="inherit">
                         Models
                       </Typography>
@@ -86,8 +86,8 @@ class App extends React.Component {
             </AppBar>
             <Routes>
               <Route path="/" element={<Upload />} />
+              <Route path="models" element={<Sites />} />
               <Route path="sims" element={<Sims />} />
-              <Route path="sites" element={<Sites />} />
             </Routes>
           </div>
         </LocalizationProvider>

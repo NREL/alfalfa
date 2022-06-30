@@ -23,32 +23,35 @@
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***********************************************************************************************************************/
 
-"use strict";
 const fs = require("fs");
+if (fs.existsSync("../.env")) require("dotenv").config({ path: "../.env" });
+
 const path = require("path");
-const webpack = require("webpack");
-const { graphql } = require("graphql");
-const { introspectionQuery, printSchema } = require("graphql/utilities");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
-const title = "Alfalfa";
-const template = "./index.html";
-let devtool = "";
-let plugins = [];
-
-const mode = process.env.NODE_ENV === "production" ? "production" : "development";
+const isProd = process.env.NODE_ENV === "production";
 
 module.exports = {
-  mode,
-  devtool: "source-map",
+  mode: isProd ? "production" : "development",
+  devtool: isProd ? false : "source-map",
   entry: "./app.js",
+  devServer: {
+    static: {
+      directory: path.join(__dirname, "public")
+    },
+    compress: true,
+    port: 80
+  },
+  watchOptions: {
+    ignored: ["**/node_modules", "**/scripts", "**/server"]
+  },
   output: {
     path: path.resolve(__dirname, "build/app"),
     filename: "app.bundle.js"
   },
   optimization: {
-    minimize: true,
+    minimize: isProd,
     minimizer: [
       new TerserPlugin({
         terserOptions: {

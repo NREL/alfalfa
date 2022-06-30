@@ -136,7 +136,7 @@ class StepRunBase(Job):
             if datetime.datetime.now() >= next_step_time:
                 steps_behind = (datetime.datetime.now() - next_step_time) / self.timescale_step_interval()
                 if steps_behind > 2.0:
-                    raise JobExceptionSimulation("Timscale too high. Simulation more than 2 timesteps behind")
+                    raise JobExceptionSimulation("Timescale too high. Simulation more than 2 timesteps behind")
                 next_step_time = next_step_time + self.timescale_step_interval()
                 self.advance()
 

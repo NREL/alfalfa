@@ -174,7 +174,7 @@ class RunManager(LoggerMixinBase):
         run.points = points
         return response
 
-    # TODO depricate
+    # TODO deprecate
     def add_site_to_mongo(self, haystack_json, run: Run):
         """
         Upload JSON documents to mongo.  The documents look as follows:

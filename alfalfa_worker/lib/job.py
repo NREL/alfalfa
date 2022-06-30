@@ -137,13 +137,13 @@ class Job(metaclass=JobMetaclass):
 
     def validate(self) -> None:
         """Placeholder method for validating a job completed successfully.
-        It is reccommended to validate using assert statements"""
+        It is recommended to validate using assert statements"""
 
     @with_run(return_on_fail=True)
     def cleanup(self) -> None:
         """Clean up job
         called after stopping.
-        If not overidden it will by default checkin the run"""
+        If not overridden it will by default checkin the run"""
         self.checkin_run()
 
     @property
@@ -189,7 +189,7 @@ class Job(metaclass=JobMetaclass):
         # self.logger.info(message)
         try:
             if message and message['data'].__class__ == bytes:
-                self.logger.info(f"recieved message: {message}")
+                self.logger.info(f"received message: {message}")
                 data = json.loads(message['data'].decode('utf-8'))
                 message_id = data.get('message_id')
                 method = data.get('method', None)
@@ -222,7 +222,7 @@ class Job(metaclass=JobMetaclass):
         run = self.run_manager.checkout_run(run_id)
         run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
-        self.regster_run(run)
+        self.register_run(run)
         return run
 
     @with_run()
@@ -231,13 +231,13 @@ class Job(metaclass=JobMetaclass):
 
     def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> None:
         run = self.run_manager.create_run_from_model(upload_id, model_name, sim_type)
-        self.regster_run(run)
+        self.register_run(run)
         run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
 
     def create_empty_run(self):
         run = self.run_manager.create_empty_run()
-        self.regster_run(run)
+        self.register_run(run)
 
     @with_run()
     def add_points(self, points: List[Point]):
@@ -259,7 +259,7 @@ class Job(metaclass=JobMetaclass):
         self.run.error_log = error_log
         self.run_manager.update_db(self.run)
 
-    def regster_run(self, run: Run):
+    def register_run(self, run: Run):
         self.run = run
         self.logger.info(run.dir)
         self.redis_pubsub.subscribe(run.id)
@@ -292,7 +292,7 @@ class JobException(Exception):
 
 
 class JobExceptionMessageHandler(JobException):
-    """Thrown when there is an execption that occurs in an message handler.
+    """Thrown when there is an exception that occurs in an message handler.
     This is caught and reported back to the caller via redis."""
 
 
