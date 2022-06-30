@@ -11,6 +11,7 @@ from alfalfa_worker.lib.testcase import TestCase
 
 class StepRun(StepRunBase):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime="0", end_datetime=str(60 * 60 * 24 * 365)) -> None:
+        self.checkout_run(run_id)
         historian_year = 2017
         self.sim_start_time = float(start_datetime)
         self.sim_end_time = float(end_datetime)
@@ -70,7 +71,7 @@ class StepRun(StepRunBase):
         '''
         outputs_and_ID = {}
         id_and_dis = {}
-        # default_input is a dictionay
+        # default_input is a dictionary
         # with keys for every "_enable" input, set to value 0
         # in other words, disable everything
         default_input = {}

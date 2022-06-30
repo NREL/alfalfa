@@ -2,16 +2,15 @@
 
 ## Development
 
-Install and build the packages
+Install and build the packages, then run locally using webpack to rebuild the UI as files are modified:
 
 ```bash
 npm install
-
-npm run build
+npm run build-server
+npm run start-dev
 ```
 
-To run this container locally, start goaws, minio, mc, mongo, and redis. Set the environment variables below in
-your local shell.
+To run this container locally, start goaws, minio, mc, mongo, and redis. Set the environment variables below in your local shell.
 
 ```
 export AWS_ACCESS_KEY_ID=user

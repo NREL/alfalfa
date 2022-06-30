@@ -18,6 +18,7 @@ from alfalfa_worker.lib.point import Point, PointType
 
 class StepRun(StepRunBase):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
+        self.checkout_run(run_id)
         super().__init__(run_id, realtime, timescale, external_clock, start_datetime, end_datetime)
         self.logger.info(f"{start_datetime}, {end_datetime}")
         self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
@@ -55,7 +56,7 @@ class StepRun(StepRunBase):
 
         # The idf RunPeriod is manipulated in order to get close to the desired start time,
         # but we can only get within 24 hours. We use "bypass" steps to quickly get to the
-        # exact right start time. This flag indicates we are interating in bypass mode
+        # exact right start time. This flag indicates we are iterating in bypass mode
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
 
@@ -196,7 +197,7 @@ class StepRun(StepRunBase):
 
             # Overwrite File
             # the basic idea is to locate the pattern first (e.g. Timestep, RunPeriod)
-            # then find the relavant lines by couting how many lines away from the patten.
+            # then find the relevant lines by counting how many lines away from the patten.
             count = -1
             with open(self.idf_file, 'r+') as f:
                 lines = f.readlines()
@@ -380,7 +381,7 @@ class StepRun(StepRunBase):
         name = name.replace("s:", "")
         t = str(datetime.now(tz=pytz.UTC))
         self.mongo_db_sims.insert_one(
-            {"_id": str(uuid4()), "siteRef": self.run.id, "s3Key": f"runs/{self.run.id}.tar.gz", "name": name, "timeCompleted": t})
+            {"_id": str(uuid4()), "siteRef": self.run.id, "s3Key": f"run/{self.run.id}.tar.gz", "name": name, "timeCompleted": t})
         self.mongo_db_recs.update_one({"_id": self.run.id},
                                       {"$set": {"rec.simStatus": "s:Stopped"},
                                           "$unset": {"rec.datetime": "", "rec.step": ""}}, False)

@@ -15,7 +15,6 @@ from alfalfa_worker.lib.run import RunStatus
 class StepRunBase(Job):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
         super().__init__()
-        self.checkout_run(run_id)
         self.set_run_status(RunStatus.STARTING)
         self.step_sim_type, self.step_sim_value, self.start_datetime, self.end_datetime = self.process_inputs(realtime, timescale, external_clock, start_datetime, end_datetime)
         self.logger.info(f"sim_type is {self.step_sim_type}")
@@ -136,7 +135,7 @@ class StepRunBase(Job):
             if datetime.datetime.now() >= next_step_time:
                 steps_behind = (datetime.datetime.now() - next_step_time) / self.timescale_step_interval()
                 if steps_behind > 2.0:
-                    raise JobExceptionSimulation("Timscale too high. Simulation more than 2 timesteps behind")
+                    raise JobExceptionSimulation("Timescale too high. Simulation more than 2 timesteps behind")
                 next_step_time = next_step_time + self.timescale_step_interval()
                 self.advance()
 

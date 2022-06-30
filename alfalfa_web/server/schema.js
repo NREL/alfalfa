@@ -234,7 +234,7 @@ const queryType = new GraphQLObjectType({
     viewer: {
       type: userType,
       resolve: (_, args, request) => {
-        return { username: "smith" };
+        return { username: "" };
       }
     }
   })
