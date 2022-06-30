@@ -252,7 +252,7 @@ class AlfalfaServer extends HServer {
   }
 
   onAbout(callback) {
-    const aboutdict = new HDictBuilder()
+    const aboutDict = new HDictBuilder()
       .add("serverName", this.hostName())
       .add("vendorName", "Lynxspring, Inc.")
       .add("vendorUri", HUri.make("http://www.lynxspring.com/"))
@@ -260,7 +260,7 @@ class AlfalfaServer extends HServer {
       .add("productVersion", "2.0.0")
       .add("productUri", HUri.make("https://bitbucket.org/lynxspring/nodehaystack/"))
       .toDict();
-    callback(null, aboutdict);
+    callback(null, aboutDict);
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -594,7 +594,7 @@ class AlfalfaServer extends HServer {
     } else if (action === "stopSite") {
       const siteRef = rec.id().val;
       this.mrecs.updateOne({ _id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
-        this.pub.publish(siteRef, "stop");
+        this.pub.publish(siteRef, JSON.stringify({ message_id: uuidv1(), method: "stop" }));
       });
       callback(null, HGrid.EMPTY);
     } else if (action === "removeSite") {

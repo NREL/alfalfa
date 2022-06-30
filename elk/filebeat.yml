@@ -1,0 +1,23 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      - "/var/lib/docker/containers/*/*.log"
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+  - type: filestream
+    scan_frequency: 5s
+    paths:
+      - /var/lib/docker/overlay2/*/diff/simulate/**/*
+    prospector.scanner.include_files: ['.*\.log', '.*\.err']
+    processors:
+      - dissect:
+          tokenizer: "%{}/diff/%{filepath}"
+          field: "log.file.path"
+          target_prefix: "simlog"
+      - dissect:
+          tokenizer: "%{}/diff/simulate/%{id}/%{}"
+          field: "log.file.path"
+          target_prefix: "simlog"
+output.elasticsearch:
+  hosts: ["elasticsearch-master:9200"]

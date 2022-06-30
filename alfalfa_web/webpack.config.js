@@ -24,17 +24,13 @@
  ***********************************************************************************************************************/
 
 "use strict";
-const webpack = require("webpack");
 const fs = require("fs");
 const path = require("path");
-//const autoprefixer = require('autoprefixer');
-//const precss = require('precss');
+const webpack = require("webpack");
 const { graphql } = require("graphql");
 const { introspectionQuery, printSchema } = require("graphql/utilities");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
-const MinifyPlugin = require("babel-minify-webpack-plugin");
-const CompressionPlugin = require("compression-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 
 const title = "Alfalfa";
 const template = "./index.html";
@@ -43,117 +39,60 @@ let plugins = [];
 
 const mode = process.env.NODE_ENV === "production" ? "production" : "development";
 
-if (mode === "production") {
-  plugins = [
-    new webpack.DefinePlugin({
-      "process.env.NODE_ENV": JSON.stringify("production")
-    }),
-    new MinifyPlugin(),
-    new webpack.optimize.AggressiveMergingPlugin(),
-    new HtmlWebpackPlugin({
-      title: title,
-      template: template
-    }),
-    new CompressionPlugin({
-      test: /\.js$|\.css$|\.html$/,
-      threshold: 10240,
-      minRatio: 0.8
-    }),
-    new UglifyJsPlugin()
-  ];
-
-  devtool = "eval";
-} else {
-  plugins = [
-    new webpack.DefinePlugin({
-      "process.env.NODE_ENV": JSON.stringify("development")
-    }),
-    new HtmlWebpackPlugin({
-      title: title,
-      template: template
-    }),
-    new webpack.HotModuleReplacementPlugin()
-  ];
-
-  devtool = "source-map";
-}
-
 module.exports = {
   mode,
-  entry: {
-    app: ["./app.js"]
-  },
+  devtool: "source-map",
+  entry: "./app.js",
   output: {
-    path: path.join(__dirname, "build/app"),
+    path: path.resolve(__dirname, "build/app"),
     filename: "app.bundle.js"
   },
-  devtool: devtool,
-  performance: {
-    hints: false,
-    maxEntrypointSize: 512000,
-    maxAssetSize: 512000
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          mangle: true
+        }
+      })
+    ]
   },
-  //optimization: {
-  //  minimizer: [new UglifyJsPlugin()]
-  //},
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.m?js$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: "babel-loader"
-          }
-        ]
+        use: "babel-loader"
       },
       {
-        test: /\.json$/,
+        test: /\.s?css$/i,
         use: [
+          "style-loader",
           {
-            loader: "json"
-          }
-        ]
-      },
-      {
-        test: /\.(png|jpg|jpeg|gif|svg|woff|woff2)$/,
-        use: [
-          {
-            loader: "url-loader?limit=10000&name=assets/[hash].[ext]"
-          }
-        ]
-      },
-      {
-        test: /\.css$/,
-        use: [
-          {
-            loader: "style-loader" // creates style nodes from JS strings
-          },
-          {
-            loader: "css-loader" // translates CSS into CommonJS
-          }
-        ]
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          {
-            loader: "style-loader" // creates style nodes from JS strings
-          },
-          {
-            loader: "css-loader", // translates CSS into CommonJS
+            loader: "css-loader",
             options: {
-              importLoaders: true,
               modules: true
-              //localIdentName: '[name]__[local]___[hash:base64:5]'
             }
           },
           {
-            loader: "postcss-loader"
-          }
+            loader: "postcss-loader",
+            options: {
+              postcssOptions: {
+                plugins: ["postcss-preset-env"]
+              }
+            }
+          },
+          "sass-loader"
         ]
+      },
+      {
+        test: /\.woff2?$/i,
+        type: "asset/resource",
+        generator: {
+          filename: "assets/[name]-[hash][ext]"
+        }
       }
     ]
   },
-  plugins
+  plugins: [new HtmlWebpackPlugin({ template: "./index.html" })]
 };

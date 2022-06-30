@@ -1,13 +1,11 @@
-FROM node:16-alpine AS base
+FROM node:16 AS base
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     ca-certificates \
     git \
-    vim
+    vim \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g npm@latest
-
-RUN cd /srv
 WORKDIR /srv/alfalfa
 
 COPY alfalfa_web/package.json alfalfa_web/package-lock.json /srv/alfalfa/

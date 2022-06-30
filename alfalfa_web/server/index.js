@@ -25,21 +25,23 @@
 
 import AWS from "aws-sdk";
 import bodyParser from "body-parser";
+import compression from "compression";
 import historyApiFallback from "connect-history-api-fallback";
 import express from "express";
-import graphQLHTTP from "express-graphql";
+import { graphqlHTTP } from "express-graphql";
 import { MongoClient } from "mongodb";
 import morgan from "morgan";
 import path from "path";
-import node_redis from "redis";
+import { createClient } from "redis";
 import url from "url";
 import { Advancer } from "./advancer";
 import alfalfaServer from "./alfalfa-server";
-import { Schema } from "./schema";
+import { schema } from "./schema";
 
 const client = new AWS.S3({ endpoint: process.env.S3_URL });
 
-const redis = node_redis.createClient({ host: process.env.REDIS_HOST });
+const redis = createClient({ host: process.env.REDIS_HOST });
+
 const pub = redis.duplicate();
 const sub = redis.duplicate();
 const advancer = new Advancer(redis, pub, sub);
@@ -47,22 +49,9 @@ const advancer = new Advancer(redis, pub, sub);
 MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
   .then((mongoClient) => {
     const app = express();
+    app.use(compression());
 
-    if (process.env.NODE_ENV === "production") {
-      app.get("*.js", function (req, res, next) {
-        req.url = req.url + ".gz";
-        res.set("Content-Encoding", "gzip");
-        res.set("Content-Type", "text/javascript");
-        next();
-      });
-
-      app.get("*.css", function (req, res, next) {
-        req.url = req.url + ".gz";
-        res.set("Content-Encoding", "gzip");
-        res.set("Content-Type", "text/css");
-        next();
-      });
-    } else {
+    if (process.env.NODE_ENV !== "production") {
       app.use(morgan("combined"));
     }
 
@@ -71,10 +60,10 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
     app.locals.alfalfaServer = new alfalfaServer(db, redis, pub, sub);
 
     app.use("/graphql", (request, response) => {
-      return graphQLHTTP({
+      return graphqlHTTP({
         graphiql: true,
         pretty: true,
-        schema: Schema,
+        schema,
         context: {
           ...request,
           db,
