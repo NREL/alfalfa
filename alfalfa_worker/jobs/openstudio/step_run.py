@@ -18,6 +18,7 @@ from alfalfa_worker.lib.point import Point, PointType
 
 class StepRun(StepRunBase):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
+        self.checkout_run(run_id)
         super().__init__(run_id, realtime, timescale, external_clock, start_datetime, end_datetime)
         self.logger.info(f"{start_datetime}, {end_datetime}")
         self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
