@@ -1,4 +1,3 @@
-
 import subprocess
 
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
