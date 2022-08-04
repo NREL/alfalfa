@@ -7,6 +7,7 @@ from typing import List
 from uuid import uuid4
 
 import boto3
+from mongoengine import connect
 from pymongo import MongoClient
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
@@ -24,7 +25,10 @@ class RunManager(LoggerMixinBase):
         self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
         self.s3_bucket = self.s3.Bucket(os.environ['S3_BUCKET'])
 
-        # Setup Mongo
+        # Mongo - connect using mongoengine
+        connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
+
+        # Previous connection -- will be removed eventually
         self.mongo_client = MongoClient(os.environ['MONGO_URL'])
         self.mongo_db = self.mongo_client[os.environ['MONGO_DB_NAME']]
         self.mongo_db_runs = self.mongo_db.runs
