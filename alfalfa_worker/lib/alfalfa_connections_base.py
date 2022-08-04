@@ -8,8 +8,11 @@ import tarfile
 
 import boto3
 from influxdb import InfluxDBClient
-from pymongo import MongoClient
+# connect to mongo based on the environment variables
+from mongoengine import connect
 from redis import Redis
+
+connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}")
 
 
 class AlfalfaConnectionsBase(object):
@@ -30,11 +33,11 @@ class AlfalfaConnectionsBase(object):
         self.redis_pubsub = self.redis.pubsub()
 
         # Mongo
-        self.mongo_client = MongoClient(os.environ['MONGO_URL'])
-        self.mongo_db = self.mongo_client[os.environ['MONGO_DB_NAME']]
-        self.mongo_db_recs = self.mongo_db.recs
-        self.mongo_db_write_arrays = self.mongo_db.writearrays
-        self.mongo_db_sims = self.mongo_db.sims
+        # self.mongo_client = MongoClient(os.environ['MONGO_URL'])
+        # self.mongo_db = self.mongo_client[os.environ['MONGO_DB_NAME']]
+        # self.mongo_db_recs = self.mongo_db.recs
+        # self.mongo_db_write_arrays = self.mongo_db.writearrays
+        # self.mongo_db_sims = self.mongo_db.sims
 
         # InfluxDB
         self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
