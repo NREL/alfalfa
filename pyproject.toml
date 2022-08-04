@@ -32,6 +32,7 @@ symfit = "^0.5.5"
 
 # These libraries are used for the data generator/testcase.
 # They are pinned to older versions as the min python version is 3.7
+# Lock to pillow 9.1.1 to avoid installation issues with Pillow 9.2 on Ubuntu
 matplotlib = "3.5.2"
 pillow = "9.1.1"
 
