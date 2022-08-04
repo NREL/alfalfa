@@ -71,13 +71,13 @@ class Python < OpenStudio::Ruleset::WorkspaceUserScript
 
     # modify python plugin search paths
     ws.getObjectsByType('PythonPlugin_SearchPaths'.to_IddObjectType).each do |o|
-      o.setString(o.numFields(), "../.venv/lib/python3.7/site-packages")
-      i = 0
-      runner.workflow.absoluteFilePaths.each do |p|
-        if p.to_s.include?('python')
-          o.setString(4 + i, p.to_s)
-          i += 1
+      python_paths = ["../.venv/lib/python3.7/site-packages", "/usr/local/lib/python3.7/dist-packages"]
+      i = 3
+      while python_paths.length() > 0 && i < 20 do
+        if o.getString(i, false, true).empty?
+          o.setString(i, python_paths.pop)
         end
+        i += 1
       end
     end
   end

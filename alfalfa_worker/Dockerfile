@@ -38,6 +38,7 @@ RUN apt-get update \
     python3.7-dev \
     python3.7 \
     python3.7-distutils \
+    python3.7-venv \
     python3-pip \
     libblas-dev \
     && rm -rf /var/lib/apt/lists/*
