@@ -4,8 +4,8 @@ USER root
 
 ENV HOME /home/alfalfa
 
-# Need to set the lang to use Python 3.6 with Poetry
-ENV  LANG C.UTF-8
+# Need to set the lang to use Python 3.7 with Poetry
+ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 ENV ROOT_DIR /usr/local
 ENV BUILD_DIR $HOME/build
@@ -13,7 +13,7 @@ ENV BUILD_DIR $HOME/build
 WORKDIR /home/alfalfa
 
 # Until we can support E+ 22.1.0 we need to install python 3.7 (thus deadsnakes/ppa)
-# This step should probably be connected tot he next one, but due to the nature of NREL's
+# This step should probably be connected to the next one, but due to the nature of NREL's
 # firewall this step must be run off VPN. This way you don't need to log off everytime you
 # update apt packaged, at least.
 RUN apt-get update \
@@ -93,7 +93,6 @@ RUN wget https://spawn.s3.amazonaws.com/custom/Spawn-$SPAWN_VERSION-Linux.tar.gz
     && rm Spawn-$SPAWN_VERSION-Linux.tar.gz
 
 ## MODELICA
-
 ENV FMIL_TAG 2.4
 ENV FMIL_HOME $ROOT_DIR/fmil
 
@@ -192,9 +191,7 @@ COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 COPY ./deploy/start_worker.sh start_worker.sh
 
 WORKDIR /alfalfa/alfalfa_worker
-# add back in the workflow.tar.gz, but this will be remove (i think)
-# when we remove the osm support.
-# RUN tar -czf workflow.tar.gz workflow
+
 ENV SEPARATE_PROCESS_JVM /usr/lib/jvm/java-8-openjdk-amd64/
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 
