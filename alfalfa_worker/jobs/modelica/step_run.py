@@ -51,7 +51,6 @@ class StepRun(StepRunBase):
         self.tc = TestCase(**config)
 
         # run the FMU simulation
-        self.kstep = 0  # todo remove if not used
         self.simtime = self.sim_start_time
         self.set_run_time(self.simtime)
 
