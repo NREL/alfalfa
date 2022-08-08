@@ -15,6 +15,9 @@ submitted_osw = OpenStudio::WorkflowJSON.new(submitted_osw_path)
 model_measure_type = OpenStudio::MeasureType.new('ModelMeasure')
 alfalfa_steps = alfalfa_osw.getMeasureSteps(model_measure_type)
 
+eplus_measure_type = OpenStudio::MeasureType.new('EnergyPlusMeasure')
+alfalfa_eplus_steps = alfalfa_osw.getMeasureSteps(eplus_measure_type)
+
 # Given a WorkflowJSON, return the local measures directory relative to the osw
 # The goal is to avoid any global directories that are outside of the osw directory
 def measures_directory(osw)
@@ -35,8 +38,16 @@ alfalfa_steps.each do |step|
   FileUtils.cp_r(bcl_measure_path, measures_directory(submitted_osw))
 end
 
+alfalfa_eplus_steps.each do |step|
+  bcl_measure = alfalfa_osw.getBCLMeasure(step).get()
+  bcl_measure_path = OpenStudio::toString(bcl_measure.directory())
+  FileUtils.cp_r(bcl_measure_path, measures_directory(submitted_osw))
+end
+
 submitted_steps = submitted_osw.getMeasureSteps(model_measure_type)
+submitted_eplus_steps = submitted_osw.getMeasureSteps(eplus_measure_type)
 new_steps = submitted_steps + alfalfa_steps
 submitted_osw.setMeasureSteps(model_measure_type, new_steps)
+submitted_osw.setMeasureSteps(eplus_measure_type, submitted_eplus_steps + alfalfa_eplus_steps)
 
 submitted_osw.save()

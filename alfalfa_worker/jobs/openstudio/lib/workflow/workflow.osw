@@ -24,6 +24,13 @@
          "measure_dir_name" : "export_bcvtb",
          "modeler_description" : "This measure loops through outputvariables, EMS:outputvariables and ExternalInterface objects and will create the variables.cfg xml file for BCVTB.",
          "name" : "ExportBCVTB"
+      },
+      {
+         "arguments" : {},
+         "measure_dir_name" : "python",
+         "name" : "Python",
+         "description" : "Add python to IDF",
+         "modeler_description" : "Add python script path to IDF"
       }
    ],
    "updated_at" : "20170606T230145Z",
