@@ -83,6 +83,7 @@ class CreateRun(Job):
         fmu_upload_name = os.path.basename(self.model_name)  # without directories
         fmu_upload_name = os.path.splitext(fmu_upload_name)[0]  # without extension
 
+        # TODO: Figure out how to find geo_city
         sitetag = {
             "dis": "s:%s" % fmu_upload_name,
             "id": "r:%s" % self.run.id,

@@ -140,9 +140,21 @@ class RunManager(LoggerMixinBase):
         # remove sim_time since it is None, which isn't valid in the database, so leave empty and
         # it will not be in the database, yet.
         run_dict.pop('sim_time')
-        # create model relationship
+
+        # grab the model to assign it to the relationship later
         model_path = run_dict.pop('model')
         model = Model(path=model_path).save()
+
+        # create site relationship - which is really the run.id, for some reason
+        try:
+            site = Site.objects.get(ref_id=run.id)
+            run_dict['site'] = site
+        except Site.DoesNotExist:
+            # this must be the first time this object is being created, so there is no site yet
+            # since the site is extracted from the haystack points
+            pass
+
+        # create the Run database object and append the history
         run = RunMongo(**run_dict).save()
         for history in run_dict['job_history']:
             run.job_history.append(history)
@@ -175,8 +187,24 @@ class RunManager(LoggerMixinBase):
             'sim_time': run_dict['sim_time'],
             'error_log': run_dict['error_log'],
         }
+        # check if the site is assigned yet and create site relationship - which is really the run.id, for some reason
+        try:
+            site = Site.objects.get(ref_id=run.id)
+            new_obj['site'] = site
+        except Site.DoesNotExist:
+            # this must be the first time this object is being created, so there is no site yet
+            # since the site is extracted from the haystack points
+            pass
+
         self.logger.info(f"REMOVE ME -- HERE updating run {new_obj}")
         RunMongo.objects(ref_id=run.id).update_one(**new_obj)
+        for point in run.points:
+            if point.type == PointType.OUTPUT and point._pending_value:
+                PointMongo.objects.filter(ref_id=point.id).update_one(value=point.val)
+            else:
+                # set the current point in memory to the value in the database (since it is an input)
+                point_dict = self.mongo_db_points.find_one({'_id': point.id})
+                point._val = PointMongo.objects.filter(ref_id=point.id).first().value
 
     def get_run(self, run_id: str) -> Run:
         """Get a run by id from the database"""
@@ -229,7 +257,8 @@ class RunManager(LoggerMixinBase):
         new_points = []
         for index, _point in enumerate(array_to_insert):
             array_to_insert[index]['ref_id'] = array_to_insert[index].pop('_id')
-            array_to_insert[index]['run_id'] = run_id_obj  # need to add the db object reference
+            array_to_insert[index]['run'] = run_id_obj  # need to add the db object reference
+            del array_to_insert[index]['run_id']
             array_to_insert[index]['value'] = array_to_insert[index].pop('val')  # let's rename to a fuller description
             new_points.append(PointMongo(**array_to_insert[index]))
         PointMongo.objects.insert(new_points, load_bulk=False)
@@ -253,6 +282,7 @@ class RunManager(LoggerMixinBase):
         :return: pymongo.results.InsertManyResult
         """
         array_to_insert = []
+        self.logger.warning(f"The haystack JSON is {haystack_json}")
         for entity in haystack_json:
             array_to_insert.append({
                 '_id': entity['id'].replace('r:', ''),
@@ -261,18 +291,39 @@ class RunManager(LoggerMixinBase):
             })
         response = self.mongo_db_recs.insert_many(array_to_insert)
 
-        # Get or create the site object fhen create all the 'rec' objects
-        site = Site(ref_id=run.id, name=f'Site with ID: {run.id}').save()
+        # Create a site obj here to keep the variable active, but it is
+        # really set as index 0 of the haystack_json
+        site = None
 
         # create all of the recs for this site
-        for entity in haystack_json:
+        for index, entity in enumerate(haystack_json):
+            if index == 0:
+                # this is the site record, store it on the site object of the
+                # database (as well as in the recs collection, for now).
+                # TODO: convert to actual data types (which requires updating the mongo schema too)
+                # TODO: FMU's might not have this data?
+                name = f"{entity.get('dis','Unknown Name').replace('s:','')} in {entity.get('geoCity', 'Unknown City').replace('s:','')}"
+                site = Site(ref_id=run.id, name=name).save()
+                site.haystack_raw = haystack_json
+                site.dis = entity.get('dis')
+                site.site = entity.get('site')
+                site.area = entity.get('area')
+                site.weather_ref = entity.get('weatherRef')
+                site.tz = entity.get('tz')
+                site.geo_city = entity.get('geoCity')
+                site.geo_state = entity.get('geoState')
+                site.geo_country = entity.get('geoCountry')
+                site.geo_coord = entity.get('geoCoord')
+                site.sim_status = entity.get('simStatus')
+                site.sim_type = entity.get('simType')
+                site.save()
+
             rec = Rec(ref_id=entity['id'].replace('r:', ''), site=site).save()
 
             rec_instance = RecInstance(**entity)
             rec.rec = rec_instance
             rec.save()
 
-        self.logger.warning(Rec._get_collection().index_information())
         return response
 
     def add_model(self, model_path: os.PathLike):

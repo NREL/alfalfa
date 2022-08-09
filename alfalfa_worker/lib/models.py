@@ -1,6 +1,7 @@
 import datetime
 
 from mongoengine import (
+    CASCADE,
     DateTimeField,
     DictField,
     Document,
@@ -38,9 +39,28 @@ class Site(TimestampedDocument):
     meta = {'collection': 'site'}
 
     # external reference ID
-    ref_id = StringField(required=True, index=True, primary_key=True)
+    ref_id = StringField(required=True, index=True)
     name = StringField(required=True, max_length=255)
-    haystack = DictField()
+    haystack_raw = ListField(DictField())
+
+    # In old database the first recs is the site, this is now moved to the
+    # site object in the database. Need to type this eventually
+    dis = StringField()
+    site = StringField()
+    area = StringField()
+    geo_city = StringField()
+    geo_coord = StringField()
+    geo_country = StringField()
+    geo_state = StringField()
+    tz = StringField()
+    weather_ref = StringField()
+    sim_status = StringField()
+    sim_type = StringField()
+
+    @property
+    def recs(self):
+        """Return list of all the recs for the site"""
+        return Rec.objects(site=self)
 
 
 class RecInstance(EmbeddedDocument):
@@ -81,9 +101,12 @@ class Rec(TimestampedDocument):
 
     # external reference ID
     ref_id = StringField(required=True)
-    site = ReferenceField(Site)
+    site = ReferenceField(Site, required=True, reverse_delete_rule=CASCADE)
 
     rec = EmbeddedDocumentField(RecInstance)
+
+    # def site(self):
+    # return self.site
 
 
 class Model(TimestampedDocument):
@@ -100,11 +123,14 @@ class Run(TimestampedDocument):
 
     # external ID used to track this object
     ref_id = StringField(required=True)
-    site = ReferenceField(Site)
-    model = ReferenceField(Model)
+
+    # The site is required but it only shows up after the haystack points
+    # are extracted.
+    site = ReferenceField(Site, reverse_delete_rule=CASCADE)
+    model = ReferenceField(Model, reverse_delete_rule=CASCADE)
 
     job_history = ListField(StringField(max_length=255))
-    # TODO: convert sim_time to an actual type
+
     sim_time = DynamicField(default=None)
     sim_type = StringField(required=True, choices=SimType.possible_enums_as_string(), max_length=255)
     # TODO: add in choices for status
@@ -118,7 +144,7 @@ class Simulation(TimestampedDocument):
 
     id = IntField(required=True, primary_key=True)
     name = StringField(required=True, max_length=255)
-    site = ReferenceField(Site)
+    site = ReferenceField(Site, required=True, reverse_delete_rule=CASCADE)
 
     run = ReferenceField(Run)
     # TODO: convert sim_time to an actual type
@@ -131,13 +157,13 @@ class Simulation(TimestampedDocument):
 class Point(TimestampedDocument):
     meta = {
         'collection': 'point',
-        'indexes': ['run_id', 'ref_id'],
+        'indexes': ['run', 'ref_id'],
     }
 
     # External reference ID
-    ref_id = StringField(required=True)
+    ref_id = StringField()
     name = StringField(required=True, max_length=255)
-    run_id = ReferenceField(Run)
+    run = ReferenceField(Run, reverse_delete_rule=CASCADE)
     point_type = StringField(required=True, choices=["Input", "Output", "Bidirectional"], max_length=50)
     key = StringField()
     value = DynamicField()
