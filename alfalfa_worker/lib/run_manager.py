@@ -11,6 +11,11 @@ from mongoengine import connect
 from pymongo import MongoClient
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
+from alfalfa_worker.lib.models import Model
+from alfalfa_worker.lib.models import Point as PointMongo
+from alfalfa_worker.lib.models import Rec, RecInstance
+from alfalfa_worker.lib.models import Run as RunMongo
+from alfalfa_worker.lib.models import Site
 from alfalfa_worker.lib.point import Point, PointType
 from alfalfa_worker.lib.run import Run
 from alfalfa_worker.lib.sim_type import SimType
@@ -127,11 +132,27 @@ class RunManager(LoggerMixinBase):
     def register_run(self, run: Run):
         """Insert a new run into mongo"""
         run_dict = run.to_dict()
+        self.logger.warning(f"REMOVE ME -- HERE registering run {run_dict}")
         self.mongo_db_runs.insert_one(run_dict)
+
+        # Save in the new format
+        run_dict['ref_id'] = run_dict.pop('_id')
+        # remove sim_time since it is None, which isn't valid in the database, so leave empty and
+        # it will not be in the database, yet.
+        run_dict.pop('sim_time')
+        # create model relationship
+        model_path = run_dict.pop('model')
+        model = Model(path=model_path).save()
+        run = RunMongo(**run_dict).save()
+        for history in run_dict['job_history']:
+            run.job_history.append(history)
+        run.model = model
+        run.save()
 
     def update_db(self, run: Run):
         """Update Run object and associated points in mongo. Writes output points and reads input points"""
         # If we used some sort of ORM we could possibly just have db objects which sync themselves automagically
+        run_dict = run.to_dict()
         self.mongo_db_runs.update_one({'_id': run.id},
                                       {'$set': run.to_dict()}, False)
         for point in run.points:
@@ -142,12 +163,32 @@ class RunManager(LoggerMixinBase):
                 point_dict = self.mongo_db_points.find_one({'_id': point.id})
                 point._val = point_dict['val']
 
+        # update in the new model. The run update should only care about
+        #    * job_history
+        #    * status
+        #    * modified (which is implicit)
+        #    * sim_time
+        #    * error_log
+        new_obj = {
+            'job_history': run_dict['job_history'],
+            'status': run_dict['status'],
+            'sim_time': run_dict['sim_time'],
+            'error_log': run_dict['error_log'],
+        }
+        self.logger.info(f"REMOVE ME -- HERE updating run {new_obj}")
+        RunMongo.objects(ref_id=run.id).update_one(**new_obj)
+
     def get_run(self, run_id: str) -> Run:
         """Get a run by id from the database"""
         run_dict = self.mongo_db_runs.find_one({'_id': run_id})
         self.logger.info(run_dict)
         run = Run(**run_dict)
         run.points = self.get_points(run)
+
+        # Use the new model -- find, but don't set
+        run_obj = RunMongo.objects.filter(ref_id=run.id).first()
+        self.logger.info(f"Retrieved run from new model {run_obj}")
+        # self.logger.info(f"New object has the following points: {run_obj.points}")
         return run
 
     def get_points(self, run: Run):
@@ -159,27 +200,43 @@ class RunManager(LoggerMixinBase):
             del point_dict['_id']
             del point_dict['run_id']
             points.append(Point(**point_dict))
+
+        # Use the new model -- find in the new database format, but don't set anything yet.
+        points_res = PointMongo.objects(ref_id=run.id)
+        for point_dict in points_res:
+            print(f"Found point in new database format: {point_dict}")
+
         return points
 
     def add_points_to_run(self, run: Run, points: List[Point]):
         """Add a list of points to a Run"""
         array_to_insert = []
         for point in points:
-            point_dict = {
+            array_to_insert.append({
                 '_id': point.id,
                 'key': point.key,
                 'name': point.name,
                 'run_id': run.id,
                 'val': point.val
-            }
-            array_to_insert.append(point_dict)
+            })
 
         response = self.mongo_db_points.insert_many(array_to_insert)
         run.points = points
+
+        # store into the new database format, load_bulk=False only returns obj ids.
+        #   - need to massage the data a bit, mark ref_id and run_id as object.
+        run_id_obj = RunMongo.objects.filter(ref_id=run.id).first()
+        new_points = []
+        for index, _point in enumerate(array_to_insert):
+            array_to_insert[index]['ref_id'] = array_to_insert[index].pop('_id')
+            array_to_insert[index]['run_id'] = run_id_obj  # need to add the db object reference
+            array_to_insert[index]['value'] = array_to_insert[index].pop('val')  # let's rename to a fuller description
+            new_points.append(PointMongo(**array_to_insert[index]))
+        PointMongo.objects.insert(new_points, load_bulk=False)
+
         return response
 
-    # TODO deprecate
-    def add_site_to_mongo(self, haystack_json, run: Run):
+    def add_site_to_mongo(self, haystack_json: dict, run: Run):
         """
         Upload JSON documents to mongo.  The documents look as follows:
         {
@@ -203,6 +260,19 @@ class RunManager(LoggerMixinBase):
                 'rec': entity
             })
         response = self.mongo_db_recs.insert_many(array_to_insert)
+
+        # Get or create the site object fhen create all the 'rec' objects
+        site = Site(ref_id=run.id, name=f'Site with ID: {run.id}').save()
+
+        # create all of the recs for this site
+        for entity in haystack_json:
+            rec = Rec(ref_id=entity['id'].replace('r:', ''), site=site).save()
+
+            rec_instance = RecInstance(**entity)
+            rec.rec = rec_instance
+            rec.save()
+
+        self.logger.warning(Rec._get_collection().index_information())
         return response
 
     def add_model(self, model_path: os.PathLike):

@@ -32,7 +32,7 @@ class CreateRun(Job):
         """
         self.logger.info("add_fmu for {}".format(self.run.id))
 
-        # External call to python2 to create FMU tags
+        # Create the FMU tags (no longer external now that python2 is deprecated)
         self.create_tags()
         # insert tags into db
         self.insert_fmu_tags()

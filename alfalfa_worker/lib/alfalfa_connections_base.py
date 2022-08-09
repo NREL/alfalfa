@@ -52,33 +52,6 @@ class AlfalfaConnectionsBase(object):
             self.influx_db_name = None
             self.influx_client = None
 
-    def add_site_to_mongo(self, haystack_json, site_ref):
-        """
-        Upload JSON documents to mongo.  The documents look as follows:
-        {
-            '_id': '...', # this maps to the 'id' below, the unique id of the entity record.
-            'site_ref': '...', # for easy finding of entities by site
-            'rec': {
-                'id': '...',
-                'siteRef': '...'
-                ...other Haystack tags for rec
-            }
-        }
-        :param haystack_json: json Haystack document
-        :param site_ref: id of site
-        :return: pymongo.results.InsertManyResult
-        """
-        if site_ref:
-            array_to_insert = []
-            for entity in haystack_json:
-                array_to_insert.append({
-                    '_id': entity['id'].replace('r:', ''),
-                    'site_ref': site_ref,
-                    'rec': entity
-                })
-            response = self.mongo_db_recs.insert_many(array_to_insert)
-            return response
-
     def add_site_to_filestore(self, bucket_parsed_site_id_dir, site_ref):
         """
         Attempt to add to filestore.  Two exceptions are caught and returned back:

@@ -3,7 +3,7 @@ from uuid import uuid4
 
 
 class Point:
-    """Input or Output point used to exchange data between simulation and client"""
+    """Input or Output point used to exchange data between simulation and client. TODO: can we extend this from the database object?"""
 
     def __init__(self, key: str, name: str, type, val=0, id=None) -> None:
         """

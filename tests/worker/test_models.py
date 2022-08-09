@@ -17,19 +17,19 @@ class TestModelsObjects:
         connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
 
     def test_create_and_destroy_site(self):
-        id_value = random.randint(0, 1024)
-        site = Site(id=id_value, name="test").save()
-        updated_at = site.updated_at
-        assert site.id == id_value
+        id_value = str(random.randint(0, 1024))
+        site = Site(name="test", ref_id=id_value).save()
+        updated_at = site.modified
+        assert site.ref_id == id_value
         assert site.name == "test"
         time.sleep(1)
         site.name = "test_after_update"
         site.save()
-        assert site.updated_at > updated_at
+        assert site.modified > updated_at
         assert site.name == "test_after_update"
         result = site.delete()
         assert result is None
 
-        # try to find the object
-        site = Site.objects(id=id_value)
+        # try to find the object, which should not exist
+        site = Site.objects(ref_id=id_value)
         assert len(site) == 0
