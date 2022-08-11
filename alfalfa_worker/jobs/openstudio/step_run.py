@@ -61,11 +61,6 @@ class StepRun(StepRunBase):
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
 
-        self.setup_connections()
-
-        # Store the site for later use
-        self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
-
     def time_per_step(self):
         return timedelta(seconds=3600.0 / self.time_steps_per_hour)
 
@@ -278,6 +273,7 @@ class StepRun(StepRunBase):
                             self.ep.inputs[index] = val
                             self.ep.inputs[index + 1] = 1
                             break
+
         # Convert to tuple
         inputs = tuple(self.ep.inputs)
         return inputs

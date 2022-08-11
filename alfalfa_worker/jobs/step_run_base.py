@@ -9,11 +9,25 @@ from alfalfa_worker.lib.job import (
     JobExceptionSimulation,
     message
 )
+from alfalfa_worker.lib.models import Site
 from alfalfa_worker.lib.run import RunStatus
 
 
 class StepRunBase(Job):
-    def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
+    def __init__(self, run_id: str, realtime: bool, timescale: int, external_clock: bool, start_datetime: str, end_datetime: str, **kwargs) -> None:
+        """Base class for all jobs to step a run. The init handles the basic configuration needed
+        for the derived classes.
+
+        Args:
+            run_id (str): Run object ID.
+            realtime (bool): Simulate the model in realtime.
+            timescale (int): Timescale in seconds of the simulation.
+            external_clock (bool): Use an external clock to step the simulation.
+            start_datetime (str): Start datetime. #TODO: this should be typed datetime
+            end_datetime (str): End datetime. #TODO: this should be typed datetime
+            **skip_site_init (bool): Skip the initialization of the site database object. This is mainly used in testing.
+
+        """
         super().__init__()
         self.set_run_status(RunStatus.STARTING)
         self.step_sim_type, self.step_sim_value, self.start_datetime, self.end_datetime = self.process_inputs(realtime, timescale, external_clock, start_datetime, end_datetime)
@@ -32,6 +46,17 @@ class StepRunBase(Job):
 
         self.first_step_warmup = False
         self.set_run_status(RunStatus.STARTED)
+
+        self.setup_connections()
+        self.site = self.mongo_db_recs.find_one({"_id": run_id})
+
+        if 'skip_site_init' in kwargs and not kwargs['skip_site_init']:
+            # grab the new site from the new database model. This assumes that the site is the same as the old site
+            try:
+                # TODO: after passing around run ORM objects, convert to self.run.site
+                self.new_site = Site.objects.get(ref_id=run_id)
+            except Site.DoesNotExist:
+                raise Exception(f"Could not find a site to step the run with run_id {run_id}")
 
     def process_inputs(self, realtime, timescale, external_clock, start_datetime, end_datetime):
         # TODO change server side message: startDatetime to start_datetime

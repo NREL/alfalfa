@@ -6,6 +6,7 @@ import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
 from alfalfa_worker.lib.job import message
+from alfalfa_worker.lib.models import Rec, WriteArray
 from alfalfa_worker.lib.testcase import TestCase
 
 
@@ -23,14 +24,10 @@ class StepRun(StepRunBase):
         self.current_datetime = datetime(historian_year, 1, 1, 0, 0, 0) + timedelta(seconds=self.sim_start_time)
         print("current datetime at start of simulation: %", self.current_datetime)
 
-        self.setup_connections()
-
-        self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
-
         fmupath = self.dir / 'model.fmu'
         tagpath = self.dir / 'tags.json'
 
-        # TODO make configurable
+        # TODO: make configurable
         # step_size in seconds
         self.step_size = 60
         # TODO cleanup
@@ -125,6 +122,17 @@ class StepRun(StepRunBase):
                         u[dis.replace('_u', '_activate')] = 1
                         break
 
+        # update the new model database too -- this is just a redundant call to above
+        for array in WriteArray.objects(ref_id=self.run.id):
+            _id = array.get('_id')
+            for val in array.get('val'):
+                if val is not None:
+                    dis = self.id_and_dis.get(_id)
+                    if dis:
+                        u[dis] = val
+                        u[dis.replace('_u', '_activate')] = 1
+                        break
+
         y_output = self.tc.advance(u)
         self.update_sim_status()
         self.increment_datetime()
@@ -136,6 +144,16 @@ class StepRun(StepRunBase):
                 value_y = y_output[key]
                 self.mongo_db_recs.update_one({"_id": output_id}, {
                     "$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
+
+                # update in the new database
+                new_data = {
+                    "rec": {
+                        "curVal": "n:%s" % value_y,
+                        "curStatus": "s:ok",
+                        "cur": "m:"
+                    }
+                }
+                Rec.objects.filter(ref_id=output_id).update_one(**new_data)
 
         if self.historian_enabled:
             self.write_outputs_to_influx(y_output)

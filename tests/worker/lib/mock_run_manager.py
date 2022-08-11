@@ -11,6 +11,22 @@ from alfalfa_worker.lib.run import Run
 from alfalfa_worker.lib.run_manager import RunManager
 
 
+class MockObjReturns():
+    def find_one(self, *args):
+        return []
+
+
+class MockMongoDB():
+    """class to hold responses for mock run manager's mongodb
+    MongoDB isn't needed when testing the mock responses, so
+    this is strictly a placeholder"""
+
+    def __init__(self):
+        self.recs = MockObjReturns()
+        self.sims = MockObjReturns()
+        self.writearrays = MockObjReturns()
+
+
 class MockRunManager(RunManager, LoggerMixinBase):
     runs: Dict[str, Run] = {}
 
@@ -24,6 +40,10 @@ class MockRunManager(RunManager, LoggerMixinBase):
         self.tmp_dir = run_dir / 'tmp'
         if not self.tmp_dir.exists():
             self.tmp_dir.mkdir()
+
+        # mock mongodb
+        self.mongo_db = MockMongoDB()
+        self.site = 'SKIPME'
         LoggerMixinBase.__init__(self, "MockRunManager")
 
     def s3_download(self, key: str, file_path: PathLike):

@@ -66,7 +66,7 @@ class Site(TimestampedDocument):
 class RecInstance(EmbeddedDocument):
     """This is a flat haystack representation of a point"""
 
-    id = StringField(primary_key=True)
+    id = StringField()
     dis = StringField()
     siteRef = StringField()
     point = StringField()
@@ -167,3 +167,16 @@ class Point(TimestampedDocument):
     point_type = StringField(required=True, choices=["Input", "Output", "Bidirectional"], max_length=50)
     key = StringField()
     value = DynamicField()
+
+
+class WriteArray(TimestampedDocument):
+    meta = {
+        'collection': 'write_array',
+        'indexes': ['site', 'ref_id']
+    }
+
+    ref_id = StringField()
+    # is the write array really attached to a site, seems like it should be for a run of a site?
+    site = ReferenceField(Site, required=True, reverse_delete_rule=CASCADE)
+    who = ListField(DynamicField())
+    value = ListField(DynamicField())
