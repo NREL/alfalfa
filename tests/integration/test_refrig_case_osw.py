@@ -101,3 +101,40 @@ class TestRefrigCaseOSW(TestCase):
         # Shut down
         alfalfa.stop(model_id)
         alfalfa.wait(model_id, "COMPLETE")
+
+    def test_basic_io(self):
+        zip_file_path = create_zip('refrig_case_osw')
+        alfalfa = AlfalfaClient(url='http://localhost')
+        model_id = alfalfa.submit(zip_file_path)
+
+        alfalfa.wait(model_id, "READY")
+        alfalfa.start(
+            model_id,
+            external_clock="true",
+            start_datetime=datetime.datetime(2019, 1, 2, 0, 2, 0),
+            end_datetime=datetime.datetime(2019, 1, 3, 0, 0, 0)
+        )
+
+        alfalfa.wait(model_id, "RUNNING")
+
+        inputs = alfalfa.inputs(model_id)
+        assert "Test_Point_1" in inputs.keys(), "Test_Point_1 is in input points"
+        inputs["Test_Point_1"] = 12
+
+        alfalfa.setInputs(model_id, inputs)
+
+        outputs = alfalfa.outputs(model_id)
+        assert "Test_Point_1_Value" in outputs.keys(), "Echo point for Test_Point_1 is not in outputs"
+        assert "Test_Point_1_Enable_Value" in outputs.keys(), "Echo point for Test_Point_1_Enable is not in outputs"
+
+        # -- Advance a single time step
+        alfalfa.advance([model_id])
+        alfalfa.advance([model_id])
+
+        outputs = alfalfa.outputs(model_id)
+        assert int(outputs["Test_Point_1_Value"] == 12), "Test_Point_1 value has not been processed by the model"
+        assert int(outputs["Test_Point_1_Enable_Value"] == 1), "Enable flag for Test_Point_1 is not set correctly"
+
+        # Shut down
+        alfalfa.stop(model_id)
+        alfalfa.wait(model_id, "COMPLETE")
