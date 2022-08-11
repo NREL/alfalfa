@@ -1,5 +1,6 @@
 # from alfalfa.worker.models import Site
 
+import copy
 import os
 import random
 import time
@@ -47,7 +48,7 @@ class TestModelObjectsWithFixtures():
             site = Site(**datum)
             site.save()
 
-        for datum in rec_data:
+        for datum in copy.deepcopy(rec_data):
             # check if there is a key to replace the site_id with the site object
             if datum['site_id']:
                 site = Site.objects(ref_id=datum['site_id'])
@@ -64,7 +65,7 @@ class TestModelObjectsWithFixtures():
 
         # the cascading delete will (should!) delete the recs as well
 
-    def test_relationship(self):
+    def test_relationships(self):
         sites = Site.objects(ref_id__in=['123', '456'])
         assert len(sites) == 2
         assert len(Rec.objects(ref_id__in=['site_456_rec_1', 'site_456_rec_2'])) == 2
@@ -72,6 +73,15 @@ class TestModelObjectsWithFixtures():
         # verify the relationship between the site and the rec
         site = Site.objects()[1]
         assert site.ref_id == '456'
-        assert site.recs.count() == 2
-        rec_1 = site.recs[0]
+        assert site.recs().count() == 2
+        rec_1 = site.recs()[0]
         assert rec_1.ref_id == 'site_456_rec_1'
+
+    def test_site_rec_querying(self):
+        # Based on the mock data, this is the object with 2 recs
+        site = Site.objects()[1]
+        recs = site.recs(rec__curStatus='s:disabled')
+        assert len(recs) == 1
+
+        recs = site.recs(rec__curStatus='s:enabled')
+        assert len(recs) == 0

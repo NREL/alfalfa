@@ -57,10 +57,17 @@ class Site(TimestampedDocument):
     sim_status = StringField()
     sim_type = StringField()
 
-    @property
-    def recs(self):
-        """Return list of all the recs for the site"""
-        return Rec.objects(site=self)
+    def recs(self, **kwargs: dict):  # -> list[Rec]:
+        """Return list of all the recs for the site
+
+        Args:
+            **kwargs: Additional arguments to pass to the Rec.objects.filter() method.
+
+        Returns:
+            list: Rec objects
+
+        """
+        return Rec.objects.filter(site=self, **kwargs)
 
 
 class RecInstance(EmbeddedDocument):
