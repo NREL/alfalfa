@@ -99,7 +99,7 @@ class StepRun(StepRunBase):
         This is accomplished by advancing the simulation as quickly as possible. Data is not
         published to database during this process
         """
-        self.exchange_data()
+        self.update_outputs_from_ep()
 
         current_ep_time = self.get_energyplus_datetime()
         self.logger.info(
@@ -116,28 +116,27 @@ class StepRun(StepRunBase):
         self.master_enable_bypass = False
         self.update_db()
 
-    def exchange_data(self):
-        """
-        Write inputs to simulation and get updated outputs
-        This does not advance the simulation on its own, instead
-        to advance the simulation increment ep.kstep and then call this function
-        See self.step
-        """
-        # Before step
-        inputs = self.read_write_arrays_and_prep_inputs()
-        self.ep.write(mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs))
-        # After step
+    def update_outputs_from_ep(self):
+        """Reads outputs from E+ step"""
         packet = self.ep.read()
         flag, _, outputs = mlep.mlep_decode_packet(packet)
         self.ep.outputs = outputs
-        return outputs
 
     def step(self):
         """
-        Simulate one simulation timestep
+        Write inputs to simulation and get updated outputs.
+        This will advance the simulation one timestep.
         """
+
+        # This doesn't really do anything. Energyplus does not check the timestep value coming from the external interface
         self.ep.kStep += 1
-        self.exchange_data()
+        # Begin Step
+        inputs = self.read_write_arrays_and_prep_inputs()
+        packet = mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs)
+        self.ep.write(packet)  # This triggers simulation timestep
+
+        # After Step
+        self.update_outputs_from_ep()
 
     def update_db(self):
         """
@@ -160,7 +159,6 @@ class StepRun(StepRunBase):
         hour_index = self.variables.output_index_from_type_and_name("current_hour", "EMS")
         minute_index = self.variables.output_index_from_type_and_name("current_minute", "EMS")
 
-        # TODO where doe ep.outputs actually get written to...? can't find in mlep lib
         day = int(round(self.ep.outputs[day_index]))
         hour = int(round(self.ep.outputs[hour_index]))
         minute = int(round(self.ep.outputs[minute_index]))
