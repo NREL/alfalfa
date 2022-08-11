@@ -50,11 +50,11 @@ class StepRunBase(Job):
         self.setup_connections()
         self.site = self.mongo_db_recs.find_one({"_id": run_id})
 
-        if 'skip_site_init' in kwargs and not kwargs['skip_site_init']:
+        if not kwargs.get('skip_site_init', False):
             # grab the new site from the new database model. This assumes that the site is the same as the old site
             try:
                 # TODO: after passing around run ORM objects, convert to self.run.site
-                self.new_site = Site.objects.get(ref_id=run_id)
+                self.site_new = Site.objects.get(ref_id=run_id)
             except Site.DoesNotExist:
                 raise Exception(f"Could not find a site to step the run with run_id {run_id}")
 
@@ -210,6 +210,11 @@ class StepRunBase(Job):
     def stop(self) -> None:
         super().stop()
         self.set_run_status(RunStatus.STOPPING)
+
+        # unset recs values as needed
+
+        # create the simulation database object. It apppears that this is the only place
+        # where this is created. Maybe we can remove this?
 
     def cleanup(self) -> None:
         super().cleanup()

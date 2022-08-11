@@ -132,7 +132,6 @@ class RunManager(LoggerMixinBase):
     def register_run(self, run: Run):
         """Insert a new run into mongo"""
         run_dict = run.to_dict()
-        self.logger.warning(f"REMOVE ME -- HERE registering run {run_dict}")
         self.mongo_db_runs.insert_one(run_dict)
 
         # Save in the new format
@@ -196,15 +195,15 @@ class RunManager(LoggerMixinBase):
             # since the site is extracted from the haystack points
             pass
 
-        self.logger.info(f"REMOVE ME -- HERE updating run {new_obj}")
         RunMongo.objects(ref_id=run.id).update_one(**new_obj)
         for point in run.points:
             if point.type == PointType.OUTPUT and point._pending_value:
-                PointMongo.objects.filter(ref_id=point.id).update_one(value=point.val)
+                PointMongo.objects.get(ref_id=point.id).update(value=point.val)
             else:
                 # set the current point in memory to the value in the database (since it is an input)
-                point_dict = self.mongo_db_points.find_one({'_id': point.id})
-                point._val = PointMongo.objects.filter(ref_id=point.id).first().value
+                point_obj = PointMongo.objects.get(ref_id=point.id)
+                # and in the new database model
+                point._val = point_obj.value
 
     def get_run(self, run_id: str) -> Run:
         """Get a run by id from the database"""
@@ -214,7 +213,7 @@ class RunManager(LoggerMixinBase):
         run.points = self.get_points(run)
 
         # Use the new model -- find, but don't set
-        run_obj = RunMongo.objects.filter(ref_id=run.id).first()
+        run_obj = RunMongo.objects.get(ref_id=run.id)
         self.logger.info(f"Retrieved run from new model {run_obj}")
         # self.logger.info(f"New object has the following points: {run_obj.points}")
         return run
@@ -282,7 +281,6 @@ class RunManager(LoggerMixinBase):
         :return: pymongo.results.InsertManyResult
         """
         array_to_insert = []
-        self.logger.warning(f"The haystack JSON is {haystack_json}")
         for entity in haystack_json:
             array_to_insert.append({
                 '_id': entity['id'].replace('r:', ''),
@@ -302,7 +300,7 @@ class RunManager(LoggerMixinBase):
                 # database (as well as in the recs collection, for now).
                 # TODO: convert to actual data types (which requires updating the mongo schema too)
                 # TODO: FMU's might not have this data?
-                name = f"{entity.get('dis','Unknown Name').replace('s:','')} in {entity.get('geoCity', 'Unknown City').replace('s:','')}"
+                name = f"{entity.get('dis','Test Case').replace('s:','')} in {entity.get('geoCity', 'Unknown City').replace('s:','')}"
                 site = Site(ref_id=run.id, name=name).save()
                 site.haystack_raw = haystack_json
                 site.dis = entity.get('dis')

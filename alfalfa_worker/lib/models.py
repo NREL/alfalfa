@@ -71,7 +71,10 @@ class Site(TimestampedDocument):
 
 
 class RecInstance(EmbeddedDocument):
-    """This is a flat haystack representation of a point"""
+    """This is a flat haystack representation of a point. Right now this stores the union of any
+    value that is expected. Many of these fields are probably not used anymore on this object
+    (e.g., simStatus, step), but they are still included because the code base is reading/writing
+    the valued. For example, it is unsetting `step` even though it doesn't appear to be written to."""
 
     id = StringField()
     dis = StringField()
@@ -79,14 +82,18 @@ class RecInstance(EmbeddedDocument):
     point = StringField()
     cur = StringField()
     curVal = StringField()
+    curErr = StringField()
     curStatus = StringField()
     kind = StringField()
     site = StringField()
     simStatus = StringField()
+    step = StringField()
     datetime = StringField()
     simType = StringField()
     writable = StringField()
     writeStatus = StringField()
+    writeLevel = StringField()
+    writeVal = StringField()
     area = StringField()
     geoCoord = StringField()
     geoCountry = StringField()
@@ -143,21 +150,23 @@ class Run(TimestampedDocument):
     # TODO: add in choices for status
     status = StringField(required=True, max_length=255)
 
-    error_log = StringField(required=True, max_length=1024)
+    error_log = StringField(required=True, max_length=65535)
 
 
 class Simulation(TimestampedDocument):
     meta = {'collection': 'simulation'}
 
-    id = IntField(required=True, primary_key=True)
     name = StringField(required=True, max_length=255)
     site = ReferenceField(Site, required=True, reverse_delete_rule=CASCADE)
 
-    run = ReferenceField(Run)
-    # TODO: convert sim_time to an actual type
-    sim_time = DynamicField()
+    # TODO: A simulation is attached to a site, not a run, which might be right.
+    # run = ReferenceField(Run)
+
+    # TODO: convert time completed to actual time (right now it is a string, mostly)
+    time_completed = DynamicField()
     sim_status = StringField(required=True, choices=["Complete"], max_length=255)
 
+    s3_key = StringField()
     results = DictField()
 
 
@@ -185,5 +194,5 @@ class WriteArray(TimestampedDocument):
     ref_id = StringField()
     # is the write array really attached to a site, seems like it should be for a run of a site?
     site = ReferenceField(Site, required=True, reverse_delete_rule=CASCADE)
-    who = ListField(DynamicField())
-    value = ListField(DynamicField())
+    whos = ListField(DynamicField())
+    values = ListField(DynamicField())

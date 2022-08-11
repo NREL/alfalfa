@@ -14,6 +14,7 @@ from alfalfa_worker.lib.job import (
     JobExceptionExternalProcess,
     message
 )
+from alfalfa_worker.lib.models import Rec, Simulation, WriteArray
 from alfalfa_worker.lib.point import Point, PointType
 
 
@@ -257,6 +258,12 @@ class StepRun(StepRunBase):
         self.replace_timestep_and_run_period_idf_settings()
 
     def read_write_arrays_and_prep_inputs(self):
+        """Read the write arrays from the database and format them correctly to pass
+        to the EnergyPlus simulation.
+
+        Returns:
+            tuple: list of inputs to set
+        """
         master_index = self.variables.input_index_from_variable_name("MasterEnable")
         if self.master_enable_bypass:
             self.ep.inputs[master_index] = 0
@@ -268,7 +275,20 @@ class StepRun(StepRunBase):
                     if val is not None:
                         index = self.variables.get_input_index(array.get('_id'))
                         if index == -1:
-                            self.logger.error('bad input index for: %s' % array.get('_id'))
+                            self.logger.error(f"bad input index for: {array.get('_id')}")
+                        else:
+                            self.ep.inputs[index] = val
+                            self.ep.inputs[index + 1] = 1
+                            break
+
+            # write to new database model
+            # update the new model database too -- this is just a redundant call to above
+            for array in WriteArray.objects(ref_id=self.site):
+                for val in array.values:
+                    if val is not None:
+                        index = self.variables.get_input_index(array.ref_id)
+                        if index == -1:
+                            self.logger.error(f"bad input index for: {array.ref_id}")
                         else:
                             self.ep.inputs[index] = val
                             self.ep.inputs[index + 1] = 1
@@ -292,6 +312,9 @@ class StepRun(StepRunBase):
                 self.mongo_db_recs.update_one({"_id": output_id}, {
                     "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
                              "rec.cur": "m:"}}, False)
+
+                # write to new database model
+                Rec.objects.get(ref_id=output_id).update(rec__curVal=f"n:{output_value}", rec__curStatus="s:ok", rec__cur="m:")
 
                 # Write to points
                 self.run.get_point_by_key(output_id).val = output_value
@@ -395,20 +418,53 @@ class StepRun(StepRunBase):
         super().stop()
 
         # DELETE
-        name = self.site.get("rec", {}).get("dis", "Unknown") if self.site else "Unknown"
-        name = name.replace("s:", "")
-        t = str(datetime.now(tz=pytz.UTC))
-        self.mongo_db_sims.insert_one(
-            {"_id": str(uuid4()), "siteRef": self.run.id, "s3Key": f"run/{self.run.id}.tar.gz", "name": name, "timeCompleted": t})
+        # Set the Site (first REC in the database) to be stopped
         self.mongo_db_recs.update_one({"_id": self.run.id},
                                       {"$set": {"rec.simStatus": "s:Stopped"},
                                           "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
-        self.mongo_db_recs.update_many({"_id": self.run.id, "rec.cur": "m:"},
+        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.cur": "m:"},
                                        {"$unset": {"rec.curVal": "", "rec.curErr": ""},
                                            "$set": {"rec.curStatus": "s:disabled"}},
                                        False)
+        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.writable": "m:"},
+                                       {"$unset": {"rec.writeLevel": "", "rec.writeVal": ""},
+                                           "$set": {"rec.writeStatus": "s:disabled"}}, False)
+
+        time = str(datetime.now(tz=pytz.UTC))
+        name = self.site.get("rec", {}).get("dis", "Test Case").replace('s:', '')
+        kpis = None
+        self.mongo_db_sims.insert_one({
+            "_id": str(uuid4()),
+            "name": name,
+            "siteRef": self.run.id,
+            "simStatus": "Complete",
+            "timeCompleted": time,
+            "s3Key": f"run/{self.run.id}.tar.gz",
+            "results": str(kpis)
+        })
+
+        # update in new model)
+        # grab the first rec object to unset some vars. I don't think that this is desired anymore.
+        rec = Rec.objects.get(ref_id=self.run.id)
+        rec.update(rec__simStatus="s:Stopped", unset__rec__datetime=1, unset__rec__step=1)
+
+        # get all the recs to disable the points (maybe this really needs to be on the Point objects?)
+        recs = self.site_new.recs(rec__cur="m:")
+        recs.update(rec__curStatus='s:disabled', unset__rec__curVal=1, unset__rec__curErr=1, multi=True)
+        recs = self.site_new.recs(rec__writable="m:")
+        recs.update(rec__writeStatus='s:disabled', unset__rec__writeLevel=1, unset__rec__writeVal=1, multi=True)
+
+        Simulation(
+            name=self.site_new.name,
+            site=self.site_new,
+            time_completed=str(datetime.now(tz=pytz.UTC)),
+            sim_status="Complete",
+            s3_key=f"run/{self.run.id}.tar.gz",
+            results=kpis
+        )
         # END DELETE
 
+        # Call some OpenStudio specific stop methods
         self.ep.stop(True)
         self.ep.is_running = 0
 
