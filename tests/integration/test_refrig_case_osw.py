@@ -129,7 +129,6 @@ class TestRefrigCaseOSW(TestCase):
 
         # -- Advance a single time step
         alfalfa.advance([model_id])
-        alfalfa.advance([model_id])
 
         outputs = alfalfa.outputs(model_id)
         assert int(outputs["Test_Point_1_Value"] == 12), "Test_Point_1 value has not been processed by the model"
