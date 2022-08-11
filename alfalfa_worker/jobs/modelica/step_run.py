@@ -94,6 +94,11 @@ class StepRun(StepRunBase):
 
         return (outputs_and_ID, id_and_dis, default_input)
 
+    def check_simulation_stop_conditions(self) -> bool:
+        if self.simtime >= self.sim_end_time:
+            return True
+        return False
+
     def time_per_step(self):
         return timedelta(seconds=self.step_size)
 

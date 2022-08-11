@@ -73,6 +73,9 @@ class StepRun(StepRunBase):
             return True
         if not self.ep.is_running:
             return True
+        if self.get_energyplus_datetime() >= self.end_datetime:
+            return True
+        return False
 
     def init_sim(self):
         """

@@ -45,17 +45,21 @@ class TestRefrigCaseOSW(TestCase):
 
         alfalfa.wait(model_id, "READY")
 
+        end_datetime = datetime.datetime(2019, 1, 2, 0, 5, 0)
         alfalfa.start(
             model_id,
             external_clock="false",
             start_datetime=datetime.datetime(2019, 1, 2, 0, 0, 0),
-            end_datetime=datetime.datetime(2019, 1, 3, 0, 0, 0),
+            end_datetime=end_datetime,
             timescale=5
         )
 
         alfalfa.wait(model_id, "RUNNING")
-        alfalfa.stop(model_id)
+        # wait for model to advance for 1 minute at timescale 5
+        sleep(60)
         alfalfa.wait(model_id, "COMPLETE")
+        model_time = alfalfa.get_sim_time(model_id)
+        assert end_datetime.strftime("%Y-%m-%d %H:%M") in model_time
 
     def test_simple_external_clock(self):
         zip_file_path = create_zip('refrig_case_osw')
