@@ -1,6 +1,8 @@
 import datetime
 import os
+from uuid import uuid4
 
+import pytz
 from influxdb import InfluxDBClient
 
 from alfalfa_worker.lib.job import (
@@ -9,7 +11,7 @@ from alfalfa_worker.lib.job import (
     JobExceptionSimulation,
     message
 )
-from alfalfa_worker.lib.models import Site
+from alfalfa_worker.lib.models import Rec, Simulation, Site
 from alfalfa_worker.lib.run import RunStatus
 
 
@@ -26,7 +28,7 @@ class StepRunBase(Job):
             start_datetime (str): Start datetime. #TODO: this should be typed datetime
             end_datetime (str): End datetime. #TODO: this should be typed datetime
             **skip_site_init (bool): Skip the initialization of the site database object. This is mainly used in testing.
-
+            **skip_stop_db_writes (bool): Skip the writing of the stop results to the database. This is mainly used in testing.
         """
         super().__init__()
         self.set_run_status(RunStatus.STARTING)
@@ -57,6 +59,8 @@ class StepRunBase(Job):
                 self.site_new = Site.objects.get(ref_id=run_id)
             except Site.DoesNotExist:
                 raise Exception(f"Could not find a site to step the run with run_id {run_id}")
+
+        self.skip_stop_db_writes = kwargs.get('skip_stop_db_writes', False)
 
     def process_inputs(self, realtime, timescale, external_clock, start_datetime, end_datetime):
         # TODO change server side message: startDatetime to start_datetime
@@ -156,7 +160,6 @@ class StepRunBase(Job):
             self.advance()
         next_step_time = datetime.datetime.now() + self.timescale_step_interval()
         while self.is_running:
-
             if datetime.datetime.now() >= next_step_time:
                 steps_behind = (datetime.datetime.now() - next_step_time) / self.timescale_step_interval()
                 if steps_behind > 2.0:
@@ -211,10 +214,61 @@ class StepRunBase(Job):
         super().stop()
         self.set_run_status(RunStatus.STOPPING)
 
-        # unset recs values as needed
+        # Clear current values from the database when the simulation is no longer running
+        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.cur": "m:"},
+                                       {"$unset": {"rec.curVal": "", "rec.curErr": ""},
+                                           "$set": {"rec.curStatus": "s:disabled"}}, False)
+        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.writable": "m:"},
+                                       {"$unset": {"rec.writeLevel": "", "rec.writeVal": ""},
+                                           "$set": {"rec.writeStatus": "s:disabled"}}, False)
 
-        # create the simulation database object. It apppears that this is the only place
-        # where this is created. Maybe we can remove this?
+        # update in new model
+        if not self.skip_stop_db_writes:
+            # grab the first rec object to unset some vars. I don't think that this is desired anymore.
+            rec = Rec.objects.get(ref_id=self.run.id)
+            rec.update(rec__simStatus="s:Stopped", unset__rec__datetime=1, unset__rec__step=1)
+
+            # get all the recs to disable the points (maybe this really needs to be on the Point objects?)
+            recs = self.site_new.recs(rec__cur="m:")
+            recs.update(rec__curStatus='s:disabled', unset__rec__curVal=1, unset__rec__curErr=1, multi=True)
+            recs = self.site_new.recs(rec__writable="m:")
+            recs.update(rec__writeStatus='s:disabled', unset__rec__writeLevel=1, unset__rec__writeVal=1, multi=True)
+
+            # Set the Site (first REC in the database) to be stopped. I don't think we want to track simStatus on this object anymore.
+            self.mongo_db_recs.update_one({"_id": self.run.id},
+                                          {"$set": {"rec.simStatus": "s:Stopped"},
+                                           "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
+
+            # create the simulation database object. It apppears that this is the only place
+            # where this is created. Maybe we can remove this?
+            time = str(datetime.datetime.now(tz=pytz.UTC))
+            name = self.site.get("rec", {}).get("dis", "Test Case").replace('s:', '')
+
+            # If Modelica, then the testcase (tc) has some results. OpenStudio and
+            # other inherited models do not expect this data.
+            if hasattr(self, 'tc'):
+                kpis = self.tc.get_kpis()
+            else:
+                kpis = None
+
+            self.mongo_db_sims.insert_one({
+                "_id": str(uuid4()),
+                "name": name,
+                "siteRef": self.run.id,
+                "simStatus": "Complete",
+                "timeCompleted": time,
+                "s3Key": f"run/{self.run.id}.tar.gz",
+                "results": kpis
+            })
+
+            Simulation(
+                name=self.site_new.name,
+                site=self.site_new,
+                time_completed=time,
+                sim_status="Complete",
+                s3_key=f"run/{self.run.id}.tar.gz",
+                results=kpis
+            )
 
     def cleanup(self) -> None:
         super().cleanup()

@@ -15,6 +15,9 @@ class MockObjReturns():
     def find_one(self, *args):
         return []
 
+    def update_many(self, *args):
+        return []
+
 
 class MockMongoDB():
     """class to hold responses for mock run manager's mongodb
@@ -43,7 +46,6 @@ class MockRunManager(RunManager, LoggerMixinBase):
 
         # mock mongodb
         self.mongo_db = MockMongoDB()
-        self.site = 'SKIPME'
         LoggerMixinBase.__init__(self, "MockRunManager")
 
     def s3_download(self, key: str, file_path: PathLike):
