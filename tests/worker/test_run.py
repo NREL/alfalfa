@@ -3,6 +3,8 @@ from uuid import uuid4
 from alfalfa_worker.dispatcher import Dispatcher
 from alfalfa_worker.lib.job import JobStatus
 from alfalfa_worker.lib.run import RunStatus
+from tests.worker.jobs.empty_job_1 import EmptyJob1
+from tests.worker.jobs.empty_job_2 import EmptyJob2
 from tests.worker.jobs.error_mock_job import ErrorMockJob
 from tests.worker.jobs.file_io_mock_job import FileIOMockJob
 from tests.worker.jobs.log_reader_job import LogReaderJob
@@ -72,3 +74,32 @@ def test_checkin_on_run_error(dispatcher: Dispatcher):
     log_reader_job.stop()
 
     assert test_string in log_contents
+
+
+def test_job_history(dispatcher: Dispatcher):
+    # Create two runs with different jobs
+    empty_job_1 = dispatcher.create_job(EmptyJob1.job_path())
+    empty_job_2 = dispatcher.create_job(EmptyJob2.job_path())
+
+    empty_job_1.start()
+    empty_job_2.start()
+
+    run_1 = empty_job_1.run
+    run_2 = empty_job_2.run
+
+    wait_for_job_status(empty_job_1, JobStatus.STOPPED)
+    wait_for_job_status(empty_job_2, JobStatus.STOPPED)
+
+    # Add second job to runs
+    empty_job_1 = dispatcher.create_job(EmptyJob1.job_path(), {"run_id": run_2.id})
+    empty_job_2 = dispatcher.create_job(EmptyJob2.job_path(), {"run_id": run_1.id})
+
+    empty_job_1.start()
+    empty_job_2.start()
+
+    wait_for_job_status(empty_job_1, JobStatus.STOPPED)
+    wait_for_job_status(empty_job_2, JobStatus.STOPPED)
+
+    # make sure job_histories are correct
+    assert run_1.job_history == [EmptyJob1.job_path(), EmptyJob2.job_path()]
+    assert run_2.job_history == [EmptyJob2.job_path(), EmptyJob1.job_path()]
