@@ -19,7 +19,6 @@ WORKDIR /home/alfalfa
 RUN apt-get update \
     && apt install -y software-properties-common \
     && add-apt-repository ppa:openjdk-r/ppa \
-    && add-apt-repository ppa:deadsnakes/ppa \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update \
@@ -35,10 +34,7 @@ RUN apt-get update \
     gfortran \
     libgfortran4 \
     cmake \
-    python3.7-dev \
-    python3.7 \
-    python3.7-distutils \
-    python3.7-venv \
+    python3-venv \
     python3-pip \
     libblas-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -57,14 +53,14 @@ ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.3.0/OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 
 ENV ENERGYPLUS_VERSION 9.6.0
-ENV ENERGYPLUS_TAG v9.6.0
-ENV ENERGYPLUS_SHA f420c06a69
+ENV ENERGYPLUS_TAG 9.6-3.8
+ENV ENERGYPLUS_SHA e78d88a246
 ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-4-0
 
 # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
 # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
 # might be revaluated
-ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/NREL/EnergyPlus/releases/download/$ENERGYPLUS_TAG
+ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/TShapinsky/EnergyPlus/releases/download/$ENERGYPLUS_TAG
 ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-Ubuntu20.04-x86_64.tar.gz
 ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
 
@@ -158,12 +154,10 @@ COPY pyproject.toml $BUILD_DIR
 COPY poetry.lock $BUILD_DIR
 
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
-RUN ln -sf /usr/bin/python3.7 /usr/bin/python \
-    && ln -sf /usr/bin/python3.7 /usr/bin/python3 \
-    && ln -sf /usr/bin/pip3 /usr/bin/pip \
-    && python -m pip install poetry==1.1.12 setuptools==62.1.0 \
-    && python -m poetry config virtualenvs.create false \
-    && python -m poetry install --no-dev
+RUN ln -sf /usr/bin/python3 /usr/bin/python \
+    && python3 -m pip install poetry==1.1.12 setuptools==62.1.0 \
+    && python3 -m poetry config virtualenvs.create false \
+    && python3 -m poetry install --no-dev
 
 # This is required for Assimulo to build correctly with setuptools 60+
 ENV SETUPTOOLS_USE_DISTUTILS stdlib

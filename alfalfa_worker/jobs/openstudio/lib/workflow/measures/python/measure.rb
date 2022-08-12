@@ -71,7 +71,7 @@ class Python < OpenStudio::Ruleset::WorkspaceUserScript
 
     # modify python plugin search paths
     ws.getObjectsByType('PythonPlugin_SearchPaths'.to_IddObjectType).each do |o|
-      python_paths = ["../.venv/lib/python3.7/site-packages", "/usr/local/lib/python3.7/dist-packages"]
+      python_paths = ["../.venv/lib/python3.8/site-packages", "/usr/local/lib/python3.8/dist-packages"]
       i = 3
       while python_paths.length() > 0 && i < 20 do
         if o.getString(i, false, true).empty?
