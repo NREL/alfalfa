@@ -43,14 +43,16 @@ class StepRunBase(Job):
         except ValueError:
             self.logger.info(f"timescale is not an integer, continuing as sim_type=timescale. Value was {timescale}")
 
-        realtime = True if realtime and realtime.lower() == 'true' else False
-        external_clock = True if external_clock and external_clock.lower() == 'true' else False
+        if not isinstance(realtime, bool):
+            realtime = True if realtime and realtime.lower() == 'true' else False
+        if not isinstance(external_clock, bool):
+            external_clock = True if external_clock and external_clock.lower() == 'true' else False
 
-        self.logger.debug("start_datetime type: {}\tstart_datetime: {}".format(type(start_datetime), start_datetime))
-        self.logger.debug("end_datetime type: {}\tend_datetime: {}".format(type(end_datetime), end_datetime))
-        self.logger.debug("realtime type: {}\trealtime: {}".format(type(realtime), realtime))
-        self.logger.debug("timescale type: {}\ttimescale: {}".format(type(timescale), timescale))
-        self.logger.debug("external_clock type: {}\texternal_clock: {}".format(type(external_clock), external_clock))
+        self.logger.debug(f"start_datetime type: {type(start_datetime)}\tstart_datetime: {start_datetime}")
+        self.logger.debug(f"end_datetime type: {type(end_datetime)}\tend_datetime: {end_datetime}")
+        self.logger.debug(f"realtime type: {type(realtime)}\trealtime: {realtime}")
+        self.logger.debug(f"timescale type: {type(timescale)}\ttimescale: {timescale}")
+        self.logger.debug(f"external_clock type: {type(external_clock)}\texternal_clock: {external_clock}")
 
         # Check for at least one of the required parameters
         if not realtime and not timescale and not external_clock:
