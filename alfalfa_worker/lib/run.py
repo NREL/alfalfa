@@ -28,11 +28,11 @@ class RunStatus(AutoName):
 class Run:
     # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
 
-    def __init__(self, dir: Path = None, model=None, _id=None, job_history=[], sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None, sim_time=None, error_log=""):
+    def __init__(self, dir: Path = None, model=None, _id=None, job_history=None, sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None, sim_time=None, error_log=""):
         self.dir: Path = dir
         self.model = model
         self.id = _id if _id is not None else str(uuid4())
-        self._job_history = job_history
+        self._job_history = job_history if job_history is not None else []
         self._status = status if status.__class__ == RunStatus else RunStatus(status)
         self.sim_type = sim_type if sim_type.__class__ == SimType else SimType(sim_type)
         if created is None:

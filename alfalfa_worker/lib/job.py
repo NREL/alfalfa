@@ -222,7 +222,6 @@ class Job(metaclass=JobMetaclass):
 
     def checkout_run(self, run_id: str) -> Run:
         run = self.run_manager.checkout_run(run_id)
-        run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
         self.register_run(run)
         return run
@@ -234,7 +233,6 @@ class Job(metaclass=JobMetaclass):
     def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> None:
         run = self.run_manager.create_run_from_model(upload_id, model_name, sim_type)
         self.register_run(run)
-        run.job_history.append(self.job_path())
         self.run_manager.update_db(run)
 
     def create_empty_run(self):
@@ -263,6 +261,7 @@ class Job(metaclass=JobMetaclass):
 
     def register_run(self, run: Run):
         self.run = run
+        self.run.job_history.append(self.job_path())
         self.logger.info(run.dir)
         self.redis_pubsub.subscribe(run.id)
         self.redis.hset(self.run.id, 'control', 'idle')
