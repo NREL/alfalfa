@@ -1,7 +1,7 @@
 from pyenergyplus.plugin import EnergyPlusPlugin
 import sklearn
 
-class TestPlugin(EnergyPlusPlugin):
+class SimplePlugin(EnergyPlusPlugin):
     def __init__(self) -> None:
         super().__init__()
 

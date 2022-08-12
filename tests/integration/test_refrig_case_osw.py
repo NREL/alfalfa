@@ -116,5 +116,5 @@ class TestRefrigCaseOSW(TestCase):
         assert int(outputs["Test_Point_1_Enable_Value"] == 1), "Enable flag for Test_Point_1 is not set correctly"
 
         # Shut down
-        # alfalfa.stop(model_id)
-        # alfalfa.wait(model_id, "COMPLETE")
+        alfalfa.stop(model_id)
+        alfalfa.wait(model_id, "COMPLETE")

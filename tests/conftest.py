@@ -32,5 +32,7 @@ def dispatcher(tmp_path: Path):
 def mock_dispatcher(tmp_path: Path):
     """MockDispatcher with regular RunManager.
     Use for running regular jobs in Docker"""
-    dispatcher = MockDispatcher(tmp_path)
+    work_dir = (tmp_path / 'runs')
+    work_dir.mkdir()
+    dispatcher = MockDispatcher(work_dir)
     yield dispatcher

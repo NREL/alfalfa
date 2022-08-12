@@ -15,8 +15,8 @@
       "description" : "Add python EMS to IDF",
       "modeler_description" : "Add python EMS to IDF",
       "arguments":{
-        "py_name" : "test_plugin.py",
-        "class_name" : "TestPlugin"
+        "py_name" : "simple_plugin.py",
+        "class_name" : "SimplePlugin"
       }
     }
   ]

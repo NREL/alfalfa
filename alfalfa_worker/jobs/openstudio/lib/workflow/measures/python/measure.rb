@@ -72,7 +72,7 @@ class Python < OpenStudio::Ruleset::WorkspaceUserScript
     # modify python plugin search paths
     ws.getObjectsByType('PythonPlugin_SearchPaths'.to_IddObjectType).each do |o|
       python_paths = ["/usr/local/lib/python3.7/dist-packages"]
-      run_dir_match = Dir.pwd.match("(/runs/[^/]*)/.*")
+      run_dir_match = Dir.pwd.match("(.*/runs/[^/]*)/.*")
       if run_dir_match.size > 1
         python_paths.append(run_dir_match[1] + "/.venv/lib/python3.7/site-packages")
       end
