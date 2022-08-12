@@ -83,11 +83,11 @@ function runSiteResolver(args, context) {
         "job": "${job}",
         "params": {
           "run_id": "${args.siteRef}",
-          "timescale": ${args.timescale},
+          "timescale": "${args.timescale || 5}",
           "start_datetime": "${args.startDatetime}",
           "end_datetime": "${args.endDatetime}",
-          "realtime": ${args.realtime},
-          "external_clock": ${args.externalClock}
+          "realtime": "${!!args.realtime}",
+          "external_clock": "${!!args.externalClock}"
         }
       }`,
       QueueUrl: process.env.JOB_QUEUE_URL,
