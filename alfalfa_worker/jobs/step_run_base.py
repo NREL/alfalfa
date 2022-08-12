@@ -37,26 +37,24 @@ class StepRunBase(Job):
         # TODO change server side message: startDatetime to start_datetime
         timescale = False if timescale == 'undefined' else timescale
 
-        # TODO remove after tests written
-        self.logger.info(
-            "start_datetime type: {}\tstart_datetime: {}".format(type(start_datetime), start_datetime))
-        self.logger.info(
-            "end_datetime type: {}\tend_datetime: {}".format(type(end_datetime), end_datetime))
-        self.logger.info("realtime type: {}\trealtime: {}".format(type(realtime), realtime))
-        self.logger.info("timescale type: {}\ttimescale: {}".format(type(timescale), timescale))
-        self.logger.info(
-            "external_clock type: {}\texternal_clock: {}".format(type(external_clock), external_clock))
-        # Only want one of: realtime, timescale, or external_clock.  Else, reject configuration.
-        # if (realtime and timescale) or (realtime and external_clock) or (timescale and external_clock):
-        #    self.logger.info(
-        #        "Only one of 'external_clock', 'timescale', or 'realtime' should be specified in message")
-        #    sys.exit(1)
+        # make sure the inputs are typed correctly
+        try:
+            timescale = int(timescale)
+        except ValueError:
+            self.logger.info(f"timescale is not an integer, continuing as sim_type=timescale. Value was {timescale}")
+
+        realtime = True if realtime and realtime.lower() == 'true' else False
+        external_clock = True if external_clock and external_clock.lower() == 'true' else False
+
+        self.logger.debug("start_datetime type: {}\tstart_datetime: {}".format(type(start_datetime), start_datetime))
+        self.logger.debug("end_datetime type: {}\tend_datetime: {}".format(type(end_datetime), end_datetime))
+        self.logger.debug("realtime type: {}\trealtime: {}".format(type(realtime), realtime))
+        self.logger.debug("timescale type: {}\ttimescale: {}".format(type(timescale), timescale))
+        self.logger.debug("external_clock type: {}\texternal_clock: {}".format(type(external_clock), external_clock))
 
         # Check for at least one of the required parameters
         if not realtime and not timescale and not external_clock:
-            # TODO: If exiting, what logging type to use?
-            self.logger.info(
-                "At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
+            self.logger.error("At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
             raise JobException("At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
 
         if external_clock:
