@@ -296,9 +296,9 @@ router.post("/models/:id/start", async (req, res) => {
         "run_id": "${modelId}",
         "start_datetime": "${startDatetime}",
         "end_datetime": "${endDatetime}",
-        "timescale": ${timescale || 5},
-        "realtime": ${!!realtime},
-        "external_clock": ${!!externalClock}
+        "timescale": "${timescale || 5}",
+        "realtime": "${!!realtime}",
+        "external_clock": "${!!externalClock}"
       }
     }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
