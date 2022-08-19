@@ -1,8 +1,11 @@
 name: CI
 
 on:
-  pull_request:
   push:
+  # Reenable pull_request if we start receiving 3rd party contributions.
+  # Otherwise all pull_requests will also be push test and we are enforcing
+  # that code must be up to date with parent in the PRs.
+  #pull_request:
 
 jobs:
   pre-commit:
@@ -64,7 +67,7 @@ jobs:
         with:
           url: "http://localhost/"
           responseCode: 200
-          timeout: 120000
+          timeout: 900000 # 15 minutes
           interval: 500
 
       - name: Wait another 30s
