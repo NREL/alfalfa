@@ -15,9 +15,7 @@ services:
       dockerfile: alfalfa_web/Dockerfile
       context: .
       # The dev instance still needs works, so default to base for now
-      target: base
-      args:
-        - NODE_ENV
+      target: dev
     image: ${WEB_REGISTRY_URI}:${VERSION_TAG}
     ports:
       - target: 80
@@ -26,7 +24,7 @@ services:
         mode: host
       - "29043:29043"
     environment:
-      - NODE_ENV
+      - NODE_ENV=development
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - JOB_QUEUE_URL
@@ -43,8 +41,13 @@ services:
       - goaws
       - worker
       - mc
-    # volumes:
-    # - ./alfalfa_web:/srv/alfalfa
+    volumes:
+      - ./alfalfa_web:/srv/alfalfa
+      # create volumes for the build and node_modules so that
+      # the resources are not copied back to the local host when
+      # mounting.
+      - /srv/alfalfa/build
+      - /srv/alfalfa/node_modules
   worker:
     container_name: alfalfa_worker
     build:

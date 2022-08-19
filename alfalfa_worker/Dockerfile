@@ -155,7 +155,6 @@ RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.
     && cd .. && rm -rf sundials sundials_build
 
 COPY pyproject.toml $BUILD_DIR
-COPY poetry.lock $BUILD_DIR
 
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
 RUN ln -sf /usr/bin/python3.7 /usr/bin/python \
@@ -201,11 +200,10 @@ CMD ["/alfalfa/start_worker.sh"]
 # **** Staged build for running in development mode ****
 FROM base AS dev
 
-# Install poetry's dev dependencies by removing old lock
-RUN rm -f poetry.lock && \
-    python -m pip install poetry==1.1.12 setuptools==62.1.0 &&\
-    python -m poetry config virtualenvs.create false &&\
-    python -m poetry install
+# Reinstall poetry's dev dependencies by calling again
+RUN python -m pip install poetry==1.1.12 setuptools==62.1.0 \
+    && python -m poetry config virtualenvs.create false \
+    && python -m poetry install
 
 # for remote debugging
 RUN pip install remote-pdb

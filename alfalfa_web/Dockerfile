@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /srv/alfalfa
 
-COPY alfalfa_web/package.json alfalfa_web/package-lock.json /srv/alfalfa/
+COPY alfalfa_web/package.json /srv/alfalfa/
 RUN npm install
 
 COPY alfalfa_web /srv/alfalfa
@@ -15,21 +15,16 @@ ARG NODE_ENV
 RUN npm run build
 CMD [ "npm", "start" ]
 
-
-# **** Staged build for running in development mode - Still WIP****
+# **** Staged build for running in development mode ****
 FROM base AS dev
 
 # The docker-compose will require the mounting
 # of the files into the container, see docker-compose.dev.yml
 
-# Enable the ability to restart the service when
-# the files change
-RUN npm install watch
-COPY deploy/build_web.sh /srv/scripts/
-RUN chmod +x /srv/scripts/build_web.sh
+# install nodemon to restart the service when the files change
+RUN npm install -g nodemon
 
-ENTRYPOINT /srv/scripts/build_web.sh
+WORKDIR /srv/alfalfa
 
 # Run in watch mode so it will automatically restart
-# CMD [ "watch", "'npm run build'" "/srv/alfalfa" ]
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "watch" ]
