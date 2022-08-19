@@ -10,7 +10,7 @@
     "clean": "npx rimraf build",
     "start": "node ./build/index.js",
     "start-dev": "npm run build-server && env-cmd -f ../.env npm start",
-    "watch": "nodemon -e js,html --ignore build/ --exec \"npm run build-app && npm run build-app && npm run build-server && npm start\""
+    "watch": "nodemon -e js,html --ignore build/ --exec \"npm run build-app && npm run build-server && npm start\""
   },
   "author": "",
   "license": "ISC",
