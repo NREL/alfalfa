@@ -59,7 +59,7 @@ ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download
 ENV ENERGYPLUS_VERSION 9.6.0
 ENV ENERGYPLUS_TAG v9.6.0
 ENV ENERGYPLUS_SHA f420c06a69
-ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-4-0
+ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-6-0
 
 # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
 # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
@@ -154,7 +154,7 @@ RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.
     && make install \
     && cd .. && rm -rf sundials sundials_build
 
-COPY pyproject.toml $BUILD_DIR
+COPY pyproject.toml poetry.lock $BUILD_DIR
 
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
 RUN ln -sf /usr/bin/python3.7 /usr/bin/python \
@@ -217,9 +217,3 @@ RUN pip install watchdog[watchmedo]
 # Enable the ability to restart the service when
 # the files change
 CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
-
-# **** Image with just OpenStudio and EnergyPlus ****
-FROM ubuntu:20.04 AS alfalfa-openstudio
-COPY --from=base /usr/local/EnergyPlus-9-4-0 /usr/local/EnergyPlus-9-4-0
-# This is a WIP, need to decide how where the base libraries go because ./energyplus requires
-# several libraries to already be installed on the core OS

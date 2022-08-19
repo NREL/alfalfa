@@ -3,13 +3,15 @@
 dist
 docs
 tox.ini
+Dockerfile
 
-poetry.lock
-alfalfa_web/package-lock.json
+alfalfa_web/Dockerfile
 alfalfa_web/build
 alfalfa_web/node_modules
 alfalfa_web/.config
 alfalfa_web/.npm
+
+alfalfa_worker/Dockerfile
 
 # local files created when running
 # locally for development

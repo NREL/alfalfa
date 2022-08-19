@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /srv/alfalfa
 
-COPY alfalfa_web/package.json /srv/alfalfa/
+COPY alfalfa_web/package.json alfalfa_web/package-lock.json /srv/alfalfa/
 RUN npm install
 
 COPY alfalfa_web /srv/alfalfa
