@@ -154,7 +154,8 @@ RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.
     && make install \
     && cd .. && rm -rf sundials sundials_build
 
-COPY pyproject.toml poetry.lock $BUILD_DIR
+COPY pyproject.toml $BUILD_DIR
+COPY poetry.lock $BUILD_DIR
 
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
 RUN ln -sf /usr/bin/python3.7 /usr/bin/python \
