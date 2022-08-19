@@ -50,27 +50,22 @@ jobs:
           poetry run pytest
 
   simulation-tests:
-    name: Run simulation tests
+    name: Run simulation tests in worker
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # only need to start the worker which saves time here because
+      # the webpack calling on the web container for .dev.yml can take some
+      # time.
       - name: Build and run stack
         run: |
           printenv
-          docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+          docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d worker
 
-      - name: Wait for web server
-        uses: nev7n/wait_for_response@v1
-        with:
-          url: "http://localhost/"
-          responseCode: 200
-          timeout: 900000 # 15 minutes
-          interval: 500
-
-      - name: Wait another 30s
+      - name: Wait another 30s for the containers to start
         uses: jakejarvis/wait-action@master
         with:
           time: "30s"
