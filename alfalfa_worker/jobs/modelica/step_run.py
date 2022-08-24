@@ -109,17 +109,6 @@ class StepRun(StepRunBase):
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
         # convention
-        for array in self.mongo_db_write_arrays.find({"siteRef": self.run.id}):
-            _id = array.get('_id')
-            for val in array.get('val'):
-                if val is not None:
-                    dis = self.id_and_dis.get(_id)
-                    if dis:
-                        u[dis] = val
-                        u[dis.replace('_u', '_activate')] = 1
-                        break
-
-        # update the new model database too -- this is just a redundant call to above
         for array in WriteArray.objects(ref_id=self.site):
             _id = array.ref_id
             for val in array.values:
@@ -139,10 +128,7 @@ class StepRun(StepRunBase):
             if key != 'time':
                 output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-                self.mongo_db_recs.update_one({"_id": output_id}, {
-                    "$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
 
-                # update in the new database
                 new_data = {
                     "rec": {
                         "curVal": "n:%s" % value_y,

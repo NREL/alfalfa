@@ -1,6 +1,5 @@
 import datetime
 import os
-from uuid import uuid4
 
 import pytz
 from influxdb import InfluxDBClient
@@ -50,13 +49,11 @@ class StepRunBase(Job):
         self.set_run_status(RunStatus.STARTED)
 
         self.setup_connections()
-        self.site = self.mongo_db_recs.find_one({"_id": run_id})
-
         if not kwargs.get('skip_site_init', False):
             # grab the new site from the new database model. This assumes that the site is the same as the old site
             try:
                 # TODO: after passing around run ORM objects, convert to self.run.site
-                self.site_new = Site.objects.get(ref_id=run_id)
+                self.site = Site.objects.get(ref_id=run_id)
             except Site.DoesNotExist:
                 raise Exception(f"Could not find a site to step the run with run_id {run_id}")
 
@@ -190,10 +187,6 @@ class StepRunBase(Job):
 
     def setup_connections(self):
         """Placeholder until all db/connections operations can be completely moved out of the job"""
-        self.mongo_db_recs = self.run_manager.mongo_db.recs
-        self.mongo_db_sims = self.run_manager.mongo_db.sims
-        self.mongo_db_write_arrays = self.run_manager.mongo_db.writearrays
-
         # InfluxDB
         self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
         if self.historian_enabled:
@@ -215,34 +208,21 @@ class StepRunBase(Job):
         self.set_run_status(RunStatus.STOPPING)
 
         # Clear current values from the database when the simulation is no longer running
-        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.cur": "m:"},
-                                       {"$unset": {"rec.curVal": "", "rec.curErr": ""},
-                                           "$set": {"rec.curStatus": "s:disabled"}}, False)
-        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.writable": "m:"},
-                                       {"$unset": {"rec.writeLevel": "", "rec.writeVal": ""},
-                                           "$set": {"rec.writeStatus": "s:disabled"}}, False)
-
-        # update in new model
         if not self.skip_stop_db_writes:
-            # grab the first rec object to unset some vars. I don't think that this is desired anymore.
+            # grab the first rec object to unset some vars (this is the old site object).
+            # I don't think that this is desired anymore.
             rec = Rec.objects.get(ref_id=self.run.id)
             rec.update(rec__simStatus="s:Stopped", unset__rec__datetime=1, unset__rec__step=1)
 
             # get all the recs to disable the points (maybe this really needs to be on the Point objects?)
-            recs = self.site_new.recs(rec__cur="m:")
+            recs = self.site.recs(rec__cur="m:")
             recs.update(rec__curStatus='s:disabled', unset__rec__curVal=1, unset__rec__curErr=1, multi=True)
-            recs = self.site_new.recs(rec__writable="m:")
+            recs = self.site.recs(rec__writable="m:")
             recs.update(rec__writeStatus='s:disabled', unset__rec__writeLevel=1, unset__rec__writeVal=1, multi=True)
-
-            # Set the Site (first REC in the database) to be stopped. I don't think we want to track simStatus on this object anymore.
-            self.mongo_db_recs.update_one({"_id": self.run.id},
-                                          {"$set": {"rec.simStatus": "s:Stopped"},
-                                           "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
 
             # create the simulation database object. It apppears that this is the only place
             # where this is created. Maybe we can remove this?
             time = str(datetime.datetime.now(tz=pytz.UTC))
-            name = self.site.get("rec", {}).get("dis", "Test Case").replace('s:', '')
 
             # If Modelica, then the testcase (tc) has some results. OpenStudio and
             # other inherited models do not expect this data.
@@ -251,19 +231,9 @@ class StepRunBase(Job):
             else:
                 kpis = None
 
-            self.mongo_db_sims.insert_one({
-                "_id": str(uuid4()),
-                "name": name,
-                "siteRef": self.run.id,
-                "simStatus": "Complete",
-                "timeCompleted": time,
-                "s3Key": f"run/{self.run.id}.tar.gz",
-                "results": kpis
-            })
-
             Simulation(
-                name=self.site_new.name,
-                site=self.site_new,
+                name=self.site.name,
+                site=self.site,
                 time_completed=time,
                 sim_status="Complete",
                 s3_key=f"run/{self.run.id}.tar.gz",

@@ -1,5 +1,8 @@
+__pycache__
 .pytest_cache
 .tox
+.vscode
+.coverage
 dist
 docs
 tox.ini
@@ -17,3 +20,4 @@ alfalfa_worker/Dockerfile
 # locally for development
 *.tar.gz
 wrapped_result.mat
+/*.log

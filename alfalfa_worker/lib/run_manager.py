@@ -8,7 +8,6 @@ from uuid import uuid4
 
 import boto3
 from mongoengine import connect
-from pymongo import MongoClient
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
 from alfalfa_worker.lib.models import Model
@@ -32,14 +31,6 @@ class RunManager(LoggerMixinBase):
 
         # Mongo - connect using mongoengine
         connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
-
-        # Previous connection -- will be removed eventually
-        self.mongo_client = MongoClient(os.environ['MONGO_URL'])
-        self.mongo_db = self.mongo_client[os.environ['MONGO_DB_NAME']]
-        self.mongo_db_runs = self.mongo_db.runs
-        self.mongo_db_recs = self.mongo_db.recs
-        self.mongo_db_sims = self.mongo_db.sims
-        self.mongo_db_points = self.mongo_db.points
 
         self.run_dir = Path(run_dir)
         self.tmp_dir = self.run_dir / 'tmp'
@@ -132,10 +123,10 @@ class RunManager(LoggerMixinBase):
     def register_run(self, run: Run):
         """Insert a new run into mongo"""
         run_dict = run.to_dict()
-        self.mongo_db_runs.insert_one(run_dict)
 
-        # Save in the new format
+        # configure the data for the new database format
         run_dict['ref_id'] = run_dict.pop('_id')
+
         # remove sim_time since it is None, which isn't valid in the database, so leave empty and
         # it will not be in the database, yet.
         run_dict.pop('sim_time')
@@ -153,28 +144,18 @@ class RunManager(LoggerMixinBase):
             # since the site is extracted from the haystack points
             pass
 
-        # create the Run database object and append the history
-        run = RunMongo(**run_dict).save()
-        for history in run_dict['job_history']:
-            run.job_history.append(history)
-        run.model = model
-        run.save()
+        # create the Run database object - this is the initial creation of it.
+        run_obj = RunMongo(**run_dict).save()
+        # set the database object references
+        run_obj.model = model
+        run_obj.save()
 
     def update_db(self, run: Run):
         """Update Run object and associated points in mongo. Writes output points and reads input points"""
-        # If we used some sort of ORM we could possibly just have db objects which sync themselves automagically
         run_dict = run.to_dict()
-        self.mongo_db_runs.update_one({'_id': run.id},
-                                      {'$set': run.to_dict()}, False)
-        for point in run.points:
-            if point.type == PointType.OUTPUT and point._pending_value:
-                self.mongo_db_points.update_one({'_id': point.id},
-                                                {'$set': {'val': point.val}}, False)
-            else:
-                point_dict = self.mongo_db_points.find_one({'_id': point.id})
-                point._val = point_dict['val']
+        self.logger.info(f"HERERREE updating {run_dict}")
 
-        # update in the new model. The run update should only care about
+        # update in the mongo ORM, which requires a bit of massaging. The run update should only care about:
         #    * job_history
         #    * status
         #    * modified (which is implicit)
@@ -186,7 +167,8 @@ class RunManager(LoggerMixinBase):
             'sim_time': run_dict['sim_time'],
             'error_log': run_dict['error_log'],
         }
-        # check if the site is assigned yet and create site relationship - which is really the run.id, for some reason
+        # check if the site is assigned yet and create site relationship -
+        # which is really the run.id, for some reason
         try:
             site = Site.objects.get(ref_id=run.id)
             new_obj['site'] = site
@@ -207,36 +189,39 @@ class RunManager(LoggerMixinBase):
 
     def get_run(self, run_id: str) -> Run:
         """Get a run by id from the database"""
-        run_dict = self.mongo_db_runs.find_one({'_id': run_id})
-        self.logger.info(run_dict)
-        run = Run(**run_dict)
+        # Use the new model -- find, but don't set
+        run_obj = RunMongo.objects.get(ref_id=run_id)
+        self.logger.info(f"Retrieved run object from the database {run_obj}")
+
+        # TODO: the Run object should already be a db object, update this
+        run = Run(**run_obj.to_dict())
         run.points = self.get_points(run)
 
-        # Use the new model -- find, but don't set
-        run_obj = RunMongo.objects.get(ref_id=run.id)
-        self.logger.info(f"Retrieved run from new model {run_obj}")
-        # self.logger.info(f"New object has the following points: {run_obj.points}")
+        # why are we setting this time?
+        run.sim_time = run_obj.sim_time
+
         return run
 
     def get_points(self, run: Run):
         """Get a list of all points that exist in a run"""
-        points_res = self.mongo_db_points.find({'run_id': run.id})
+        # Use the new model -- find in the new database format, but don't set anything yet.
+        points_res = PointMongo.objects(ref_id=run.id)
         points: List[Point] = []
         for point_dict in points_res:
+            # create a list of dicts for the Point object on the Run.
+            # However, the point object should be database aware, fix this.
+            point_dict = point_dict.to_dict()
             point_dict['id'] = point_dict['_id']
             del point_dict['_id']
             del point_dict['run_id']
             points.append(Point(**point_dict))
 
-        # Use the new model -- find in the new database format, but don't set anything yet.
-        points_res = PointMongo.objects(ref_id=run.id)
-        for point_dict in points_res:
-            print(f"Found point in new database format: {point_dict}")
-
         return points
 
     def add_points_to_run(self, run: Run, points: List[Point]):
         """Add a list of points to a Run"""
+
+        # TODO: this should be cleaned up a bit more. Lots of work to make this happen
         array_to_insert = []
         for point in points:
             array_to_insert.append({
@@ -246,9 +231,6 @@ class RunManager(LoggerMixinBase):
                 'run_id': run.id,
                 'val': point.val
             })
-
-        response = self.mongo_db_points.insert_many(array_to_insert)
-        run.points = points
 
         # store into the new database format, load_bulk=False only returns obj ids.
         #   - need to massage the data a bit, mark ref_id and run_id as object.
@@ -260,13 +242,15 @@ class RunManager(LoggerMixinBase):
             del array_to_insert[index]['run_id']
             array_to_insert[index]['value'] = array_to_insert[index].pop('val')  # let's rename to a fuller description
             new_points.append(PointMongo(**array_to_insert[index]))
-        PointMongo.objects.insert(new_points, load_bulk=False)
+        response = PointMongo.objects.insert(new_points, load_bulk=True)
+
+        # Why are the run.points being assigned here?
+        run.points = points
 
         return response
 
     def add_site_to_mongo(self, haystack_json: dict, run: Run):
-        """
-        Upload JSON documents to mongo.  The documents look as follows:
+        """Upload JSON documents to mongo.  The documents look as follows:
         {
             '_id': '...', # this maps to the 'id' below, the unique id of the entity record.
             'site_ref': '...', # for easy finding of entities by site
@@ -278,17 +262,8 @@ class RunManager(LoggerMixinBase):
         }
         :param haystack_json: json Haystack document
         :param site_ref: id of site
-        :return: pymongo.results.InsertManyResult
+        :return: None
         """
-        array_to_insert = []
-        for entity in haystack_json:
-            array_to_insert.append({
-                '_id': entity['id'].replace('r:', ''),
-                'site_ref': run.id,
-                'rec': entity
-            })
-        response = self.mongo_db_recs.insert_many(array_to_insert)
-
         # Create a site obj here to keep the variable active, but it is
         # really set as index 0 of the haystack_json
         site = None
@@ -321,8 +296,6 @@ class RunManager(LoggerMixinBase):
             rec_instance = RecInstance(**entity)
             rec.rec = rec_instance
             rec.save()
-
-        return response
 
     def add_model(self, model_path: os.PathLike):
         upload_id = str(uuid4())

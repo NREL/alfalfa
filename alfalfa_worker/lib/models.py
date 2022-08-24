@@ -109,13 +109,17 @@ class Rec(TimestampedDocument):
     """A wrapper around the RecInstance. This should be removed and simply be part of the
     site document."""
     meta = {
-        'collection': 'rec',
+        # TODO: convert back to rec after the refactor is complete; requires front end change
+        'collection': 'recs',
         'indexes': ['ref_id']
     }
 
     # external reference ID
     ref_id = StringField(required=True)
     site = ReferenceField(Site, required=True, reverse_delete_rule=CASCADE)
+    # save the site ID as a string too, for now, because the front end isn't
+    # currently saving as a reference.
+    site_id = StringField()
 
     rec = EmbeddedDocumentField(RecInstance)
 
@@ -186,13 +190,18 @@ class Point(TimestampedDocument):
 
 
 class WriteArray(TimestampedDocument):
+    """These data come from alfalfa_web through a direct connection to mongo"""
     meta = {
-        'collection': 'write_array',
+        # TODO: convert back to write_array after the refactor is complete; requires front end change
+        'collection': 'writearrays',
         'indexes': ['site', 'ref_id']
     }
 
     ref_id = StringField()
     # is the write array really attached to a site, seems like it should be for a run of a site?
     site = ReferenceField(Site, required=True, reverse_delete_rule=CASCADE)
+    # save the site ID as a string too, for now, because the front end isn't
+    # currently saving as a reference.
+    site_id = StringField()
     whos = ListField(DynamicField())
     values = ListField(DynamicField())

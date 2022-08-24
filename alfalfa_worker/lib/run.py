@@ -26,8 +26,9 @@ class RunStatus(AutoName):
 
 
 class Run:
-    # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
+    # TODO: convert these to a database model with these methods
 
+    # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
     def __init__(self, dir: Path = None, model=None, _id=None, job_history=None, sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None, sim_time=None, error_log=""):
         self.dir: Path = dir
         self.model = model

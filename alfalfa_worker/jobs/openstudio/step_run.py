@@ -269,20 +269,10 @@ class StepRun(StepRunBase):
         else:
             self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
             self.ep.inputs[master_index] = 1
-            for array in self.mongo_db_write_arrays.find({"siteRef": self.run.id}):
-                for val in array.get('val'):
-                    if val is not None:
-                        index = self.variables.get_input_index(array.get('_id'))
-                        if index == -1:
-                            self.logger.error(f"bad input index for: {array.get('_id')}")
-                        else:
-                            self.ep.inputs[index] = val
-                            self.ep.inputs[index + 1] = 1
-                            break
 
             # write to new database model
             # update the new model database too -- this is just a redundant call to above
-            for array in WriteArray.objects(ref_id=self.site):
+            for array in WriteArray.objects(site_id=self.site):
                 for val in array.values:
                     if val is not None:
                         index = self.variables.get_input_index(array.ref_id)
@@ -308,12 +298,11 @@ class StepRun(StepRunBase):
 
                 # TODO: Make this better with a bulk update
                 # Also at some point consider removing curVal and related fields after sim ends
-                self.mongo_db_recs.update_one({"_id": output_id}, {
-                    "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
-                             "rec.cur": "m:"}}, False)
-
-                # write to new database model
-                Rec.objects.get(ref_id=output_id).update(rec__curVal=f"n:{output_value}", rec__curStatus="s:ok", rec__cur="m:")
+                Rec.objects.get(ref_id=output_id).update(
+                    rec__curVal=f"n:{output_value}",
+                    rec__curStatus="s:ok",
+                    rec__cur="m:"
+                )
 
                 # Write to points
                 self.run.get_point_by_key(output_id).val = output_value
