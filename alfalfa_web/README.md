@@ -5,6 +5,10 @@
 Install and build the packages, then run locally using webpack to rebuild the UI as files are modified:
 
 ```bash
+# if using nvm, then set to the same version that is in the dockerfile (install with `nvm install 16.17.0`)
+nvm use 16.17.0
+
+# install dependencies
 npm install
 npm run build-server
 npm run start-dev
