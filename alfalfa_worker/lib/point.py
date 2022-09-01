@@ -5,7 +5,7 @@ from uuid import uuid4
 class Point:
     """Input or Output point used to exchange data between simulation and client. TODO: can we extend this from the database object?"""
 
-    def __init__(self, key: str, name: str, type, val=0, id=None) -> None:
+    def __init__(self, key: str, name: str, type, val=0, id=None, **kwargs) -> None:
         """
         Keyword arguments:
         key  -- The key that will be used by alfalfa job to find the variable in the simulation
@@ -13,16 +13,14 @@ class Point:
         name -- Human readable name
         type -- Is the point an Input or Output
         val  -- Initial value of the point (default: 0)
-        id   -- unique ID in database (default: uuid4())"""
+        id   -- unique ID in database (default: uuid4())
+        kwargs -- Any other arguments that will be passed to the database object, used to catch unused args too
+        """
         self.key = key
         self.name = name
         self.type = type if type.__class__ == PointType else PointType(type)
         self._val = val
-        if id is None:
-            self.id = str(uuid4())
-        else:
-            self.id = id
-
+        self.id = id if id is not None else str(uuid4())
         self._pending_value = False
 
     @property

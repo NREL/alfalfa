@@ -30,7 +30,7 @@ class CreateRun(Job):
         old version of the Modelica Buildings Library and JModelica.
         :return:
         """
-        self.logger.info("add_fmu for {}".format(self.run.id))
+        self.logger.info("add_fmu for {}".format(self.run.ref_id))
 
         # Create the FMU tags (no longer external now that python2 is deprecated)
         self.create_tags()
@@ -86,12 +86,12 @@ class CreateRun(Job):
         # TODO: Figure out how to find geo_city
         sitetag = {
             "dis": "s:%s" % fmu_upload_name,
-            "id": "r:%s" % self.run.id,
+            "id": "r:%s" % self.run.ref_id,
             "site": "m:",
             "datetime": "s:",
             "simStatus": "s:Stopped",
             "simType": "s:fmu",
-            "siteRef": "r:%s" % self.run.id
+            "siteRef": "r:%s" % self.run.ref_id
         }
         tags.append(sitetag)
 
@@ -101,7 +101,7 @@ class CreateRun(Job):
                 tag_input = {
                     "id": "r:%s" % uuid4(),
                     "dis": "s:%s" % var_input,
-                    "siteRef": "r:%s" % self.run.id,
+                    "siteRef": "r:%s" % self.run.ref_id,
                     "point": "m:",
                     "writable": "m:",
                     "writeStatus": "s:disabled",
@@ -115,7 +115,7 @@ class CreateRun(Job):
             tag_output = {
                 "id": "r:%s" % uuid4(),
                 "dis": "s:%s" % var_output,
-                "siteRef": "r:%s" % self.run.id,
+                "siteRef": "r:%s" % self.run.ref_id,
                 "point": "m:",
                 "cur": "m:",
                 "curVal": "n:",

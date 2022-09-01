@@ -49,3 +49,19 @@ rec_data = [
         }
     }
 ]
+
+run_data = [
+    {
+        # "site": ObjectId("63068c7d978fed816ee8e9a0")
+        # "model": ObjectId("63068c7a978fed816ee8e99e"),
+        "site_id": "456",
+        "ref_id": "run_id_123",
+        "job_history": [
+            "alfalfa_worker.jobs.openstudio.create_run.CreateRun"
+        ],
+        "sim_type": "OPENSTUDIO",
+        "status": "READY",
+        "error_log": "",
+        "sim_time": "None",
+    }
+]

@@ -60,7 +60,7 @@ class MockRunManager(RunManager, LoggerMixinBase):
             print(e, file=sys.stderr)
 
     def register_run(self, run: Run):
-        self.runs[run.id] = run
+        self.runs[run.ref_id] = run
 
     def update_db(self, run: Run):
         pass
@@ -69,7 +69,7 @@ class MockRunManager(RunManager, LoggerMixinBase):
         return self.runs[run_id]
 
     def add_points_to_run(self, run: Run, points: List[Point]):
-        self.runs[run.id].points = points
+        self.runs[run.ref_id].points = points
 
     def add_model(self, model_path: PathLike):
         upload_id = str(uuid4())

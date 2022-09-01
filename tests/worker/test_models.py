@@ -8,8 +8,10 @@ import time
 from mongoengine import connect
 
 # use the mongo test config file
-from alfalfa_worker.lib.models import Rec, Site
-from tests.worker.helpers.mock_mongo_data import rec_data, site_data
+from alfalfa_worker.lib.models import Rec, Run, Site
+from alfalfa_worker.lib.run import Run as RunWorker
+from alfalfa_worker.lib.sim_type import SimType
+from tests.worker.helpers.mock_mongo_data import rec_data, run_data, site_data
 
 
 class TestModelsObjects:
@@ -57,6 +59,16 @@ class TestModelObjectsWithFixtures():
             del datum['site_id']
             Rec(**datum).save()
 
+        for datum in copy.deepcopy(run_data):
+            if datum['site_id']:
+                site = Site.objects(ref_id=datum['site_id'])
+                datum['site'] = site[0]
+            # remove the site_id key since it is not a field in the Site model
+            del datum['site_id']
+            Run(**datum).save()
+
+            # TODO: grab the model object from the database and attach
+
     def teardown(self):
         """Remove all the data that was generated during this test"""
         for datum in site_data:
@@ -85,3 +97,10 @@ class TestModelObjectsWithFixtures():
 
         recs = site.recs(rec__curStatus='s:enabled')
         assert len(recs) == 0
+
+    def test_model_to_dict(self):
+        run_obj = Run.objects.get(ref_id='run_id_123')
+
+        run = RunWorker(**run_obj.to_dict())
+        assert run.sim_type == SimType.OPENSTUDIO
+        assert run.created == run_obj.created

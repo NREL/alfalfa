@@ -19,7 +19,7 @@ def test_run_file_conveyance(dispatcher: Dispatcher):
     file_io_job = dispatcher.create_job(FileIOMockJob.job_path())
     file_io_job.start()
 
-    run_id = file_io_job.run.id
+    run_id = file_io_job.run.ref_id
 
     wait_for_job_status(file_io_job, JobStatus.WAITING)
 
@@ -66,7 +66,7 @@ def test_checkin_on_run_error(dispatcher: Dispatcher):
 
     wait_for_run_status(run, RunStatus.ERROR)
 
-    log_reader_job = dispatcher.create_job(LogReaderJob.job_path(), {'run_id': run.id})
+    log_reader_job = dispatcher.create_job(LogReaderJob.job_path(), {'run_id': run.ref_id})
     log_reader_job.start()
 
     response = send_message_and_wait(log_reader_job, 'read_job_log')
@@ -91,8 +91,8 @@ def test_job_history(dispatcher: Dispatcher):
     wait_for_job_status(empty_job_2, JobStatus.STOPPED)
 
     # Add second job to runs
-    empty_job_1 = dispatcher.create_job(EmptyJob1.job_path(), {"run_id": run_2.id})
-    empty_job_2 = dispatcher.create_job(EmptyJob2.job_path(), {"run_id": run_1.id})
+    empty_job_1 = dispatcher.create_job(EmptyJob1.job_path(), {"run_id": run_2.ref_id})
+    empty_job_2 = dispatcher.create_job(EmptyJob2.job_path(), {"run_id": run_1.ref_id})
 
     empty_job_1.start()
     empty_job_2.start()

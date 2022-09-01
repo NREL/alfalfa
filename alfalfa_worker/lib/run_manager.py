@@ -69,7 +69,7 @@ class RunManager(LoggerMixinBase):
     def create_empty_run(self) -> Run:
         """Create a new Run with an empty directory"""
         run = Run()
-        run_path = self.run_dir / run.id
+        run_path = self.run_dir / run.ref_id
         run_path.mkdir()
         run.dir = run_path
         self.register_run(run)
@@ -84,10 +84,10 @@ class RunManager(LoggerMixinBase):
 
             return tarinfo
 
-        tarname = "%s.tar.gz" % run.id
+        tarname = "%s.tar.gz" % run.ref_id
         tar_path = self.tmp_dir / tarname
         tar = tarfile.open(tar_path, "w:gz")
-        tar.add(run.dir, filter=reset, arcname=run.id)
+        tar.add(run.dir, filter=reset, arcname=run.ref_id)
         tar.close()
 
         upload_location = "run/%s" % tarname
@@ -124,8 +124,8 @@ class RunManager(LoggerMixinBase):
         """Insert a new run into mongo"""
         run_dict = run.to_dict()
 
-        # configure the data for the new database format
-        run_dict['ref_id'] = run_dict.pop('_id')
+        # configure the data for the new database format - do not include the old _id field, if it is there
+        run_dict.pop('_id') if '_id' in run_dict else None
 
         # remove sim_time since it is None, which isn't valid in the database, so leave empty and
         # it will not be in the database, yet.
@@ -135,9 +135,9 @@ class RunManager(LoggerMixinBase):
         model_path = run_dict.pop('model')
         model = Model(path=model_path).save()
 
-        # create site relationship - which is really the run.id, for some reason
+        # create site relationship - which is really the run.ref_id, for some reason
         try:
-            site = Site.objects.get(ref_id=run.id)
+            site = Site.objects.get(ref_id=run.ref_id)
             run_dict['site'] = site
         except Site.DoesNotExist:
             # this must be the first time this object is being created, so there is no site yet
@@ -153,7 +153,6 @@ class RunManager(LoggerMixinBase):
     def update_db(self, run: Run):
         """Update Run object and associated points in mongo. Writes output points and reads input points"""
         run_dict = run.to_dict()
-        self.logger.info(f"HERERREE updating {run_dict}")
 
         # update in the mongo ORM, which requires a bit of massaging. The run update should only care about:
         #    * job_history
@@ -168,16 +167,16 @@ class RunManager(LoggerMixinBase):
             'error_log': run_dict['error_log'],
         }
         # check if the site is assigned yet and create site relationship -
-        # which is really the run.id, for some reason
+        # which is really the run.ref_id, for some reason
         try:
-            site = Site.objects.get(ref_id=run.id)
+            site = Site.objects.get(ref_id=run.ref_id)
             new_obj['site'] = site
         except Site.DoesNotExist:
             # this must be the first time this object is being created, so there is no site yet
             # since the site is extracted from the haystack points
             pass
 
-        RunMongo.objects(ref_id=run.id).update_one(**new_obj)
+        RunMongo.objects(ref_id=run.ref_id).update_one(**new_obj)
         for point in run.points:
             if point.type == PointType.OUTPUT and point._pending_value:
                 PointMongo.objects.get(ref_id=point.id).update(value=point.val)
@@ -205,9 +204,15 @@ class RunManager(LoggerMixinBase):
     def get_points(self, run: Run):
         """Get a list of all points that exist in a run"""
         # Use the new model -- find in the new database format, but don't set anything yet.
-        points_res = PointMongo.objects(ref_id=run.id)
+        self.logger.info(f"Run ID is {run.ref_id}")
+        points_res = PointMongo.objects(ref_id=run.ref_id)
+        self.logger.info(f"The class is {points_res.__class__}")
+        self.logger.info(f"The point result is {points_res}")
+
         points: List[Point] = []
+
         for point_dict in points_res:
+            self.logger.info(f"The point dict is {point_dict}")
             # create a list of dicts for the Point object on the Run.
             # However, the point object should be database aware, fix this.
             point_dict = point_dict.to_dict()
@@ -228,13 +233,13 @@ class RunManager(LoggerMixinBase):
                 '_id': point.id,
                 'key': point.key,
                 'name': point.name,
-                'run_id': run.id,
+                'run_id': run.ref_id,
                 'val': point.val
             })
 
         # store into the new database format, load_bulk=False only returns obj ids.
         #   - need to massage the data a bit, mark ref_id and run_id as object.
-        run_id_obj = RunMongo.objects.filter(ref_id=run.id).first()
+        run_id_obj = RunMongo.objects.filter(ref_id=run.ref_id).first()
         new_points = []
         for index, _point in enumerate(array_to_insert):
             array_to_insert[index]['ref_id'] = array_to_insert[index].pop('_id')
@@ -276,7 +281,7 @@ class RunManager(LoggerMixinBase):
                 # TODO: convert to actual data types (which requires updating the mongo schema too)
                 # TODO: FMU's might not have this data?
                 name = f"{entity.get('dis','Test Case').replace('s:','')} in {entity.get('geoCity', 'Unknown City').replace('s:','')}"
-                site = Site(ref_id=run.id, name=name).save()
+                site = Site(ref_id=run.ref_id, name=name).save()
                 site.haystack_raw = haystack_json
                 site.dis = entity.get('dis')
                 site.site = entity.get('site')

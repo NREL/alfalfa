@@ -29,10 +29,27 @@ class Run:
     # TODO: convert these to a database model with these methods
 
     # A lot of stuff here is done to store in the db. It is messy. If we are sticking with mongo db or switching to something else it would be prettied.
-    def __init__(self, dir: Path = None, model=None, _id=None, job_history=None, sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None, sim_time=None, error_log=""):
+    def __init__(self, dir: Path = None, model=None, _id=None, job_history=None, sim_type=SimType.OPENSTUDIO, status=RunStatus.CREATED, created=None, modified=None, sim_time=None, error_log="", ref_id=None, **kwargs):
+        """Create a run object.
+
+        Args:
+            dir (Path, optional): _description_. Defaults to None.
+            model (_type_, optional): _description_. Defaults to None.
+            _id (_type_, optional): Internal ID of the run. Do not use this for anything important, use the ref_id. Defaults to None.
+            job_history (_type_, optional): _description_. Defaults to None.
+            sim_type (_type_, optional): _description_. Defaults to SimType.OPENSTUDIO.
+            status (_type_, optional): _description_. Defaults to RunStatus.CREATED.
+            created (_type_, optional): _description_. Defaults to None.
+            modified (_type_, optional): _description_. Defaults to None.
+            sim_time (_type_, optional): _description_. Defaults to None.
+            error_log (str, optional): _description_. Defaults to "".
+            **kwargs: Just a catch all since we are currently creating this object from a serialized mongodb object.
+        """
         self.dir: Path = dir
         self.model = model
         self.id = _id if _id is not None else str(uuid4())
+        # create a ref id if the ref_id is not provided
+        self.ref_id = ref_id if ref_id is not None else str(uuid4())
         self._job_history = job_history if job_history is not None else []
         self._status = status if status.__class__ == RunStatus else RunStatus(status)
         self.sim_type = sim_type if sim_type.__class__ == SimType else SimType(sim_type)
@@ -76,7 +93,8 @@ class Run:
     def to_dict(self):
         return {
             'model': self.model,
-            '_id': self.id,
+            # '_id': self.id,
+            'ref_id': self.ref_id,
             'job_history': self._job_history,
             'sim_type': str(self.sim_type),
             'status': str(self._status),

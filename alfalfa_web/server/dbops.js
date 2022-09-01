@@ -54,18 +54,18 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
     }
 
     writearrays
-      .findOne({ _id: id })
+      .findOne({ ref_id: id })
       .then((array) => {
         if (array) {
           // In this case the array already exists because it has been written to before
           setOrNullArray(array, val, level, who);
           writearrays
-            .updateOne({ _id: array._id }, { $set: { val: array.val, who: array.who } })
+            .updateOne({ ref_id: array._id }, { $set: { val: array.val, who: array.who } })
             .then(() => {
               const current = currentWinningValue(array);
               if (current) {
                 return mrecs.updateOne(
-                  { _id: array._id },
+                  { ref_id: array._id },
                   {
                     $set: {
                       "rec.writeStatus": "s:ok",
@@ -77,7 +77,7 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
                 );
               } else {
                 return mrecs.updateOne(
-                  { _id: array._id },
+                  { ref_id: array._id },
                   {
                     $set: { "rec.writeStatus": "s:disabled" },
                     $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }
@@ -104,7 +104,7 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
               const current = currentWinningValue(array);
               if (current) {
                 return mrecs.updateOne(
-                  { _id: array._id },
+                  { ref_id: array._id },
                   {
                     $set: {
                       "rec.writeStatus": "s:ok",
@@ -116,7 +116,7 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
                 );
               } else {
                 return mrecs.updateOne(
-                  { _id: array._id },
+                  { ref_id: array._id },
                   {
                     $set: { "rec.writeStatus": "s:disabled" },
                     $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }

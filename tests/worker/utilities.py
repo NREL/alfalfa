@@ -9,7 +9,7 @@ from alfalfa_worker.lib.run import Run, RunStatus
 
 def send_message(job: Job, method: str, params: Dict = {}):
     redis = job.redis
-    run_id = job.run.id
+    run_id = job.run.ref_id
 
     message_id = str(uuid4())
     message = {'method': method, 'message_id': message_id, 'params': params}
@@ -19,7 +19,7 @@ def send_message(job: Job, method: str, params: Dict = {}):
 
 def send_message_and_wait(job: Job, method: str, params: Dict = {}, timeout=20):
     redis = job.redis
-    run_id = job.run.id
+    run_id = job.run.ref_id
 
     message_id = send_message(job, method, params)
 

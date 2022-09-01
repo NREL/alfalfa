@@ -177,8 +177,12 @@ class AlfalfaServer extends HServer {
     this.redis = redis;
     this.pub = pub;
     this.sub = sub;
-    this.writearrays = this.db.collection("writearrays");
+    // talk to the database to get the site from the new site collection
+    //instead of pulling from the first rec
+    console.log("AlfalfaServer constructor");
+    this.sites = this.db.collection("site");
     this.mrecs = this.db.collection("recs");
+    this.writearrays = this.db.collection("writearrays");
     this.recs = {};
   }
 
@@ -244,7 +248,7 @@ class AlfalfaServer extends HServer {
 
   onReadById(id, callback) {
     this.mrecs
-      .findOne({ _id: id.val })
+      .findOne({ ref_id: id.val })
       .then((doc) => {
         if (doc) {
           let dict = this.recToDict(doc.rec);
@@ -298,7 +302,6 @@ class AlfalfaServer extends HServer {
     //var index = 0;
     //var length = docs.length;
 
-    //console.log('boom 2');
     //return {
     //  next: function() {
     //    var dict;
@@ -459,21 +462,22 @@ class AlfalfaServer extends HServer {
   }
 
   onPointWriteArray(rec, callback) {
+    console.log("I am onPointWriteArray!");
     this.writearrays
-      .findOne({ _id: rec.id().val })
+      .findOne({ ref_id: rec.id().val })
       .then((array) => {
         if (array) {
           const b = this.writeArrayToGrid(array);
           callback(null, b.toGrid());
         } else {
           let array = new WriteArray();
-          array._id = rec.id().val;
+          array.ref_id = rec.id().val;
           array.siteRef = rec.get("siteRef", {}).val;
           this.writearrays
             .insertOne(array)
             .then(() => {
               return this.mrecs.updateOne(
-                { _id: array._id },
+                { ref_id: array._id },
                 {
                   $set: { "rec.writeStatus": "s:ok" },
                   $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }
@@ -541,7 +545,7 @@ class AlfalfaServer extends HServer {
 
   onInvokeAction(rec, action, args, callback) {
     if (action === "runSite") {
-      this.mrecs.updateOne({ _id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
+      this.mrecs.updateOne({ ref_id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
         let body = { id: rec.id().val, op: "InvokeAction", action: action };
 
         for (const it = args.iterator(); it.hasNext(); ) {
@@ -568,11 +572,12 @@ class AlfalfaServer extends HServer {
       });
     } else if (action === "stopSite") {
       const siteRef = rec.id().val;
-      this.mrecs.updateOne({ _id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
+      this.mrecs.updateOne({ ref_id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
         this.pub.publish(siteRef, JSON.stringify({ message_id: uuidv1(), method: "stop" }));
       });
       callback(null, HGrid.EMPTY);
     } else if (action === "removeSite") {
+      // Shouldn't this all happen on the backend?
       this.mrecs.deleteMany({ site_ref: rec.id().val });
       this.writearrays.deleteMany({ siteRef: rec.id().val });
       callback(null, HGrid.EMPTY);

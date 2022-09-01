@@ -321,7 +321,7 @@ class StepRun(StepRunBase):
         """
         json_body = []
         base = {
-            "measurement": self.run.id,
+            "measurement": self.run.ref_id,
             "time": f"{self.get_sim_time()}",
         }
         response = False
@@ -338,7 +338,7 @@ class StepRun(StepRunBase):
                 base["tags"] = {
                     "id": output_id,
                     "dis": dis,
-                    "siteRef": self.run.id,
+                    "siteRef": self.run.ref_id,
                     "point": True,
                     "source": 'alfalfa'
                 }

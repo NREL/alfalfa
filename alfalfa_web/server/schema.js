@@ -85,6 +85,7 @@ const siteType = new GraphQLObjectType({
 });
 
 const simType = new GraphQLObjectType({
+  // TODO: need/should rename this to simulation. No reason to keep the names short.
   name: "Sim",
   description: "A completed simulation, including any that may have stopped with errors.",
   fields: () => ({

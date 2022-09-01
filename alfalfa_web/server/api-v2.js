@@ -56,9 +56,9 @@ function mapHaystack(row) {
  */
 router.get("/models", async (req, res) => {
   const docs = {};
-  const cursor = db.collection("runs").find();
+  const cursor = db.collection("run").find();
   for await (const doc of cursor) {
-    if (doc) docs[doc._id] = doc;
+    if (doc) docs[doc.ref_id] = doc;
   }
 
   got
@@ -130,7 +130,7 @@ router.get("/models", async (req, res) => {
  */
 router.get("/models/:id", async (req, res) => {
   const { id: modelId } = req.params;
-  const doc = await db.collection("runs").findOne({ _id: modelId });
+  const doc = await db.collection("run").findOne({ ref_id: modelId });
 
   got
     .post("http://localhost/haystack/read", {
@@ -287,7 +287,7 @@ router.post("/models/:id/start", async (req, res) => {
     });
   }
 
-  const { sim_type } = await db.collection("runs").findOne({ _id: modelId });
+  const { sim_type } = await db.collection("run").findOne({ ref_id: modelId });
   const { startDatetime, endDatetime, timescale, realtime, externalClock } = body;
   const params = {
     MessageBody: `{

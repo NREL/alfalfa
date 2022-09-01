@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from mongoengine import (
     CASCADE,
@@ -33,6 +34,19 @@ class TimestampedDocument(Document):
             force_insert, validate, clean, write_concern, cascade, cascade_kwargs, _refs, save_condition,
             signal_kwargs, **kwargs
         )
+
+    def to_dict(self):
+        """Override the to_dict method to include to convert specific fields correctly.
+        e.g., created and modified should be converted to iso8601 strings.
+        """
+        created = self.created.isoformat()
+        modified = self.modified.isoformat()
+
+        data = json.loads(self.to_json())
+
+        data['created'] = created
+        data['modified'] = modified
+        return data
 
 
 class Site(TimestampedDocument):
@@ -165,6 +179,7 @@ class Simulation(TimestampedDocument):
 
     # TODO: A simulation is attached to a site, not a run, which might be right.
     # run = ReferenceField(Run)
+    ref_id = StringField()
 
     # TODO: convert time completed to actual time (right now it is a string, mostly)
     time_completed = DynamicField()

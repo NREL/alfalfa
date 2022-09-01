@@ -211,7 +211,7 @@ class StepRunBase(Job):
         if not self.skip_stop_db_writes:
             # grab the first rec object to unset some vars (this is the old site object).
             # I don't think that this is desired anymore.
-            rec = Rec.objects.get(ref_id=self.run.id)
+            rec = Rec.objects.get(ref_id=self.run.ref_id)
             rec.update(rec__simStatus="s:Stopped", unset__rec__datetime=1, unset__rec__step=1)
 
             # get all the recs to disable the points (maybe this really needs to be on the Point objects?)
@@ -236,7 +236,7 @@ class StepRunBase(Job):
                 site=self.site,
                 time_completed=time,
                 sim_status="Complete",
-                s3_key=f"run/{self.run.id}.tar.gz",
+                s3_key=f"run/{self.run.ref_id}.tar.gz",
                 results=kpis
             )
 

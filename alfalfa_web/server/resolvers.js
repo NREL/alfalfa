@@ -52,9 +52,10 @@ function runSimResolver(modelName, uploadID) {
     if (err) {
       console.error(err);
     } else {
-      const simCollection = context.db.collection("sims");
+      const simCollection = context.db.collection("simulation");
       simCollection.insert({
         _id: uploadID,
+        ref_id: uploadID,
         siteRef: uploadID,
         simStatus: "Queued",
         name: path.parse(modelName).name.replace(".tar", "")
@@ -72,8 +73,8 @@ function runSiteResolver(args, context) {
   //  realtime : { type: GraphQLBoolean },
   //  externalClock : { type: GraphQLBoolean },
   //},
-  const runs = context.db.collection("runs");
-  runs.findOne({ _id: args.siteRef }).then((doc) => {
+  const runs = context.db.collection("run");
+  runs.findOne({ ref_id: args.siteRef }).then((doc) => {
     let job = "alfalfa_worker.jobs.openstudio.StepRun";
     if (doc.sim_type === "MODELICA") {
       job = "alfalfa_worker.jobs.modelica.StepRun";
@@ -142,7 +143,7 @@ function removeSiteResolver(args) {
 function simsResolver(user, args, context) {
   return new Promise((resolve, reject) => {
     let sims = [];
-    const simCollection = context.db.collection("sims");
+    const simCollection = context.db.collection("simulation");
     simCollection
       .find(args)
       .toArray()
@@ -166,8 +167,8 @@ function simsResolver(user, args, context) {
 
 function runResolver(user, run_id, context) {
   return context.db
-    .collection("runs")
-    .findOne({ _id: run_id })
+    .collection("run")
+    .findOne({ ref_id: run_id })
     .then((doc) => {
       return {
         id: run_id,
@@ -185,12 +186,12 @@ async function sitesResolver(user, siteRef, context) {
   const runs = {};
 
   if (siteRef) {
-    const doc = await context.db.collection("runs").findOne({ _id: siteRef });
-    if (doc) runs[doc._id] = doc;
+    const doc = await context.db.collection("run").findOne({ ref_id: siteRef });
+    if (doc) runs[doc.ref_id] = doc;
   } else {
-    const cursor = context.db.collection("runs").find();
+    const cursor = context.db.collection("run").find();
     for await (const doc of cursor) {
-      if (doc) runs[doc._id] = doc;
+      if (doc) runs[doc.ref_id] = doc;
     }
   }
 
@@ -241,7 +242,7 @@ async function sitesResolver(user, siteRef, context) {
 function sitePointResolver(siteRef, args, context) {
   return new Promise((resolve, reject) => {
     const recs = context.db.collection("recs");
-    let query = { site_ref: siteRef, "rec.point": "m:" };
+    let query = { ref_id: siteRef, "rec.point": "m:" };
     if (args.writable) {
       query["rec.writable"] = "m:";
     }

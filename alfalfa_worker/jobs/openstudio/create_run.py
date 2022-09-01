@@ -118,7 +118,7 @@ class CreateRun(Job):
         # This is important to avoid duplicates in the case when a client submits the same model
         # more than one time
         points_json, mapping_json = make_ids_unique(points_json, mapping_json)
-        points_json = replace_site_id(self.run.id, points_json)
+        points_json = replace_site_id(self.run.ref_id, points_json)
 
         # save "fixed up" json
         with open(points_json_path, 'w') as fp:

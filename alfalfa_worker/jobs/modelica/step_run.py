@@ -27,6 +27,7 @@ class StepRun(StepRunBase):
         # TODO: make configurable
         # step_size in seconds
         self.step_size = 60
+
         # TODO cleanup
         self.realworld_timedelta = timedelta(seconds=float(self.step_size) / self.step_sim_value)
         print("real time per step: %", self.realworld_timedelta)
@@ -155,7 +156,7 @@ class StepRun(StepRunBase):
         """
         json_body = []
         base = {
-            "measurement": self.run.id,
+            "measurement": self.run.ref_id,
             "time": "%s" % self.current_datetime,
         }
         response = False
@@ -171,7 +172,7 @@ class StepRun(StepRunBase):
                 base["tags"] = {
                     "id": output_id,
                     "dis": dis,
-                    "siteRef": self.run.id,
+                    "siteRef": self.run.ref_id,
                     "point": True,
                     "source": 'alfalfa'
                 }
