@@ -230,8 +230,8 @@ class Job(metaclass=JobMetaclass):
     def checkin_run(self):
         return self.run_manager.checkin_run(self.run)
 
-    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> None:
-        run = self.run_manager.create_run_from_model(upload_id, model_name, sim_type)
+    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO, run_id=None) -> None:
+        run = self.run_manager.create_run_from_model(upload_id, model_name, sim_type, run_id=run_id)
         self.register_run(run)
         self.run_manager.update_db(run)
 

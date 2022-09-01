@@ -45,13 +45,15 @@ class RunManager(LoggerMixinBase):
         """Upload a file to s3"""
         self.s3_bucket.upload_file(str(file_path), key)
 
-    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> Run:
+    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO, run_id=None) -> Run:
         """Create a new Run with the contents of a model"""
         file_path = self.tmp_dir / model_name
         run_path = self.run_dir / upload_id
         if Path.exists(run_path):
             shutil.rmtree(run_path)
         run_path.mkdir()
+
+        run_id = run_id if run_id is not None else str(uuid4())
 
         key = "uploads/%s/%s" % (upload_id, model_name)
         self.s3_download(key, file_path)
@@ -62,7 +64,7 @@ class RunManager(LoggerMixinBase):
             file_path.unlink()
         else:
             shutil.copy(file_path, run_path)
-        run = Run(dir=run_path, model=key, _id=upload_id, sim_type=sim_type)
+        run = Run(dir=run_path, model=key, ref_id=run_id, sim_type=sim_type)
         self.register_run(run)
         return run
 

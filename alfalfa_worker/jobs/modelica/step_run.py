@@ -110,7 +110,7 @@ class StepRun(StepRunBase):
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
         # convention
-        for array in WriteArray.objects(ref_id=self.site):
+        for array in WriteArray.objects(ref_id=self.site.ref_id):
             _id = array.ref_id
             for val in array.values:
                 if val is not None:

@@ -247,7 +247,7 @@ const mutationType = new GraphQLObjectType({
         uploadID: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (_, args, request) => {
-        resolvers.addSiteResolver(args.modelName, args.uploadID);
+        return resolvers.addSiteResolver(args.modelName, args.uploadID);
       }
     },
     runSite: {

@@ -13,8 +13,8 @@ from alfalfa_worker.lib.utils import rel_symlink
 
 class CreateRun(Job):
 
-    def __init__(self, upload_id, model_name):
-        self.create_run_from_model(upload_id, model_name, SimType.OPENSTUDIO)
+    def __init__(self, upload_id, model_name, run_id=None):
+        self.create_run_from_model(upload_id, model_name, SimType.OPENSTUDIO, run_id=run_id)
 
     def exec(self):
         self.set_run_status(RunStatus.PREPROCESSING)

@@ -12,8 +12,8 @@ from alfalfa_worker.lib.sim_type import SimType
 
 class CreateRun(Job):
 
-    def __init__(self, upload_id, model_name):
-        self.create_run_from_model(upload_id, model_name, SimType.MODELICA)
+    def __init__(self, upload_id, model_name, run_id=None):
+        self.create_run_from_model(upload_id, model_name, SimType.MODELICA, run_id=run_id)
         # Define FMU specific attributes
         self.upload_fmu: Path = self.dir / model_name
         self.fmu_path = self.dir / 'model.fmu'

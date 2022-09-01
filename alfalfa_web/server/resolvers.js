@@ -2,12 +2,14 @@ import AWS from "aws-sdk";
 import got from "got";
 import path from "path";
 import dbops from "./dbops";
+import { v1 as uuidv1 } from "uuid";
 
 AWS.config.update({ region: process.env.REGION || "us-east-1" });
 const sqs = new AWS.SQS();
 const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 function addSiteResolver(modelName, uploadID) {
+  let run_id = uuidv1();
   let job = "alfalfa_worker.jobs.openstudio.CreateRun";
   if (modelName.endsWith(".fmu")) {
     job = "alfalfa_worker.jobs.modelica.CreateRun";
@@ -17,7 +19,8 @@ function addSiteResolver(modelName, uploadID) {
       "job": "${job}",
       "params": {
         "model_name": "${modelName}",
-        "upload_id": "${uploadID}"
+        "upload_id": "${uploadID}",
+        "run_id": "${run_id}"
       }
     }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
@@ -29,6 +32,8 @@ function addSiteResolver(modelName, uploadID) {
       console.error(err);
     }
   });
+
+  return run_id;
 }
 
 function runSimResolver(modelName, uploadID) {

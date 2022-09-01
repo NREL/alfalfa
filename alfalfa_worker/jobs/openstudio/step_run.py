@@ -272,7 +272,7 @@ class StepRun(StepRunBase):
 
             # write to new database model
             # update the new model database too -- this is just a redundant call to above
-            for array in WriteArray.objects(site_id=self.site):
+            for array in WriteArray.objects(site_id=self.site.ref_id):
                 for val in array.values:
                     if val is not None:
                         index = self.variables.get_input_index(array.ref_id)
