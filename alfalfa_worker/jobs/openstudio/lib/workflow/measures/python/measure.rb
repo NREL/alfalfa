@@ -71,7 +71,9 @@ class Python < OpenStudio::Ruleset::WorkspaceUserScript
 
     # modify python plugin search paths
     ws.getObjectsByType('PythonPlugin_SearchPaths'.to_IddObjectType).each do |o|
+      # Create a list of python paths to be added to every SearchPaths idd object. By default we include the system python package path.
       python_paths = ["/usr/local/lib/python3.7/dist-packages"]
+      # Find the root directory of the run. The .venv is located in that folder. This relies on runs being put in the same place between CreateRun and StepRun.
       run_dir_match = Dir.pwd.match("(.*/runs/[^/]*)/.*")
       if run_dir_match.size > 1
         python_paths.append(run_dir_match[1] + "/.venv/lib/python3.7/site-packages")
