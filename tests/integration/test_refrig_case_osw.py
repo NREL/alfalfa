@@ -93,7 +93,7 @@ class TestRefrigCaseOSW(TestCase):
         alfalfa.advance([model_id])
 
         # The above should hold in advance state.
-        sleep(65)
+        sleep(30)
         model_time = alfalfa.get_sim_time(model_id)
         updated_dt += datetime.timedelta(minutes=1)
         assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
