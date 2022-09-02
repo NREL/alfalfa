@@ -66,7 +66,7 @@ class TestRefrigCaseOSW(TestCase):
         start_dt = datetime.datetime(2019, 1, 2, 0, 2, 0)
         alfalfa.start(
             model_id,
-            external_clock="false",
+            external_clock="true",
             start_datetime=start_dt,
             end_datetime=datetime.datetime(2019, 1, 3, 0, 0, 0),
             timescale=1
@@ -79,23 +79,24 @@ class TestRefrigCaseOSW(TestCase):
         assert start_dt.strftime("%Y-%m-%d %H:%M") in model_time
         updated_dt = start_dt
 
+        for _ in range(10):
+            # -- Advance a single time step
+            alfalfa.advance([model_id])
+
+            # The above should hold in advance state.
+            sleep(5)
+            model_time = alfalfa.get_sim_time(model_id)
+            updated_dt += datetime.timedelta(minutes=1)
+            assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
+
         # -- Advance a single time step
         alfalfa.advance([model_id])
 
         # The above should hold in advance state.
-        sleep(5)
+        sleep(30)
         model_time = alfalfa.get_sim_time(model_id)
         updated_dt += datetime.timedelta(minutes=1)
-        # assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
-
-        # -- Advance a single time step
-        alfalfa.advance([model_id])
-
-        # The above should hold in advance state.
-        sleep(65)
-        model_time = alfalfa.get_sim_time(model_id)
-        updated_dt += datetime.timedelta(minutes=1)
-        # assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
+        assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
 
         # Shut down
         alfalfa.stop(model_id)
@@ -127,7 +128,6 @@ class TestRefrigCaseOSW(TestCase):
         assert "Test_Point_1_Enable_Value" in outputs.keys(), "Echo point for Test_Point_1_Enable is not in outputs"
 
         # -- Advance a single time step
-        alfalfa.advance([model_id])
         alfalfa.advance([model_id])
 
         outputs = alfalfa.outputs(model_id)
