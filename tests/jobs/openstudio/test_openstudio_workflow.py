@@ -71,16 +71,15 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
     assert start_dt == run.sim_time
     updated_dt = start_dt
 
-    # TODO fix and uncomment advance external clock loop
-    # for _ in range(2):
+    for _ in range(10):
 
-    #     # -- Advance a single time step
-    #     send_message_and_wait(step_run_job, 'advance')
+        # -- Advance a single time step
+        send_message_and_wait(step_run_job, 'advance')
 
-    #     # The above should hold in advance state.
-    #     wait_for_job_status(step_run_job, JobStatus.WAITING)
-    #     updated_dt += datetime.timedelta(minutes=1)
-    #     assert updated_dt == run.sim_time
+        # The above should hold in advance state.
+        wait_for_job_status(step_run_job, JobStatus.WAITING)
+        updated_dt += datetime.timedelta(minutes=1)
+        assert updated_dt == run.sim_time
 
     # -- Advance a single time step
     send_message_and_wait(step_run_job, 'advance')
