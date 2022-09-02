@@ -127,7 +127,7 @@ jobs:
       - name: Run tests with pytest
         run: |
           poetry install
-          poetry run pytest --timeout=240 -m "integration"
+          poetry run pytest --timeout=600 -m "integration"
 
       - name: Dump docker logs on failure
         if: failure()
@@ -176,7 +176,7 @@ jobs:
       - name: Run tests with pytest
         run: |
           poetry install
-          poetry run pytest --timeout=240 -m "integration"
+          poetry run pytest --timeout=600 -m "integration"
 
       - name: Dump docker logs on failure
         if: failure()
