@@ -135,8 +135,13 @@ class StepRun(StepRunBase):
         self.ep.kStep += 1
         # Begin Step
         inputs = self.read_write_arrays_and_prep_inputs()
+        # Send packet to E+ via ExternalInterface Socket.
+        # Any writes to this socket trigger a model advance.
+        # First Arg: "2" - The version of the communication protocol
+        # Second Arg: "0" - The communication flag, 0 means normal communication
+        # Third Arg: "(self.ep.kStep - 1) * self.ep.deltaT" - The simulation time, this isn't actually checked or used on the E+ side
         packet = mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs)
-        self.ep.write(packet)  # This triggers simulation timestep
+        self.ep.write(packet)
 
         # After Step
         self.update_outputs_from_ep()

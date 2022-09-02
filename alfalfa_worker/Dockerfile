@@ -59,7 +59,7 @@ ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download
 ENV ENERGYPLUS_VERSION 9.6.0
 ENV ENERGYPLUS_TAG v9.6.0
 ENV ENERGYPLUS_SHA f420c06a69
-ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-4-0
+ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-6-0
 
 # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
 # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
@@ -201,11 +201,10 @@ CMD ["/alfalfa/start_worker.sh"]
 # **** Staged build for running in development mode ****
 FROM base AS dev
 
-# Install poetry's dev dependencies by removing old lock
-RUN rm -f poetry.lock && \
-    python -m pip install poetry==1.1.12 setuptools==62.1.0 &&\
-    python -m poetry config virtualenvs.create false &&\
-    python -m poetry install
+# Reinstall poetry's dev dependencies by calling again
+RUN python -m pip install poetry==1.1.12 setuptools==62.1.0 \
+    && python -m poetry config virtualenvs.create false \
+    && python -m poetry install
 
 # for remote debugging
 RUN pip install remote-pdb
@@ -219,9 +218,3 @@ RUN pip install watchdog[watchmedo]
 # Enable the ability to restart the service when
 # the files change
 CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
-
-# **** Image with just OpenStudio and EnergyPlus ****
-FROM ubuntu:20.04 AS alfalfa-openstudio
-COPY --from=base /usr/local/EnergyPlus-9-4-0 /usr/local/EnergyPlus-9-4-0
-# This is a WIP, need to decide how where the base libraries go because ./energyplus requires
-# several libraries to already be installed on the core OS
