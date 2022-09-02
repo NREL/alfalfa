@@ -10,7 +10,7 @@
     "clean": "npx rimraf build",
     "start": "node ./build/index.js",
     "start-dev": "npm run build-server && env-cmd -f ../.env npm start",
-    "watch": "webpack --watch --progress"
+    "watch": "nodemon -e js,html --ignore build/ --exec \"npm run build-app && npm run build-server && npm start\""
   },
   "author": "",
   "license": "ISC",
@@ -84,6 +84,7 @@
     "swagger-jsdoc": "^6.2.1",
     "url-loader": "^4.1.1",
     "webpack": "^5.73.0",
-    "webpack-cli": "^4.10.0"
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.10.0"
   }
 }
