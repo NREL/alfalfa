@@ -1,3 +1,4 @@
+import datetime
 from datetime import timedelta
 from time import sleep
 
@@ -22,6 +23,9 @@ class StepRunMockJob(MockJob, StepRunBase):
 
     def time_per_step(self) -> timedelta:
         return timedelta(seconds=60)
+
+    def get_sim_time(self) -> datetime.datetime:
+        return self.run.sim_time
 
     @message
     def set_simulation_step_duration(self, simulation_step_duration):
