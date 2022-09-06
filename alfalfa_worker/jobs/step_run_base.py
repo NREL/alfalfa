@@ -164,7 +164,6 @@ class StepRunBase(Job):
         """Placeholder until all db/connections operations can be completely moved out of the job"""
         self.mongo_db_recs = self.run_manager.mongo_db.recs
         self.mongo_db_sims = self.run_manager.mongo_db.sims
-        self.mongo_db_write_arrays = self.run_manager.mongo_db.writearrays
 
         # InfluxDB
         self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'

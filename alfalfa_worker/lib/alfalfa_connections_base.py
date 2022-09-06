@@ -33,7 +33,6 @@ class AlfalfaConnectionsBase(object):
         self.mongo_client = MongoClient(os.environ['MONGO_URL'])
         self.mongo_db = self.mongo_client[os.environ['MONGO_DB_NAME']]
         self.mongo_db_recs = self.mongo_db.recs
-        self.mongo_db_write_arrays = self.mongo_db.writearrays
         self.mongo_db_sims = self.mongo_db.sims
 
         # InfluxDB

@@ -5,7 +5,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { withStyles } from "@mui/styles";
 import PropTypes from "prop-types";
 import React from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Route, Routes } from "react-router-dom";
 import Sims from "../Sims/Sims";
 import Sites from "../Sites/Sites";
 import Upload from "../Upload/Upload";
@@ -61,8 +61,9 @@ class App extends React.Component {
             </AppBar>
             <Routes>
               <Route path="/" element={<Upload />} />
-              <Route path="models" element={<Sites />} />
-              <Route path="sims" element={<Sims />} />
+              <Route path="/models" element={<Sites />} />
+              <Route path="/sims" element={<Sims />} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>
         </LocalizationProvider>

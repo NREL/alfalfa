@@ -2,42 +2,31 @@ import AWS from "aws-sdk";
 import hs from "nodehaystack";
 import os from "os";
 import { v1 as uuidv1 } from "uuid";
-import dbops from "./dbops";
+import dbops, { NUM_LEVELS } from "./dbops";
 
-const HBool = hs.HBool,
-  HDateTime = hs.HDateTime,
-  HDictBuilder = hs.HDictBuilder,
-  //HDict = hs.HDict,
-  HGrid = hs.HGrid,
-  HWatch = hs.HWatch,
-  HHisItem = hs.HHisItem,
-  HMarker = hs.HMarker,
-  // The purpose of this file is to consolidate operations to the database
-  // in a single place. Clients may transform the data into and out of
-  // these functions for their own api purposes. ie Haystack api, GraphQL api.
-  HNum = hs.HNum,
-  HRef = hs.HRef,
-  HStr = hs.HStr,
-  HUri = hs.HUri,
-  HGridBuilder = hs.HGridBuilder,
-  HServer = hs.HServer,
-  HStdOps = hs.HStdOps,
-  HJsonReader = hs.HJsonReader;
+// The purpose of this file is to consolidate operations to the database
+// in a single place. Clients may transform the data into and out of
+// these functions for their own api purposes. ie Haystack api, GraphQL api.
+const {
+  HBool,
+  HDateTime,
+  HDictBuilder,
+  HGrid,
+  HGridBuilder,
+  HHisItem,
+  HJsonReader,
+  HMarker,
+  HNum,
+  HRef,
+  HServer,
+  HStdOps,
+  HStr,
+  HUri,
+  HWatch
+} = hs;
 
 AWS.config.update({ region: process.env.REGION || "us-east-1" });
 const sqs = new AWS.SQS();
-
-class WriteArray {
-  constructor() {
-    this.val = [];
-    this.who = [];
-
-    for (let i = 0; i < 17; ++i) {
-      this.val[i] = null;
-      this.who[i] = null;
-    }
-  }
-}
 
 class AlfalfaWatch extends HWatch {
   constructor(db, id, dis, lease) {
@@ -72,8 +61,7 @@ class AlfalfaWatch extends HWatch {
 
   watchReadByIds(recs, ids, callback) {
     if (recs.length >= ids.length) {
-      let b = new HGridBuilder();
-      let meta = new HDictBuilder();
+      const meta = new HDictBuilder();
       meta.add("watchId", this._id);
       meta.add("lease", this._lease.val, this._lease.unit);
       callback(null, HGridBuilder.dictsToGrid(recs, meta.toDict()));
@@ -177,7 +165,6 @@ class AlfalfaServer extends HServer {
     this.redis = redis;
     this.pub = pub;
     this.sub = sub;
-    this.writearrays = this.db.collection("writearrays");
     this.mrecs = this.db.collection("recs");
     this.recs = {};
   }
@@ -203,19 +190,21 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
 
   ops(callback) {
-    callback(null, [
+    const operations = [
       HStdOps.about,
-      HStdOps.ops,
       HStdOps.formats,
-      HStdOps.read,
-      HStdOps.nav,
-      HStdOps.pointWrite,
       HStdOps.hisRead,
       HStdOps.invokeAction,
+      HStdOps.nav,
+      HStdOps.ops,
+      HStdOps.pointWrite,
+      HStdOps.read,
+      HStdOps.watchPoll,
       HStdOps.watchSub,
-      HStdOps.watchUnsub,
-      HStdOps.watchPoll
-    ]);
+      HStdOps.watchUnsub
+    ];
+    callback(null, operations);
+    return operations;
   }
 
   hostName() {
@@ -236,6 +225,7 @@ class AlfalfaServer extends HServer {
       .add("productUri", HUri.make("https://bitbucket.org/lynxspring/nodehaystack/"))
       .toDict();
     callback(null, aboutDict);
+    return aboutDict;
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -293,6 +283,7 @@ class AlfalfaServer extends HServer {
           }
         };
         callback(null, it);
+        return it;
       });
 
     //var index = 0;
@@ -406,8 +397,7 @@ class AlfalfaServer extends HServer {
   //////////////////////////////////////////////////////////////////////////
 
   onWatchOpen(dis, lease) {
-    const w = new AlfalfaWatch(this, null, dis, lease);
-    return w;
+    return new AlfalfaWatch(this, null, dis, lease);
   }
 
   onWatches(callback) {
@@ -415,8 +405,7 @@ class AlfalfaServer extends HServer {
   }
 
   onWatch(id) {
-    const w = new AlfalfaWatch(this, id, null, null);
-    return w;
+    return new AlfalfaWatch(this, id, null, null);
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -441,57 +430,64 @@ class AlfalfaServer extends HServer {
   }
 
   writeArrayToGrid(array) {
-    let b = new HGridBuilder();
-    b.addCol("level");
-    b.addCol("levelDis");
-    b.addCol("val");
-    b.addCol("who");
+    const gridBuilder = new HGridBuilder();
+    gridBuilder.addCol("level");
+    gridBuilder.addCol("levelDis");
+    gridBuilder.addCol("val");
+    gridBuilder.addCol("who");
 
     for (let i = 0; i < array.val.length; ++i) {
-      if (array.val[i] || array.val[i] === 0) {
-        b.addRow([HNum.make(i + 1), HStr.make("" + (i + 1)), HNum.make(array.val[i]), HStr.make(array.who[i])]);
-      } else {
-        b.addRow([HNum.make(i + 1), HStr.make("" + (i + 1)), null, HStr.make(array.who[i])]);
-      }
+      const level = i + 1;
+      const value = array.val[i] === null ? null : HNum.make(array.val[i]);
+      gridBuilder.addRow([HNum.make(level), HStr.make(String(level)), value, HStr.make(array.who[i])]);
     }
 
-    return b;
+    return gridBuilder.toGrid();
   }
 
-  onPointWriteArray(rec, callback) {
-    this.writearrays
-      .findOne({ _id: rec.id().val })
-      .then((array) => {
-        if (array) {
-          const b = this.writeArrayToGrid(array);
-          callback(null, b.toGrid());
-        } else {
-          let array = new WriteArray();
-          array._id = rec.id().val;
-          array.siteRef = rec.get("siteRef", {}).val;
-          this.writearrays
-            .insertOne(array)
-            .then(() => {
-              return this.mrecs.updateOne(
-                { _id: array._id },
-                {
-                  $set: { "rec.writeStatus": "s:ok" },
-                  $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }
-                }
-              );
-            })
-            .then(() => {
-              const b = this.writeArrayToGrid(array);
-              callback(null, b.toGrid());
-            })
-            .catch((err) => {
-              callback(err);
-            });
-        }
-      })
-      .catch((err) => {
-        callback(err);
-      });
+  async onPointWriteArray(rec, callback) {
+    const siteRef = rec.get("siteRef", {}).val;
+    const id = rec.id().val;
+    try {
+      let array = await dbops.getWriteArray(siteRef, id, this.redis);
+
+      if (array) {
+        callback(
+          null,
+          this.writeArrayToGrid({
+            val: array,
+            who: new Array(NUM_LEVELS).fill(null)
+          })
+        );
+      } else {
+        // TODO insert blank array
+        array = new Array(NUM_LEVELS).fill("");
+        await new Promise((resolve, reject) => {
+          this.redis.rpush(key, array, (err, result) => {
+            if (err) return reject(err);
+            if (result === NUM_LEVELS) return resolve();
+            else return reject(`Unexpected RPUSH result: ${result}`);
+          });
+        });
+
+        await this.mrecs.updateOne(
+          { _id: array._id },
+          {
+            $set: { "rec.writeStatus": "s:ok" },
+            $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }
+          }
+        );
+
+        const grid = this.writeArrayToGrid({
+          val: dbops.mapRedisArray(array),
+          who: new Array(NUM_LEVELS).fill(null)
+        });
+        callback(null, grid);
+        return grid;
+      }
+    } catch (err) {
+      callback(err);
+    }
   }
 
   onPointWrite(rec, level, val, who, dur, opts, callback) {
@@ -499,10 +495,9 @@ class AlfalfaServer extends HServer {
     const id = rec.id().val;
     const siteRef = rec.get("siteRef", {}).val;
     dbops
-      .writePoint(id, siteRef, level, value, who, dur, this.db)
+      .writePoint(id, siteRef, level, value, this.db, this.redis)
       .then((array) => {
-        const b = this.writeArrayToGrid(array);
-        callback(null, b.toGrid());
+        callback(null, this.writeArrayToGrid(array));
       })
       .catch((err) => {
         callback(err);
@@ -529,6 +524,7 @@ class AlfalfaServer extends HServer {
     }
 
     callback(null, acc);
+    return acc;
   }
 
   onHisWrite(rec, items, callback) {
@@ -539,7 +535,7 @@ class AlfalfaServer extends HServer {
   //Actions
   //////////////////////////////////////////////////////////////////////////
 
-  onInvokeAction(rec, action, args, callback) {
+  async onInvokeAction(rec, action, args, callback) {
     if (action === "runSite") {
       this.mrecs.updateOne({ _id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
         let body = { id: rec.id().val, op: "InvokeAction", action: action };
@@ -574,10 +570,38 @@ class AlfalfaServer extends HServer {
       callback(null, HGrid.EMPTY);
     } else if (action === "removeSite") {
       this.mrecs.deleteMany({ site_ref: rec.id().val });
-      this.writearrays.deleteMany({ siteRef: rec.id().val });
+
+      const keys = await scan(this.redis, "0", `site:${rec.id().val}*`);
+      if (keys.length) await del(this.redis, keys);
+
       callback(null, HGrid.EMPTY);
     }
   }
+}
+
+function scan(client, cursor, pattern, keys = []) {
+  return new Promise((resolve, reject) => {
+    client.scan(cursor, "MATCH", pattern, "COUNT", "10", async (err, result) => {
+      if (err) return reject(err);
+      cursor = result[0];
+      keys = keys.concat(result[1]);
+
+      if (cursor === "0") {
+        return resolve(keys.sort());
+      }
+      keys = await scan(cursor, pattern, keys);
+      return resolve(keys);
+    });
+  });
+}
+
+function del(client, keys) {
+  return new Promise((resolve, reject) => {
+    this.redis.del(keys, (err, result) => {
+      if (err) return reject(err);
+      return resolve(result);
+    });
+  });
 }
 
 module.exports = AlfalfaServer;

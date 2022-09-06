@@ -279,23 +279,25 @@ function writePointResolver(context, siteRef, pointName, value, level) {
   return dbops
     .getPoint(siteRef, pointName, context.db)
     .then((point) => {
-      return dbops.writePoint(point._id, siteRef, level, value, null, null, context.db);
+      if (!point) {
+        return Promise.reject(`Point '${pointName}' belonging to siteRef '${siteRef}' could not be found`);
+      }
+
+      return dbops.writePoint(point._id, siteRef, level, value, context.db, context.redis);
     })
-    .then((array) => {
-      return JSON.stringify(array);
-    });
+    .then((array) => JSON.stringify(array));
 }
 
 module.exports = {
-  runSimResolver,
   addSiteResolver,
-  sitesResolver,
-  runSiteResolver,
-  stopSiteResolver,
-  removeSiteResolver,
-  sitePointResolver,
-  runResolver,
-  simsResolver,
   advanceResolver,
+  removeSiteResolver,
+  runResolver,
+  runSimResolver,
+  runSiteResolver,
+  simsResolver,
+  sitePointResolver,
+  sitesResolver,
+  stopSiteResolver,
   writePointResolver
 };

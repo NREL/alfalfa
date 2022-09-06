@@ -268,14 +268,18 @@ class StepRun(StepRunBase):
         else:
             self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
             self.ep.inputs[master_index] = 1
-            for array in self.mongo_db_write_arrays.find({"siteRef": self.run.id}):
-                for val in array.get('val'):
-                    if val is not None:
-                        index = self.variables.get_input_index(array.get('_id'))
+            prefix = f'site:{self.run.id}:point:'
+            for key in self.redis.scan_iter(prefix + '*'):
+                key = key.decode('UTF-8')
+                _id = key[len(prefix):]
+                write_array = self.redis.lrange(key, 0, -1)
+                for value in write_array:
+                    if len(value) > 0:
+                        index = self.variables.get_input_index(_id)
                         if index == -1:
-                            self.logger.error('bad input index for: %s' % array.get('_id'))
+                            self.logger.error('bad input index for: %s' % _id)
                         else:
-                            self.ep.inputs[index] = val
+                            self.ep.inputs[index] = int(value.decode('UTF-8'))
                             self.ep.inputs[index + 1] = 1
                             break
         # Convert to tuple

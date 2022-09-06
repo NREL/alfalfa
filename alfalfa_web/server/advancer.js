@@ -1,4 +1,5 @@
 import { v1 as uuidv1 } from "uuid";
+
 class Advancer {
   // This class pertains to advancing a simulation.
   //
@@ -31,7 +32,7 @@ class Advancer {
   }
 
   advance(siteRefs) {
-    const promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let response = {};
       let pending = siteRefs.length;
 
@@ -116,8 +117,6 @@ class Advancer {
         advanceSite(site);
       }
     });
-
-    return promise;
   }
 }
 

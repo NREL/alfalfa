@@ -59,7 +59,7 @@ class FileInput extends React.Component {
             }
           }}
           InputLabelProps={{
-            shrink: this.state.filename != ""
+            shrink: this.state.filename !== ""
           }}
         />
       </div>

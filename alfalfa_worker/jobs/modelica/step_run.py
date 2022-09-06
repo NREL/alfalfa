@@ -110,18 +110,21 @@ class StepRun(StepRunBase):
     def step(self):
         # u represents simulation input values
         u = self.default_input.copy()
-        # look in the database for current write arrays
+        # look in redis for current write arrays
         # for each write array there is an array of controller
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
         # convention
-        for array in self.mongo_db_write_arrays.find({"siteRef": self.run.id}):
-            _id = array.get('_id')
-            for val in array.get('val'):
-                if val is not None:
+        prefix = f'site:{self.run.id}:point:'
+        for key in self.redis.scan_iter(prefix + '*'):
+            key = key.decode('UTF-8')
+            _id = key[len(prefix):]
+            write_array = self.redis.lrange(key, 0, -1)
+            for value in write_array:
+                if len(value) > 0:
                     dis = self.id_and_dis.get(_id)
                     if dis:
-                        u[dis] = val
+                        u[dis] = int(value.decode('UTF-8'))
                         u[dis.replace('_u', '_activate')] = 1
                         break
 
