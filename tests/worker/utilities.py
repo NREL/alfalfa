@@ -32,7 +32,7 @@ def send_message_and_wait(job: Job, method: str, params: Dict = {}, timeout=20):
     assert False, f"No response to message of method {method}"
 
 
-def wait_for_job_status(job: Job, desired_status: JobStatus, timeout: int = 20):
+def wait_for_job_status(job: Job, desired_status: JobStatus, timeout: int = 120):
     start_time = time.time()
     while timeout > time.time() - start_time:
         if job.status == desired_status:
@@ -41,7 +41,7 @@ def wait_for_job_status(job: Job, desired_status: JobStatus, timeout: int = 20):
     assert False, f"Desired Job Status: {desired_status} not reached. Current Status: {job.status}"
 
 
-def wait_for_run_status(run: Run, desired_status: RunStatus, timeout: int = 20):
+def wait_for_run_status(run: Run, desired_status: RunStatus, timeout: int = 120):
     start_time = time.time()
     while timeout > time.time() - start_time:
         if run.status == desired_status:

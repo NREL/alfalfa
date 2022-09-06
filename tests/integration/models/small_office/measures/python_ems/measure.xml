@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>python_ems</name>
+  <uid>28ad6cb2-e1e3-4f7c-82ab-8ef22aca2c39</uid>
+  <version_id>7714c229-ea0a-4594-8af4-7ab82e8bc54f</version_id>
+  <version_modified>20220812T180055Z</version_modified>
+  <xml_checksum>9D2F1A23</xml_checksum>
+  <class_name>PythonEMS</class_name>
+  <display_name>Python EMS</display_name>
+  <description>Add python EMS to IDF</description>
+  <modeler_description>Add python EMS to IDF</modeler_description>
+  <arguments>
+    <argument>
+      <name>py_name</name>
+      <display_name>Python Script Name</display_name>
+      <description>Name of script with extension (e.g., myPlugin.py)</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+  </arguments>
+  <outputs />
+  <provenances />
+  <tags />
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>EnergyPlusMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.3.0</identifier>
+        <min_compatible>2.3.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>A6FEEF59</checksum>
+    </file>
+    <file>
+      <filename>requirements.txt</filename>
+      <filetype>txt</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>8CF38110</checksum>
+    </file>
+    <file>
+      <filename>test_plugin.py</filename>
+      <filetype>py</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>F7F37380</checksum>
+    </file>
+  </files>
+</measure>
