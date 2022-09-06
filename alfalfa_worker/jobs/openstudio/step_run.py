@@ -73,8 +73,6 @@ class StepRun(StepRunBase):
             return True
         if not self.ep.is_running:
             return True
-        if self.get_energyplus_datetime() >= self.end_datetime:
-            return True
         return False
 
     def init_sim(self):
@@ -104,11 +102,11 @@ class StepRun(StepRunBase):
         """
         self.update_outputs_from_ep()
 
-        current_ep_time = self.get_energyplus_datetime()
+        current_ep_time = self.get_sim_time()
         self.logger.info(
             'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
         while True:
-            current_ep_time = self.get_energyplus_datetime()
+            current_ep_time = self.get_sim_time()
             if current_ep_time < self.start_datetime:
                 self.logger.info(
                     'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
@@ -155,7 +153,7 @@ class StepRun(StepRunBase):
             self.write_outputs_to_influx()
         self.update_sim_time_in_mongo()
 
-    def get_energyplus_datetime(self):
+    def get_sim_time(self):
         """
         Return the current time in EnergyPlus
 
@@ -302,9 +300,9 @@ class StepRun(StepRunBase):
 
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
-        output_time_string = "s:" + str(self.get_energyplus_datetime())
+        output_time_string = "s:" + str(self.get_sim_time())
         self.logger.info(f"updating db time to: {output_time_string}")
-        self.set_run_time(self.get_energyplus_datetime())
+        self.set_run_time(self.get_sim_time())
 
     def write_outputs_to_influx(self):
         """
@@ -314,7 +312,7 @@ class StepRun(StepRunBase):
         json_body = []
         base = {
             "measurement": self.run.id,
-            "time": f"{self.get_energyplus_datetime()}",
+            "time": f"{self.get_sim_time()}",
         }
         response = False
         for output_id in self.variables.get_output_ids():
@@ -374,7 +372,7 @@ class StepRun(StepRunBase):
 
     @message
     def advance(self):
-        self.logger.info(f"advance called at time {self.get_energyplus_datetime()}")
+        self.logger.info(f"advance called at time {self.get_sim_time()}")
         self.step()
         self.update_db()
 

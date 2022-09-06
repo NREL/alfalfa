@@ -139,7 +139,7 @@ class StepRunBase(Job):
                 next_step_time = next_step_time + self.timescale_step_interval()
                 self.advance()
 
-            if self.check_simulation_stop_conditions():
+            if self.check_simulation_stop_conditions() or self.get_sim_time() >= self.end_datetime:
                 self.stop()
 
             self._check_messages()
@@ -148,6 +148,9 @@ class StepRunBase(Job):
         return (self.time_per_step() / self.step_sim_value)
 
     def time_per_step(self) -> datetime.timedelta:
+        raise NotImplementedError
+
+    def get_sim_time(self) -> datetime.datetime:
         raise NotImplementedError
 
     def check_simulation_stop_conditions(self) -> bool:
