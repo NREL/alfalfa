@@ -94,12 +94,18 @@ class StepRun(StepRunBase):
 
         return (outputs_and_ID, id_and_dis, default_input)
 
+    def check_simulation_stop_conditions(self) -> bool:
+        return False
+
     def time_per_step(self):
         return timedelta(seconds=self.step_size)
 
     def update_sim_status(self):
         self.simtime = self.tc.final_time
         self.set_run_time(self.simtime)
+
+    def get_sim_time(self) -> datetime:
+        return datetime(self.start_datetime.year, 1, 1, 0, 0, 0) + timedelta(seconds=float(self.simtime))
 
     def step(self):
         # u represents simulation input values
