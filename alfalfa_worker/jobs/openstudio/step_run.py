@@ -74,6 +74,7 @@ class StepRun(StepRunBase):
             return True
         if not self.ep.is_running:
             return True
+        return False
 
     def init_sim(self):
         """
@@ -102,13 +103,13 @@ class StepRun(StepRunBase):
         This is accomplished by advancing the simulation as quickly as possible. Data is not
         published to database during this process
         """
-        self.exchange_data()
+        self.update_outputs_from_ep()
 
-        current_ep_time = self.get_energyplus_datetime()
+        current_ep_time = self.get_sim_time()
         self.logger.info(
             'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
         while True:
-            current_ep_time = self.get_energyplus_datetime()
+            current_ep_time = self.get_sim_time()
             if current_ep_time < self.start_datetime:
                 self.logger.info(
                     'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
@@ -119,28 +120,32 @@ class StepRun(StepRunBase):
         self.master_enable_bypass = False
         self.update_db()
 
-    def exchange_data(self):
-        """
-        Write inputs to simulation and get updated outputs
-        This does not advance the simulation on its own, instead
-        to advance the simulation increment ep.kstep and then call this function
-        See self.step
-        """
-        # Before step
-        inputs = self.read_write_arrays_and_prep_inputs()
-        self.ep.write(mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs))
-        # After step
+    def update_outputs_from_ep(self):
+        """Reads outputs from E+ step"""
         packet = self.ep.read()
         flag, _, outputs = mlep.mlep_decode_packet(packet)
         self.ep.outputs = outputs
-        return outputs
 
     def step(self):
         """
-        Simulate one simulation timestep
+        Write inputs to simulation and get updated outputs.
+        This will advance the simulation one timestep.
         """
+
+        # This doesn't really do anything. Energyplus does not check the timestep value coming from the external interface
         self.ep.kStep += 1
-        self.exchange_data()
+        # Begin Step
+        inputs = self.read_write_arrays_and_prep_inputs()
+        # Send packet to E+ via ExternalInterface Socket.
+        # Any writes to this socket trigger a model advance.
+        # First Arg: "2" - The version of the communication protocol
+        # Second Arg: "0" - The communication flag, 0 means normal communication
+        # Third Arg: "(self.ep.kStep - 1) * self.ep.deltaT" - The simulation time, this isn't actually checked or used on the E+ side
+        packet = mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs)
+        self.ep.write(packet)
+
+        # After Step
+        self.update_outputs_from_ep()
 
     def update_db(self):
         """
@@ -151,7 +156,7 @@ class StepRun(StepRunBase):
             self.write_outputs_to_influx()
         self.update_sim_time_in_mongo()
 
-    def get_energyplus_datetime(self):
+    def get_sim_time(self):
         """
         Return the current time in EnergyPlus
 
@@ -163,7 +168,6 @@ class StepRun(StepRunBase):
         hour_index = self.variables.output_index_from_type_and_name("current_hour", "EMS")
         minute_index = self.variables.output_index_from_type_and_name("current_minute", "EMS")
 
-        # TODO where doe ep.outputs actually get written to...? can't find in mlep lib
         day = int(round(self.ep.outputs[day_index]))
         hour = int(round(self.ep.outputs[hour_index]))
         minute = int(round(self.ep.outputs[minute_index]))
@@ -299,9 +303,9 @@ class StepRun(StepRunBase):
 
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
-        output_time_string = "s:" + str(self.get_energyplus_datetime())
+        output_time_string = "s:" + str(self.get_sim_time())
         self.logger.info(f"updating db time to: {output_time_string}")
-        self.set_run_time(self.get_energyplus_datetime())
+        self.set_run_time(self.get_sim_time())
 
     def write_outputs_to_influx(self):
         """
@@ -311,7 +315,7 @@ class StepRun(StepRunBase):
         json_body = []
         base = {
             "measurement": self.run.id,
-            "time": f"{self.get_energyplus_datetime()}",
+            "time": f"{self.get_sim_time()}",
         }
         response = False
         for output_id in self.variables.get_output_ids():
@@ -386,7 +390,7 @@ class StepRun(StepRunBase):
 
     @message
     def advance(self):
-        self.logger.info(f"advance called at time {self.get_energyplus_datetime()}")
+        self.logger.info(f"advance called at time {self.get_sim_time()}")
         self.step()
         self.update_db()
 

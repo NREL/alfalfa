@@ -1,7 +1,4 @@
 import datetime
-import os
-import tempfile
-import zipfile
 from time import sleep
 from unittest import TestCase
 
@@ -9,23 +6,7 @@ import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
 from alfalfa_client.lib import AlfalfaException
 
-
-# Consider factoring this out of the test file
-def zipdir(path, ziph):
-    # ziph is zipfile handle
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            ziph.write(os.path.join(root, file))
-
-
-def create_zip(model_dir):
-    osw_dir_path = os.path.join(os.path.dirname(__file__), 'models', model_dir)
-    zip_file_fd, zip_file_path = tempfile.mkstemp(suffix='.zip')
-
-    zipf = zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED)
-    zipdir(osw_dir_path, zipf)
-    zipf.close()
-    return zip_file_path
+from tests.integration.conftest import create_zip
 
 
 @pytest.mark.integration
@@ -45,17 +26,21 @@ class TestRefrigCaseOSW(TestCase):
 
         alfalfa.wait(model_id, "READY")
 
+        end_datetime = datetime.datetime(2019, 1, 2, 0, 5, 0)
         alfalfa.start(
             model_id,
             external_clock="false",
             start_datetime=datetime.datetime(2019, 1, 2, 0, 0, 0),
-            end_datetime=datetime.datetime(2019, 1, 3, 0, 0, 0),
+            end_datetime=end_datetime,
             timescale=5
         )
 
         alfalfa.wait(model_id, "RUNNING")
-        alfalfa.stop(model_id)
+        # wait for model to advance for 1 minute at timescale 5
+        sleep(60)
         alfalfa.wait(model_id, "COMPLETE")
+        model_time = alfalfa.get_sim_time(model_id)
+        assert end_datetime.strftime("%Y-%m-%d %H:%M") in model_time
 
     def test_simple_external_clock(self):
         zip_file_path = create_zip('refrig_case_osw')
@@ -66,7 +51,7 @@ class TestRefrigCaseOSW(TestCase):
         start_dt = datetime.datetime(2019, 1, 2, 0, 2, 0)
         alfalfa.start(
             model_id,
-            external_clock="false",
+            external_clock="true",
             start_datetime=start_dt,
             end_datetime=datetime.datetime(2019, 1, 3, 0, 0, 0),
             timescale=1
@@ -79,23 +64,24 @@ class TestRefrigCaseOSW(TestCase):
         assert start_dt.strftime("%Y-%m-%d %H:%M") in model_time
         updated_dt = start_dt
 
+        for _ in range(10):
+            # -- Advance a single time step
+            alfalfa.advance([model_id])
+
+            # The above should hold in advance state.
+            sleep(5)
+            model_time = alfalfa.get_sim_time(model_id)
+            updated_dt += datetime.timedelta(minutes=1)
+            assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
+
         # -- Advance a single time step
         alfalfa.advance([model_id])
 
         # The above should hold in advance state.
-        sleep(5)
+        sleep(30)
         model_time = alfalfa.get_sim_time(model_id)
         updated_dt += datetime.timedelta(minutes=1)
-        # assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
-
-        # -- Advance a single time step
-        alfalfa.advance([model_id])
-
-        # The above should hold in advance state.
-        sleep(65)
-        model_time = alfalfa.get_sim_time(model_id)
-        updated_dt += datetime.timedelta(minutes=1)
-        # assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
+        assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
 
         # Shut down
         alfalfa.stop(model_id)
@@ -127,7 +113,6 @@ class TestRefrigCaseOSW(TestCase):
         assert "Test_Point_1_Enable_Value" in outputs.keys(), "Echo point for Test_Point_1_Enable is not in outputs"
 
         # -- Advance a single time step
-        alfalfa.advance([model_id])
         alfalfa.advance([model_id])
 
         outputs = alfalfa.outputs(model_id)
