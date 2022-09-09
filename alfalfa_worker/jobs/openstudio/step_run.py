@@ -1,4 +1,5 @@
 import os
+import socket
 from datetime import datetime, timedelta
 from time import sleep
 from uuid import uuid4
@@ -39,7 +40,7 @@ class StepRun(StepRunBase):
         self.ep = mlep.MlepProcess()
         self.ep.bcvtbDir = '/home/alfalfa/bcvtb/'
         self.ep.env = {'BCVTB_HOME': '/home/alfalfa/bcvtb'}
-        self.ep.accept_timeout = 60000
+        self.ep.accept_timeout = 10000
         self.ep.mapping = os.path.realpath(self.dir / 'simulation' / 'haystack_report_mapping.json')
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
@@ -85,10 +86,12 @@ class StepRun(StepRunBase):
         (self.ep.status, self.ep.msg) = self.ep.start()
         if self.ep.status != 0:
             raise JobExceptionExternalProcess('Could not start EnergyPlus: {}'.format(self.ep.msg))
+        self.check_error_log()
 
-        [self.ep.status, self.ep.msg] = self.ep.accept_socket()
-        if self.ep.status != 0:
-            raise JobExceptionExternalProcess('Could not start EnergyPlus: {}'.format(self.ep.msg))
+        try:
+            [self.ep.status, self.ep.msg] = self.ep.accept_socket()
+        except socket.timeout:
+            self.check_error_log()
 
         self.set_run_time(self.start_datetime)
 
@@ -369,6 +372,21 @@ class StepRun(StepRunBase):
                 points.append(point)
 
         self.add_points(points)
+
+    def check_error_log(self):
+        mlep_logs = self.dir.glob('**/mlep.log')
+        eplus_err = False
+        for mlep_log in mlep_logs:
+            if "===== EnergyPlus terminated with error =====" in mlep_log.read_text():
+                eplus_err = True
+                break
+        if eplus_err:
+            error_concat = ""
+            error_logs = self.dir.glob('**/*.err')
+            for error_log in error_logs:
+                error_concat += f"{error_log}:\n"
+                error_concat += error_log.read_text() + "\n"
+            raise JobExceptionExternalProcess(f"Energy plus terminated with error:\n {error_concat}")
 
     @message
     def advance(self):
