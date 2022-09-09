@@ -137,8 +137,11 @@ class StepRun(StepRunBase):
             if key != 'time':
                 output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-                self.mongo_db_recs.update_one({"_id": output_id}, {
-                    "$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
+                key = f'site:{self.run.id}:rec:{output_id}'
+                self.redis.hset(key, mapping={
+                    'curStatus': 's:ok',
+                    'curVal': f"n:{value_y}"
+                })
 
         if self.historian_enabled:
             self.write_outputs_to_influx(y_output)
@@ -201,10 +204,13 @@ class StepRun(StepRunBase):
         super().stop()
 
         # DELETE
-        # Clear all current values from the database when the simulation is no longer running
-        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.cur": "m:"},
-                                       {"$unset": {"rec.curVal": "", "rec.curErr": ""},
-                                           "$set": {"rec.curStatus": "s:disabled"}}, False)
+        # Clear all current values from the database and redis when the simulation is no longer running
+
+        for key in self.redis.scan_iter(f'site:{self.run.id}:rec:*'):
+            key = key.decode('UTF-8')
+            self.redis.hset(key, mapping={'curStatus': 's:disabled'})
+            self.redis.hdel(key, 'curVal', 'curErr')
+
         self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.writable": "m:"},
                                        {"$unset": {"rec.writeLevel": "", "rec.writeVal": ""},
                                            "$set": {"rec.writeStatus": "s:disabled"}}, False)

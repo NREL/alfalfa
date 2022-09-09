@@ -110,8 +110,8 @@ class StepRunBase(Job):
     def update_model_inputs_from_write_arrays(self):
         """Placeholder for getting write values from Mongo and writing into simulation BEFORE a simulation timestep"""
 
-    def write_outputs_to_mongo(self):
-        """Placeholder for updating the current values exposed through Mongo AFTER a simulation timestep"""
+    def write_outputs_to_redis(self):
+        """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
 
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""

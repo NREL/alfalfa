@@ -151,7 +151,7 @@ class StepRun(StepRunBase):
         """
         Update database with current ep outputs and simulation time
         """
-        self.write_outputs_to_mongo()
+        self.write_outputs_to_redis()
         if self.historian_enabled:
             self.write_outputs_to_influx()
         self.update_sim_time_in_mongo()
@@ -286,8 +286,8 @@ class StepRun(StepRunBase):
         inputs = tuple(self.ep.inputs)
         return inputs
 
-    def write_outputs_to_mongo(self):
-        """Placeholder for updating the current values exposed through Mongo AFTER a simulation timestep"""
+    def write_outputs_to_redis(self):
+        """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
         for output_id in self.variables.get_output_ids():
             output_index = self.variables.get_output_index(output_id)
             if output_index == -1:
@@ -297,9 +297,11 @@ class StepRun(StepRunBase):
 
                 # TODO: Make this better with a bulk update
                 # Also at some point consider removing curVal and related fields after sim ends
-                self.mongo_db_recs.update_one({"_id": output_id}, {
-                    "$set": {"rec.curVal": "n:%s" % output_value, "rec.curStatus": "s:ok",
-                             "rec.cur": "m:"}}, False)
+                key = f'site:{self.run.id}:rec:{output_id}'
+                self.redis.hset(key, mapping={
+                    'curStatus': 's:ok',
+                    'curVal': f'n:{output_value}'
+                })
 
                 # Write to points
                 self.run.get_point_by_key(output_id).val = output_value
@@ -411,10 +413,10 @@ class StepRun(StepRunBase):
         self.mongo_db_recs.update_one({"_id": self.run.id},
                                       {"$set": {"rec.simStatus": "s:Stopped"},
                                           "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
-        self.mongo_db_recs.update_many({"_id": self.run.id, "rec.cur": "m:"},
-                                       {"$unset": {"rec.curVal": "", "rec.curErr": ""},
-                                           "$set": {"rec.curStatus": "s:disabled"}},
-                                       False)
+
+        key = f'site:{self.run.id}:rec:{self.run.id}'
+        self.redis.hset(key, mapping={'curStatus': 's:disabled'})
+        self.redis.hdel(key, 'curVal', 'curErr')
         # END DELETE
 
         self.ep.stop(True)

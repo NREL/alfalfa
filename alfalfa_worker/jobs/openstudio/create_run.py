@@ -128,4 +128,4 @@ class CreateRun(Job):
             json.dump(mapping_json, fp)
 
         # add points to database
-        self.run_manager.add_site_to_mongo(points_json, self.run)
+        self.run_manager.add_site_to_db(points_json, self.run)
