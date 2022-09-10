@@ -3,6 +3,7 @@ import hs from "nodehaystack";
 import os from "os";
 import { v1 as uuidv1 } from "uuid";
 import dbops, { NUM_LEVELS } from "./dbops";
+import { del, mapRedisArray, scan } from "./utils";
 
 // The purpose of this file is to consolidate operations to the database
 // in a single place. Clients may transform the data into and out of
@@ -479,7 +480,7 @@ class AlfalfaServer extends HServer {
         );
 
         const grid = this.writeArrayToGrid({
-          val: dbops.mapRedisArray(array),
+          val: mapRedisArray(array),
           who: new Array(NUM_LEVELS).fill(null)
         });
         callback(null, grid);
@@ -571,37 +572,12 @@ class AlfalfaServer extends HServer {
     } else if (action === "removeSite") {
       this.mrecs.deleteMany({ site_ref: rec.id().val });
 
-      const keys = await scan(this.redis, "0", `site:${rec.id().val}*`);
+      const keys = await scan(this.redis, `site:${rec.id().val}*`);
       if (keys.length) await del(this.redis, keys);
 
       callback(null, HGrid.EMPTY);
     }
   }
-}
-
-function scan(client, cursor, pattern, keys = []) {
-  return new Promise((resolve, reject) => {
-    client.scan(cursor, "MATCH", pattern, "COUNT", "10", async (err, result) => {
-      if (err) return reject(err);
-      cursor = result[0];
-      keys = keys.concat(result[1]);
-
-      if (cursor === "0") {
-        return resolve(keys.sort());
-      }
-      keys = await scan(cursor, pattern, keys);
-      return resolve(keys);
-    });
-  });
-}
-
-function del(client, keys) {
-  return new Promise((resolve, reject) => {
-    this.redis.del(keys, (err, result) => {
-      if (err) return reject(err);
-      return resolve(result);
-    });
-  });
 }
 
 module.exports = AlfalfaServer;

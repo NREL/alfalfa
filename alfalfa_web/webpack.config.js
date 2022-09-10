@@ -2,6 +2,7 @@ const fs = require("fs");
 if (fs.existsSync("../.env")) require("dotenv").config({ path: "../.env" });
 
 const path = require("path");
+const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
@@ -72,5 +73,15 @@ module.exports = {
       }
     ]
   },
-  plugins: [new HtmlWebpackPlugin({ template: "./index.html" })]
+  plugins: [
+    new HtmlWebpackPlugin({ template: "./index.html" }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: "favicon.ico",
+          to: "favicon.ico"
+        }
+      ]
+    })
+  ]
 };

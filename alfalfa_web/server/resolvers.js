@@ -2,6 +2,7 @@ import AWS from "aws-sdk";
 import got from "got";
 import path from "path";
 import dbops from "./dbops";
+import { getHash, scan } from "./utils";
 
 AWS.config.update({ region: process.env.REGION || "us-east-1" });
 const sqs = new AWS.SQS();
@@ -147,12 +148,11 @@ function simsResolver(user, args, context) {
       .find(args)
       .toArray()
       .then((array) => {
-        array.map((sim) => {
-          sim = Object.assign(sim, { simRef: sim._id });
+        array.forEach((sim) => {
+          sim.simRef = sim._id;
           if (sim.s3Key) {
             const params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
-            const url = s3client.getSignedUrl("getObject", params);
-            sim = Object.assign(sim, { url: url });
+            sim.url = s3client.getSignedUrl("getObject", params);
           }
           sims.push(sim);
         });
@@ -239,7 +239,14 @@ async function sitesResolver(user, siteRef, context) {
 }
 
 function sitePointResolver(siteRef, args, context) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    const pointKeys = await scan(context.redis, `site:${siteRef}:rec:*`);
+    const currentValues = {};
+    for (const key of pointKeys) {
+      const [, pointId] = key.match(new RegExp(`^site:${siteRef}:rec:(.+)$`));
+      currentValues[pointId] = await getHash(context.redis, key);
+    }
+
     const recs = context.db.collection("recs");
     let query = { site_ref: siteRef, "rec.point": "m:" };
     if (args.writable) {
@@ -252,14 +259,14 @@ function sitePointResolver(siteRef, args, context) {
       .find(query)
       .toArray()
       .then((array) => {
-        let points = [];
+        const points = [];
         array.map((rec) => {
-          let point = {};
-          point.tags = [];
-          point.dis = rec.rec.dis;
-          for (const recKey in rec.rec) {
-            const tag = { key: recKey, value: rec.rec[recKey] };
-            point.tags.push(tag);
+          const point = {
+            dis: rec.rec.dis,
+            tags: []
+          };
+          for (const [key, value] of Object.entries({ ...rec.rec, ...currentValues[rec._id] })) {
+            point.tags.push({ key, value });
           }
           points.push(point);
         });

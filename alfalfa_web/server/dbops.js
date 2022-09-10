@@ -2,6 +2,8 @@
 // in a single place. Clients may transform the data into and out of
 // these functions for their own api purposes. ie Haystack api, GraphQL api.
 
+import { mapRedisArray } from "./utils";
+
 const NUM_LEVELS = 17;
 
 function findCurrentWinningValue(array) {
@@ -22,11 +24,6 @@ function findCurrentWinningValue(array) {
 function getPoint(siteRef, name, db) {
   const mrecs = db.collection("recs");
   return mrecs.findOne({ site_ref: siteRef, "rec.dis": `s:${name}` });
-}
-
-// Convert redis empty strings to nulls, otherwise numbers
-function mapRedisArray(array) {
-  return array.map((datum) => (datum === "" ? null : Number(datum)));
 }
 
 async function getWriteArray(siteRef, id, redis) {
@@ -96,7 +93,7 @@ function writePoint(id, siteRef, level, value, db, redis) {
           { _id: id },
           {
             $set: {
-              "rec.writeStatus": "s:disabled"
+              "rec.writeStatus": "s:ok"
             },
             $unset: {
               "rec.writeVal": "",
@@ -123,6 +120,5 @@ module.exports = {
   NUM_LEVELS,
   getPoint,
   getWriteArray,
-  mapRedisArray,
   writePoint
 };
