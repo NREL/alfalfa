@@ -90,6 +90,7 @@ class RecInstance(EmbeddedDocument):
     (e.g., simStatus, step), but they are still included because the code base is reading/writing
     the valued. For example, it is unsetting `step` even though it doesn't appear to be written to."""
 
+    # TODO: maybe we need to make this a dynamic field: https://docs.mongoengine.org/guide/defining-documents.html#dynamic-document-schemas
     id = StringField()
     dis = StringField()
     siteRef = StringField()
@@ -117,6 +118,40 @@ class RecInstance(EmbeddedDocument):
     weatherRef = StringField()
     weather = StringField()
     floor = StringField()
+    temp = StringField()
+    air = StringField()
+    equipRef = StringField()
+    discharge = StringField()
+    sensor = StringField()
+    unit = StringField()
+    floorRef = StringField()
+    pressure = StringField()
+    humidity = StringField()
+    flow = StringField()
+    position = StringField()
+    outside = StringField()
+    damper = StringField()
+    cmd = StringField()
+    mixed = StringField()
+    return_ = StringField()
+    exhaust = StringField()
+    volume = StringField()
+    zone = StringField()
+    cooling = StringField()
+    heating = StringField()
+    directZone = StringField()
+    sp = StringField()
+    hvac = StringField()
+    ahu = StringField()
+    equip = StringField()
+
+    def __init__(self, *args, **kwargs):
+        # if an arg is coming in with `return` then replace it with `return_`
+        # to allow it to persist correctly in the database
+        if 'return' in kwargs:
+            kwargs['return_'] = kwargs.pop('return')
+
+        super().__init__(*args, **kwargs)
 
 
 class Rec(TimestampedDocument):

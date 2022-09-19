@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 class ParseVariables:
     def __init__(self, variables_cfg_xml_path, haystack_report_mapping_json_path, haystack_report_haystack_json_path):
         """
+        What is the purpose of this class?
 
         :param variables_cfg_xml_path: [str] path to variables.cfg file
         :param haystack_report_mapping_json_path: [str] path to haystack_report_mapping.json
