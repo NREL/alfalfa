@@ -47,13 +47,13 @@ class RunManager(LoggerMixinBase):
 
     def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO, run_id=None) -> Run:
         """Create a new Run with the contents of a model"""
+        run_id = run_id if run_id is not None else str(uuid4())
+
         file_path = self.tmp_dir / model_name
-        run_path = self.run_dir / upload_id
+        run_path = self.run_dir / run_id
         if Path.exists(run_path):
             shutil.rmtree(run_path)
         run_path.mkdir()
-
-        run_id = run_id if run_id is not None else str(uuid4())
 
         key = "uploads/%s/%s" % (upload_id, model_name)
         self.s3_download(key, file_path)
