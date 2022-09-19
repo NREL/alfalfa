@@ -48,8 +48,11 @@ class CreateRun(Job):
 
         points_json_path = submitted_workflow_path / 'reports/haystack_report_haystack.json'
         mapping_json_path = submitted_workflow_path / 'reports/haystack_report_mapping.json'
+
+        self.logger.info("Inserting OpenStudio tags")
         self.insert_os_tags(points_json_path, mapping_json_path)
 
+        self.logger.info("Setting up symlinks")
         idf_src_path = submitted_workflow_path / 'run' / 'in.idf'
         idf_dest_path = simulation_dir / 'sim.idf'
         rel_symlink(idf_src_path, idf_dest_path)

@@ -47,7 +47,7 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         """
         try:
             message_body = json.loads(message.body)
-            self.logger.info(message_body)
+            self.logger.info(f"Processing message of {message_body}")
             message.delete()
             job = message_body.get('job')
             if job:

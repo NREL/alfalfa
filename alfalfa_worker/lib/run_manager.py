@@ -86,6 +86,7 @@ class RunManager(LoggerMixinBase):
 
             return tarinfo
 
+        self.logger.info(f"Checking in run with ID {run.ref_id}")
         tarname = "%s.tar.gz" % run.ref_id
         tar_path = self.tmp_dir / tarname
         tar = tarfile.open(tar_path, "w:gz")
@@ -170,15 +171,18 @@ class RunManager(LoggerMixinBase):
         }
         # check if the site is assigned yet and create site relationship -
         # which is really the run.ref_id, for some reason
+        self.logger.info(f"Updating Site object with ID {run.ref_id}")
         try:
             site = Site.objects.get(ref_id=run.ref_id)
             new_obj['site'] = site
         except Site.DoesNotExist:
             # this must be the first time this object is being created, so there is no site yet
             # since the site is extracted from the haystack points
-            pass
+            self.logger.warning(f"Site object with ID {run.ref_id} does not exist yet")
 
-        RunMongo.objects(ref_id=run.ref_id).update_one(**new_obj)
+        self.logger.info(f"Updating the Run object in the database with {new_obj}")
+        rm = RunMongo.objects(ref_id=run.ref_id).update_one(**new_obj)
+        self.logger.info(rm)
         for point in run.points:
             if point.type == PointType.OUTPUT and point._pending_value:
                 PointMongo.objects.get(ref_id=point.id).update(value=point.val)

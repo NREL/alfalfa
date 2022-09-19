@@ -105,7 +105,7 @@ services:
     # TODO: Add in worker openstudio volume
   mongo:
     container_name: alfalfa_mongo
-    image: mongo
+    image: mongo:5.0.12
     ports:
       - "27017:27017"
   redis:
