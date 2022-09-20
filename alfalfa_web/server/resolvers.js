@@ -192,6 +192,7 @@ async function sitesResolver(user, siteRef, context) {
 
   if (siteRef) {
     const doc = await context.db.collection("run").findOne({ ref_id: siteRef });
+    console.log("doc", doc);
     if (doc) runs[doc.ref_id] = doc;
   } else {
     const cursor = context.db.collection("run").find();
@@ -247,7 +248,7 @@ async function sitesResolver(user, siteRef, context) {
 function sitePointResolver(siteRef, args, context) {
   return new Promise((resolve, reject) => {
     const recs = context.db.collection("recs");
-    let query = { ref_id: siteRef, "rec.point": "m:" };
+    let query = { "rec.siteRef": `r:${siteRef}`, "rec.point": "m:" };
     if (args.writable) {
       query["rec.writable"] = "m:";
     }
