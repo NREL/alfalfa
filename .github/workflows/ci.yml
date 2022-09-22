@@ -19,7 +19,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
 
       - name: Run pre-commit
         uses: pre-commit/action@v2.0.0
@@ -41,7 +41,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
@@ -50,7 +50,6 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pip install setuptools
           poetry install
           poetry run pytest
 
@@ -101,7 +100,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
@@ -149,7 +148,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0

@@ -4,7 +4,7 @@ USER root
 
 ENV HOME /home/alfalfa
 
-# Need to set the lang to use Python 3.7 with Poetry
+# Need to set the lang to use Python 3.8 with Poetry
 ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 ENV ROOT_DIR /usr/local
@@ -12,7 +12,7 @@ ENV BUILD_DIR $HOME/build
 
 WORKDIR /home/alfalfa
 
-# Until we can support E+ 22.1.0 we need to install python 3.7 (thus deadsnakes/ppa)
+# Until we can support E+ 22.1.0 we need to install python 3.8 (thus deadsnakes/ppa)
 # This step should probably be connected to the next one, but due to the nature of NREL's
 # firewall this step must be run off VPN. This way you don't need to log off everytime you
 # update apt packaged, at least.
