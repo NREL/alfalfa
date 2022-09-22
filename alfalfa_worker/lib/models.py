@@ -172,9 +172,6 @@ class Rec(TimestampedDocument):
 
     rec = EmbeddedDocumentField(RecInstance)
 
-    # def site(self):
-    # return self.site
-
 
 class Model(TimestampedDocument):
     meta = {'collection': 'model'}
