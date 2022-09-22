@@ -87,7 +87,6 @@ class TestRefrigCaseOSW(TestCase):
         alfalfa.stop(model_id)
         alfalfa.wait(model_id, "COMPLETE")
 
-    @pytest.mark.skip(reason="This test is not working - Test_Point_1_Value is not set")
     def test_basic_io(self):
         zip_file_path = create_zip('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')

@@ -244,14 +244,19 @@ class WriteArray(TimestampedDocument):
     meta = {
         # TODO: convert back to write_array after the refactor is complete; requires front end change
         'collection': 'writearrays',
-        'indexes': ['site', 'ref_id']
+        'indexes': [('ref_id', 'siteRef'), 'ref_id']
     }
 
     ref_id = StringField()
-    # is the write array really attached to a site, seems like it should be for a run of a site?
-    site = ReferenceField(Site, required=True, reverse_delete_rule=CASCADE)
+
+    # the write array is attached to a site, seems like it should be for a run of a site.
+    site = ReferenceField(Site, reverse_delete_rule=CASCADE)
     # save the site ID as a string too, for now, because the front end isn't
     # currently saving as a reference.
-    site_id = StringField()
-    whos = ListField(DynamicField())
-    values = ListField(DynamicField())
+    siteRef = StringField()
+
+    # link to the rec that is associated with this write array
+    rec = ReferenceField(Rec, reverse_delete_rule=CASCADE)
+
+    who = ListField(DynamicField())
+    val = ListField(DynamicField())

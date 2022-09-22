@@ -94,7 +94,11 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
             });
         } else {
           // In this case the point has never been written to and there is no
-          // existing write array in the db so we create a new one
+          // existing writearray in the db, so error out. A default writearray
+          // should have been created when the rec was created on the backend.
+          console.log("No writearrary found for point " + id + ". Make sure it exists in the original tag file.");
+
+          // code below needs to be removed
           let array = new WriteArray();
           array.ref_id = id;
           array.siteRef = siteRef;

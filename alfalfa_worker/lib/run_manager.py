@@ -14,7 +14,7 @@ from alfalfa_worker.lib.models import Model
 from alfalfa_worker.lib.models import Point as PointMongo
 from alfalfa_worker.lib.models import Rec, RecInstance
 from alfalfa_worker.lib.models import Run as RunMongo
-from alfalfa_worker.lib.models import Site
+from alfalfa_worker.lib.models import Site, WriteArray
 from alfalfa_worker.lib.point import Point, PointType
 from alfalfa_worker.lib.run import Run
 from alfalfa_worker.lib.sim_type import SimType
@@ -182,6 +182,8 @@ class RunManager(LoggerMixinBase):
 
         self.logger.debug(f"Updating the Run object in the database with {new_obj}")
         RunMongo.objects(ref_id=run.ref_id).update_one(**new_obj)
+
+        self.logger.debug("Updating the Point objects in the database")
         for point in run.points:
             if point.type == PointType.OUTPUT and point._pending_value:
                 PointMongo.objects.get(ref_id=point.id).update(value=point.val)
@@ -301,10 +303,19 @@ class RunManager(LoggerMixinBase):
                 site.save()
 
             rec = Rec(ref_id=entity['id'].replace('r:', ''), site=site).save()
-
             rec_instance = RecInstance(**entity)
             rec.rec = rec_instance
             rec.save()
+
+            # Create default writearray objects for the site. Create this on the backend
+            # to ensure that the links are created correctly and accessible from the frontend.
+            #   Only check for records tagged with writable.
+            #   This may need to be expanded to other types in the future.
+            if rec.rec.writable == 'm:':
+                wa = WriteArray(siteRef=site.ref_id, site=site, ref_id=rec.ref_id, rec=rec).save()
+                wa.val = [None] * 17
+                wa.who = [None] * 17
+                wa.save()
 
     def add_model(self, model_path: os.PathLike):
         upload_id = str(uuid4())

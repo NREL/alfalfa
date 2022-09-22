@@ -74,6 +74,7 @@ class CreateRun(Job):
         fmu = load_fmu(self.upload_fmu)
 
         # 2.0 get input/output variables from the FMU
+        #   causality = 1 is parameter, 2 is input, 3 is output
         input_names = fmu.get_model_variables(causality=2).keys()
         output_names = fmu.get_model_variables(causality=3).keys()
 
