@@ -97,44 +97,6 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
           // existing writearray in the db, so error out. A default writearray
           // should have been created when the rec was created on the backend.
           console.log("No writearrary found for point " + id + ". Make sure it exists in the original tag file.");
-
-          // code below needs to be removed
-          let array = new WriteArray();
-          array.ref_id = id;
-          array.siteRef = siteRef;
-          setOrNullArray(array, val, level, who);
-          writearrays
-            .insertOne(array)
-            .then(() => {
-              const current = currentWinningValue(array);
-              if (current) {
-                return mrecs.updateOne(
-                  { ref_id: array.ref_id },
-                  {
-                    $set: {
-                      "rec.writeStatus": "s:ok",
-                      "rec.writeVal": `s:${current.val}`,
-                      "rec.writeLevel": `n:${current.level}`
-                    },
-                    $unset: { writeErr: "" }
-                  }
-                );
-              } else {
-                return mrecs.updateOne(
-                  { ref_id: array.ref_id },
-                  {
-                    $set: { "rec.writeStatus": "s:disabled" },
-                    $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }
-                  }
-                );
-              }
-            })
-            .then(() => {
-              resolve(array);
-            })
-            .catch((err) => {
-              reject(err);
-            });
         }
       })
       .catch((err) => {
