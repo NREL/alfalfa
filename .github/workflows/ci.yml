@@ -50,6 +50,7 @@ jobs:
 
       - name: Run tests with pytest
         run: |
+          pip install setuptools
           poetry install
           poetry run pytest
 
