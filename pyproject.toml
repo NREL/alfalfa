@@ -38,6 +38,7 @@ pillow = "9.1.1"
 
 # The influxdb dependency will be removed once filebeat is configured
 influxdb = "^5.3.1"
+setuptools = "^65.3.0"
 
 [tool.poetry.dev-dependencies]
 # required for tests to pass right now. There are often issues when pinning to a branch
