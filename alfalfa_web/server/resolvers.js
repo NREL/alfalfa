@@ -154,7 +154,7 @@ function simsResolver(user, args, context) {
       .toArray()
       .then((array) => {
         array.map((sim) => {
-          sim = Object.assign(sim, { simRef: sim._id });
+          sim = Object.assign(sim, { simRef: sim.ref_id });
           if (sim.s3Key) {
             const params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
             const url = s3client.getSignedUrl("getObject", params);
@@ -192,7 +192,6 @@ async function sitesResolver(user, siteRef, context) {
 
   if (siteRef) {
     const doc = await context.db.collection("run").findOne({ ref_id: siteRef });
-    console.log("doc", doc);
     if (doc) runs[doc.ref_id] = doc;
   } else {
     const cursor = context.db.collection("run").find();
@@ -286,7 +285,7 @@ function writePointResolver(context, siteRef, pointName, value, level) {
   return dbops
     .getPoint(siteRef, pointName, context.db)
     .then((point) => {
-      return dbops.writePoint(point._id, siteRef, level, value, null, null, context.db);
+      return dbops.writePoint(point.ref_id, siteRef, level, value, null, null, context.db);
     })
     .then((array) => {
       return JSON.stringify(array);

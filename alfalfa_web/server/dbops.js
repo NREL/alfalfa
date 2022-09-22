@@ -41,7 +41,7 @@ function setOrNullArray(array, val, level, who) {
 // Get a point by siteRef and display name
 function getPoint(siteRef, name, db) {
   const mrecs = db.collection("recs");
-  return mrecs.findOne({ site_ref: siteRef, "rec.dis": `s:${name}` });
+  return mrecs.findOne({ "rec.siteRef": `r:${siteRef}`, "rec.dis": `s:${name}` });
 }
 
 function writePoint(id, siteRef, level, val, who, dur, db) {
@@ -60,12 +60,13 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
           // In this case the array already exists because it has been written to before
           setOrNullArray(array, val, level, who);
           writearrays
-            .updateOne({ ref_id: array._id }, { $set: { val: array.val, who: array.who } })
+            .updateOne({ ref_id: array.ref_id }, { $set: { val: array.val, who: array.who } })
             .then(() => {
               const current = currentWinningValue(array);
               if (current) {
+                // console.log("The array has values of " + JSON.stringify(array));
                 return mrecs.updateOne(
-                  { ref_id: array._id },
+                  { ref_id: array.ref_id },
                   {
                     $set: {
                       "rec.writeStatus": "s:ok",
@@ -77,7 +78,7 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
                 );
               } else {
                 return mrecs.updateOne(
-                  { ref_id: array._id },
+                  { ref_id: array.ref_id },
                   {
                     $set: { "rec.writeStatus": "s:disabled" },
                     $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }
@@ -95,7 +96,7 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
           // In this case the point has never been written to and there is no
           // existing write array in the db so we create a new one
           let array = new WriteArray();
-          array._id = id;
+          array.ref_id = id;
           array.siteRef = siteRef;
           setOrNullArray(array, val, level, who);
           writearrays
@@ -104,7 +105,7 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
               const current = currentWinningValue(array);
               if (current) {
                 return mrecs.updateOne(
-                  { ref_id: array._id },
+                  { ref_id: array.ref_id },
                   {
                     $set: {
                       "rec.writeStatus": "s:ok",
@@ -116,7 +117,7 @@ function writePoint(id, siteRef, level, val, who, dur, db) {
                 );
               } else {
                 return mrecs.updateOne(
-                  { ref_id: array._id },
+                  { ref_id: array.ref_id },
                   {
                     $set: { "rec.writeStatus": "s:disabled" },
                     $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }

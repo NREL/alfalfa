@@ -462,7 +462,6 @@ class AlfalfaServer extends HServer {
   }
 
   onPointWriteArray(rec, callback) {
-    console.log("I am onPointWriteArray!");
     this.writearrays
       .findOne({ ref_id: rec.id().val })
       .then((array) => {
@@ -477,7 +476,7 @@ class AlfalfaServer extends HServer {
             .insertOne(array)
             .then(() => {
               return this.mrecs.updateOne(
-                { ref_id: array._id },
+                { ref_id: array.ref_id },
                 {
                   $set: { "rec.writeStatus": "s:ok" },
                   $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }
