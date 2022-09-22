@@ -155,7 +155,7 @@ COPY poetry.lock $BUILD_DIR
 
 # Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
 RUN ln -sf /usr/bin/python3 /usr/bin/python \
-    && python3 -m pip install poetry==1.1.12 setuptools==62.1.0 \
+    && python3 -m pip install poetry==1.2.1 setuptools==65.3.0 \
     && python3 -m poetry config virtualenvs.create false \
     && python3 -m poetry install --no-dev
 
@@ -196,7 +196,7 @@ CMD ["/alfalfa/start_worker.sh"]
 FROM base AS dev
 
 # Reinstall poetry's dev dependencies by calling again
-RUN python -m pip install poetry==1.1.12 setuptools==62.1.0 \
+RUN python -m pip install poetry==1.2.1 setuptools==65.3.0 \
     && python -m poetry config virtualenvs.create false \
     && python -m poetry install
 
