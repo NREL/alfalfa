@@ -46,11 +46,22 @@ jobs:
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.12
+          # use a newer version of poetry in this test, but
+          # poetry in the dockerfile is a bit older because
+          # of a urllib3 issue
+          poetry-version: 1.2.1
+
+      - name: Install poetry dependencies
+        run: |
+          poetry install
+
+      - name: Runner Details
+        run: |
+          cat /etc/issue
+          python --version
 
       - name: Run tests with pytest
         run: |
-          poetry install
           poetry run pytest
 
   simulation-tests:
@@ -105,7 +116,10 @@ jobs:
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.12
+          # use a newer version of poetry in this test, but
+          # poetry in the dockerfile is a bit older because
+          # of a urllib3 issue
+          poetry-version: 1.2.1
 
       - name: Build and run stack
         run: |
@@ -153,7 +167,10 @@ jobs:
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.12
+          # use a newer version of poetry in this test, but
+          # poetry in the dockerfile is a bit older because
+          # of a urllib3 issue
+          poetry-version: 1.2.1
 
       - name: Build and run stack
         run: |

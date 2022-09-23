@@ -17,18 +17,29 @@ authors = [
 [tool.poetry.dependencies]
 python = ">=3.7.1, <3.11"
 
-boto3 = "~1.24.11"
-Cython = "^0.29.28"
+boto3 = "~1.24.79"
 importlib-metadata = "4.11.4"
 mlep = "0.1.1.dev3"
 mongoengine = "^0.24.2"
-numpy = "^1.21"
 pandas = "~1.3.5"
 pymongo = "^4.2.0"
 redis = "^4.2.2"
-requests = "^2.27.1"
+requests = "2.28.1"
 scipy = "1.7.3"
 symfit = "^0.5.5"
+
+# chardet = "3.0.4"
+# urllib3 = "1.26.11"
+
+# These dependency versions are also defined
+# in the alfalfa_worker Dockerfile and need
+# to be updated if changed here.
+Cython = "^0.29.28"
+numpy = "1.21.6"
+
+# needed for some dependencies -- ignoring for now
+setuptools = "65.3.0"
+# urllib3 = "^1.26.12"
 
 # These libraries are used for the data generator/testcase.
 # They are pinned to older versions as the min python version is 3.7
@@ -38,6 +49,7 @@ pillow = "9.1.1"
 
 # The influxdb dependency will be removed once filebeat is configured
 influxdb = "^5.3.1"
+
 
 [tool.poetry.dev-dependencies]
 # required for tests to pass right now. There are often issues when pinning to a branch
@@ -54,5 +66,5 @@ pytest-timeout = "1.4.2"
 tox = "^3.21.4"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
