@@ -51,6 +51,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
+          pip install setuptools
 
       - name: Runner Details
         run: |
