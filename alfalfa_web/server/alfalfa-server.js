@@ -248,7 +248,7 @@ class AlfalfaServer extends HServer {
 
   onReadById(id, callback) {
     this.mrecs
-      .findOne({ ref_id: id.val })
+      .findOne({ ref_id: id.ref_id })
       .then((doc) => {
         if (doc) {
           let dict = this.recToDict(doc.rec);

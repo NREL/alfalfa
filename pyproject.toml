@@ -31,7 +31,7 @@ scipy = "1.7.3"
 symfit = "^0.5.5"
 
 # Setuptools needed for some dependencies
-setuptools = "^65.3.0"
+setuptools = "^62.1.0"
 # urllib3 = "^1.26.12"
 
 # These libraries are used for the data generator/testcase.
