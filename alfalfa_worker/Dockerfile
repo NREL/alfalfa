@@ -176,7 +176,8 @@ RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community
 
 # There are some tweaks because Ubuntu 20.04 has a PEP404 error with the version.
 # See https://bugs.launchpad.net/ubuntu/+source/python-debian/+bug/1926870
-# The below install poetry 1.1.15, then installs the poetry dependencies. 1.2.1 has the error.
+# The below installs poetry 1.1.15 because 1.2.1 has the error.
+# It then copies over the poetry files and installs the dependencies with --no-dev
 RUN pip3 install poetry==1.1.15
 
 # Copy and install poetry-based dependencies
@@ -214,10 +215,10 @@ RUN pip3 install virtualenv \
     && poetry install \
     && pip3 install setuptools==65.3.0
 
-# # for remote debugging
+# for remote debugging
 RUN pip3 install remote-pdb
 
-# # for live reloading celery
+# for live reloading celery
 RUN pip3 install watchdog[watchmedo]
 
 # The docker-compose will require the mounting
