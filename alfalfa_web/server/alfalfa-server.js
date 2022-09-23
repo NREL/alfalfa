@@ -12,11 +12,9 @@ const {
   HBool,
   HDateTime,
   HDictBuilder,
-  HGrid,
   HGridBuilder,
   HHisItem,
   HJsonReader,
-  HMarker,
   HNum,
   HRef,
   HServer,
@@ -25,6 +23,8 @@ const {
   HUri,
   HWatch
 } = hs;
+
+const EMPTY_HGRID = new HGridBuilder().toGrid();
 
 AWS.config.update({ region: process.env.REGION || "us-east-1" });
 const sqs = new AWS.SQS();
@@ -100,7 +100,7 @@ class AlfalfaWatch extends HWatch {
     this.watches
       .updateOne({ _id: this._id }, { $pull: { subs: { $in: ids } } })
       .then(() => {
-        callback(null, HGrid.EMPTY);
+        callback(null, EMPTY_HGRID);
       })
       .catch((err) => {
         callback(err);
@@ -111,7 +111,7 @@ class AlfalfaWatch extends HWatch {
     this.watches
       .deleteOne({ _id: this._id })
       .then(() => {
-        callback(null, HGrid.EMPTY);
+        callback(null, EMPTY_HGRID);
       })
       .catch((err) => {
         callback(err);
@@ -127,7 +127,7 @@ class AlfalfaWatch extends HWatch {
           this._lease = watch.lease;
           this.watchReadByIds([], watch.subs, callback);
         } else {
-          callback(null, HGrid.EMPTY);
+          callback(null, EMPTY_HGRID);
         }
       })
       .catch((err) => {
@@ -144,7 +144,7 @@ class AlfalfaWatch extends HWatch {
           this._lease = watch.lease;
           this.watchReadByIds([], watch.subs, callback);
         } else {
-          callback(null, HGrid.EMPTY);
+          callback(null, EMPTY_HGRID);
         }
       })
       .catch((err) => {
@@ -461,9 +461,9 @@ class AlfalfaServer extends HServer {
           })
         );
       } else {
-        // TODO insert blank array
         array = new Array(NUM_LEVELS).fill("");
         await new Promise((resolve, reject) => {
+          const key = `site:${siteRef}:point:${id}`;
           this.redis.rpush(key, array, (err, result) => {
             if (err) return reject(err);
             if (result === NUM_LEVELS) return resolve();
@@ -568,14 +568,14 @@ class AlfalfaServer extends HServer {
       this.mrecs.updateOne({ _id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
         this.pub.publish(siteRef, JSON.stringify({ message_id: uuidv1(), method: "stop" }));
       });
-      callback(null, HGrid.EMPTY);
+      callback(null, EMPTY_HGRID);
     } else if (action === "removeSite") {
       this.mrecs.deleteMany({ site_ref: rec.id().val });
 
       const keys = await scan(this.redis, `site:${rec.id().val}*`);
       if (keys.length) await del(this.redis, keys);
 
-      callback(null, HGrid.EMPTY);
+      callback(null, EMPTY_HGRID);
     }
   }
 }

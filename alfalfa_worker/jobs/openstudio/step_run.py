@@ -279,7 +279,7 @@ class StepRun(StepRunBase):
                         if index == -1:
                             self.logger.error('bad input index for: %s' % _id)
                         else:
-                            self.ep.inputs[index] = int(value.decode('UTF-8'))
+                            self.ep.inputs[index] = float(value.decode('UTF-8'))
                             self.ep.inputs[index + 1] = 1
                             break
         # Convert to tuple

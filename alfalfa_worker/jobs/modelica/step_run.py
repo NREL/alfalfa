@@ -124,7 +124,7 @@ class StepRun(StepRunBase):
                 if len(value) > 0:
                     dis = self.id_and_dis.get(_id)
                     if dis:
-                        u[dis] = int(value.decode('UTF-8'))
+                        u[dis] = float(value.decode('UTF-8'))
                         u[dis.replace('_u', '_activate')] = 1
                         break
 
