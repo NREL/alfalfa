@@ -187,18 +187,24 @@ class AlfalfaServer extends HServer {
   }
 
   recToDict(rec) {
-    const keys = Object.keys(rec);
+    // A record can exist in the database before it is part
+    // of haystack, so check if rec is not none first.
     const db = new HDictBuilder();
-    for (let j = 0; j < keys.length; ++j) {
-      const key = keys[j];
-      const r = new HJsonReader(rec[key]);
-      try {
-        const val = r.readScalar();
-        db.add(key, val);
-      } catch (err) {
-        console.log(err);
+    if (rec) {
+      const keys = Object.keys(rec);
+
+      for (let j = 0; j < keys.length; ++j) {
+        const key = keys[j];
+        const r = new HJsonReader(rec[key]);
+        try {
+          const val = r.readScalar();
+          db.add(key, val);
+        } catch (err) {
+          console.log(err);
+        }
       }
     }
+
     return db.toDict();
   }
 
@@ -248,7 +254,7 @@ class AlfalfaServer extends HServer {
 
   onReadById(id, callback) {
     this.mrecs
-      .findOne({ ref_id: id.ref_id })
+      .findOne({ ref_id: id.val })
       .then((doc) => {
         if (doc) {
           let dict = this.recToDict(doc.rec);
@@ -544,6 +550,7 @@ class AlfalfaServer extends HServer {
 
   onInvokeAction(rec, action, args, callback) {
     if (action === "runSite") {
+      // this is probably never called
       this.mrecs.updateOne({ ref_id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
         let body = { id: rec.id().val, op: "InvokeAction", action: action };
 
@@ -577,7 +584,7 @@ class AlfalfaServer extends HServer {
       callback(null, HGrid.EMPTY);
     } else if (action === "removeSite") {
       // Shouldn't this all happen on the backend?
-      this.mrecs.deleteMany({ site_ref: rec.id().val });
+      this.mrecs.deleteMany({ "rec.siteRef": rec.id().val });
       this.writearrays.deleteMany({ siteRef: rec.id().val });
       callback(null, HGrid.EMPTY);
     }

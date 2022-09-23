@@ -87,6 +87,11 @@ class RunManager(LoggerMixinBase):
             return tarinfo
 
         self.logger.info(f"Checking in run with ID {run.ref_id}")
+        # Add an instance of this into the database regardless if
+        # it is there or not. This is because the checkin code
+        # is called when there are failures, etc., and it breaks
+        # the front end when it tries to find the objects.
+        Site(ref_id=run.ref_id)
         tarname = "%s.tar.gz" % run.ref_id
         tar_path = self.tmp_dir / tarname
         tar = tarfile.open(tar_path, "w:gz")
@@ -287,7 +292,10 @@ class RunManager(LoggerMixinBase):
                 # TODO: convert to actual data types (which requires updating the mongo schema too)
                 # TODO: FMU's might not have this data?
                 name = f"{entity.get('dis','Test Case').replace('s:','')} in {entity.get('geoCity', 'Unknown City').replace('s:','')}"
-                site = Site(ref_id=run.ref_id, name=name).save()
+                # there might be the case where the ref_id was added to the record during
+                # a "checkin" but the rest of that is not know. So get or create the Site.
+                site = Site(ref_id=run.ref_id)
+                site.name = name
                 site.haystack_raw = haystack_json
                 site.dis = entity.get('dis')
                 site.site = entity.get('site')

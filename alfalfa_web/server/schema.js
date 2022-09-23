@@ -271,8 +271,8 @@ const mutationType = new GraphQLObjectType({
       args: {
         siteRef: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve: (_, args, request) => {
-        resolvers.stopSiteResolver(args);
+      resolve: (_, args, context) => {
+        resolvers.stopSiteResolver(args, context);
       }
     },
     removeSite: {

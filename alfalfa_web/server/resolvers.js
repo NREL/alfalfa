@@ -131,7 +131,7 @@ function invokeAction(action, siteRef) {
     .then(({ body }) => body);
 }
 
-function stopSiteResolver(args) {
+function stopSiteResolver(args, context) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //},
