@@ -110,20 +110,16 @@ class StepRun(StepRunBase):
     def step(self):
         # u represents simulation input values
         u = self.default_input.copy()
-        # look in the database for current write arrays
+        # look in redis for current write arrays
         # for each write array there is an array of controller
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
         # convention
-        for array in self.mongo_db_write_arrays.find({"siteRef": self.run.id}):
-            _id = array.get('_id')
-            for val in array.get('val'):
-                if val is not None:
-                    dis = self.id_and_dis.get(_id)
-                    if dis:
-                        u[dis] = val
-                        u[dis.replace('_u', '_activate')] = 1
-                        break
+        for point_id, write_value in self.get_write_array_values().items():
+            dis = self.id_and_dis.get(point_id)
+            if dis:
+                u[dis] = write_value
+                u[dis.replace('_u', '_activate')] = 1
 
         y_output = self.tc.advance(u)
         self.update_sim_status()
@@ -134,8 +130,11 @@ class StepRun(StepRunBase):
             if key != 'time':
                 output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-                self.mongo_db_recs.update_one({"_id": output_id}, {
-                    "$set": {"rec.curVal": "n:%s" % value_y, "rec.curStatus": "s:ok", "rec.cur": "m:"}})
+                key = f'site:{self.run.id}:rec:{output_id}'
+                self.redis.hset(key, mapping={
+                    'curStatus': 's:ok',
+                    'curVal': f"n:{value_y}"
+                })
 
         if self.historian_enabled:
             self.write_outputs_to_influx(y_output)
@@ -198,10 +197,13 @@ class StepRun(StepRunBase):
         super().stop()
 
         # DELETE
-        # Clear all current values from the database when the simulation is no longer running
-        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.cur": "m:"},
-                                       {"$unset": {"rec.curVal": "", "rec.curErr": ""},
-                                           "$set": {"rec.curStatus": "s:disabled"}}, False)
+        # Clear all current values from the database and redis when the simulation is no longer running
+
+        for key in self.redis.scan_iter(f'site:{self.run.id}:rec:*'):
+            key = key.decode('UTF-8')
+            self.redis.hset(key, mapping={'curStatus': 's:disabled'})
+            self.redis.hdel(key, 'curVal', 'curErr')
+
         self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.writable": "m:"},
                                        {"$unset": {"rec.writeLevel": "", "rec.writeVal": ""},
                                            "$set": {"rec.writeStatus": "s:disabled"}}, False)

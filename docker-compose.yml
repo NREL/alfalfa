@@ -18,23 +18,23 @@ services:
         mode: host
       - "29043:29043"
     environment:
-      - NODE_ENV
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - JOB_QUEUE_URL
-      - MONGO_URL
       - MONGO_DB_NAME
+      - MONGO_URL
+      - NODE_ENV
+      - REDIS_HOST
+      - REGION
+      - S3_BUCKET
       - S3_URL
       - S3_URL_EXTERNAL
-      - REDIS_HOST
-      - S3_BUCKET
-      - REGION
     depends_on:
-      - redis
-      - mongo
       - goaws
-      - worker
       - mc
+      - mongo
+      - redis
+      - worker
   # Provides a local queue, conforming to AWS Queue (SQS) API
   goaws:
     container_name: alfalfa_goaws
@@ -81,25 +81,25 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
-      - JOB_QUEUE_URL
-      - MONGO_URL
-      - MONGO_DB_NAME
-      - LOGLEVEL=INFO
-      - NODE_ENV
-      - S3_URL
-      - REDIS_HOST
-      - S3_BUCKET
-      - REGION
+      - HISTORIAN_ENABLE
+      - INFLUXDB_ADMIN_PASSWORD
+      - INFLUXDB_ADMIN_USER
       - INFLUXDB_DB
       - INFLUXDB_HOST
-      - INFLUXDB_ADMIN_USER
-      - INFLUXDB_ADMIN_PASSWORD
-      - HISTORIAN_ENABLE
+      - JOB_QUEUE_URL
+      - LOGLEVEL=INFO
+      - MONGO_DB_NAME
+      - MONGO_URL
+      - NODE_ENV
+      - REDIS_HOST
+      - REGION
+      - S3_BUCKET
+      - S3_URL
     depends_on:
-      - redis
-      - mongo
       - goaws
       - mc
+      - mongo
+      - redis
     #volumes:
     # TODO: Add in worker fmu volume
     # TODO: Add in worker openstudio volume

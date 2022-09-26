@@ -33,7 +33,6 @@ class AlfalfaConnectionsBase(object):
         self.mongo_client = MongoClient(os.environ['MONGO_URL'])
         self.mongo_db = self.mongo_client[os.environ['MONGO_DB_NAME']]
         self.mongo_db_recs = self.mongo_db.recs
-        self.mongo_db_write_arrays = self.mongo_db.writearrays
         self.mongo_db_sims = self.mongo_db.sims
 
         # InfluxDB
@@ -47,7 +46,7 @@ class AlfalfaConnectionsBase(object):
             self.influx_db_name = None
             self.influx_client = None
 
-    def add_site_to_mongo(self, haystack_json, site_ref):
+    def add_site_to_db(self, haystack_json, site_ref):
         """
         Upload JSON documents to mongo.  The documents look as follows:
         {
@@ -66,8 +65,20 @@ class AlfalfaConnectionsBase(object):
         if site_ref:
             array_to_insert = []
             for entity in haystack_json:
+                _id = entity['id'].replace('r:', '')
+
+                curStatus = entity.pop('curStatus', None)
+                curVal = entity.pop('curVal', None)
+                mapping = {}
+                if curStatus is not None:
+                    mapping['curStatus'] = curStatus
+                if curVal is not None:
+                    mapping['curVal'] = curVal
+                if mapping:
+                    self.redis.hset(f'site:{site_ref}:rec:{_id}', mapping=mapping)
+
                 array_to_insert.append({
-                    '_id': entity['id'].replace('r:', ''),
+                    '_id': _id,
                     'site_ref': site_ref,
                     'rec': entity
                 })

@@ -67,7 +67,7 @@ class CreateRun(Job):
             data = f.read()
         points_json = json.loads(data)
 
-        self.run_manager.add_site_to_mongo(points_json, self.run)
+        self.run_manager.add_site_to_db(points_json, self.run)
 
     def create_tags(self):
         # 1.0 setup the inputs
@@ -122,7 +122,6 @@ class CreateRun(Job):
                 "kind": "s:Number",
             }
             tags.append(tag_output)
-            tag_output = {}
 
         # 6.0 write tags to the json file
         with open(self.fmu_json, 'w') as outfile:

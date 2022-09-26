@@ -12,7 +12,7 @@ const openapiSpecification = swaggerJsdoc({
   definition: {
     openapi: "3.1.0",
     info: {
-      title: "Alfalfa",
+      title: "Alfalfa API Documentation",
       version,
       description:
         "Alfalfa transforms Building Energy Models (BEMs) into virtual buildings by providing industry standard building control interfaces for interacting with models as they run",

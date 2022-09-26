@@ -46,7 +46,13 @@ class FileInput extends React.Component {
   render = () => {
     return (
       <div>
-        <input className={styles.hidden} type="file" ref={this.fileInputRef} onInput={this.handleFileChange} />
+        <input
+          className={styles.hidden}
+          type="file"
+          accept=".zip,.fmu"
+          ref={this.fileInputRef}
+          onInput={this.handleFileChange}
+        />
         <TextField
           fullWidth={true}
           label="Select Model"
@@ -59,7 +65,7 @@ class FileInput extends React.Component {
             }
           }}
           InputLabelProps={{
-            shrink: this.state.filename != ""
+            shrink: this.state.filename !== ""
           }}
         />
       </div>

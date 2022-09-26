@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import boto3
 from pymongo import MongoClient
+from redis import Redis
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
 from alfalfa_worker.lib.point import Point, PointType
@@ -31,6 +32,9 @@ class RunManager(LoggerMixinBase):
         self.mongo_db_recs = self.mongo_db.recs
         self.mongo_db_sims = self.mongo_db.sims
         self.mongo_db_points = self.mongo_db.points
+
+        # Setup Redis
+        self.redis = Redis(host=os.environ['REDIS_HOST'])
 
         self.run_dir = Path(run_dir)
         self.tmp_dir = self.run_dir / 'tmp'
@@ -175,7 +179,7 @@ class RunManager(LoggerMixinBase):
         return response
 
     # TODO deprecate
-    def add_site_to_mongo(self, haystack_json, run: Run):
+    def add_site_to_db(self, haystack_json, run: Run):
         """
         Upload JSON documents to mongo.  The documents look as follows:
         {
@@ -193,8 +197,20 @@ class RunManager(LoggerMixinBase):
         """
         array_to_insert = []
         for entity in haystack_json:
+            _id = entity['id'].replace('r:', '')
+
+            curStatus = entity.pop('curStatus', None)
+            curVal = entity.pop('curVal', None)
+            mapping = {}
+            if curStatus is not None:
+                mapping['curStatus'] = curStatus
+            if curVal is not None:
+                mapping['curVal'] = curVal
+            if mapping:
+                self.redis.hset(f'site:{run.id}:rec:{_id}', mapping=mapping)
+
             array_to_insert.append({
-                '_id': entity['id'].replace('r:', ''),
+                '_id': _id,
                 'site_ref': run.id,
                 'rec': entity
             })

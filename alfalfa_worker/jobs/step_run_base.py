@@ -1,5 +1,6 @@
 import datetime
 import os
+from typing import Dict
 
 from influxdb import InfluxDBClient
 
@@ -110,8 +111,8 @@ class StepRunBase(Job):
     def update_model_inputs_from_write_arrays(self):
         """Placeholder for getting write values from Mongo and writing into simulation BEFORE a simulation timestep"""
 
-    def write_outputs_to_mongo(self):
-        """Placeholder for updating the current values exposed through Mongo AFTER a simulation timestep"""
+    def write_outputs_to_redis(self):
+        """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
 
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
@@ -164,7 +165,6 @@ class StepRunBase(Job):
         """Placeholder until all db/connections operations can be completely moved out of the job"""
         self.mongo_db_recs = self.run_manager.mongo_db.recs
         self.mongo_db_sims = self.run_manager.mongo_db.sims
-        self.mongo_db_write_arrays = self.run_manager.mongo_db.writearrays
 
         # InfluxDB
         self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
@@ -189,3 +189,18 @@ class StepRunBase(Job):
     def cleanup(self) -> None:
         super().cleanup()
         self.set_run_status(RunStatus.COMPLETE)
+
+    def get_write_array_values(self) -> Dict[str, float]:
+        """Return a dictionary of point ids and current winning values"""
+        write_values = {}
+        prefix = f'site:{self.run.id}:point:'
+        for key in self.redis.scan_iter(prefix + '*'):
+            key = key.decode('UTF-8')
+            _id = key[len(prefix):]
+            write_array = self.redis.lrange(key, 0, -1)
+            for value in write_array:
+                if len(value) > 0:
+                    write_values[_id] = float(value.decode('UTF-8'))
+                    break
+
+        return write_values

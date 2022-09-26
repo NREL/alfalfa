@@ -60,7 +60,7 @@ class TestSimpleThermostat(TestCase):
 
         # Advance time, outputs will not be updated until advance happens.
         # Should this limitation be considered a bug?
-        # Note that boptest advance and set inptut apis are combined,
+        # Note that boptest advance and set input apis are combined,
         # so that there is no method to set inputs without advancing
         self.alfalfa.advance([self.model_id])
         time = self.alfalfa.get_sim_time(self.model_id)
