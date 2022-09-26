@@ -1,5 +1,6 @@
 import datetime
 import os
+from typing import Dict
 
 from influxdb import InfluxDBClient
 
@@ -189,7 +190,7 @@ class StepRunBase(Job):
         super().cleanup()
         self.set_run_status(RunStatus.COMPLETE)
 
-    def get_write_array_values(self) -> dict[str, float]:
+    def get_write_array_values(self) -> Dict[str, float]:
         """Return a dictionary of point ids and current winning values"""
         write_values = {}
         prefix = f'site:{self.run.id}:point:*'
