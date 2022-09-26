@@ -188,3 +188,18 @@ class StepRunBase(Job):
     def cleanup(self) -> None:
         super().cleanup()
         self.set_run_status(RunStatus.COMPLETE)
+
+    def get_write_array_values(self) -> dict[str, float]:
+        """Return a dictionary of point ids and current winning values"""
+        write_values = {}
+        prefix = f'site:{self.run.id}:point:*'
+        for key in self.redis.scan_iter(prefix + '*'):
+            key = key.decode('UTF-8')
+            _id = key[len(prefix):]
+            write_array = self.redis.lrange(key, 0, -1)
+            for value in write_array:
+                if len(value) > 0:
+                    write_values[_id] = float(value.decode('UTF-8'))
+                    break
+
+        return write_values

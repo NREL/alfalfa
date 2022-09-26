@@ -115,18 +115,11 @@ class StepRun(StepRunBase):
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
         # convention
-        prefix = f'site:{self.run.id}:point:'
-        for key in self.redis.scan_iter(prefix + '*'):
-            key = key.decode('UTF-8')
-            _id = key[len(prefix):]
-            write_array = self.redis.lrange(key, 0, -1)
-            for value in write_array:
-                if len(value) > 0:
-                    dis = self.id_and_dis.get(_id)
-                    if dis:
-                        u[dis] = float(value.decode('UTF-8'))
-                        u[dis.replace('_u', '_activate')] = 1
-                        break
+        for point_id, write_value in self.get_write_array_values().items():
+            dis = self.id_and_dis.get(point_id)
+            if dis:
+                u[dis] = write_value
+                u[dis.replace('_u', '_activate')] = 1
 
         y_output = self.tc.advance(u)
         self.update_sim_status()

@@ -268,20 +268,14 @@ class StepRun(StepRunBase):
         else:
             self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
             self.ep.inputs[master_index] = 1
-            prefix = f'site:{self.run.id}:point:'
-            for key in self.redis.scan_iter(prefix + '*'):
-                key = key.decode('UTF-8')
-                _id = key[len(prefix):]
-                write_array = self.redis.lrange(key, 0, -1)
-                for value in write_array:
-                    if len(value) > 0:
-                        index = self.variables.get_input_index(_id)
-                        if index == -1:
-                            self.logger.error('bad input index for: %s' % _id)
-                        else:
-                            self.ep.inputs[index] = float(value.decode('UTF-8'))
-                            self.ep.inputs[index + 1] = 1
-                            break
+            for point_id, write_value in self.get_write_array_values().items():
+                index = self.variables.get_input_index(point_id)
+                if index == -1:
+                    self.logger.error('bad input index for: %s' % point_id)
+                else:
+                    self.ep.inputs[index] = write_value
+                    self.ep.inputs[index + 1] = 1
+
         # Convert to tuple
         inputs = tuple(self.ep.inputs)
         return inputs
