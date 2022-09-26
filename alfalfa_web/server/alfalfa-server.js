@@ -3,7 +3,7 @@ import hs from "nodehaystack";
 import os from "os";
 import { v1 as uuidv1 } from "uuid";
 import dbops, { NUM_LEVELS } from "./dbops";
-import { del, mapRedisArray, scan } from "./utils";
+import { del, getPointKey, mapRedisArray, scan } from "./utils";
 
 // The purpose of this file is to consolidate operations to the database
 // in a single place. Clients may transform the data into and out of
@@ -463,7 +463,7 @@ class AlfalfaServer extends HServer {
       } else {
         array = new Array(NUM_LEVELS).fill("");
         await new Promise((resolve, reject) => {
-          const key = `site:${siteRef}:point:${id}`;
+          const key = getPointKey(siteRef, id);
           this.redis.rpush(key, array, (err, result) => {
             if (err) return reject(err);
             if (result === NUM_LEVELS) return resolve();

@@ -1,3 +1,4 @@
 /alfalfa_web/build
 /alfalfa_worker/build
 /docs/resources
+*.hbs

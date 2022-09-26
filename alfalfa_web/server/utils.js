@@ -15,6 +15,11 @@ function getHash(client, key) {
   });
 }
 
+// Given a siteRef and pointId return the redis key
+function getPointKey(siteRef, pointId) {
+  return `site:${siteRef}:point:${pointId}`;
+}
+
 // Convert redis empty strings to nulls, otherwise numbers
 function mapRedisArray(array) {
   return array.map((datum) => (datum === "" ? null : Number(datum)));
@@ -40,6 +45,7 @@ function scan(client, pattern, cursor = "0", keys = []) {
 module.exports = {
   del,
   getHash,
+  getPointKey,
   mapRedisArray,
   scan
 };

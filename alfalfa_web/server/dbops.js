@@ -2,7 +2,7 @@
 // in a single place. Clients may transform the data into and out of
 // these functions for their own api purposes. ie Haystack api, GraphQL api.
 
-import { mapRedisArray } from "./utils";
+import { getPointKey, mapRedisArray } from "./utils";
 
 const NUM_LEVELS = 17;
 
@@ -27,7 +27,7 @@ function getPoint(siteRef, name, db) {
 }
 
 async function getWriteArray(siteRef, id, redis) {
-  const key = `site:${siteRef}:point:${id}`;
+  const key = getPointKey(siteRef, id);
   return new Promise((resolve, reject) => {
     // If the key isn't set the array will be empty
     redis.lrange(key, 0, -1, (err, array) =>
@@ -38,7 +38,7 @@ async function getWriteArray(siteRef, id, redis) {
 
 function writePoint(id, siteRef, level, value, db, redis) {
   return new Promise(async (resolve, reject) => {
-    const key = `site:${siteRef}:point:${id}`;
+    const key = getPointKey(siteRef, id);
     const mrecs = db.collection("recs");
 
     if (!Number.isInteger(level) || level < 1 || level > NUM_LEVELS) {
