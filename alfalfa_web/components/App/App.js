@@ -43,9 +43,9 @@ class App extends React.Component {
                 </Link>
                 <Grid container justifyContent="flex-end" spacing={2} style={{ marginLeft: 0 }}>
                   <Grid item>
-                    <Link to={"/models"} style={{ textDecoration: "none", color: "unset" }}>
+                    <Link to={"/sites"} style={{ textDecoration: "none", color: "unset" }}>
                       <Typography className={classes.button} variant="button" color="inherit">
-                        Models
+                        Sites
                       </Typography>
                     </Link>
                   </Grid>
@@ -61,7 +61,7 @@ class App extends React.Component {
             </AppBar>
             <Routes>
               <Route path="/" element={<Upload />} />
-              <Route path="/models" element={<Sites />} />
+              <Route path="/sites" element={<Sites />} />
               <Route path="/sims" element={<Sims />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
