@@ -296,15 +296,17 @@ class RunManager(LoggerMixinBase):
             # to ensure that the links are created correctly and accessible from the frontend.
             #   Only check for records tagged with writable.
             #   This may need to be expanded to other types in the future.
-            if rec.rec.writable == 'm:':
-                curStatus = entity.pop('curStatus', None)
-                curVal = entity.pop('curVal', None)
+            if entity.get('writable') == 'm:':
+                cur_status = entity.pop('curStatus', None)
+                cur_val = entity.pop('curVal', None)
                 mapping = {}
-                if curStatus is not None:
-                    mapping['curStatus'] = curStatus
-                if curVal is not None:
-                    mapping['curVal'] = curVal
+                if cur_status is not None:
+                    mapping['curStatus'] = cur_status
+                if cur_val is not None:
+                    mapping['curVal'] = cur_val
                 if mapping:
+                    # Note that run.ref_id is currently the same as site.ref_id, but
+                    # this won't be the case in the future.
                     self.redis.hset(f'site:{run.ref_id}:rec:{id}', mapping=mapping)
 
             if index == 0:
@@ -312,7 +314,7 @@ class RunManager(LoggerMixinBase):
                 # database (as well as in the recs collection, for now).
                 # TODO: convert to actual data types (which requires updating the mongo schema too)
                 # TODO: FMU's might not have this data?
-                name = f"{entity.get('dis','Test Case').replace('s:','')} in {entity.get('geoCity', 'Unknown City').replace('s:','')}"
+                name = f"{entity.get('dis', 'Test Case').replace('s:','')} in {entity.get('geoCity', 'Unknown City').replace('s:','')}"
                 # there might be the case where the ref_id was added to the record during
                 # a "checkin" but the rest of that is not know. So get or create the Site.
                 site = Site(ref_id=run.ref_id)
