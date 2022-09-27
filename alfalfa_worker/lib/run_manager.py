@@ -15,7 +15,7 @@ from alfalfa_worker.lib.models import Model
 from alfalfa_worker.lib.models import Point as PointMongo
 from alfalfa_worker.lib.models import Rec, RecInstance
 from alfalfa_worker.lib.models import Run as RunMongo
-from alfalfa_worker.lib.models import Site, WriteArray
+from alfalfa_worker.lib.models import Site
 from alfalfa_worker.lib.point import Point, PointType
 from alfalfa_worker.lib.run import Run
 from alfalfa_worker.lib.sim_type import SimType

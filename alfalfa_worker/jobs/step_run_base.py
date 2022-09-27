@@ -224,7 +224,7 @@ class StepRunBase(Job):
             recs = self.site.recs(rec__writable="m:")
             recs.update(rec__writeStatus='s:disabled', unset__rec__writeLevel=1, unset__rec__writeVal=1, multi=True)
 
-            # create the simulation database object. It apppears that this is the only place
+            # create the simulation database object. It appears that this is the only place
             # where this is created. Maybe we can remove this?
             time = str(datetime.datetime.now(tz=pytz.UTC))
 

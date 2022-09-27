@@ -124,7 +124,7 @@ class CreateRun(Job):
         points_json = replace_site_id(self.run.ref_id, points_json)
 
         # `return`` is a keyword and can't be in the mongoengine. The
-        # renaming is handled in the object instatiation to `return_`
+        # renaming is handled in the object instantiation to `return_`
 
         # save "fixed up" json
         with open(points_json_path, 'w') as fp:

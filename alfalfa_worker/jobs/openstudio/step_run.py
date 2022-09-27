@@ -12,7 +12,7 @@ from alfalfa_worker.lib.job import (
     JobExceptionExternalProcess,
     message
 )
-from alfalfa_worker.lib.models import Rec, WriteArray
+from alfalfa_worker.lib.models import Rec
 from alfalfa_worker.lib.point import Point, PointType
 
 

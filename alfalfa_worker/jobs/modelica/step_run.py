@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
 from alfalfa_worker.lib.job import message
-from alfalfa_worker.lib.models import Rec, WriteArray
+from alfalfa_worker.lib.models import Rec
 from alfalfa_worker.lib.testcase import TestCase
 
 

@@ -234,26 +234,3 @@ class Point(TimestampedDocument):
     point_type = StringField(required=True, choices=["Input", "Output", "Bidirectional"], max_length=50)
     key = StringField()
     value = DynamicField()
-
-
-class WriteArray(TimestampedDocument):
-    """These data come from alfalfa_web through a direct connection to mongo"""
-    meta = {
-        # TODO: convert back to write_array after the refactor is complete; requires front end change
-        'collection': 'writearrays',
-        'indexes': [('ref_id', 'siteRef'), 'ref_id']
-    }
-
-    ref_id = StringField()
-
-    # the write array is attached to a site, seems like it should be for a run of a site.
-    site = ReferenceField(Site, reverse_delete_rule=CASCADE)
-    # save the site ID as a string too, for now, because the front end isn't
-    # currently saving as a reference.
-    siteRef = StringField()
-
-    # link to the rec that is associated with this write array
-    rec = ReferenceField(Rec, reverse_delete_rule=CASCADE)
-
-    who = ListField(DynamicField())
-    val = ListField(DynamicField())
