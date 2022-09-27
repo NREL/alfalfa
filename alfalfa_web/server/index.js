@@ -4,6 +4,7 @@ import compression from "compression";
 import historyApiFallback from "connect-history-api-fallback";
 import cors from "cors";
 import express from "express";
+import fs from "fs";
 import { graphqlHTTP } from "express-graphql";
 import { MongoClient } from "mongodb";
 import morgan from "morgan";
@@ -52,6 +53,7 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
         context: {
           request,
           db,
+          redis,
           advancer
         }
       })(request, response);
@@ -61,7 +63,12 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
     app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
 
     app.get("/docs", (req, res) => {
-      res.sendFile(path.join(__dirname, "/app/docs.html"));
+      const docsPath = path.join(__dirname, "/app/docs.html");
+
+      fs.promises
+        .access(docsPath, fs.constants.F_OK)
+        .then(() => res.sendFile(docsPath))
+        .catch(() => res.status(404).type("txt").send("Documentation has not been generated"));
     });
 
     // Create a post url for file uploads
@@ -94,7 +101,7 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
 
     app.use("/api/v2/", apiv2({ db }));
 
-    app.all("/haystack/*", function (req, res) {
+    app.all("/haystack/*", (req, res) => {
       const path = url.parse(req.url).pathname.replace(/^\/haystack/, "");
 
       // parse URI path into "/{opName}/...."

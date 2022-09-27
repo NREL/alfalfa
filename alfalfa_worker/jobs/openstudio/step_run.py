@@ -145,7 +145,7 @@ class StepRun(StepRunBase):
         """
         Update database with current ep outputs and simulation time
         """
-        self.write_outputs_to_mongo()
+        self.write_outputs_to_redis()
 
         if self.historian_enabled:
             self.write_outputs_to_influx()
@@ -257,7 +257,7 @@ class StepRun(StepRunBase):
         self.replace_timestep_and_run_period_idf_settings()
 
     def read_write_arrays_and_prep_inputs(self):
-        """Read the write arrays from the database and format them correctly to pass
+        """Read the write arrays from redis and format them correctly to pass
         to the EnergyPlus simulation.
 
         Returns:
@@ -275,23 +275,20 @@ class StepRun(StepRunBase):
             # is what should be applied to the simulation according to Project Haystack
             # convention. If there is no value in the array, then it will not be passed to the
             # simulation.
-            for array in WriteArray.objects(siteRef=self.site.ref_id):
-                for val in array.val:
-                    if val is not None:
-                        index = self.variables.get_input_index(array.ref_id)
-                        if index == -1:
-                            self.logger.error(f"bad input index for: {array.ref_id}")
-                        else:
-                            self.ep.inputs[index] = val
-                            self.ep.inputs[index + 1] = 1
-                            break
+            for point_id, write_value in self.get_write_array_values().items():
+                index = self.variables.get_input_index(point_id)
+                if index == -1:
+                    self.logger.error('bad input index for: %s' % point_id)
+                else:
+                    self.ep.inputs[index] = write_value
+                    self.ep.inputs[index + 1] = 1
 
         # Convert to tuple
         inputs = tuple(self.ep.inputs)
         return inputs
 
-    def write_outputs_to_mongo(self):
-        """Placeholder for updating the current values exposed through Mongo AFTER a simulation timestep"""
+    def write_outputs_to_redis(self):
+        """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
         for output_id in self.variables.get_output_ids():
             output_index = self.variables.get_output_index(output_id)
             if output_index == -1:
@@ -301,9 +298,12 @@ class StepRun(StepRunBase):
 
                 # TODO: Make this better with a bulk update
                 # Also at some point consider removing curVal and related fields after sim ends
+                key = f'site:{self.run.ref_id}:rec:{output_id}'
+                self.redis.hset(key, mapping={
+                    'curStatus': 's:ok',
+                    'curVal': f'n:{output_value}'
+                })
                 Rec.objects.get(ref_id=output_id).update(
-                    rec__curVal=f"n:{output_value}",
-                    rec__curStatus="s:ok",
                     rec__cur="m:"
                 )
 

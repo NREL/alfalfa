@@ -1,5 +1,6 @@
 import datetime
 import os
+from typing import Dict
 
 import pytz
 from influxdb import InfluxDBClient
@@ -136,8 +137,8 @@ class StepRunBase(Job):
     def update_model_inputs_from_write_arrays(self):
         """Placeholder for getting write values from Mongo and writing into simulation BEFORE a simulation timestep"""
 
-    def write_outputs_to_mongo(self):
-        """Placeholder for updating the current values exposed through Mongo AFTER a simulation timestep"""
+    def write_outputs_to_redis(self):
+        """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
 
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
@@ -215,8 +216,11 @@ class StepRunBase(Job):
             rec.update(rec__simStatus="s:Stopped", unset__rec__datetime=1, unset__rec__step=1)
 
             # get all the recs to disable the points (maybe this really needs to be on the Point objects?)
-            recs = self.site.recs(rec__cur="m:")
-            recs.update(rec__curStatus='s:disabled', unset__rec__curVal=1, unset__rec__curErr=1, multi=True)
+            for key in self.redis.scan_iter(f'site:{self.run.ref_id}:rec:*'):
+                key = key.decode('UTF-8')
+                self.redis.hset(key, mapping={'curStatus': 's:disabled'})
+                self.redis.hdel(key, 'curVal', 'curErr')
+
             recs = self.site.recs(rec__writable="m:")
             recs.update(rec__writeStatus='s:disabled', unset__rec__writeLevel=1, unset__rec__writeVal=1, multi=True)
 
@@ -243,3 +247,18 @@ class StepRunBase(Job):
     def cleanup(self) -> None:
         super().cleanup()
         self.set_run_status(RunStatus.COMPLETE)
+
+    def get_write_array_values(self) -> Dict[str, float]:
+        """Return a dictionary of point ids and current winning values"""
+        write_values = {}
+        prefix = f'site:{self.site.ref_id}:point:'
+        for key in self.redis.scan_iter(prefix + '*'):
+            key = key.decode('UTF-8')
+            _id = key[len(prefix):]
+            write_array = self.redis.lrange(key, 0, -1)
+            for value in write_array:
+                if len(value) > 0:
+                    write_values[_id] = float(value.decode('UTF-8'))
+                    break
+
+        return write_values

@@ -124,7 +124,6 @@ class CreateRun(Job):
                 "kind": "s:Number",
             }
             tags.append(tag_output)
-            tag_output = {}
 
         # 6.0 write tags to the json file
         with open(self.fmu_json, 'w') as outfile:

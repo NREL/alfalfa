@@ -105,25 +105,18 @@ class StepRun(StepRunBase):
     def step(self):
         # u represents simulation input values
         u = self.default_input.copy()
-
-        # look in the database for current writearrays which has an array of controller
+        # look in redis for current writearrays which has an array of controller
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
         # convention. If there is no value in the array, then it will not be passed to the
         # simulation.
-        for array in WriteArray.objects(siteRef=self.site.ref_id):
-            _id = array.ref_id
-            self.logger.debug(f"FMU writearray of id {_id} is {array}")
-            for val in array.val:
-                if val is not None:
-                    dis = self.id_and_dis.get(_id)
-                    # automatically add the "activate" input.
-                    if dis:
-                        u[dis] = val
-                        u[dis.replace('_u', '_activate')] = 1
-                        break
+        for point_id, write_value in self.get_write_array_values().items():
+            dis = self.id_and_dis.get(point_id)
+            # automatically add the "activate" input.
+            if dis:
+                u[dis] = write_value
+                u[dis.replace('_u', '_activate')] = 1
 
-        self.logger.debug(f"control array is {u}")
         y_output = self.tc.advance(u)
         self.logger.debug(f"FMU output is {y_output}")
         self.update_sim_status()
@@ -136,8 +129,14 @@ class StepRun(StepRunBase):
                 value_y = y_output[key]
 
                 rec = Rec.objects.get(ref_id=output_id)
-                rec.update(rec__curVal=f"n:{value_y}", rec__curStatus="s:ok", rec__cur="m:")
+                rec.update(rec__cur="m:")
                 rec.save()
+
+                key = f'site:{self.site.ref_id}:rec:{output_id}'
+                self.redis.hset(key, mapping={
+                    'curStatus': 's:ok',
+                    'curVal': f"n:{value_y}"
+                })
 
         if self.historian_enabled:
             self.write_outputs_to_influx(y_output)

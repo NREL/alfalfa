@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import boto3
 from mongoengine import connect
+from redis import Redis
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
 from alfalfa_worker.lib.models import Model
@@ -31,6 +32,9 @@ class RunManager(LoggerMixinBase):
 
         # Mongo - connect using mongoengine
         connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
+
+        # Redis
+        self.redis = Redis(host=os.environ['REDIS_HOST'])
 
         self.run_dir = Path(run_dir)
         self.tmp_dir = self.run_dir / 'tmp'
@@ -286,6 +290,23 @@ class RunManager(LoggerMixinBase):
 
         # create all of the recs for this site
         for index, entity in enumerate(haystack_json):
+            id = entity['id'].replace('r:', '')
+
+            # Create default writearray objects for the site. Create this on the backend
+            # to ensure that the links are created correctly and accessible from the frontend.
+            #   Only check for records tagged with writable.
+            #   This may need to be expanded to other types in the future.
+            if rec.rec.writable == 'm:':
+                curStatus = entity.pop('curStatus', None)
+                curVal = entity.pop('curVal', None)
+                mapping = {}
+                if curStatus is not None:
+                    mapping['curStatus'] = curStatus
+                if curVal is not None:
+                    mapping['curVal'] = curVal
+                if mapping:
+                    self.redis.hset(f'site:{run.ref_id}:rec:{id}', mapping=mapping)
+
             if index == 0:
                 # this is the site record, store it on the site object of the
                 # database (as well as in the recs collection, for now).
@@ -310,20 +331,10 @@ class RunManager(LoggerMixinBase):
                 site.sim_type = entity.get('simType')
                 site.save()
 
-            rec = Rec(ref_id=entity['id'].replace('r:', ''), site=site).save()
+            rec = Rec(ref_id=id, site=site).save()
             rec_instance = RecInstance(**entity)
             rec.rec = rec_instance
             rec.save()
-
-            # Create default writearray objects for the site. Create this on the backend
-            # to ensure that the links are created correctly and accessible from the frontend.
-            #   Only check for records tagged with writable.
-            #   This may need to be expanded to other types in the future.
-            if rec.rec.writable == 'm:':
-                wa = WriteArray(siteRef=site.ref_id, site=site, ref_id=rec.ref_id, rec=rec).save()
-                wa.val = [None] * 17
-                wa.who = [None] * 17
-                wa.save()
 
     def add_model(self, model_path: os.PathLike):
         upload_id = str(uuid4())
