@@ -95,10 +95,9 @@ class RecInstance(EmbeddedDocument):
     dis = StringField()
     siteRef = StringField()
     point = StringField()
+    # curVal and curStatus now only live in Redis.
     cur = StringField()
-    curVal = StringField()
     curErr = StringField()
-    curStatus = StringField()
     kind = StringField()
     site = StringField()
     simStatus = StringField()
