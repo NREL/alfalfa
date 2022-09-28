@@ -50,7 +50,10 @@ class TimestampedDocument(Document):
 
 
 class Site(TimestampedDocument):
-    meta = {'collection': 'site'}
+    meta = {
+        'collection': 'site',
+        'indexes': ['ref_id'],
+    }
 
     # external reference ID
     ref_id = StringField(required=True, index=True)
@@ -95,8 +98,11 @@ class RecInstance(EmbeddedDocument):
     dis = StringField()
     siteRef = StringField()
     point = StringField()
-    # curVal and curStatus now only live in Redis.
+    # curVal and curStatus now only live in Redis, but the
+    # are below to handle the site field
     cur = StringField()
+    curVal = StringField()
+    curStatus = StringField()
     curErr = StringField()
     kind = StringField()
     site = StringField()
