@@ -271,7 +271,7 @@ function sitePointResolver(siteRef, args, context) {
             dis: rec.rec.dis,
             tags: []
           };
-          for (const [key, value] of Object.entries({ ...rec.rec, ...currentValues[rec._id] })) {
+          for (const [key, value] of Object.entries({ ...rec.rec, ...currentValues[rec.ref_id] })) {
             point.tags.push({ key, value });
           }
           points.push(point);
