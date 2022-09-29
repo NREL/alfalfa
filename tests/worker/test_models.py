@@ -92,10 +92,10 @@ class TestModelObjectsWithFixtures():
     def test_site_rec_querying(self):
         # Based on the mock data, this is the object with 2 recs
         site = Site.objects()[1]
-        recs = site.recs(rec__curStatus='s:disabled')
+        recs = site.recs(rec__damper='s:disabled')
         assert len(recs) == 1
 
-        recs = site.recs(rec__curStatus='s:enabled')
+        recs = site.recs(rec__damper='s:enabled')
         assert len(recs) == 0
 
     def test_model_to_dict(self):

@@ -22,7 +22,7 @@ site_data = [
                 "id": "r:site_456_rec_2",
                 "dis": "s:HVAC Cooling Power",
                 "siteRef": "r:456",
-                "curStatus": "s:disabled"
+                "damper": "s:disabled"
             }
         ]
     }
@@ -45,7 +45,7 @@ rec_data = [
             "id": "r:site_456_rec_2",
             "dis": "s:HVAC Cooling Power",
             "siteRef": "r:456",
-            "curStatus": "s:disabled"
+            "damper": "s:disabled"
         }
     }
 ]
