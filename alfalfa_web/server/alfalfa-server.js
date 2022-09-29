@@ -178,9 +178,8 @@ class AlfalfaServer extends HServer {
     if (rec) {
       const keys = Object.keys(rec);
 
-      for (let j = 0; j < keys.length; ++j) {
-        const key = keys[j];
-        const r = new HJsonReader(rec[key]);
+      for (const [key, recValue] of Object.entries(rec)) {
+        const r = new HJsonReader(recValue);
         try {
           const val = r.readScalar();
           db.add(key, val);
