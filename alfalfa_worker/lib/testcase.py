@@ -252,7 +252,7 @@ class TestCase(object):
 
         return Y
 
-    def get_kpis(self):
+    def get_kpis(self) -> dict:
         '''Returns KPI data.
 
         Requires standard sensor signals.

@@ -9,10 +9,3 @@ except DistributionNotFound:
     __version__ = 'unknown'
 finally:
     del get_distribution, DistributionNotFound
-
-# TODO: remove these, I don't even think they exist as shown anymore!
-# Not sure that these are needed here. Leave for now...
-__all__ = ['add_site',
-           'lib',
-           'run_sim',
-           'step_sim']

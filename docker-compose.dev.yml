@@ -81,5 +81,3 @@ services:
       - redis
     volumes:
       - ./:/alfalfa
-      # TODO: Add in worker fmu volume
-      # TODO: Add in worker openstudio volume

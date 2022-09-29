@@ -2,10 +2,8 @@ import os
 import socket
 from datetime import datetime, timedelta
 from time import sleep
-from uuid import uuid4
 
 import mlep
-import pytz
 
 from alfalfa_worker.jobs.openstudio.lib.parse_variables import ParseVariables
 from alfalfa_worker.jobs.step_run_base import StepRunBase
@@ -14,6 +12,7 @@ from alfalfa_worker.lib.job import (
     JobExceptionExternalProcess,
     message
 )
+from alfalfa_worker.lib.models import Rec
 from alfalfa_worker.lib.point import Point, PointType
 
 
@@ -60,11 +59,6 @@ class StepRun(StepRunBase):
         # exact right start time. This flag indicates we are iterating in bypass mode
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
-
-        self.setup_connections()
-
-        # Store the site for later use
-        self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
 
     def time_per_step(self):
         return timedelta(seconds=3600.0 / self.time_steps_per_hour)
@@ -123,7 +117,7 @@ class StepRun(StepRunBase):
     def update_outputs_from_ep(self):
         """Reads outputs from E+ step"""
         packet = self.ep.read()
-        flag, _, outputs = mlep.mlep_decode_packet(packet)
+        _flag, _, outputs = mlep.mlep_decode_packet(packet)
         self.ep.outputs = outputs
 
     def step(self):
@@ -152,6 +146,7 @@ class StepRun(StepRunBase):
         Update database with current ep outputs and simulation time
         """
         self.write_outputs_to_redis()
+
         if self.historian_enabled:
             self.write_outputs_to_influx()
         self.update_sim_time_in_mongo()
@@ -262,12 +257,24 @@ class StepRun(StepRunBase):
         self.replace_timestep_and_run_period_idf_settings()
 
     def read_write_arrays_and_prep_inputs(self):
+        """Read the write arrays from redis and format them correctly to pass
+        to the EnergyPlus simulation.
+
+        Returns:
+            tuple: list of inputs to set
+        """
         master_index = self.variables.input_index_from_variable_name("MasterEnable")
         if self.master_enable_bypass:
             self.ep.inputs[master_index] = 0
         else:
             self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
             self.ep.inputs[master_index] = 1
+
+            # look in the database for current writearrays which has an array of controller
+            # input values, the first element in the array with a value
+            # is what should be applied to the simulation according to Project Haystack
+            # convention. If there is no value in the array, then it will not be passed to the
+            # simulation.
             for point_id, write_value in self.get_write_array_values().items():
                 index = self.variables.get_input_index(point_id)
                 if index == -1:
@@ -291,11 +298,14 @@ class StepRun(StepRunBase):
 
                 # TODO: Make this better with a bulk update
                 # Also at some point consider removing curVal and related fields after sim ends
-                key = f'site:{self.run.id}:rec:{output_id}'
+                key = f'site:{self.run.ref_id}:rec:{output_id}'
                 self.redis.hset(key, mapping={
                     'curStatus': 's:ok',
                     'curVal': f'n:{output_value}'
                 })
+                Rec.objects.get(ref_id=output_id).update(
+                    rec__cur="m:"
+                )
 
                 # Write to points
                 self.run.get_point_by_key(output_id).val = output_value
@@ -314,7 +324,7 @@ class StepRun(StepRunBase):
         """
         json_body = []
         base = {
-            "measurement": self.run.id,
+            "measurement": self.run.ref_id,
             "time": f"{self.get_sim_time()}",
         }
         response = False
@@ -331,7 +341,7 @@ class StepRun(StepRunBase):
                 base["tags"] = {
                     "id": output_id,
                     "dis": dis,
-                    "siteRef": self.run.id,
+                    "siteRef": self.run.ref_id,
                     "point": True,
                     "source": 'alfalfa'
                 }
@@ -398,21 +408,7 @@ class StepRun(StepRunBase):
     def stop(self):
         super().stop()
 
-        # DELETE
-        name = self.site.get("rec", {}).get("dis", "Unknown") if self.site else "Unknown"
-        name = name.replace("s:", "")
-        t = str(datetime.now(tz=pytz.UTC))
-        self.mongo_db_sims.insert_one(
-            {"_id": str(uuid4()), "siteRef": self.run.id, "s3Key": f"run/{self.run.id}.tar.gz", "name": name, "timeCompleted": t})
-        self.mongo_db_recs.update_one({"_id": self.run.id},
-                                      {"$set": {"rec.simStatus": "s:Stopped"},
-                                          "$unset": {"rec.datetime": "", "rec.step": ""}}, False)
-
-        key = f'site:{self.run.id}:rec:{self.run.id}'
-        self.redis.hset(key, mapping={'curStatus': 's:disabled'})
-        self.redis.hdel(key, 'curVal', 'curErr')
-        # END DELETE
-
+        # Call some OpenStudio specific stop methods
         self.ep.stop(True)
         self.ep.is_running = 0
 

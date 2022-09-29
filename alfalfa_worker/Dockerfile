@@ -4,7 +4,7 @@ USER root
 
 ENV HOME /home/alfalfa
 
-# Need to set the lang to use Python 3.7 with Poetry
+# Need to set the lang to use Python 3.8 with Poetry
 ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 ENV ROOT_DIR /usr/local
@@ -12,7 +12,7 @@ ENV BUILD_DIR $HOME/build
 
 WORKDIR /home/alfalfa
 
-# Until we can support E+ 22.1.0 we need to install python 3.7 (thus deadsnakes/ppa)
+# Until we can support E+ 22.1.0 we need to install python 3.8 (thus deadsnakes/ppa)
 # This step should probably be connected to the next one, but due to the nature of NREL's
 # firewall this step must be run off VPN. This way you don't need to log off everytime you
 # update apt packaged, at least.
@@ -150,14 +150,10 @@ RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.
     && make install \
     && cd .. && rm -rf sundials sundials_build
 
-COPY pyproject.toml $BUILD_DIR
-COPY poetry.lock $BUILD_DIR
-
-# Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
+# install and upgrade setuptools because this is needed for symfit (used in E+ Python)
+#    For Assimulo -- numpy, Cython must match the version in pypoetry.toml
 RUN ln -sf /usr/bin/python3 /usr/bin/python \
-    && python3 -m pip install poetry==1.1.12 setuptools==62.1.0 \
-    && python3 -m poetry config virtualenvs.create false \
-    && python3 -m poetry install --no-dev
+    && python3 -m pip install setuptools==65.3.0 numpy==1.21.6 Cython==0.29.28
 
 # This is required for Assimulo to build correctly with setuptools 60+
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
@@ -177,6 +173,23 @@ RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community
     && python setup.py install \
     && cd .. && rm -rf PyFMI
 
+
+# There are some tweaks because Ubuntu 20.04 has a PEP404 error with the version.
+# See https://bugs.launchpad.net/ubuntu/+source/python-debian/+bug/1926870
+# The below installs poetry 1.1.15 because 1.2.1 has the error.
+# It then copies over the poetry files and installs the dependencies with --no-dev
+RUN pip3 install poetry==1.1.15
+
+# Copy and install poetry-based dependencies
+COPY pyproject.toml $BUILD_DIR
+COPY poetry.lock $BUILD_DIR
+
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-dev
+
+# reinstall setuptools
+RUN pip3 install setuptools==65.3.0
+
 WORKDIR /alfalfa
 # Include the path to where alfalfa_worker is so that system calls can find it.
 ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
@@ -195,16 +208,18 @@ CMD ["/alfalfa/start_worker.sh"]
 # **** Staged build for running in development mode ****
 FROM base AS dev
 
-# Reinstall poetry's dev dependencies by calling again
-RUN python -m pip install poetry==1.1.12 setuptools==62.1.0 \
-    && python -m poetry config virtualenvs.create false \
-    && python -m poetry install
+# Reinstall poetry's dev dependencies by calling again without --no-dev,
+# then reinstall setuptools to have pkg_resources available
+RUN pip3 install virtualenv \
+    && poetry config virtualenvs.create false \
+    && poetry install \
+    && pip3 install setuptools==65.3.0
 
 # for remote debugging
-RUN pip install remote-pdb
+RUN pip3 install remote-pdb
 
 # for live reloading celery
-RUN pip install watchdog[watchmedo]
+RUN pip3 install watchdog[watchmedo]
 
 # The docker-compose will require the mounting
 # of the files into the container, see docker-compose.dev.yml

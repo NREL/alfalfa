@@ -1,6 +1,7 @@
 import AWS from "aws-sdk";
 import got from "got";
 import path from "path";
+import { v1 as uuidv1 } from "uuid";
 import dbops from "./dbops";
 import { getHash, scan } from "./utils";
 
@@ -9,6 +10,7 @@ const sqs = new AWS.SQS();
 const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 function addSiteResolver(modelName, uploadID) {
+  let run_id = uuidv1();
   let job = "alfalfa_worker.jobs.openstudio.CreateRun";
   if (modelName.endsWith(".fmu")) {
     job = "alfalfa_worker.jobs.modelica.CreateRun";
@@ -18,7 +20,8 @@ function addSiteResolver(modelName, uploadID) {
       "job": "${job}",
       "params": {
         "model_name": "${modelName}",
-        "upload_id": "${uploadID}"
+        "upload_id": "${uploadID}",
+        "run_id": "${run_id}"
       }
     }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
@@ -30,6 +33,8 @@ function addSiteResolver(modelName, uploadID) {
       console.error(err);
     }
   });
+
+  return run_id;
 }
 
 function runSimResolver(modelName, uploadID) {
@@ -53,9 +58,10 @@ function runSimResolver(modelName, uploadID) {
     if (err) {
       console.error(err);
     } else {
-      const simCollection = context.db.collection("sims");
+      const simCollection = context.db.collection("simulation");
       simCollection.insert({
         _id: uploadID,
+        ref_id: uploadID,
         siteRef: uploadID,
         simStatus: "Queued",
         name: path.parse(modelName).name.replace(".tar", "")
@@ -73,8 +79,8 @@ function runSiteResolver(args, context) {
   //  realtime : { type: GraphQLBoolean },
   //  externalClock : { type: GraphQLBoolean },
   //},
-  const runs = context.db.collection("runs");
-  runs.findOne({ _id: args.siteRef }).then((doc) => {
+  const runs = context.db.collection("run");
+  runs.findOne({ ref_id: args.siteRef }).then((doc) => {
     let job = "alfalfa_worker.jobs.openstudio.StepRun";
     if (doc.sim_type === "MODELICA") {
       job = "alfalfa_worker.jobs.modelica.StepRun";
@@ -126,7 +132,7 @@ function invokeAction(action, siteRef) {
     .then(({ body }) => body);
 }
 
-function stopSiteResolver(args) {
+function stopSiteResolver(args, context) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //},
@@ -143,13 +149,13 @@ function removeSiteResolver(args) {
 function simsResolver(user, args, context) {
   return new Promise((resolve, reject) => {
     let sims = [];
-    const simCollection = context.db.collection("sims");
+    const simCollection = context.db.collection("simulation");
     simCollection
       .find(args)
       .toArray()
       .then((array) => {
         array.forEach((sim) => {
-          sim.simRef = sim._id;
+          sim.simRef = sim.ref_id;
           if (sim.s3Key) {
             const params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
             sim.url = s3client.getSignedUrl("getObject", params);
@@ -166,8 +172,8 @@ function simsResolver(user, args, context) {
 
 function runResolver(user, run_id, context) {
   return context.db
-    .collection("runs")
-    .findOne({ _id: run_id })
+    .collection("run")
+    .findOne({ ref_id: run_id })
     .then((doc) => {
       return {
         id: run_id,
@@ -185,12 +191,12 @@ async function sitesResolver(user, siteRef, context) {
   const runs = {};
 
   if (siteRef) {
-    const doc = await context.db.collection("runs").findOne({ _id: siteRef });
-    if (doc) runs[doc._id] = doc;
+    const doc = await context.db.collection("run").findOne({ ref_id: siteRef });
+    if (doc) runs[doc.ref_id] = doc;
   } else {
-    const cursor = context.db.collection("runs").find();
+    const cursor = context.db.collection("run").find();
     for await (const doc of cursor) {
-      if (doc) runs[doc._id] = doc;
+      if (doc) runs[doc.ref_id] = doc;
     }
   }
 
@@ -248,7 +254,7 @@ function sitePointResolver(siteRef, args, context) {
     }
 
     const recs = context.db.collection("recs");
-    let query = { site_ref: siteRef, "rec.point": "m:" };
+    let query = { "rec.siteRef": `r:${siteRef}`, "rec.point": "m:" };
     if (args.writable) {
       query["rec.writable"] = "m:";
     }
@@ -265,7 +271,7 @@ function sitePointResolver(siteRef, args, context) {
             dis: rec.rec.dis,
             tags: []
           };
-          for (const [key, value] of Object.entries({ ...rec.rec, ...currentValues[rec._id] })) {
+          for (const [key, value] of Object.entries({ ...rec.rec, ...currentValues[rec.ref_id] })) {
             point.tags.push({ key, value });
           }
           points.push(point);
@@ -290,7 +296,7 @@ function writePointResolver(context, siteRef, pointName, value, level) {
         return Promise.reject(`Point '${pointName}' belonging to siteRef '${siteRef}' could not be found`);
       }
 
-      return dbops.writePoint(point._id, siteRef, level, value, context.db, context.redis);
+      return dbops.writePoint(point.ref_id, siteRef, level, value, context.db, context.redis);
     })
     .then((array) => JSON.stringify(array));
 }

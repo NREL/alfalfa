@@ -23,7 +23,7 @@ function findCurrentWinningValue(array) {
 // Get a point by siteRef and display name
 function getPoint(siteRef, name, db) {
   const mrecs = db.collection("recs");
-  return mrecs.findOne({ site_ref: siteRef, "rec.dis": `s:${name}` });
+  return mrecs.findOne({ "rec.siteRef": `r:${siteRef}`, "rec.dis": `s:${name}` });
 }
 
 async function getWriteArray(siteRef, id, redis) {
@@ -76,7 +76,7 @@ function writePoint(id, siteRef, level, value, db, redis) {
 
       if (currentWinningValue) {
         await mrecs.updateOne(
-          { _id: id },
+          { ref_id: id },
           {
             $set: {
               "rec.writeStatus": "s:ok",
@@ -89,23 +89,14 @@ function writePoint(id, siteRef, level, value, db, redis) {
           }
         );
       } else {
-        await mrecs.updateOne(
-          { _id: id },
-          {
-            $set: {
-              "rec.writeStatus": "s:ok"
-            },
-            $unset: {
-              "rec.writeVal": "",
-              "rec.writeLevel": "",
-              "rec.writeErr": ""
-            }
-          }
-        );
+        // In this case the point has never been written to and there is no
+        // existing writearray in the db, so error out. A default writearray
+        // should have been created when the rec was created on the backend.
+        console.error("No writearrary found for point " + id + ". Make sure it exists in the original tag file.");
       }
 
       resolve({
-        _id: id,
+        ref_id: id,
         siteRef,
         val: array,
         who: new Array(NUM_LEVELS).fill(null)

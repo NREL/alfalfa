@@ -187,7 +187,7 @@ class Job(metaclass=JobMetaclass):
     @with_run()
     def _check_messages(self):
         message = self.redis_pubsub.get_message()
-        self.redis.hset(self.run.id, 'control', 'idle')
+        self.redis.hset(self.run.ref_id, 'control', 'idle')
         # self.logger.info(message)
         try:
             if message and message['data'].__class__ == bytes:
@@ -215,7 +215,7 @@ class Job(metaclass=JobMetaclass):
                         response['response'] = str(e)
                         raise e
                     finally:
-                        self.redis.hset(self.run.id, message_id, json.dumps(response))
+                        self.redis.hset(self.run.ref_id, message_id, json.dumps(response))
                         self.logger.info(f"message_id: {message_id}, response: {response}")
         except JSONDecodeError:
             self.logger.info("received malformed message")
@@ -230,8 +230,8 @@ class Job(metaclass=JobMetaclass):
     def checkin_run(self):
         return self.run_manager.checkin_run(self.run)
 
-    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO) -> None:
-        run = self.run_manager.create_run_from_model(upload_id, model_name, sim_type)
+    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO, run_id=None) -> None:
+        run = self.run_manager.create_run_from_model(upload_id, model_name, sim_type, run_id=run_id)
         self.register_run(run)
         self.run_manager.update_db(run)
 
@@ -245,6 +245,7 @@ class Job(metaclass=JobMetaclass):
 
     @with_run()
     def set_run_status(self, status: RunStatus):
+        self.logger.info(f"Setting run status to {status.name}")
         self.run.status = status
         self.run_manager.update_db(self.run)
 
@@ -263,8 +264,8 @@ class Job(metaclass=JobMetaclass):
         self.run = run
         self.run.job_history.append(self.job_path())
         self.logger.info(run.dir)
-        self.redis_pubsub.subscribe(run.id)
-        self.redis.hset(self.run.id, 'control', 'idle')
+        self.redis_pubsub.subscribe(run.ref_id)
+        self.redis.hset(self.run.ref_id, 'control', 'idle')
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh = logging.FileHandler(self.dir / 'jobs.log')
         fh.setFormatter(formatter)

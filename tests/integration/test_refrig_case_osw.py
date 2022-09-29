@@ -12,7 +12,7 @@ from tests.integration.conftest import create_zip
 @pytest.mark.integration
 class TestRefrigCaseOSW(TestCase):
 
-    def test_error_run(self):
+    def test_insufficient_args_passed_to_start(self):
         zip_file_path = create_zip('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
@@ -95,7 +95,7 @@ class TestRefrigCaseOSW(TestCase):
         alfalfa.wait(model_id, "READY")
         alfalfa.start(
             model_id,
-            external_clock="true",
+            external_clock=True,
             start_datetime=datetime.datetime(2019, 1, 2, 0, 2, 0),
             end_datetime=datetime.datetime(2019, 1, 3, 0, 0, 0)
         )

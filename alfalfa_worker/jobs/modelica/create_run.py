@@ -12,8 +12,8 @@ from alfalfa_worker.lib.sim_type import SimType
 
 class CreateRun(Job):
 
-    def __init__(self, upload_id, model_name):
-        self.create_run_from_model(upload_id, model_name, SimType.MODELICA)
+    def __init__(self, upload_id, model_name, run_id=None):
+        self.create_run_from_model(upload_id, model_name, SimType.MODELICA, run_id=run_id)
         # Define FMU specific attributes
         self.upload_fmu: Path = self.dir / model_name
         self.fmu_path = self.dir / 'model.fmu'
@@ -30,9 +30,9 @@ class CreateRun(Job):
         old version of the Modelica Buildings Library and JModelica.
         :return:
         """
-        self.logger.info("add_fmu for {}".format(self.run.id))
+        self.logger.info("add_fmu for {}".format(self.run.ref_id))
 
-        # External call to python2 to create FMU tags
+        # Create the FMU tags (no longer external now that python2 is deprecated)
         self.create_tags()
         # insert tags into db
         self.insert_fmu_tags()
@@ -67,13 +67,14 @@ class CreateRun(Job):
             data = f.read()
         points_json = json.loads(data)
 
-        self.run_manager.add_site_to_db(points_json, self.run)
+        self.run_manager.add_site_to_mongo(points_json, self.run)
 
     def create_tags(self):
         # 1.0 setup the inputs
         fmu = load_fmu(self.upload_fmu)
 
         # 2.0 get input/output variables from the FMU
+        #   causality = 1 is parameter, 2 is input, 3 is output
         input_names = fmu.get_model_variables(causality=2).keys()
         output_names = fmu.get_model_variables(causality=3).keys()
 
@@ -83,14 +84,15 @@ class CreateRun(Job):
         fmu_upload_name = os.path.basename(self.model_name)  # without directories
         fmu_upload_name = os.path.splitext(fmu_upload_name)[0]  # without extension
 
+        # TODO: Figure out how to find geo_city
         sitetag = {
             "dis": "s:%s" % fmu_upload_name,
-            "id": "r:%s" % self.run.id,
+            "id": "r:%s" % self.run.ref_id,
             "site": "m:",
             "datetime": "s:",
             "simStatus": "s:Stopped",
             "simType": "s:fmu",
-            "siteRef": "r:%s" % self.run.id
+            "siteRef": "r:%s" % self.run.ref_id
         }
         tags.append(sitetag)
 
@@ -100,7 +102,7 @@ class CreateRun(Job):
                 tag_input = {
                     "id": "r:%s" % uuid4(),
                     "dis": "s:%s" % var_input,
-                    "siteRef": "r:%s" % self.run.id,
+                    "siteRef": "r:%s" % self.run.ref_id,
                     "point": "m:",
                     "writable": "m:",
                     "writeStatus": "s:disabled",
@@ -114,7 +116,7 @@ class CreateRun(Job):
             tag_output = {
                 "id": "r:%s" % uuid4(),
                 "dis": "s:%s" % var_output,
-                "siteRef": "r:%s" % self.run.id,
+                "siteRef": "r:%s" % self.run.ref_id,
                 "point": "m:",
                 "cur": "m:",
                 "curVal": "n:",

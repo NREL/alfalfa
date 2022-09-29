@@ -25,7 +25,7 @@ def test_simple_internal_clock(mock_dispatcher: MockDispatcher, model_path: Path
     wait_for_run_status(run, RunStatus.READY)
 
     params = {
-        "run_id": run.id,
+        "run_id": run.ref_id,
         "external_clock": False,
         "start_datetime": str(datetime.datetime(2019, 1, 2, 0, 0, 0)),
         "end_datetime": str(datetime.datetime(2019, 1, 3, 0, 0, 0)),
@@ -54,7 +54,7 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
     wait_for_run_status(run, RunStatus.READY)
     start_dt = datetime.datetime(2019, 1, 2, 0, 2, 0)
     params = {
-        "run_id": run.id,
+        "run_id": run.ref_id,
         "external_clock": True,
         "start_datetime": str(start_dt),
         "end_datetime": str(datetime.datetime(2019, 1, 3, 0, 0, 0)),

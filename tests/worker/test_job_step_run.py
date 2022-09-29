@@ -21,7 +21,7 @@ def step_run_mock_job(dispatcher: Dispatcher):
     dispatcher.run_manager.checkin_run(run)
 
     params = {
-        "run_id": run.id,
+        "run_id": run.ref_id,
         "external_clock": False,
         "start_datetime": str(datetime(2019, 1, 2, 0, 0, 0)),
         "end_datetime": str(datetime(2019, 1, 3, 0, 0, 0)),

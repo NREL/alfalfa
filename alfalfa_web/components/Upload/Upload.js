@@ -154,7 +154,6 @@ class Upload extends React.Component {
         xhr.open("POST", response.url, true);
 
         let formData = new FormData();
-        console.log(response);
         Object.entries(response.fields).forEach(([key, value]) => {
           formData.append(key, value);
         });

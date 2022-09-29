@@ -47,7 +47,7 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         """
         try:
             message_body = json.loads(message.body)
-            self.logger.info(message_body)
+            self.logger.info(f"Processing message of {message_body}")
             message.delete()
             job = message_body.get('job')
             if job:
@@ -97,17 +97,17 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         """Gets class from class path"""
         components = path.split('.')
         module = import_module('.'.join(components[:-1]))
-        klazz = getattr(module, components[-1])
-        return klazz
+        class_ = getattr(module, components[-1])
+        return class_
 
     @staticmethod
     def print_job(job_name):
-        klazz = Dispatcher.find_class(job_name)
-        print(f"Name: \t{klazz.__name__}")
-        print(f"Description: \t{klazz.__doc__}")
+        class_ = Dispatcher.find_class(job_name)
+        print(f"Name: \t{class_.__name__}")
+        print(f"Description: \t{class_.__doc__}")
         print("Message Handlers:")
-        for attr_name in dir(klazz):
-            attr = getattr(klazz, attr_name)
+        for attr_name in dir(class_):
+            attr = getattr(class_, attr_name)
             if hasattr(attr, 'message_handler'):
                 print(f"{attr.__name__}: \t {attr.__doc__}")
 

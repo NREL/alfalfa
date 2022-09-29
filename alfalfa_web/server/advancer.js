@@ -83,11 +83,11 @@ class Advancer {
             } else {
               intervalCounts += 1;
             }
-            if (intervalCounts > 6) {
+            if (intervalCounts > 60) {
               console.error(`Simulation with id ${siteref} timed out while trying to advance`);
               finalize(false, "no simulation reply");
             }
-          }, 10000);
+          }, 1000);
         };
 
         // Put siteref:control key into "advance" state

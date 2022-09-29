@@ -1,11 +1,9 @@
 import json
 from datetime import datetime, timedelta
-from uuid import uuid4
-
-import pytz
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
 from alfalfa_worker.lib.job import message
+from alfalfa_worker.lib.models import Rec
 from alfalfa_worker.lib.testcase import TestCase
 
 
@@ -23,16 +21,13 @@ class StepRun(StepRunBase):
         self.current_datetime = datetime(historian_year, 1, 1, 0, 0, 0) + timedelta(seconds=self.sim_start_time)
         print("current datetime at start of simulation: %", self.current_datetime)
 
-        self.setup_connections()
-
-        self.site = self.mongo_db_recs.find_one({"_id": self.run.id})
-
         fmupath = self.dir / 'model.fmu'
         tagpath = self.dir / 'tags.json'
 
-        # TODO make configurable
+        # TODO: make configurable
         # step_size in seconds
         self.step_size = 60
+
         # TODO cleanup
         self.realworld_timedelta = timedelta(seconds=float(self.step_size) / self.step_sim_value)
         print("real time per step: %", self.realworld_timedelta)
@@ -110,18 +105,20 @@ class StepRun(StepRunBase):
     def step(self):
         # u represents simulation input values
         u = self.default_input.copy()
-        # look in redis for current write arrays
-        # for each write array there is an array of controller
+        # look in redis for current writearrays which has an array of controller
         # input values, the first element in the array with a value
         # is what should be applied to the simulation according to Project Haystack
-        # convention
+        # convention. If there is no value in the array, then it will not be passed to the
+        # simulation.
         for point_id, write_value in self.get_write_array_values().items():
             dis = self.id_and_dis.get(point_id)
+            # automatically add the "activate" input.
             if dis:
                 u[dis] = write_value
                 u[dis.replace('_u', '_activate')] = 1
 
         y_output = self.tc.advance(u)
+        self.logger.debug(f"FMU output is {y_output}")
         self.update_sim_status()
         self.increment_datetime()
 
@@ -130,7 +127,12 @@ class StepRun(StepRunBase):
             if key != 'time':
                 output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-                key = f'site:{self.run.id}:rec:{output_id}'
+
+                rec = Rec.objects.get(ref_id=output_id)
+                rec.update(rec__cur="m:")
+                rec.save()
+
+                key = f'site:{self.site.ref_id}:rec:{output_id}'
                 self.redis.hset(key, mapping={
                     'curStatus': 's:ok',
                     'curVal': f"n:{value_y}"
@@ -153,7 +155,7 @@ class StepRun(StepRunBase):
         """
         json_body = []
         base = {
-            "measurement": self.run.id,
+            "measurement": self.run.ref_id,
             "time": "%s" % self.current_datetime,
         }
         response = False
@@ -169,7 +171,7 @@ class StepRun(StepRunBase):
                 base["tags"] = {
                     "id": output_id,
                     "dis": dis,
-                    "siteRef": self.run.id,
+                    "siteRef": self.run.ref_id,
                     "point": True,
                     "source": 'alfalfa'
                 }
@@ -195,23 +197,3 @@ class StepRun(StepRunBase):
     @message
     def stop(self):
         super().stop()
-
-        # DELETE
-        # Clear all current values from the database and redis when the simulation is no longer running
-
-        for key in self.redis.scan_iter(f'site:{self.run.id}:rec:*'):
-            key = key.decode('UTF-8')
-            self.redis.hset(key, mapping={'curStatus': 's:disabled'})
-            self.redis.hdel(key, 'curVal', 'curErr')
-
-        self.mongo_db_recs.update_many({"site_ref": self.run.id, "rec.writable": "m:"},
-                                       {"$unset": {"rec.writeLevel": "", "rec.writeVal": ""},
-                                           "$set": {"rec.writeStatus": "s:disabled"}}, False)
-
-        time = str(datetime.now(tz=pytz.UTC))
-        name = self.site.get("rec", {}).get("dis", "Test Case").replace('s:', '')
-        kpis = json.dumps(self.tc.get_kpis())
-        self.mongo_db_sims.insert_one(
-            {"_id": str(uuid4()), "name": name, "siteRef": self.run.id, "simStatus": "Complete", "timeCompleted": time,
-             "s3Key": f'run/{self.run.id}.tar.gz', "results": str(kpis)})
-        # END DELETE

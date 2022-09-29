@@ -13,8 +13,8 @@ from alfalfa_worker.lib.utils import rel_symlink
 
 class CreateRun(Job):
 
-    def __init__(self, upload_id, model_name):
-        self.create_run_from_model(upload_id, model_name, SimType.OPENSTUDIO)
+    def __init__(self, upload_id, model_name, run_id=None):
+        self.create_run_from_model(upload_id, model_name, SimType.OPENSTUDIO, run_id=run_id)
 
     def exec(self):
         self.set_run_status(RunStatus.PREPROCESSING)
@@ -48,8 +48,11 @@ class CreateRun(Job):
 
         points_json_path = submitted_workflow_path / 'reports/haystack_report_haystack.json'
         mapping_json_path = submitted_workflow_path / 'reports/haystack_report_mapping.json'
+
+        self.logger.info("Inserting OpenStudio tags")
         self.insert_os_tags(points_json_path, mapping_json_path)
 
+        self.logger.info("Setting up symlinks")
         idf_src_path = submitted_workflow_path / 'run' / 'in.idf'
         idf_dest_path = simulation_dir / 'sim.idf'
         rel_symlink(idf_src_path, idf_dest_path)
@@ -118,7 +121,10 @@ class CreateRun(Job):
         # This is important to avoid duplicates in the case when a client submits the same model
         # more than one time
         points_json, mapping_json = make_ids_unique(points_json, mapping_json)
-        points_json = replace_site_id(self.run.id, points_json)
+        points_json = replace_site_id(self.run.ref_id, points_json)
+
+        # `return`` is a keyword and can't be in the mongoengine. The
+        # renaming is handled in the object instantiation to `return_`
 
         # save "fixed up" json
         with open(points_json_path, 'w') as fp:
@@ -128,4 +134,4 @@ class CreateRun(Job):
             json.dump(mapping_json, fp)
 
         # add points to database
-        self.run_manager.add_site_to_db(points_json, self.run)
+        self.run_manager.add_site_to_mongo(points_json, self.run)

@@ -166,23 +166,29 @@ class AlfalfaServer extends HServer {
     this.redis = redis;
     this.pub = pub;
     this.sub = sub;
+    this.sites = this.db.collection("site");
     this.mrecs = this.db.collection("recs");
     this.recs = {};
   }
 
   recToDict(rec) {
-    const keys = Object.keys(rec);
+    // A record can exist in the database before it is part
+    // of haystack, so check if rec is not none first.
     const db = new HDictBuilder();
-    for (let j = 0; j < keys.length; ++j) {
-      const key = keys[j];
-      const r = new HJsonReader(rec[key]);
-      try {
-        const val = r.readScalar();
-        db.add(key, val);
-      } catch (err) {
-        console.log(err);
+    if (rec) {
+      const keys = Object.keys(rec);
+
+      for (const [key, recValue] of Object.entries(rec)) {
+        const r = new HJsonReader(recValue);
+        try {
+          const val = r.readScalar();
+          db.add(key, val);
+        } catch (err) {
+          console.log(err);
+        }
       }
     }
+
     return db.toDict();
   }
 
@@ -235,7 +241,7 @@ class AlfalfaServer extends HServer {
 
   onReadById(id, callback) {
     this.mrecs
-      .findOne({ _id: id.val })
+      .findOne({ ref_id: id.val })
       .then((doc) => {
         if (doc) {
           let dict = this.recToDict(doc.rec);
@@ -290,7 +296,6 @@ class AlfalfaServer extends HServer {
     //var index = 0;
     //var length = docs.length;
 
-    //console.log('boom 2');
     //return {
     //  next: function() {
     //    var dict;
@@ -472,7 +477,7 @@ class AlfalfaServer extends HServer {
         });
 
         await this.mrecs.updateOne(
-          { _id: array._id },
+          { ref_id: id },
           {
             $set: { "rec.writeStatus": "s:ok" },
             $unset: { "rec.writeVal": "", "rec.writeLevel": "", "rec.writeErr": "" }
@@ -538,7 +543,8 @@ class AlfalfaServer extends HServer {
 
   async onInvokeAction(rec, action, args, callback) {
     if (action === "runSite") {
-      this.mrecs.updateOne({ _id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
+      // this is probably never called
+      this.mrecs.updateOne({ ref_id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
         let body = { id: rec.id().val, op: "InvokeAction", action: action };
 
         for (const it = args.iterator(); it.hasNext(); ) {
@@ -565,12 +571,13 @@ class AlfalfaServer extends HServer {
       });
     } else if (action === "stopSite") {
       const siteRef = rec.id().val;
-      this.mrecs.updateOne({ _id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
+      this.mrecs.updateOne({ ref_id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
         this.pub.publish(siteRef, JSON.stringify({ message_id: uuidv1(), method: "stop" }));
       });
       callback(null, EMPTY_HGRID);
     } else if (action === "removeSite") {
-      this.mrecs.deleteMany({ site_ref: rec.id().val });
+      // Shouldn't this all happen on the backend?
+      this.mrecs.deleteMany({ "rec.siteRef": rec.id().val });
 
       const keys = await scan(this.redis, `site:${rec.id().val}*`);
       if (keys.length) await del(this.redis, keys);

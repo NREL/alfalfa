@@ -85,6 +85,7 @@ const siteType = new GraphQLObjectType({
 });
 
 const simType = new GraphQLObjectType({
+  // TODO: need/should rename this to simulation. No reason to keep the names short.
   name: "Sim",
   description: "A completed simulation, including any that may have stopped with errors.",
   fields: () => ({
@@ -246,7 +247,7 @@ const mutationType = new GraphQLObjectType({
         uploadID: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (_, args, request) => {
-        resolvers.addSiteResolver(args.modelName, args.uploadID);
+        return resolvers.addSiteResolver(args.modelName, args.uploadID);
       }
     },
     runSite: {
@@ -270,8 +271,8 @@ const mutationType = new GraphQLObjectType({
       args: {
         siteRef: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve: (_, args, request) => {
-        resolvers.stopSiteResolver(args);
+      resolve: (_, args, context) => {
+        resolvers.stopSiteResolver(args, context);
       }
     },
     removeSite: {
