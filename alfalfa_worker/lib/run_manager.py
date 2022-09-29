@@ -296,9 +296,9 @@ class RunManager(LoggerMixinBase):
             # to ensure that the links are created correctly and accessible from the frontend.
             #   Only check for records tagged with writable.
             #   This may need to be expanded to other types in the future.
+            cur_status = entity.pop('curStatus', None)
+            cur_val = entity.pop('curVal', None)
             if entity.get('writable') == 'm:':
-                cur_status = entity.pop('curStatus', None)
-                cur_val = entity.pop('curVal', None)
                 mapping = {}
                 if cur_status is not None:
                     mapping['curStatus'] = cur_status
