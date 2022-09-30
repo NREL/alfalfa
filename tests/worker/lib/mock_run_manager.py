@@ -11,6 +11,25 @@ from alfalfa_worker.lib.run import Run
 from alfalfa_worker.lib.run_manager import RunManager
 
 
+class MockObjReturns():
+    def find_one(self, *args):
+        return []
+
+    def update_many(self, *args):
+        return []
+
+
+class MockMongoDB():
+    """class to hold responses for mock run manager's mongodb
+    MongoDB isn't needed when testing the mock responses, so
+    this is strictly a placeholder"""
+
+    def __init__(self):
+        self.recs = MockObjReturns()
+        self.sims = MockObjReturns()
+        self.writearrays = MockObjReturns()
+
+
 class MockRunManager(RunManager, LoggerMixinBase):
     runs: Dict[str, Run] = {}
 
@@ -24,6 +43,9 @@ class MockRunManager(RunManager, LoggerMixinBase):
         self.tmp_dir = run_dir / 'tmp'
         if not self.tmp_dir.exists():
             self.tmp_dir.mkdir()
+
+        # mock mongodb
+        self.mongo_db = MockMongoDB()
         LoggerMixinBase.__init__(self, "MockRunManager")
 
     def s3_download(self, key: str, file_path: PathLike):
@@ -38,7 +60,7 @@ class MockRunManager(RunManager, LoggerMixinBase):
             print(e, file=sys.stderr)
 
     def register_run(self, run: Run):
-        self.runs[run.id] = run
+        self.runs[run.ref_id] = run
 
     def update_db(self, run: Run):
         pass
@@ -47,7 +69,7 @@ class MockRunManager(RunManager, LoggerMixinBase):
         return self.runs[run_id]
 
     def add_points_to_run(self, run: Run, points: List[Point]):
-        self.runs[run.id].points = points
+        self.runs[run.ref_id].points = points
 
     def add_model(self, model_path: PathLike):
         upload_id = str(uuid4())

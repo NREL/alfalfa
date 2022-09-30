@@ -250,7 +250,7 @@ items:
             io.kompose.service: mongo
         spec:
           containers:
-            - image: mongo
+            - image: mongo:5.0.12
               imagePullPolicy: ""
               name: mongo
               ports:

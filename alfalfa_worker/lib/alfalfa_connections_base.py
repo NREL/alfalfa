@@ -8,7 +8,8 @@ import tarfile
 
 import boto3
 from influxdb import InfluxDBClient
-from pymongo import MongoClient
+# connect to mongo based on the environment variables
+from mongoengine import connect
 from redis import Redis
 
 
@@ -29,12 +30,8 @@ class AlfalfaConnectionsBase(object):
         self.redis = Redis(host=os.environ['REDIS_HOST'])
         self.redis_pubsub = self.redis.pubsub()
 
-        # Mongo
-        self.mongo_client = MongoClient(os.environ['MONGO_URL'])
-        self.mongo_db = self.mongo_client[os.environ['MONGO_DB_NAME']]
-        self.mongo_db_recs = self.mongo_db.recs
-        self.mongo_db_write_arrays = self.mongo_db.writearrays
-        self.mongo_db_sims = self.mongo_db.sims
+        # Mongo - connect using mongoengine
+        connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
 
         # InfluxDB
         self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
@@ -46,33 +43,6 @@ class AlfalfaConnectionsBase(object):
         else:
             self.influx_db_name = None
             self.influx_client = None
-
-    def add_site_to_mongo(self, haystack_json, site_ref):
-        """
-        Upload JSON documents to mongo.  The documents look as follows:
-        {
-            '_id': '...', # this maps to the 'id' below, the unique id of the entity record.
-            'site_ref': '...', # for easy finding of entities by site
-            'rec': {
-                'id': '...',
-                'siteRef': '...'
-                ...other Haystack tags for rec
-            }
-        }
-        :param haystack_json: json Haystack document
-        :param site_ref: id of site
-        :return: pymongo.results.InsertManyResult
-        """
-        if site_ref:
-            array_to_insert = []
-            for entity in haystack_json:
-                array_to_insert.append({
-                    '_id': entity['id'].replace('r:', ''),
-                    'site_ref': site_ref,
-                    'rec': entity
-                })
-            response = self.mongo_db_recs.insert_many(array_to_insert)
-            return response
 
     def add_site_to_filestore(self, bucket_parsed_site_id_dir, site_ref):
         """

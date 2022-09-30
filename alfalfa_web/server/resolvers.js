@@ -1,38 +1,16 @@
-/***********************************************************************************************************************
- *  Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
- *  following conditions are met:
- *
- *  (1) Redistributions of source code must retain the above copyright notice, this list of conditions and the following
- *  disclaimer.
- *
- *  (2) Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
- *  disclaimer in the documentation and/or other materials provided with the distribution.
- *
- *  (3) Neither the name of the copyright holder nor the names of any contributors may be used to endorse or promote products
- *  derived from this software without specific prior written permission from the respective party.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND ANY CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
- *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER(S), ANY CONTRIBUTORS, THE UNITED STATES GOVERNMENT, OR THE UNITED
- *  STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- *  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- *  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- ***********************************************************************************************************************/
-
 import AWS from "aws-sdk";
 import got from "got";
 import path from "path";
+import { v1 as uuidv1 } from "uuid";
 import dbops from "./dbops";
+import { getHash, scan } from "./utils";
 
 AWS.config.update({ region: process.env.REGION || "us-east-1" });
 const sqs = new AWS.SQS();
 const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 function addSiteResolver(modelName, uploadID) {
+  let run_id = uuidv1();
   let job = "alfalfa_worker.jobs.openstudio.CreateRun";
   if (modelName.endsWith(".fmu")) {
     job = "alfalfa_worker.jobs.modelica.CreateRun";
@@ -42,7 +20,8 @@ function addSiteResolver(modelName, uploadID) {
       "job": "${job}",
       "params": {
         "model_name": "${modelName}",
-        "upload_id": "${uploadID}"
+        "upload_id": "${uploadID}",
+        "run_id": "${run_id}"
       }
     }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
@@ -54,6 +33,8 @@ function addSiteResolver(modelName, uploadID) {
       console.error(err);
     }
   });
+
+  return run_id;
 }
 
 function runSimResolver(modelName, uploadID) {
@@ -77,9 +58,10 @@ function runSimResolver(modelName, uploadID) {
     if (err) {
       console.error(err);
     } else {
-      const simCollection = context.db.collection("sims");
+      const simCollection = context.db.collection("simulation");
       simCollection.insert({
         _id: uploadID,
+        ref_id: uploadID,
         siteRef: uploadID,
         simStatus: "Queued",
         name: path.parse(modelName).name.replace(".tar", "")
@@ -97,8 +79,8 @@ function runSiteResolver(args, context) {
   //  realtime : { type: GraphQLBoolean },
   //  externalClock : { type: GraphQLBoolean },
   //},
-  const runs = context.db.collection("runs");
-  runs.findOne({ _id: args.siteRef }).then((doc) => {
+  const runs = context.db.collection("run");
+  runs.findOne({ ref_id: args.siteRef }).then((doc) => {
     let job = "alfalfa_worker.jobs.openstudio.StepRun";
     if (doc.sim_type === "MODELICA") {
       job = "alfalfa_worker.jobs.modelica.StepRun";
@@ -108,11 +90,11 @@ function runSiteResolver(args, context) {
         "job": "${job}",
         "params": {
           "run_id": "${args.siteRef}",
-          "timescale": ${args.timescale},
+          "timescale": "${args.timescale || 5}",
           "start_datetime": "${args.startDatetime}",
           "end_datetime": "${args.endDatetime}",
-          "realtime": ${args.realtime},
-          "external_clock": ${args.externalClock}
+          "realtime": "${!!args.realtime}",
+          "external_clock": "${!!args.externalClock}"
         }
       }`,
       QueueUrl: process.env.JOB_QUEUE_URL,
@@ -150,7 +132,7 @@ function invokeAction(action, siteRef) {
     .then(({ body }) => body);
 }
 
-function stopSiteResolver(args) {
+function stopSiteResolver(args, context) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //},
@@ -167,17 +149,16 @@ function removeSiteResolver(args) {
 function simsResolver(user, args, context) {
   return new Promise((resolve, reject) => {
     let sims = [];
-    const simCollection = context.db.collection("sims");
+    const simCollection = context.db.collection("simulation");
     simCollection
       .find(args)
       .toArray()
       .then((array) => {
-        array.map((sim) => {
-          sim = Object.assign(sim, { simRef: sim._id });
+        array.forEach((sim) => {
+          sim.simRef = sim.ref_id;
           if (sim.s3Key) {
             const params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
-            const url = s3client.getSignedUrl("getObject", params);
-            sim = Object.assign(sim, { url: url });
+            sim.url = s3client.getSignedUrl("getObject", params);
           }
           sims.push(sim);
         });
@@ -191,8 +172,8 @@ function simsResolver(user, args, context) {
 
 function runResolver(user, run_id, context) {
   return context.db
-    .collection("runs")
-    .findOne({ _id: run_id })
+    .collection("run")
+    .findOne({ ref_id: run_id })
     .then((doc) => {
       return {
         id: run_id,
@@ -210,12 +191,12 @@ async function sitesResolver(user, siteRef, context) {
   const runs = {};
 
   if (siteRef) {
-    const doc = await context.db.collection("runs").findOne({ _id: siteRef });
-    if (doc) runs[doc._id] = doc;
+    const doc = await context.db.collection("run").findOne({ ref_id: siteRef });
+    if (doc) runs[doc.ref_id] = doc;
   } else {
-    const cursor = context.db.collection("runs").find();
+    const cursor = context.db.collection("run").find();
     for await (const doc of cursor) {
-      if (doc) runs[doc._id] = doc;
+      if (doc) runs[doc.ref_id] = doc;
     }
   }
 
@@ -264,9 +245,16 @@ async function sitesResolver(user, siteRef, context) {
 }
 
 function sitePointResolver(siteRef, args, context) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    const pointKeys = await scan(context.redis, `site:${siteRef}:rec:*`);
+    const currentValues = {};
+    for (const key of pointKeys) {
+      const [, pointId] = key.match(new RegExp(`^site:${siteRef}:rec:(.+)$`));
+      currentValues[pointId] = await getHash(context.redis, key);
+    }
+
     const recs = context.db.collection("recs");
-    let query = { site_ref: siteRef, "rec.point": "m:" };
+    let query = { "rec.siteRef": `r:${siteRef}`, "rec.point": "m:" };
     if (args.writable) {
       query["rec.writable"] = "m:";
     }
@@ -277,14 +265,14 @@ function sitePointResolver(siteRef, args, context) {
       .find(query)
       .toArray()
       .then((array) => {
-        let points = [];
+        const points = [];
         array.map((rec) => {
-          let point = {};
-          point.tags = [];
-          point.dis = rec.rec.dis;
-          for (const recKey in rec.rec) {
-            const tag = { key: recKey, value: rec.rec[recKey] };
-            point.tags.push(tag);
+          const point = {
+            dis: rec.rec.dis,
+            tags: []
+          };
+          for (const [key, value] of Object.entries({ ...rec.rec, ...currentValues[rec.ref_id] })) {
+            point.tags.push({ key, value });
           }
           points.push(point);
         });
@@ -304,23 +292,25 @@ function writePointResolver(context, siteRef, pointName, value, level) {
   return dbops
     .getPoint(siteRef, pointName, context.db)
     .then((point) => {
-      return dbops.writePoint(point._id, siteRef, level, value, null, null, context.db);
+      if (!point) {
+        return Promise.reject(`Point '${pointName}' belonging to siteRef '${siteRef}' could not be found`);
+      }
+
+      return dbops.writePoint(point.ref_id, siteRef, level, value, context.db, context.redis);
     })
-    .then((array) => {
-      return JSON.stringify(array);
-    });
+    .then((array) => JSON.stringify(array));
 }
 
 module.exports = {
-  runSimResolver,
   addSiteResolver,
-  sitesResolver,
-  runSiteResolver,
-  stopSiteResolver,
-  removeSiteResolver,
-  sitePointResolver,
-  runResolver,
-  simsResolver,
   advanceResolver,
+  removeSiteResolver,
+  runResolver,
+  runSimResolver,
+  runSiteResolver,
+  simsResolver,
+  sitePointResolver,
+  sitesResolver,
+  stopSiteResolver,
   writePointResolver
 };

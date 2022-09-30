@@ -88,6 +88,7 @@ class AlfalfaVariables < OpenStudio::Measure::ModelMeasure
     create_input(model, "CaseLightStatus", "Timestep")
     create_input(model, "ZoneLightStatus", "Timestep")
     create_input(model, "ZoneOccStatus", "Timestep")
+    create_input(model, "Test_Point_1", "Timestep")
 
     # Alfalfa outputs
     create_output(model, "PythonPlugin:OutputVariable", "mt1_t_case", "MT1 Case Temp", "Timestep")

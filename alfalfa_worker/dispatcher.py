@@ -1,28 +1,3 @@
-########################################################################################################################
-#  Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
-#
-#  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
-#  following conditions are met:
-#
-#  (1) Redistributions of source code must retain the above copyright notice, this list of conditions and the following
-#  disclaimer.
-#
-#  (2) Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
-#  disclaimer in the documentation and/or other materials provided with the distribution.
-#
-#  (3) Neither the name of the copyright holder nor the names of any contributors may be used to endorse or promote products
-#  derived from this software without specific prior written permission from the respective party.
-#
-#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND ANY CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-#  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-#  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER(S), ANY CONTRIBUTORS, THE UNITED STATES GOVERNMENT, OR THE UNITED
-#  STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-#  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-#  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-#  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-########################################################################################################################
-
 import json
 import os
 import traceback
@@ -72,7 +47,7 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         """
         try:
             message_body = json.loads(message.body)
-            self.logger.info(message_body)
+            self.logger.info(f"Processing message of {message_body}")
             message.delete()
             job = message_body.get('job')
             if job:
@@ -122,17 +97,17 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
         """Gets class from class path"""
         components = path.split('.')
         module = import_module('.'.join(components[:-1]))
-        klazz = getattr(module, components[-1])
-        return klazz
+        class_ = getattr(module, components[-1])
+        return class_
 
     @staticmethod
     def print_job(job_name):
-        klazz = Dispatcher.find_class(job_name)
-        print(f"Name: \t{klazz.__name__}")
-        print(f"Description: \t{klazz.__doc__}")
+        class_ = Dispatcher.find_class(job_name)
+        print(f"Name: \t{class_.__name__}")
+        print(f"Description: \t{class_.__doc__}")
         print("Message Handlers:")
-        for attr_name in dir(klazz):
-            attr = getattr(klazz, attr_name)
+        for attr_name in dir(class_):
+            attr = getattr(class_, attr_name)
             if hasattr(attr, 'message_handler'):
                 print(f"{attr.__name__}: \t {attr.__doc__}")
 
