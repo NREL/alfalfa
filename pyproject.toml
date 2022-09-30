@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "alfalfa"
-version = "0.3.0"
+version = "0.4.0"
 description = "Alfalfa is a web service that converts building energy models in OpenStudio/EnergyPlus, Spawn of EnergyPlus, or Modelica to interactive virtual buildings."
 authors = [
     'Kyle Benne <kyle.benne@nrel.gov>',
@@ -55,8 +55,7 @@ influxdb = "^5.3.1"
 # required for tests to pass right now. There are often issues when pinning to a branch
 # and calling poetry update. I have had to completely remove my venv and reinstall in order
 # to get the latest updates.
-alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", branch = "update-response-text"}
-# alfalfa-client = { path = "../alfalfa-client", develop = true}
+alfalfa-client = "^0.4.0"
 autopep8 = "^1.4.4"
 pre-commit = "^2.20.0"
 pytest = "^6.2.5"
