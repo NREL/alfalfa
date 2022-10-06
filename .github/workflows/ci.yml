@@ -176,7 +176,7 @@ jobs:
         run: |
           export HISTORIAN_ENABLE=true
           printenv
-          docker-compose -f docker-compose.yml -f docker-compose.historian.yml up --build -d
+          docker-compose -f docker-compose.yml -f docker-compose.historian.yml up --build -d --scale worker=2
 
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1
