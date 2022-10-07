@@ -59,6 +59,7 @@ class StepRun(StepRunBase):
         # exact right start time. This flag indicates we are iterating in bypass mode
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
+        self.first_timestep = True
 
     def time_per_step(self):
         return timedelta(seconds=3600.0 / self.time_steps_per_hour)
@@ -137,6 +138,7 @@ class StepRun(StepRunBase):
         # Third Arg: "(self.ep.kStep - 1) * self.ep.deltaT" - The simulation time, this isn't actually checked or used on the E+ side
         packet = mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs)
         self.ep.write(packet)
+        self.first_timestep = False
 
         # After Step
         self.update_outputs_from_ep()
@@ -169,14 +171,19 @@ class StepRun(StepRunBase):
         month = int(round(self.ep.outputs[month_index]))
         year = self.start_datetime.year
 
-        if minute == 60 and hour == 23:
-            hour = 0
-            minute = 0
-        elif minute == 60 and hour != 23:
-            hour = hour + 1
-            minute = 0
+        sim_time = datetime(year, month, day, 0, 0)
 
-        return datetime(year, month, day, hour, minute)
+        if minute == 60 and hour == 23:
+            # The first timestep of simulation will have the incorrect day
+            if self.first_timestep:
+                hour = 0
+            else:
+                hour += 1
+
+        elif minute == 60 and hour != 23:
+            hour += 1
+
+        return sim_time + timedelta(hours=hour, minutes=minute % 60)
 
     def replace_timestep_and_run_period_idf_settings(self):
         try:
