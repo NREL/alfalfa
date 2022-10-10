@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from time import sleep
 from unittest import TestCase
 
@@ -16,12 +17,12 @@ class TestSingleZoneVAVFMU(TestCase):
 
         alfalfa.wait(model_id, "READY")
 
-        end_time = 60 * 5
+        end_datetime = datetime(2019, 1, 1, 0, 5)
         alfalfa.start(
             model_id,
             external_clock="false",
-            start_datetime=0,
-            end_datetime=end_time,
+            start_datetime=datetime(2019, 1, 1),
+            end_datetime=end_datetime,
             timescale=5
         )
 
@@ -30,4 +31,4 @@ class TestSingleZoneVAVFMU(TestCase):
         sleep(60)
         alfalfa.wait(model_id, "COMPLETE")
         model_time = alfalfa.get_sim_time(model_id)
-        assert str(end_time) in model_time
+        assert end_datetime.strftime("%Y-%m-%d %H:%M") in model_time
