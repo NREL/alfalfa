@@ -3,12 +3,12 @@ import datetime
 import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
 
-from tests.integration.conftest import create_zip
+from tests.integration.conftest import prepare_model
 
 
 @pytest.mark.integration
 def test_python_environment():
-    zip_file_path = create_zip('small_office')
+    zip_file_path = prepare_model('small_office')
     alfalfa = AlfalfaClient(url='http://localhost')
     model_id = alfalfa.submit(zip_file_path)
 

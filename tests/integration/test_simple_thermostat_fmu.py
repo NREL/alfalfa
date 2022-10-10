@@ -1,9 +1,10 @@
-import os
 from datetime import datetime, timedelta
 from unittest import TestCase
 
 import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
+
+from tests.integration.conftest import prepare_model
 
 ##################################################################################################
 # The is a test of the simple_thermostat.fmu,
@@ -23,7 +24,7 @@ class TestSimpleThermostat(TestCase):
 
     def setUp(self):
         self.alfalfa = AlfalfaClient(url='http://localhost')
-        fmu_path = os.path.join(os.path.dirname(__file__), 'models', 'simple_thermostat.fmu')
+        fmu_path = prepare_model('simple_thermostat.fmu')
         self.model_id = self.alfalfa.submit(fmu_path)
 
         self.alfalfa.wait(self.model_id, "READY")

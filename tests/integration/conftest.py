@@ -23,10 +23,17 @@ def zipdir(path, ziph):
 
 
 def create_zip(model_dir):
-    osw_dir_path = os.path.join(os.path.dirname(__file__), 'models', model_dir)
     zip_file_fd, zip_file_path = tempfile.mkstemp(suffix='.zip')
 
     zipf = zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED)
-    zipdir(osw_dir_path, zipf)
+    zipdir(model_dir, zipf)
     zipf.close()
     return zip_file_path
+
+
+def prepare_model(model_path):
+    model_path = Path(__file__).parents[0] / 'models' / model_path
+    if (model_path).is_dir():
+        return create_zip(str(model_path))
+    else:
+        return str(model_path)

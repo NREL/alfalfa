@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from time import sleep
 from unittest import TestCase
@@ -6,13 +5,15 @@ from unittest import TestCase
 import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
 
+from tests.integration.conftest import prepare_model
+
 
 @pytest.mark.integration
 class TestSingleZoneVAVFMU(TestCase):
 
     def test_simple_internal_clock(self):
         alfalfa = AlfalfaClient(url='http://localhost')
-        fmu_path = os.path.join(os.path.dirname(__file__), 'models', 'single_zone_vav.fmu')
+        fmu_path = prepare_model('single_zone_vav.fmu')
         model_id = alfalfa.submit(fmu_path)
 
         alfalfa.wait(model_id, "READY")

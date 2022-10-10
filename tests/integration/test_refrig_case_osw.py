@@ -6,21 +6,21 @@ import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
 from alfalfa_client.lib import AlfalfaException
 
-from tests.integration.conftest import create_zip
+from tests.integration.conftest import prepare_model
 
 
 @pytest.mark.integration
 class TestRefrigCaseOSW(TestCase):
 
     def test_insufficient_args_passed_to_start(self):
-        zip_file_path = create_zip('refrig_case_osw')
+        zip_file_path = prepare_model('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
         with pytest.raises(AlfalfaException):
             alfalfa.start(model_id)
 
     def test_simple_internal_clock(self):
-        zip_file_path = create_zip('refrig_case_osw')
+        zip_file_path = prepare_model('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
 
@@ -43,7 +43,7 @@ class TestRefrigCaseOSW(TestCase):
         assert end_datetime.strftime("%Y-%m-%d %H:%M") in model_time
 
     def test_simple_external_clock(self):
-        zip_file_path = create_zip('refrig_case_osw')
+        zip_file_path = prepare_model('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
 
@@ -88,7 +88,7 @@ class TestRefrigCaseOSW(TestCase):
         alfalfa.wait(model_id, "COMPLETE")
 
     def test_basic_io(self):
-        zip_file_path = create_zip('refrig_case_osw')
+        zip_file_path = prepare_model('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
 
