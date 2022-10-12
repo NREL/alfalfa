@@ -48,13 +48,12 @@ class TestRefrigCaseOSW(TestCase):
         model_id = alfalfa.submit(zip_file_path)
 
         alfalfa.wait(model_id, "READY")
-        start_dt = datetime.datetime(2019, 1, 2, 0, 2, 0)
+        start_dt = datetime.datetime(2019, 1, 2, 23, 55, 0)
         alfalfa.start(
             model_id,
-            external_clock="true",
+            external_clock=True,
             start_datetime=start_dt,
-            end_datetime=datetime.datetime(2019, 1, 3, 0, 0, 0),
-            timescale=1
+            end_datetime=datetime.datetime(2019, 1, 3, 1, 0, 0)
         )
 
         alfalfa.wait(model_id, "RUNNING")
@@ -68,8 +67,6 @@ class TestRefrigCaseOSW(TestCase):
             # -- Advance a single time step
             alfalfa.advance([model_id])
 
-            # The above should hold in advance state.
-            sleep(5)
             model_time = alfalfa.get_sim_time(model_id)
             updated_dt += datetime.timedelta(minutes=1)
             assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
