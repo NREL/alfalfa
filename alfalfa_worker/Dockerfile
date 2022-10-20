@@ -4,22 +4,21 @@ USER root
 
 ENV HOME /home/alfalfa
 
-# Need to set the lang to use Python 3.6 with Poetry
-ENV  LANG C.UTF-8
+# Need to set the lang to use Python 3.8 with Poetry
+ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 ENV ROOT_DIR /usr/local
 ENV BUILD_DIR $HOME/build
 
 WORKDIR /home/alfalfa
 
-# Until we can support E+ 22.1.0 we need to install python 3.7 (thus deadsnakes/ppa)
-# This step should probably be connected tot he next one, but due to the nature of NREL's
+# Until we can support E+ 22.1.0 we need to install python 3.8 (thus deadsnakes/ppa)
+# This step should probably be connected to the next one, but due to the nature of NREL's
 # firewall this step must be run off VPN. This way you don't need to log off everytime you
 # update apt packaged, at least.
 RUN apt-get update \
     && apt install -y software-properties-common \
     && add-apt-repository ppa:openjdk-r/ppa \
-    && add-apt-repository ppa:deadsnakes/ppa \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update \
@@ -35,9 +34,7 @@ RUN apt-get update \
     gfortran \
     libgfortran4 \
     cmake \
-    python3.7-dev \
-    python3.7 \
-    python3.7-distutils \
+    python3-venv \
     python3-pip \
     libblas-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -56,14 +53,14 @@ ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.3.0/OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 
 ENV ENERGYPLUS_VERSION 9.6.0
-ENV ENERGYPLUS_TAG v9.6.0
-ENV ENERGYPLUS_SHA f420c06a69
-ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-4-0
+ENV ENERGYPLUS_TAG 9.6-3.8
+ENV ENERGYPLUS_SHA e78d88a246
+ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-6-0
 
 # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
 # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
 # might be revaluated
-ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/NREL/EnergyPlus/releases/download/$ENERGYPLUS_TAG
+ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/TShapinsky/EnergyPlus/releases/download/$ENERGYPLUS_TAG
 ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-Ubuntu20.04-x86_64.tar.gz
 ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
 
@@ -93,7 +90,6 @@ RUN wget https://spawn.s3.amazonaws.com/custom/Spawn-$SPAWN_VERSION-Linux.tar.gz
     && rm Spawn-$SPAWN_VERSION-Linux.tar.gz
 
 ## MODELICA
-
 ENV FMIL_TAG 2.4
 ENV FMIL_HOME $ROOT_DIR/fmil
 
@@ -154,16 +150,10 @@ RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.
     && make install \
     && cd .. && rm -rf sundials sundials_build
 
-COPY pyproject.toml $BUILD_DIR
-COPY poetry.lock $BUILD_DIR
-
-# Reinstall/upgrade setuptools because this is needed for symfit (used in E+ Python)
-RUN ln -sf /usr/bin/python3.7 /usr/bin/python \
-    && ln -sf /usr/bin/python3.7 /usr/bin/python3 \
-    && ln -sf /usr/bin/pip3 /usr/bin/pip \
-    && python -m pip install poetry==1.1.12 setuptools==62.1.0 \
-    && python -m poetry config virtualenvs.create false \
-    && python -m poetry install --no-dev
+# install and upgrade setuptools because this is needed for symfit (used in E+ Python)
+#    For Assimulo -- numpy, Cython must match the version in pypoetry.toml
+RUN ln -sf /usr/bin/python3 /usr/bin/python \
+    && python3 -m pip install setuptools==65.3.0 numpy==1.21.6 Cython==0.29.28
 
 # This is required for Assimulo to build correctly with setuptools 60+
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
@@ -183,6 +173,23 @@ RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community
     && python setup.py install \
     && cd .. && rm -rf PyFMI
 
+
+# There are some tweaks because Ubuntu 20.04 has a PEP404 error with the version.
+# See https://bugs.launchpad.net/ubuntu/+source/python-debian/+bug/1926870
+# The below installs poetry 1.1.15 because 1.2.1 has the error.
+# It then copies over the poetry files and installs the dependencies with --no-dev
+RUN pip3 install poetry==1.1.15
+
+# Copy and install poetry-based dependencies
+COPY pyproject.toml $BUILD_DIR
+COPY poetry.lock $BUILD_DIR
+
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-dev
+
+# reinstall setuptools
+RUN pip3 install setuptools==65.3.0
+
 WORKDIR /alfalfa
 # Include the path to where alfalfa_worker is so that system calls can find it.
 ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
@@ -192,9 +199,7 @@ COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 COPY ./deploy/start_worker.sh start_worker.sh
 
 WORKDIR /alfalfa/alfalfa_worker
-# add back in the workflow.tar.gz, but this will be remove (i think)
-# when we remove the osm support.
-# RUN tar -czf workflow.tar.gz workflow
+
 ENV SEPARATE_PROCESS_JVM /usr/lib/jvm/java-8-openjdk-amd64/
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 
@@ -203,28 +208,22 @@ CMD ["/alfalfa/start_worker.sh"]
 # **** Staged build for running in development mode ****
 FROM base AS dev
 
-# Install poetry's dev dependencies by removing old lock
-RUN rm -f poetry.lock && \
-    pip install --upgrade pip setuptools && \
-    pip install poetry==1.1.12 && \
-    python -m poetry config virtualenvs.create false && \
-    python -m poetry install
+# Reinstall poetry's dev dependencies by calling again without --no-dev,
+# then reinstall setuptools to have pkg_resources available
+RUN pip3 install virtualenv \
+    && poetry config virtualenvs.create false \
+    && poetry install \
+    && pip3 install setuptools==65.3.0
 
 # for remote debugging
-RUN pip install remote-pdb
+RUN pip3 install remote-pdb
 
 # for live reloading celery
-RUN pip install watchdog[watchmedo]
+RUN pip3 install watchdog[watchmedo]
 
 # The docker-compose will require the mounting
 # of the files into the container, see docker-compose.dev.yml
 
 # Enable the ability to restart the service when
 # the files change
-CMD ["watchmedo", "auto-restart", "--directory=/alfalfa/alfalfa_worker/worker_openstudio", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
-
-# **** Image with just OpenStudio and EnergyPlus ****
-FROM ubuntu:20.04 AS alfalfa-openstudio
-COPY --from=base /usr/local/EnergyPlus-9-4-0 /usr/local/EnergyPlus-9-4-0
-# This is a WIP, need to decide how where the base libraries go because ./energyplus requires
-# several libraries to already be installed on the core OS
+CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]

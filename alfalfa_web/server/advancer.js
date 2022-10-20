@@ -1,3 +1,5 @@
+import { v1 as uuidv1 } from "uuid";
+
 class Advancer {
   // This class pertains to advancing a simulation.
   //
@@ -30,7 +32,7 @@ class Advancer {
   }
 
   advance(siteRefs) {
-    const promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let response = {};
       let pending = siteRefs.length;
 
@@ -55,14 +57,25 @@ class Advancer {
           };
 
           this.sub.subscribe(channel);
-          this.pub.publish(channel, "advance");
+          const message_id = uuidv1();
+          this.pub.publish(channel, JSON.stringify({ message_id, method: "advance" }));
 
           // This is a failsafe if for some reason we miss a notification
           // that the step is complete
           // Check if the simulation has gone back to idle
           let intervalCounts = 0;
           interval = setInterval(() => {
-            const control = this.redis.hget(siteref, "control");
+            const control = this.redis.hget(siteref, "control"); // I think this doesn't work... see below for how to get values from redis
+            this.redis.hget(siteref, message_id, (error, value) => {
+              if (!value) {
+                return;
+              }
+              if (JSON.parse(value).status === "ok") {
+                finalize(true, value);
+              } else {
+                finalize(false, value);
+              }
+            });
             if (control === "idle") {
               // If the control state is idle, then assume the step has been made
               // and resolve the advance promise, this might happen if we miss the notification for some reason
@@ -70,11 +83,11 @@ class Advancer {
             } else {
               intervalCounts += 1;
             }
-            if (intervalCounts > 6) {
+            if (intervalCounts > 60) {
               console.error(`Simulation with id ${siteref} timed out while trying to advance`);
               finalize(false, "no simulation reply");
             }
-          }, 10000);
+          }, 1000);
         };
 
         // Put siteref:control key into "advance" state
@@ -104,8 +117,6 @@ class Advancer {
         advanceSite(site);
       }
     });
-
-    return promise;
   }
 }
 

@@ -1,45 +1,27 @@
-/***********************************************************************************************************************
- *  Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
- *  following conditions are met:
- *
- *  (1) Redistributions of source code must retain the above copyright notice, this list of conditions and the following
- *  disclaimer.
- *
- *  (2) Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
- *  disclaimer in the documentation and/or other materials provided with the distribution.
- *
- *  (3) Neither the name of the copyright holder nor the names of any contributors may be used to endorse or promote products
- *  derived from this software without specific prior written permission from the respective party.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND ANY CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
- *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER(S), ANY CONTRIBUTORS, THE UNITED STATES GOVERNMENT, OR THE UNITED
- *  STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- *  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- *  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- ***********************************************************************************************************************/
-
 import AWS from "aws-sdk";
 import bodyParser from "body-parser";
+import compression from "compression";
 import historyApiFallback from "connect-history-api-fallback";
+import cors from "cors";
 import express from "express";
-import graphQLHTTP from "express-graphql";
+import fs from "fs";
+import { graphqlHTTP } from "express-graphql";
 import { MongoClient } from "mongodb";
 import morgan from "morgan";
 import path from "path";
-import node_redis from "redis";
+import { createClient } from "redis";
 import url from "url";
 import { Advancer } from "./advancer";
 import alfalfaServer from "./alfalfa-server";
-import { Schema } from "./schema";
+import apiv2 from "./api-v2";
+import { schema } from "./schema";
+
+const isProd = process.env.NODE_ENV === "production";
 
 const client = new AWS.S3({ endpoint: process.env.S3_URL });
 
-const redis = node_redis.createClient({ host: process.env.REDIS_HOST });
+const redis = createClient({ host: process.env.REDIS_HOST });
+
 const pub = redis.duplicate();
 const sub = redis.duplicate();
 const advancer = new Advancer(redis, pub, sub);
@@ -47,22 +29,15 @@ const advancer = new Advancer(redis, pub, sub);
 MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
   .then((mongoClient) => {
     const app = express();
+    app.use(compression());
+    app.disable("x-powered-by");
 
-    if (process.env.NODE_ENV === "production") {
-      app.get("*.js", function (req, res, next) {
-        req.url = req.url + ".gz";
-        res.set("Content-Encoding", "gzip");
-        res.set("Content-Type", "text/javascript");
-        next();
-      });
+    if (!isProd) {
+      // Apollo Studio
+      app.use(cors());
+    }
 
-      app.get("*.css", function (req, res, next) {
-        req.url = req.url + ".gz";
-        res.set("Content-Encoding", "gzip");
-        res.set("Content-Type", "text/css");
-        next();
-      });
-    } else {
+    if (process.env.LOGGING === "true") {
       app.use(morgan("combined"));
     }
 
@@ -71,13 +46,14 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
     app.locals.alfalfaServer = new alfalfaServer(db, redis, pub, sub);
 
     app.use("/graphql", (request, response) => {
-      return graphQLHTTP({
-        graphiql: true,
-        pretty: true,
-        schema: Schema,
+      return graphqlHTTP({
+        graphiql: !isProd,
+        pretty: !isProd,
+        schema,
         context: {
-          ...request,
+          request,
           db,
+          redis,
           advancer
         }
       })(request, response);
@@ -85,6 +61,15 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
 
     app.use(bodyParser.text({ type: "text/*" }));
     app.use(bodyParser.json()); // if you are using JSON instead of ZINC you need this
+
+    app.get("/docs", (req, res) => {
+      const docsPath = path.join(__dirname, "/app/docs.html");
+
+      fs.promises
+        .access(docsPath, fs.constants.F_OK)
+        .then(() => res.sendFile(docsPath))
+        .catch(() => res.status(404).type("txt").send("Documentation has not been generated"));
+    });
 
     // Create a post url for file uploads
     // from a browser
@@ -114,10 +99,10 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
       });
     });
 
-    app.all("/api/*", function (req, res) {
-      // Remove this in production
-      let path = url.parse(req.url).pathname;
-      path = path.replace("/api", "");
+    app.use("/api/v2/", apiv2({ db }));
+
+    app.all("/haystack/*", (req, res) => {
+      const path = url.parse(req.url).pathname.replace(/^\/haystack/, "");
 
       // parse URI path into "/{opName}/...."
       let slash = path.indexOf("/", 1);

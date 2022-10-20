@@ -40,7 +40,7 @@ class ThermalComfort(object):
         # clothing area factor
         fcl = 1 + 1.29 * icl if icl < 0.078 else 1.05 + 0.645 * icl
 
-        # heat transfer coefficienct by forced convection
+        # heat transfer coefficient by forced convection
         hcf = 12.1 * math.sqrt(vel)
 
         # air temperatures in Kelvin
@@ -88,7 +88,7 @@ class ThermalComfort(object):
         # heat loss by convection
         hl6 = fcl * hc * (tcl - ta)
 
-        # caluate PMV
+        # calculate PMV
         ts = 0.303 * math.exp(-0.036 * m) + 0.028
         pmv = ts * (mw - hl1 - hl2 - hl3 - hl4 - hl5 - hl6)
         ppd = 100 - 95 * math.exp(-0.03353 * pmv ** 4 - 0.2179 * pmv ** 2)

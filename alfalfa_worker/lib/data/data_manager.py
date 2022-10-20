@@ -107,7 +107,7 @@ class Data_Manager(object):
 
         fmu_path : str
             Path to the fmu where the data is to be saved. The reason
-            to do not get this path from the tescase config file is
+            to do not get this path from the testcase config file is
             that this method is called by the parser before the test
             case is created.
 

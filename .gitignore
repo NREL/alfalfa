@@ -78,7 +78,6 @@ tests/worker/lib/output
 *.rdd
 *.rvaudit
 *.sql
-*.svg
 *Zsz.csv
 *Ssz.csv
 *Meter.csv

@@ -1,43 +1,28 @@
-/***********************************************************************************************************************
- *  Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
- *  following conditions are met:
- *
- *  (1) Redistributions of source code must retain the above copyright notice, this list of conditions and the following
- *  disclaimer.
- *
- *  (2) Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
- *  disclaimer in the documentation and/or other materials provided with the distribution.
- *
- *  (3) Neither the name of the copyright holder nor the names of any contributors may be used to endorse or promote products
- *  derived from this software without specific prior written permission from the respective party.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND ANY CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
- *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER(S), ANY CONTRIBUTORS, THE UNITED STATES GOVERNMENT, OR THE UNITED
- *  STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- *  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- *  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- ***********************************************************************************************************************/
-
 import AWS from "aws-sdk";
+import got from "got";
 import path from "path";
-import request from "superagent";
+import { v1 as uuidv1 } from "uuid";
 import dbops from "./dbops";
+import { getHash, scan } from "./utils";
 
-AWS.config.update({ region: process.env.REGION });
+AWS.config.update({ region: process.env.REGION || "us-east-1" });
 const sqs = new AWS.SQS();
 const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
 
 function addSiteResolver(modelName, uploadID) {
+  let run_id = uuidv1();
+  let job = "alfalfa_worker.jobs.openstudio.CreateRun";
+  if (modelName.endsWith(".fmu")) {
+    job = "alfalfa_worker.jobs.modelica.CreateRun";
+  }
   const params = {
-    MessageBody: `{"op": "InvokeAction",
-      "action": "addSite",
-      "model_name": "${modelName}",
-      "upload_id": "${uploadID}"
+    MessageBody: `{
+      "job": "${job}",
+      "params": {
+        "model_name": "${modelName}",
+        "upload_id": "${uploadID}",
+        "run_id": "${run_id}"
+      }
     }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
     MessageGroupId: "Alfalfa"
@@ -45,39 +30,47 @@ function addSiteResolver(modelName, uploadID) {
 
   sqs.sendMessage(params, (err, data) => {
     if (err) {
-      console.log(err);
-      callback(err);
+      console.error(err);
     }
   });
+
+  return run_id;
 }
 
-function runSimResolver(uploadFilename, uploadID, context) {
+function runSimResolver(modelName, uploadID) {
+  let job = "alfalfa_worker.jobs.openstudio.AnnualRun";
+  if (modelName.endsWith(".fmu")) {
+    job = "alfalfa_worker.jobs.modelica.AnnualRun";
+  }
   const params = {
-    MessageBody: `{"op": "InvokeAction",
-    "action": "runSim",
-    "upload_filename": "${uploadFilename}",
-    "upload_id": "${uploadID}"
-   }`,
+    MessageBody: `{
+      "job": "${job}",
+      "params": {
+        "model_name": "${modelName}",
+        "upload_id": "${uploadID}"
+      }
+    }`,
     QueueUrl: process.env.JOB_QUEUE_URL,
     MessageGroupId: "Alfalfa"
   };
 
   sqs.sendMessage(params, (err, data) => {
     if (err) {
-      callback(err);
+      console.error(err);
     } else {
-      const simcollection = context.db.collection("sims");
-      simcollection.insert({
+      const simCollection = context.db.collection("simulation");
+      simCollection.insert({
         _id: uploadID,
+        ref_id: uploadID,
         siteRef: uploadID,
         simStatus: "Queued",
-        name: path.parse(uploadFilename).name.replace(".tar", "")
+        name: path.parse(modelName).name.replace(".tar", "")
       });
     }
   });
 }
 
-function runSiteResolver(args) {
+function runSiteResolver(args, context) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //  startDatetime : { type: GraphQLString },
@@ -86,141 +79,86 @@ function runSiteResolver(args) {
   //  realtime : { type: GraphQLBoolean },
   //  externalClock : { type: GraphQLBoolean },
   //},
-  console.log("args: ", args);
-  return new Promise((resolve, reject) => {
-    request
-      .post("/api/invokeAction")
-      .set("Accept", "application/json")
-      .set("Content-Type", "application/json")
-      .send({
-        meta: {
-          ver: "2.0",
-          id: `r:${args.siteRef}`,
-          action: "s:runSite"
-        },
-        cols: [
-          {
-            name: "timescale"
-          },
-          {
-            name: "startDatetime"
-          },
-          {
-            name: "endDatetime"
-          },
-          {
-            name: "realtime"
-          },
-          {
-            name: "externalClock"
-          }
-        ],
-        rows: [
-          {
-            timescale: `s:${args.timescale}`,
-            startDatetime: `s:${args.startDatetime}`,
-            endDatetime: `s:${args.endDatetime}`,
-            realtime: `s:${args.realtime}`,
-            externalClock: `s:${args.externalClock}`
-          }
-        ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res.body);
+  const runs = context.db.collection("run");
+  runs.findOne({ ref_id: args.siteRef }).then((doc) => {
+    let job = "alfalfa_worker.jobs.openstudio.StepRun";
+    if (doc.sim_type === "MODELICA") {
+      job = "alfalfa_worker.jobs.modelica.StepRun";
+    }
+    const params = {
+      MessageBody: `{
+        "job": "${job}",
+        "params": {
+          "run_id": "${args.siteRef}",
+          "timescale": "${args.timescale || 5}",
+          "start_datetime": "${args.startDatetime}",
+          "end_datetime": "${args.endDatetime}",
+          "realtime": "${!!args.realtime}",
+          "external_clock": "${!!args.externalClock}"
         }
-      });
+      }`,
+      QueueUrl: process.env.JOB_QUEUE_URL,
+      MessageGroupId: "Alfalfa"
+    };
+    sqs.sendMessage(params, (err, data) => {
+      if (err) {
+        console.error(err);
+      }
+    });
   });
 }
 
-function stopSiteResolver(args) {
-  //args: {
-  //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
-  //},
-  return new Promise((resolve, reject) => {
-    request
-      .post("/api/invokeAction")
-      .set("Accept", "application/json")
-      .set("Content-Type", "application/json")
-      .send({
+function invokeAction(action, siteRef) {
+  return got
+    .post("http://localhost/haystack/invokeAction", {
+      headers: {
+        Accept: "application/json"
+      },
+      json: {
         meta: {
           ver: "2.0",
-          id: `r:${args.siteRef}`,
-          action: "s:stopSite"
+          id: `r:${siteRef}`,
+          action: `s:${action}`
         },
         cols: [
           {
-            name: "foo" // because node Haystack craps out if there are no columns
+            name: "empty" // At least one column is required
           }
         ],
-        rows: [
-          {
-            foo: "s:bar"
-          }
-        ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res.body);
-        }
-      });
-  });
+        rows: []
+      },
+      responseType: "json"
+    })
+    .then(({ body }) => body);
+}
+
+function stopSiteResolver(args, context) {
+  //args: {
+  //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
+  //},
+  return invokeAction("stopSite", args.siteRef);
 }
 
 function removeSiteResolver(args) {
   //args: {
   //  siteRef : { type: new GraphQLNonNull(GraphQLString) },
   //},
-  return new Promise((resolve, reject) => {
-    request
-      .post("/api/invokeAction")
-      .set("Accept", "application/json")
-      .set("Content-Type", "application/json")
-      .send({
-        meta: {
-          ver: "2.0",
-          id: `r:${args.siteRef}`,
-          action: "s:removeSite"
-        },
-        cols: [
-          {
-            name: "foo" // because node Haystack craps out if there are no columns
-          }
-        ],
-        rows: [
-          {
-            foo: "s:bar"
-          }
-        ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res.body);
-        }
-      });
-  });
+  return invokeAction("removeSite", args.siteRef);
 }
 
 function simsResolver(user, args, context) {
   return new Promise((resolve, reject) => {
     let sims = [];
-    const simcollection = context.db.collection("sims");
-    simcollection
+    const simCollection = context.db.collection("simulation");
+    simCollection
       .find(args)
       .toArray()
       .then((array) => {
-        array.map((sim) => {
-          sim = Object.assign(sim, { simRef: sim._id });
+        array.forEach((sim) => {
+          sim.simRef = sim.ref_id;
           if (sim.s3Key) {
             const params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
-            const url = s3client.getSignedUrl("getObject", params);
-            sim = Object.assign(sim, { url: url });
+            sim.url = s3client.getSignedUrl("getObject", params);
           }
           sims.push(sim);
         });
@@ -232,17 +170,42 @@ function simsResolver(user, args, context) {
   });
 }
 
-function sitesResolver(user, siteRef) {
-  let filter = "s:site";
+function runResolver(user, run_id, context) {
+  return context.db
+    .collection("run")
+    .findOne({ ref_id: run_id })
+    .then((doc) => {
+      return {
+        id: run_id,
+        sim_type: doc.sim_type,
+        status: doc.status,
+        created: doc.created,
+        modified: doc.modified,
+        sim_time: doc.sim_time,
+        error_log: doc.error_log
+      };
+    });
+}
+
+async function sitesResolver(user, siteRef, context) {
+  const runs = {};
+
   if (siteRef) {
-    filter = `${filter} and id==@${siteRef}`;
+    const doc = await context.db.collection("run").findOne({ ref_id: siteRef });
+    if (doc) runs[doc.ref_id] = doc;
+  } else {
+    const cursor = context.db.collection("run").find();
+    for await (const doc of cursor) {
+      if (doc) runs[doc.ref_id] = doc;
+    }
   }
-  return new Promise((resolve, reject) => {
-    let sites = [];
-    request
-      .post("/api/read")
-      .set("Accept", "application/json")
-      .send({
+
+  return got
+    .post("http://localhost/haystack/read", {
+      headers: {
+        Accept: "application/json"
+      },
+      json: {
         meta: {
           ver: "2.0"
         },
@@ -253,45 +216,45 @@ function sitesResolver(user, siteRef) {
         ],
         rows: [
           {
-            filter: filter
+            filter: `s:site${siteRef ? " and id==@" + siteRef : ""}`
           }
         ]
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          res.body.rows.map((row) => {
-            let site = {
-              name: row.dis.replace(/[a-z]:/, ""),
-              siteRef: row.id.replace(/[a-z]:/, ""),
-              simStatus: row.simStatus.replace(/[a-z]:/, ""),
-              simType: row.simType.replace(/[a-z]:/, "")
-            };
-            let datetime = row["datetime"];
-            if (datetime) {
-              datetime = datetime.replace(/[a-z]:/, "");
-              site.datetime = datetime;
-            }
-
-            let step = row["step"];
-            if (step) {
-              step = step.replace(/[a-z]:/, "");
-              site.step = step;
-            }
-
-            sites.push(site);
-          });
-          resolve(sites);
+      },
+      responseType: "json"
+    })
+    .then(({ body }) => {
+      return body.rows.map((row) => {
+        const site = {
+          name: row.dis.replace(/^[a-z]:/, ""),
+          siteRef: row.id.replace(/^[a-z]:/, ""),
+          simStatus: row.simStatus.replace(/^[a-z]:/, ""),
+          simType: row.simType.replace(/^[a-z]:/, "")
+        };
+        if (site.siteRef in runs) {
+          site.simStatus = runs[site.siteRef].status;
+          site.datetime = runs[site.siteRef].sim_time;
         }
+        const { step } = row;
+        if (step) {
+          site.step = step.replace(/^[a-z]:/, "");
+        }
+
+        return site;
       });
-  });
+    });
 }
 
 function sitePointResolver(siteRef, args, context) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    const pointKeys = await scan(context.redis, `site:${siteRef}:rec:*`);
+    const currentValues = {};
+    for (const key of pointKeys) {
+      const [, pointId] = key.match(new RegExp(`^site:${siteRef}:rec:(.+)$`));
+      currentValues[pointId] = await getHash(context.redis, key);
+    }
+
     const recs = context.db.collection("recs");
-    let query = { site_ref: siteRef, "rec.point": "m:" };
+    let query = { "rec.siteRef": `r:${siteRef}`, "rec.point": "m:" };
     if (args.writable) {
       query["rec.writable"] = "m:";
     }
@@ -302,14 +265,14 @@ function sitePointResolver(siteRef, args, context) {
       .find(query)
       .toArray()
       .then((array) => {
-        let points = [];
+        const points = [];
         array.map((rec) => {
-          let point = {};
-          point.tags = [];
-          point.dis = rec.rec.dis;
-          for (const reckey in rec.rec) {
-            const tag = { key: reckey, value: rec.rec[reckey] };
-            point.tags.push(tag);
+          const point = {
+            dis: rec.rec.dis,
+            tags: []
+          };
+          for (const [key, value] of Object.entries({ ...rec.rec, ...currentValues[rec.ref_id] })) {
+            point.tags.push({ key, value });
           }
           points.push(point);
         });
@@ -329,22 +292,25 @@ function writePointResolver(context, siteRef, pointName, value, level) {
   return dbops
     .getPoint(siteRef, pointName, context.db)
     .then((point) => {
-      return dbops.writePoint(point._id, siteRef, level, value, null, null, context.db);
+      if (!point) {
+        return Promise.reject(`Point '${pointName}' belonging to siteRef '${siteRef}' could not be found`);
+      }
+
+      return dbops.writePoint(point.ref_id, siteRef, level, value, context.db, context.redis);
     })
-    .then((array) => {
-      return JSON.stringify(array);
-    });
+    .then((array) => JSON.stringify(array));
 }
 
 module.exports = {
-  runSimResolver,
   addSiteResolver,
-  sitesResolver,
-  runSiteResolver,
-  stopSiteResolver,
-  removeSiteResolver,
-  sitePointResolver,
-  simsResolver,
   advanceResolver,
+  removeSiteResolver,
+  runResolver,
+  runSimResolver,
+  runSiteResolver,
+  simsResolver,
+  sitePointResolver,
+  sitesResolver,
+  stopSiteResolver,
   writePointResolver
 };

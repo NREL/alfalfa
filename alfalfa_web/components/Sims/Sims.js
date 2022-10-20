@@ -1,61 +1,41 @@
-/***********************************************************************************************************************
- *  Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
- *  following conditions are met:
- *
- *  (1) Redistributions of source code must retain the above copyright notice, this list of conditions and the following
- *  disclaimer.
- *
- *  (2) Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
- *  disclaimer in the documentation and/or other materials provided with the distribution.
- *
- *  (3) Neither the name of the copyright holder nor the names of any contributors may be used to endorse or promote products
- *  derived from this software without specific prior written permission from the respective party.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND ANY CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
- *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER(S), ANY CONTRIBUTORS, THE UNITED STATES GOVERNMENT, OR THE UNITED
- *  STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- *  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- *  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- ***********************************************************************************************************************/
-
-import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
-import Dialog from "@material-ui/core/Dialog";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import { withStyles } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import { MoreVert } from "@material-ui/icons";
+import { gql } from "@apollo/client";
+import { graphql } from "@apollo/client/react/hoc";
+import { MoreVert } from "@mui/icons-material";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow
+} from "@mui/material";
+import { withStyles } from "@mui/styles";
 import downloadjs from "downloadjs";
-import gql from "graphql-tag";
 import { DateTime } from "luxon";
 import React from "react";
-import { graphql } from "react-apollo";
 
 class ResultsDialog extends React.Component {
   render = () => {
-    const sim = this.props.sim;
+    const { sim } = this.props;
 
     const items = (content) => {
+      if (!content) {
+        return <></>;
+      }
       return Object.entries(content).map(([key, value]) => {
         if (key === "energy") {
-          key = key + " [kWh]";
+          key += " [kWh]";
         } else if (key === "comfort") {
-          key = key + " [K-h]";
+          key += " [K-h]";
         }
         return (
           <ListItem>
@@ -155,8 +135,7 @@ class Sims extends React.Component {
   render = () => {
     const { classes } = this.props;
 
-    if (this.props.data.networkStatus === 1) {
-      // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
+    if (this.props.data.loading) {
       return null;
     } else {
       const sims = this.props.data.viewer.sims;
@@ -179,7 +158,10 @@ class Sims extends React.Component {
                 {sims.map((sim) => {
                   const isSelected = this.isSelected(sim.simRef);
                   return (
-                    <TableRow key={sim.simRef} onClick={(event) => this.handleRowClick(event, sim.simRef)}>
+                    <TableRow
+                      key={sim.simRef}
+                      style={{ cursor: "default" }}
+                      onClick={(event) => this.handleRowClick(event, sim.simRef)}>
                       <TableCell padding="checkbox">
                         <Checkbox checked={isSelected} />
                       </TableCell>
@@ -200,7 +182,12 @@ class Sims extends React.Component {
             </Table>
           </Grid>
           <Grid item>
-            <Grid className={classes.controls} container justify="flex-start" alignItems="center">
+            <Grid
+              className={classes.controls}
+              container
+              justifyContent="flex-start"
+              alignItems="center"
+              style={{ marginLeft: 0, paddingLeft: 16 }}>
               <Grid item>
                 <Button className={classes.button} variant="contained" disabled={true} onClick={this.handleRemove}>
                   Remove Test Results
@@ -250,7 +237,7 @@ const styles = (theme) => ({
     marginLeft: 16
   },
   button: {
-    margin: theme.spacing(1)
+    margin: `${theme.spacing(1)}!important`
   }
 });
 

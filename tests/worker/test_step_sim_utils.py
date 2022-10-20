@@ -1,6 +1,7 @@
 from datetime import datetime
 from unittest import TestCase
 
+from alfalfa_worker.lib.sim_type import SimType
 from alfalfa_worker.step_sim_utils import valid_date
 
 
@@ -17,3 +18,9 @@ class TestStepSimUtils(TestCase):
         with self.assertRaises(Exception) as exc:
             valid_date(date)
         self.assertEqual(f"Not a valid date: '{date}'", str(exc.exception))
+
+
+class TestSimType(TestCase):
+    def test_enum_list(self):
+        enums = SimType.possible_enums_as_string()
+        assert enums == ['OPENSTUDIO', 'MODELICA', 'OTHER']

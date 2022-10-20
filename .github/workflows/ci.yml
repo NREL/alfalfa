@@ -1,8 +1,11 @@
 name: CI
 
 on:
-  pull_request:
   push:
+  # Reenable pull_request if we start receiving 3rd party contributions.
+  # Otherwise all pull_requests will also be push test and we are enforcing
+  # that code must be up to date with parent in the PRs.
+  #pull_request:
 
 jobs:
   pre-commit:
@@ -16,7 +19,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
 
       - name: Run pre-commit
         uses: pre-commit/action@v2.0.0
@@ -31,42 +34,53 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        # Defaults to the latest version of MongoDB
+
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.12
+          # use a newer version of poetry in this test, but
+          # poetry in the dockerfile is a bit older because
+          # of a urllib3 issue
+          poetry-version: 1.2.1
+
+      - name: Install poetry dependencies
+        run: |
+          poetry install
+
+      - name: Runner Details
+        run: |
+          cat /etc/issue
+          python --version
 
       - name: Run tests with pytest
         run: |
-          poetry install
           poetry run pytest
 
-  fmu-tests:
-    name: Run fmu tests
+  simulation-tests:
+    name: Run simulation tests in worker
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # only need to start the worker which saves time here because
+      # the webpack calling on the web container for .dev.yml can take some
+      # time.
       - name: Build and run stack
         run: |
           printenv
-          docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+          docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d worker
 
-      - name: Wait for web server
-        uses: nev7n/wait_for_response@v1
-        with:
-          url: "http://localhost/"
-          responseCode: 200
-          timeout: 120000
-          interval: 500
-
-      - name: Wait another 30s
+      - name: Wait another 30s for the containers to start
         uses: jakejarvis/wait-action@master
         with:
           time: "30s"
@@ -74,9 +88,13 @@ jobs:
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
 
-      - name: Run tests in Docker worker container
+      - name: Run modelica job tests in Docker worker container
         run: |
-          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m fmu"
+          docker exec alfalfa_worker bash -c "cd /alfalfa && pytest -m docker tests/jobs/modelica -o log_cli=true -o log_level=info"
+
+      - name: Run openstudio job tests in Docker worker container
+        run: |
+          docker exec alfalfa_worker bash -c "cd /alfalfa && pytest -m docker tests/jobs/openstudio -o log_cli=true -o log_level=info"
 
       - name: Dump docker logs on failure
         if: failure()
@@ -93,12 +111,15 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.12
+          # use a newer version of poetry in this test, but
+          # poetry in the dockerfile is a bit older because
+          # of a urllib3 issue
+          poetry-version: 1.2.1
 
       - name: Build and run stack
         run: |
@@ -124,7 +145,7 @@ jobs:
       - name: Run tests with pytest
         run: |
           poetry install
-          poetry run pytest --timeout=240 -m "integration"
+          poetry run pytest --timeout=600 -m "integration"
 
       - name: Dump docker logs on failure
         if: failure()
@@ -141,12 +162,15 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.12
+          # use a newer version of poetry in this test, but
+          # poetry in the dockerfile is a bit older because
+          # of a urllib3 issue
+          poetry-version: 1.2.1
 
       - name: Build and run stack
         run: |
@@ -173,7 +197,7 @@ jobs:
       - name: Run tests with pytest
         run: |
           poetry install
-          poetry run pytest --timeout=240 -m "integration"
+          poetry run pytest --timeout=600 -m "integration"
 
       - name: Dump docker logs on failure
         if: failure()

@@ -1,28 +1,3 @@
-/***********************************************************************************************************************
- *  Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
- *  following conditions are met:
- *
- *  (1) Redistributions of source code must retain the above copyright notice, this list of conditions and the following
- *  disclaimer.
- *
- *  (2) Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
- *  disclaimer in the documentation and/or other materials provided with the distribution.
- *
- *  (3) Neither the name of the copyright holder nor the names of any contributors may be used to endorse or promote products
- *  derived from this software without specific prior written permission from the respective party.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND ANY CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
- *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER(S), ANY CONTRIBUTORS, THE UNITED STATES GOVERNMENT, OR THE UNITED
- *  STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- *  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- *  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- ***********************************************************************************************************************/
-
 import {
   GraphQLBoolean,
   GraphQLFloat,
@@ -110,6 +85,7 @@ const siteType = new GraphQLObjectType({
 });
 
 const simType = new GraphQLObjectType({
+  // TODO: need/should rename this to simulation. No reason to keep the names short.
   name: "Sim",
   description: "A completed simulation, including any that may have stopped with errors.",
   fields: () => ({
@@ -149,6 +125,41 @@ const simType = new GraphQLObjectType({
   })
 });
 
+const runType = new GraphQLObjectType({
+  name: "Run",
+  description: "A run",
+  fields: () => ({
+    id: {
+      type: GraphQLString,
+      description: "A unique identifier for the run"
+    },
+    sim_type: {
+      type: GraphQLString,
+      description: "The run simulation type"
+    },
+    status: {
+      type: GraphQLString,
+      description: "The run status"
+    },
+    created: {
+      type: GraphQLString,
+      description: "When the run was created"
+    },
+    modified: {
+      type: GraphQLString,
+      description: "When the run was last modified"
+    },
+    sim_time: {
+      type: GraphQLString,
+      description: "The current simulation time"
+    },
+    error_log: {
+      type: GraphQLString,
+      description: "The log of any errors in the Run"
+    }
+  })
+});
+
 const userType = new GraphQLObjectType({
   name: "User",
   description: "A person who uses our app",
@@ -164,9 +175,19 @@ const userType = new GraphQLObjectType({
       args: {
         siteRef: { type: GraphQLString }
       },
-      resolve: (user, { siteRef }, request) => {
+      resolve: (user, { siteRef }, context) => {
         //return ['site a', 'site b', 'site c']},
-        return resolvers.sitesResolver(user, siteRef);
+        return resolvers.sitesResolver(user, siteRef, context);
+      }
+    },
+    runs: {
+      type: runType,
+      description: "The Alfalfa Runs",
+      args: {
+        run_id: { type: GraphQLString }
+      },
+      resolve: (user, { run_id }, context) => {
+        return resolvers.runResolver(user, run_id, context);
       }
     },
     sims: {
@@ -189,7 +210,7 @@ const queryType = new GraphQLObjectType({
     viewer: {
       type: userType,
       resolve: (_, args, request) => {
-        return { username: "smith" };
+        return { username: "" };
       }
     }
   })
@@ -226,7 +247,7 @@ const mutationType = new GraphQLObjectType({
         uploadID: { type: new GraphQLNonNull(GraphQLString) }
       },
       resolve: (_, args, request) => {
-        resolvers.addSiteResolver(args.modelName, args.uploadID);
+        return resolvers.addSiteResolver(args.modelName, args.uploadID);
       }
     },
     runSite: {
@@ -240,8 +261,8 @@ const mutationType = new GraphQLObjectType({
         realtime: { type: GraphQLBoolean },
         externalClock: { type: GraphQLBoolean }
       },
-      resolve: (_, args, request) => {
-        resolvers.runSiteResolver(args);
+      resolve: (_, args, context) => {
+        resolvers.runSiteResolver(args, context);
       }
     },
     stopSite: {
@@ -250,8 +271,8 @@ const mutationType = new GraphQLObjectType({
       args: {
         siteRef: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve: (_, args, request) => {
-        resolvers.stopSiteResolver(args);
+      resolve: (_, args, context) => {
+        resolvers.stopSiteResolver(args, context);
       }
     },
     removeSite: {
@@ -290,7 +311,7 @@ const mutationType = new GraphQLObjectType({
   })
 });
 
-export const Schema = new GraphQLSchema({
+export const schema = new GraphQLSchema({
   query: queryType,
   // Uncomment the following after adding some mutation fields:
   mutation: mutationType

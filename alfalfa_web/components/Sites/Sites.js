@@ -1,131 +1,11 @@
-/***********************************************************************************************************************
- *  Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC, and other contributors. All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
- *  following conditions are met:
- *
- *  (1) Redistributions of source code must retain the above copyright notice, this list of conditions and the following
- *  disclaimer.
- *
- *  (2) Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
- *  disclaimer in the documentation and/or other materials provided with the distribution.
- *
- *  (3) Neither the name of the copyright holder nor the names of any contributors may be used to endorse or promote products
- *  derived from this software without specific prior written permission from the respective party.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND ANY CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
- *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER(S), ANY CONTRIBUTORS, THE UNITED STATES GOVERNMENT, OR THE UNITED
- *  STATES DEPARTMENT OF ENERGY, NOR ANY OF THEIR EMPLOYEES, BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- *  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- *  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
- *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- ***********************************************************************************************************************/
-
-import Button from "@material-ui/core/Button";
-import Checkbox from "@material-ui/core/Checkbox";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Dialog from "@material-ui/core/Dialog";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
-import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
-import { ExpandMore, MoreVert } from "@material-ui/icons";
-import gql from "graphql-tag";
+import { gql } from "@apollo/client";
+import { graphql } from "@apollo/client/react/hoc";
+import { MoreVert } from "@mui/icons-material";
+import { Button, Checkbox, Grid, IconButton, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import { withStyles } from "@mui/styles";
 import React from "react";
-import { graphql } from "react-apollo";
-import StartDialog from "../StartDialog/StartDialog.js";
-
-class PointDialogComponent extends React.Component {
-  //handleRequestClose = () => {
-  //  this.props.onClosePointsClick();
-  //}
-
-  state = {
-    expanded: null
-  };
-
-  handleChange = (pointId) => (event, expanded) => {
-    this.setState({
-      expanded: expanded ? pointId : false
-    });
-  };
-
-  table = () => {
-    if (this.props.data.networkStatus === 1) {
-      // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
-      return (
-        <Grid container justify="center" alignItems="center">
-          <Grid item>
-            <CircularProgress />
-          </Grid>
-        </Grid>
-      );
-    } else {
-      const points = this.props.data.viewer.sites[0].points;
-      const { expanded } = this.state;
-      return (
-        <div>
-          {points.map((point, i) => {
-            return (
-              <ExpansionPanel key={i} expanded={expanded === i} onChange={this.handleChange(i)}>
-                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                  <Typography>{point.dis}</Typography>
-                </ExpansionPanelSummary>
-                <ExpansionPanelDetails>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Key</TableCell>
-                        <TableCell>Value</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {point.tags.map((tag) => {
-                        return (
-                          <TableRow key={tag.key}>
-                            <TableCell>{tag.key}</TableCell>
-                            <TableCell>{tag.value}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </ExpansionPanelDetails>
-              </ExpansionPanel>
-            );
-          })}
-        </div>
-      );
-    }
-  };
-
-  render = () => {
-    if (this.props.site) {
-      return (
-        <div>
-          <Dialog fullWidth={true} maxWidth="lg" open={true} onBackdropClick={this.props.onBackdropClick}>
-            <DialogTitle>{this.props.site.name + " Points"}</DialogTitle>
-            <DialogContent>{this.table()}</DialogContent>
-          </Dialog>
-        </div>
-      );
-    } else {
-      return <div />;
-    }
-  };
-}
+import StartDialog from "../StartDialog/StartDialog";
+import PointDialogComponent from "./PointDialogComponent";
 
 const pointsQL = gql`
   query PointsQuery($siteRef: String!) {
@@ -199,16 +79,14 @@ class Sites extends React.Component {
   };
 
   isStartButtonDisabled = () => {
-    const stoppedItem = this.selectedSites().some((item) => {
-      return item.simStatus === "Stopped";
-    });
+    const readyItem = this.selectedSites().some((item) => item.simStatus === "READY");
 
-    return !stoppedItem;
+    return !readyItem;
   };
 
   isStopButtonDisabled = () => {
     const runningItem = this.selectedSites().some((item) => {
-      return item.simStatus === "Running";
+      return ["RUNNING", "PREPROCESSING", "STARTING", "STARTED", "STOPPING"].includes(item.simStatus);
     });
 
     return !runningItem;
@@ -216,7 +94,7 @@ class Sites extends React.Component {
 
   isRemoveButtonDisabled = () => {
     const stoppedItem = this.selectedSites().some((item) => {
-      return item.simStatus === "Stopped";
+      return ["READY", "COMPLETE", "ERROR"].includes(item.simStatus);
     });
 
     return !stoppedItem;
@@ -242,9 +120,7 @@ class Sites extends React.Component {
 
   selectedSites = () => {
     return this.props.data.viewer.sites.filter((site) => {
-      return this.state.selected.some((siteRef) => {
-        return siteRef === site.siteRef;
-      });
+      return this.state.selected.some((siteRef) => siteRef === site.siteRef);
     });
   };
 
@@ -257,19 +133,10 @@ class Sites extends React.Component {
     this.setState({ showSite: null });
   };
 
-  showSiteRef = () => {
-    if (this.state.showSite) {
-      return this.state.showSite.siteRef;
-    } else {
-      return "";
-    }
-  };
-
-  render = (props) => {
+  render = () => {
     const { classes } = this.props;
 
-    if (this.props.data.networkStatus === 1) {
-      // 1 for loading https://www.apollographql.com/docs/react/api/react-apollo.html#graphql-query-data-networkStatus
+    if (this.props.data.loading) {
       return null;
     } else {
       const isStartDisabled = this.isStartButtonDisabled();
@@ -298,6 +165,7 @@ class Sites extends React.Component {
                     <TableRow
                       key={site.siteRef}
                       selected={false}
+                      style={{ cursor: "default" }}
                       onClick={(event) => this.handleRowClick(event, site.siteRef)}>
                       <TableCell padding="checkbox">
                         <Checkbox checked={isSelected} />
@@ -318,7 +186,12 @@ class Sites extends React.Component {
             </Table>
           </Grid>
           <Grid item>
-            <Grid className={classes.controls} container justify="flex-start" alignItems="center">
+            <Grid
+              className={classes.controls}
+              container
+              justifyContent="flex-start"
+              alignItems="center"
+              style={{ marginLeft: 0, paddingLeft: 16 }}>
               <Grid item>
                 <StartDialog
                   type={this.state.startDialogType}
@@ -357,14 +230,13 @@ const styles = (theme) => ({
     marginLeft: 16
   },
   button: {
-    margin: theme.spacing(1)
+    margin: `${theme.spacing(1)}!important`
   }
 });
 
 const sitesQL = gql`
   query QueueQuery {
     viewer {
-      username
       sites {
         name
         datetime

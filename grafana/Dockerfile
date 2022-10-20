@@ -1,4 +1,4 @@
-FROM grafana/grafana:latest
+FROM grafana/grafana:8.5.4
 
 # expose env vars during build for access during provisioning
 ARG INFLUXDB_HOST
