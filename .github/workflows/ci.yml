@@ -72,8 +72,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - run: docker-compose pull
-
       - uses: satackey/action-docker-layer-caching@v0.0.11
 
       # only need to start the worker which saves time here because
@@ -124,8 +122,6 @@ jobs:
           # poetry in the dockerfile is a bit older because
           # of a urllib3 issue
           poetry-version: 1.2.1
-
-      - run: docker-compose pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
 
@@ -179,8 +175,6 @@ jobs:
           # poetry in the dockerfile is a bit older because
           # of a urllib3 issue
           poetry-version: 1.2.1
-
-      - run: docker-compose pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
 
