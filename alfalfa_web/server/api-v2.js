@@ -353,6 +353,57 @@ router.post("/models/:id/stop", (req, res) => {
 
 /**
  * @openapi
+ * /aliases
+ *   get:
+ *     description: Return list of aliases
+ *     operationId: aliases
+ *     tags:
+ *       - Alfalfa
+ *     responses:
+ *       200:
+ *         description: aliases response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *             example:
+ *               foo: d4e2c041-0389-4933-8aa4-016d80283779
+ *               bar: 9e2acb8e-974e-406b-a990-48e9743b01de
+ */
+router.get("/aliases", async (req, res) => {
+  const docs = {};
+  const cursor = db.collection("alias").find();
+  for await (const doc of cursor) {
+    if (doc) docs[doc.name] = doc.ref_id;
+  }
+  res.json(docs);
+});
+
+router.get("/aliases/:name", async (req, res) => {
+  const { name: alias_name } = req.params;
+  const alias = await db.collection("alias").findOne({ name: alias_name });
+  console.log(alias);
+  if (alias) {
+    res.json(alias);
+  } else {
+    res.sendStatus(404);
+  }
+});
+
+router.put("/aliases/:name", async (req, res) => {
+  const { name: alias_name } = req.params;
+  const { body } = req;
+
+  db.collection("alias").updateOne(
+    { name: alias_name },
+    { $set: { name: alias_name, ref_id: body.ref_id } },
+    { upsert: true }
+  );
+  res.sendStatus(200);
+});
+
+/**
+ * @openapi
  * /version:
  *   get:
  *     description: Return the Alfalfa version
