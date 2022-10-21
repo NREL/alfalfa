@@ -314,10 +314,6 @@ class StepRun(StepRunBase):
                     rec__cur="m:"
                 )
 
-                # Write to points
-                self.run.get_point_by_key(output_id).val = output_value
-                self.run_manager.update_db(self.run)
-
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
         output_time_string = "s:" + str(self.get_sim_time())
