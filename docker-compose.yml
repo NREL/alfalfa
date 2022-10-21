@@ -70,7 +70,6 @@ services:
     depends_on:
       - minio
   worker:
-    container_name: alfalfa_worker
     build:
       # the purpose of context one level above is to install the entire alfalfa package
       # and to copy the wait-for-it.sh and start_worker.sh files in the deploy directory
