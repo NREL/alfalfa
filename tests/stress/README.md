@@ -2,7 +2,7 @@ These are collection of tests that should be used to stress test alalfa at scale
 
 Dependencies
 
-pip install pytest-parallel
+pip install pytest-parallel virtualenv
 
 Example to execute 
 

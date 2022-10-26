@@ -29,7 +29,7 @@ def create_zip(model_dir):
 
 # Can't inherit TestCase as parametrize doesn't work.  We just want to run a bunch of models using pytest so okay for
 # this use case
-@pytest.mark.parametrize('n', range(40))
+@pytest.mark.parametrize('n', range(2))
 @pytest.mark.stress
 class TestRefrigCaseOSW:
 
@@ -60,7 +60,7 @@ class TestRefrigCaseOSW:
         alfalfa = AlfalfaClient(url='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
         print(model_id)
-        alfalfa.wait(model_id, "Stopped")
+        alfalfa.wait(model_id, "READY")
         start_dt = datetime.datetime(2019, 1, 2, 0, 2, 0)
         alfalfa.start(
             model_id,
@@ -72,7 +72,7 @@ class TestRefrigCaseOSW:
 
 
 
-        alfalfa.wait(model_id, "Running")
+        alfalfa.wait(model_id, "RUNNING")
 
         # -- Assert model gets to expected start time
         model_time = alfalfa.get_sim_time(model_id)
@@ -106,5 +106,5 @@ class TestRefrigCaseOSW:
 
         # Shut down
         alfalfa.stop(model_id)
-        alfalfa.wait(model_id, "Stopped")
+        alfalfa.wait(model_id, "COMPLETE")
 
