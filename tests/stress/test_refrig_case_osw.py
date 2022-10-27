@@ -9,6 +9,8 @@ import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient
 
 
+NUMBERTESTS = 40
+
 # Consider factoring this out of the test file
 def zipdir(path, ziph):
     # ziph is zipfile handle
@@ -29,7 +31,7 @@ def create_zip(model_dir):
 
 # Can't inherit TestCase as parametrize doesn't work.  We just want to run a bunch of models using pytest so okay for
 # this use case
-@pytest.mark.parametrize('n', range(2))
+@pytest.mark.parametrize('n', range(NUMBERTESTS))
 @pytest.mark.stress
 class TestRefrigCaseOSW:
 
@@ -56,15 +58,22 @@ class TestRefrigCaseOSW:
         alfalfa.wait(model_id, "Stopped")
     """
     def test_simple_external_clock(self, n):
+
+
+        run_log = open(f"runlog_{NUMBERTESTS}.txt", "a")
+
+ 
         zip_file_path = create_zip('refrig_case_osw')
         alfalfa = AlfalfaClient(url='http://localhost')
+ 
+        log_start_dt = datetime.datetime.now()
         model_id = alfalfa.submit(zip_file_path)
-        print(model_id)
+ 
         alfalfa.wait(model_id, "READY")
         start_dt = datetime.datetime(2019, 1, 2, 0, 2, 0)
         alfalfa.start(
             model_id,
-            external_clock="false",
+            external_clock="true",
             start_datetime=start_dt,
             end_datetime=datetime.datetime(2019, 1, 2, 2, 0, 0),
             timescale=1
@@ -75,36 +84,43 @@ class TestRefrigCaseOSW:
         alfalfa.wait(model_id, "RUNNING")
 
         # -- Assert model gets to expected start time
-        model_time = alfalfa.get_sim_time(model_id)
-        print(model_time)
-        updated_dt = start_dt
+        #model_time = alfalfa.get_sim_time(model_id)
+        #print(model_time)
+        #updated_dt = start_dt
 
         for x in range(120):
           # -- Advance a single time step
           alfalfa.advance([model_id])
-          model_time = alfalfa.get_sim_time(model_id)
-          print(model_time)
-          print(alfalfa.status(model_id))
+          #model_time = alfalfa.get_sim_time(model_id)
+          #print(model_time)
+          #print(alfalfa.status(model_id))
 
         # The above should hold in advance state.
-        sleep(5)
-        model_time = alfalfa.get_sim_time(model_id)
-        print(model_time)
-        updated_dt += datetime.timedelta(minutes=1)
-        print(model_time)
+        #sleep(5)
+        #model_time = alfalfa.get_sim_time(model_id)
+        #print(model_time)
+        #updated_dt += datetime.timedelta(minutes=1)
+        #print(model_time)
         #assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
 
         # -- Advance a single time step
-        alfalfa.advance([model_id])
+       # alfalfa.advance([model_id])
 
         # The above should hold in advance state.
-        sleep(15)
-        model_time = alfalfa.get_sim_time(model_id)
-        print(model_time)
-        updated_dt += datetime.timedelta(minutes=1)
+       # sleep(15)
+       # model_time = alfalfa.get_sim_time(model_id)
+       # print(model_time)
+        #updated_dt += datetime.timedelta(minutes=1)
         #assert updated_dt.strftime("%Y-%m-%d %H:%M") in model_time
 
         # Shut down
         alfalfa.stop(model_id)
         alfalfa.wait(model_id, "COMPLETE")
+        log_end_dt = datetime.datetime.now()
+        delta = (log_end_dt - log_start_dt)
+        record = "{},{}\n".format(model_id,delta.total_seconds())
+        print(record)
+        run_log.write(record) 
+        run_log.flush()
+
 
