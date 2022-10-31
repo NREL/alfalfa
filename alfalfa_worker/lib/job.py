@@ -115,8 +115,8 @@ class Job(metaclass=JobMetaclass):
             self.set_job_status(JobStatus.STOPPED)
 
         except CalledProcessError as e:
-            self.logger.error(e.output)
-            self.record_run_error(e.output)
+            self.logger.error(e.output.decode('utf-8'))
+            self.record_run_error(e.output.decode('utf-8'))
             self.set_job_status(JobStatus.ERROR)
             self.checkin_run()
         except Exception as e:
