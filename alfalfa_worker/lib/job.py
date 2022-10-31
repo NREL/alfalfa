@@ -252,7 +252,7 @@ class Job(metaclass=JobMetaclass):
     @with_run()
     def set_run_time(self, sim_time):
         self.run.sim_time = sim_time
-        self.run_manager.update_db(self.run)
+        self.redis.hset(self.run.ref_id, "sim_time", str(sim_time))
 
     @with_run(return_on_fail=True)
     def record_run_error(self, error_log: str):

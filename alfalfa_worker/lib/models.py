@@ -418,7 +418,6 @@ class Run(TimestampedDocument):
 
     job_history = ListField(StringField(max_length=255))
 
-    sim_time = DynamicField(default=None)
     sim_type = StringField(required=True, choices=SimType.possible_enums_as_string(), max_length=255)
     # TODO: add in choices for status
     status = StringField(required=True, max_length=255)
