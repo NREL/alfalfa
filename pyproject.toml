@@ -38,7 +38,7 @@ Cython = "^0.29.28"
 numpy = "1.21.6"
 
 # needed for some dependencies -- ignoring for now
-setuptools = "65.3.0"
+# setuptools = "65.3.0"
 # urllib3 = "^1.26.12"
 
 # These libraries are used for the data generator/testcase.
