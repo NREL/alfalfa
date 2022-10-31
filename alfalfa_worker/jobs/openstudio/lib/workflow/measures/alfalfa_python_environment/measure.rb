@@ -34,16 +34,16 @@
 # *******************************************************************************
 
 # start the measure
-class Python < OpenStudio::Ruleset::WorkspaceUserScript
+class AlfalfaPythonEnvironment < OpenStudio::Ruleset::WorkspaceUserScript
 
   # human readable name
   def name
-    return 'Python'
+    return 'Alfalfa Python Environment'
   end
 
   # human readable description
   def description
-    return 'Add python to IDF'
+    return 'Add alfalfa python environment to IDF'
   end
 
   # human readable description of modeling approach
