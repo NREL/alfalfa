@@ -232,3 +232,8 @@ jobs:
         env:
           DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
+
+      - name: Trigger Alfalfa Repositories to Run Tests
+        run: |
+          curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" -H "Accept: application/vnd.github+json" https://api.github.com/repos/NREL/alfalfa-client/dispatches --data '{"event_type": "alfalfa-update-${{ github.ref_name }}"}'
+          curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" -H "Accept: application/vnd.github+json" https://api.github.com/repos/NREL/alfalfa-notebooks/dispatches --data '{"event_type": "alfalfa-update-${{ github.ref_name }}"}'
