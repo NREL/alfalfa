@@ -92,4 +92,4 @@ class AlfalfaPythonEnvironment < OpenStudio::Ruleset::WorkspaceUserScript
 end
 
 # register the measure to be used by the application
-Python.new.registerWithApplication
+AlfalfaPythonEnvironment.new.registerWithApplication
