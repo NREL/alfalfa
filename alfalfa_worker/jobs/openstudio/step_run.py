@@ -37,8 +37,8 @@ class StepRun(StepRunBase):
 
         # EnergyPlus MLEP initializations
         self.ep = mlep.MlepProcess()
-        self.ep.bcvtbDir = '/home/alfalfa/bcvtb/'
-        self.ep.env = {'BCVTB_HOME': '/home/alfalfa/bcvtb'}
+        self.ep.bcvtbDir = '/usr/local/bcvtb/'
+        self.ep.env = {'BCVTB_HOME': '/usr/local/bcvtb'}
         self.ep.accept_timeout = 10000
         self.ep.mapping = os.path.realpath(self.dir / 'simulation' / 'haystack_report_mapping.json')
         self.ep.workDir = os.path.split(self.idf_file)[0]
