@@ -12,7 +12,6 @@ from alfalfa_worker.lib.job import (
     JobExceptionExternalProcess,
     message
 )
-from alfalfa_worker.lib.models import Rec
 from alfalfa_worker.lib.point import Point, PointType
 
 
@@ -310,9 +309,6 @@ class StepRun(StepRunBase):
                     'curStatus': 's:ok',
                     'curVal': f'n:{output_value}'
                 })
-                Rec.objects.get(ref_id=output_id).update(
-                    rec__cur="m:"
-                )
 
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
