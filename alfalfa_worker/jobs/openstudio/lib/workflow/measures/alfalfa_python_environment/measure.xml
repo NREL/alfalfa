@@ -1,25 +1,17 @@
 <?xml version="1.0"?>
 <measure>
   <schema_version>3.0</schema_version>
-  <name>python</name>
+  <error>uninitialized constant Python</error>
+  <name>alfalfa_python_environment</name>
   <uid>16125428-fcf9-4986-9d9b-3644225a2b6d</uid>
-  <version_id>d307d444-42fa-4805-8ada-e34a39d97424</version_id>
-  <version_modified>20220804T163944Z</version_modified>
+  <version_id>310e60b6-6215-4d58-b10b-e21eddaaf129</version_id>
+  <version_modified>20221031T173904Z</version_modified>
   <xml_checksum>9D2F1A23</xml_checksum>
-  <class_name>Python</class_name>
-  <display_name>Python</display_name>
-  <description>Add python to IDF</description>
+  <class_name>AlfalfaPythonEnvironment</class_name>
+  <display_name>Alfalfa Python Environment</display_name>
+  <description>Add alfalfa python environment to IDF</description>
   <modeler_description>Add python script path to IDF</modeler_description>
-  <arguments>
-    <argument>
-      <name>python_path</name>
-      <display_name>Python Path</display_name>
-      <description>Path to python site-packages</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-  </arguments>
+  <arguments />
   <outputs />
   <provenances />
   <tags />
@@ -45,7 +37,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>319CFDB7</checksum>
+      <checksum>4A5B6A8D</checksum>
     </file>
   </files>
 </measure>
