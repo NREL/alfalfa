@@ -61,7 +61,6 @@ run_data = [
         ],
         "sim_type": "OPENSTUDIO",
         "status": "READY",
-        "error_log": "",
-        "sim_time": "None",
+        "error_log": ""
     }
 ]
