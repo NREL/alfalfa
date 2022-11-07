@@ -11,8 +11,14 @@ const WebpackBeforeBuildPlugin = require("before-build-webpack");
 const isProd = process.env.NODE_ENV === "production";
 
 const getSha = () => {
-  const stdout = npmRun.execSync("git rev-parse --short=10 HEAD", { cwd: __dirname });
-  const sha = stdout.toString().trim();
+  let sha = process.env.GIT_COMMIT;
+  if (!sha) {
+    try {
+      sha = npmRun.execSync("git rev-parse HEAD", { cwd: __dirname }).toString().trim().substring(0, 7);
+    } catch (e) {
+      console.error("Failed to determine git sha");
+    }
+  }
   fs.writeFileSync(path.resolve(__dirname, "build", "sha.json"), JSON.stringify({ sha }));
 };
 

@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-  # Reenable pull_request if we start receiving 3rd party contributions.
-  # Otherwise all pull_requests will also be push test and we are enforcing
-  # that code must be up to date with parent in the PRs.
+  # Re-enable pull_request if we start receiving 3rd party contributions.
+  # Otherwise, all pull_requests will also be push test and we are enforcing
+  # that code must be up-to-date with parent in the PRs.
   #pull_request:
 
 jobs:
@@ -76,6 +76,8 @@ jobs:
       # the webpack calling on the web container for .dev.yml can take some
       # time.
       - name: Build and run stack
+        env:
+          GIT_COMMIT: ${{ github.sha }}
         run: |
           printenv
           docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d worker
@@ -122,6 +124,8 @@ jobs:
           poetry-version: 1.2.1
 
       - name: Build and run stack
+        env:
+          GIT_COMMIT: ${{ github.sha }}
         run: |
           printenv
           docker-compose up --build -d
@@ -173,6 +177,8 @@ jobs:
           poetry-version: 1.2.1
 
       - name: Build and run stack
+        env:
+          GIT_COMMIT: ${{ github.sha }}
         run: |
           export HISTORIAN_ENABLE=true
           printenv
