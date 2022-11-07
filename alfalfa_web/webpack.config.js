@@ -4,14 +4,25 @@ if (fs.existsSync("../.env")) require("dotenv").config({ path: "../.env" });
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const npmRun = require("npm-run");
 const TerserPlugin = require("terser-webpack-plugin");
+const WebpackBeforeBuildPlugin = require("before-build-webpack");
 
 const isProd = process.env.NODE_ENV === "production";
+
+const getSha = () => {
+  const stdout = npmRun.execSync("git rev-parse --short=10 HEAD", { cwd: __dirname });
+  const sha = stdout.toString().trim();
+  fs.writeFileSync(path.resolve(__dirname, "build", "sha.json"), JSON.stringify({ sha }));
+};
 
 module.exports = {
   mode: isProd ? "production" : "development",
   devtool: isProd ? false : "source-map",
   entry: "./app.js",
+  cache: {
+    type: "filesystem"
+  },
   devServer: {
     static: {
       directory: path.join(__dirname, "public")
@@ -74,6 +85,10 @@ module.exports = {
     ]
   },
   plugins: [
+    new WebpackBeforeBuildPlugin((stats, callback) => {
+      getSha();
+      callback();
+    }),
     new HtmlWebpackPlugin({ template: "./index.html" }),
     new CopyPlugin({
       patterns: [

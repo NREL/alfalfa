@@ -148,19 +148,25 @@ function removeSiteResolver(args) {
 
 function simsResolver(user, args, context) {
   return new Promise((resolve, reject) => {
-    let sims = [];
+    const sims = [];
     const simCollection = context.db.collection("simulation");
     simCollection
       .find(args)
       .toArray()
       .then((array) => {
         array.forEach((sim) => {
-          sim.simRef = sim.ref_id;
-          if (sim.s3Key) {
-            const params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
-            sim.url = s3client.getSignedUrl("getObject", params);
-          }
-          sims.push(sim);
+          sims.push({
+            id: sim._id.toString(),
+            siteRef: sim.ref_id,
+            simStatus: sim.sim_status,
+            s3Key: sim.s3_key,
+            name: sim.name,
+            url: sim.s3_key
+              ? s3client.getSignedUrl("getObject", { Bucket: process.env.S3_BUCKET, Key: sim.s3_key, Expires: 86400 })
+              : undefined,
+            timeCompleted: sim.modified.toISOString(),
+            results: JSON.stringify(sim.results)
+          });
         });
         resolve(sims);
       })
@@ -186,7 +192,7 @@ function runResolver(user, run_id, context) {
         status: doc.status,
         created: doc.created,
         modified: doc.modified,
-        sim_time: sim_time,
+        sim_time,
         error_log: doc.error_log
       };
     });

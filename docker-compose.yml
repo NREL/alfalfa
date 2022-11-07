@@ -72,7 +72,7 @@ services:
   worker:
     build:
       # the purpose of context one level above is to install the entire alfalfa package
-      # and to copy the wait-for-it.sh and start_worker.sh files in the deploy directory
+      # and to copy the wait-for-it.sh and start_worker.sh files in the `deploy` directory
       dockerfile: alfalfa_worker/Dockerfile
       context: .
       target: base

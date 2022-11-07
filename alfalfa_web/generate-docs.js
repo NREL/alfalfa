@@ -38,13 +38,21 @@ const openapiSpecification = swaggerJsdoc({
     ],
     components: {
       schemas: {
-        Model: {
+        Error: {
+          type: "object",
+          properties: {
+            error: {
+              type: "string"
+            }
+          }
+        },
+        Site: {
           type: "object",
           properties: {
             id: {
               type: "string"
             },
-            description: {
+            name: {
               type: "string"
             },
             uploadTimestamp: {
