@@ -100,7 +100,6 @@ class Run:
             'status': str(self._status),
             'created': str(self.created),
             'modified': str(self.modified),
-            'sim_time': str(self.sim_time),
             'error_log': self.error_log
         }
 

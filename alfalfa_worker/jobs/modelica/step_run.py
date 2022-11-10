@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
 from alfalfa_worker.lib.job import message
-from alfalfa_worker.lib.models import Rec
 from alfalfa_worker.lib.testcase import TestCase
 
 
@@ -127,10 +126,6 @@ class StepRun(StepRunBase):
             if key != 'time':
                 output_id = self.tagid_and_outputs[key]
                 value_y = y_output[key]
-
-                rec = Rec.objects.get(ref_id=output_id)
-                rec.update(rec__cur="m:")
-                rec.save()
 
                 key = f'site:{self.site.ref_id}:rec:{output_id}'
                 self.redis.hset(key, mapping={
