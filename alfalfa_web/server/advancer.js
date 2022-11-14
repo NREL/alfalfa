@@ -1,4 +1,7 @@
 import { v1 as uuidv1 } from "uuid";
+import { getHashValue, setHashValue } from "./utils";
+
+const intervalMs = 250;
 
 class Advancer {
   // This class pertains to advancing a simulation.
@@ -32,20 +35,20 @@ class Advancer {
   }
 
   advance(siteRefs) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       let response = {};
       let pending = siteRefs.length;
 
-      const advanceSite = (siteref) => {
-        const channel = siteref;
+      const advanceSite = (siteRef) => {
+        const channel = siteRef;
 
         // Cleanup the resources for advance and finalize the promise
         let interval;
         const finalize = (success, message = "") => {
           clearInterval(interval);
           this.sub.unsubscribe(channel);
-          response[siteref] = { status: success, message: message };
-          pending = pending - 1;
+          response[siteRef] = { status: success, message: message };
+          --pending;
           if (pending === 0) {
             resolve(response);
           }
@@ -57,59 +60,45 @@ class Advancer {
           };
 
           this.sub.subscribe(channel);
-          const message_id = uuidv1();
-          this.pub.publish(channel, JSON.stringify({ message_id, method: "advance" }));
+          const uuid = uuidv1();
+          this.pub.publish(channel, JSON.stringify({ message_id: uuid, method: "advance" }));
 
           // This is a failsafe if for some reason we miss a notification
           // that the step is complete
           // Check if the simulation has gone back to idle
           let intervalCounts = 0;
-          interval = setInterval(() => {
-            const control = this.redis.hget(siteref, "control"); // I think this doesn't work... see below for how to get values from redis
-            this.redis.hget(siteref, message_id, (error, value) => {
-              if (!value) {
-                return;
-              }
-              if (JSON.parse(value).status === "ok") {
-                finalize(true, value);
-              } else {
-                finalize(false, value);
-              }
-            });
+          interval = setInterval(async () => {
+            const control = await getHashValue(this.redis, siteRef, "control");
+            const value = await getHashValue(this.redis, siteRef, uuid);
+            if (!value) return;
+            finalize(JSON.parse(value).status === "ok", value);
             if (control === "idle") {
               // If the control state is idle, then assume the step has been made
               // and resolve the advance promise, this might happen if we miss the notification for some reason
               finalize(true, "success");
             } else {
-              intervalCounts += 1;
+              ++intervalCounts;
             }
-            if (intervalCounts > 60) {
-              console.error(`Simulation with id ${siteref} timed out while trying to advance`);
+            if (intervalCounts > 60000 / intervalMs) {
+              console.error(`Simulation with id ${siteRef} timed out while trying to advance`);
               finalize(false, "no simulation reply");
             }
-          }, 1000);
+          }, intervalMs);
         };
 
-        // Put siteref:control key into "advance" state
-        this.redis.watch(siteref, (err) => {
+        // Put siteRef:control key into "advance" state
+        this.redis.watch(siteRef, async (err) => {
           if (err) throw err;
 
-          this.redis.hget(siteref, "control", (err, control) => {
-            if (err) throw err;
-            // if control not equal idle then abort the request to advance and return to client
-            if (control === "idle") {
-              // else proceed to advance state, this node has exclusive control over the simulation now
-              this.redis
-                .multi()
-                .hset(siteref, "control", "advance")
-                .exec((err, results) => {
-                  if (err) throw err;
-                  notify();
-                });
-            } else {
-              finalize(true, "busy");
-            }
-          });
+          const control = await getHashValue(this.redis, siteRef, "control");
+          // if control not equal to idle then abort the request to advance and return to client
+          if (control === "idle") {
+            // else proceed to advance state, this node has exclusive control over the simulation now
+            await setHashValue(this.redis, siteRef, "control", "advance");
+            notify();
+          } else {
+            finalize(true, "busy");
+          }
         });
       };
 

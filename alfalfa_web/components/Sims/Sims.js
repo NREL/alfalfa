@@ -66,25 +66,23 @@ class Sims extends React.Component {
     selected: []
   };
 
-  isSelected = (simRef) => {
-    return this.state.selected.indexOf(simRef) !== -1;
+  isSelected = (id) => {
+    return this.state.selected.indexOf(id) !== -1;
   };
 
   selectedSims = () => {
     return this.props.data.viewer.sims.filter((sim) => {
-      return this.state.selected.some((simRef) => {
-        return simRef === sim.simRef;
-      });
+      return this.state.selected.some((id) => id === sim.siteRef);
     });
   };
 
-  handleRowClick = (event, simRef) => {
+  handleRowClick = (event, id) => {
     const { selected } = this.state;
-    const selectedIndex = selected.indexOf(simRef);
+    const selectedIndex = selected.indexOf(id);
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, simRef);
+      newSelected = newSelected.concat(selected, id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -156,12 +154,12 @@ class Sims extends React.Component {
               </TableHead>
               <TableBody>
                 {sims.map((sim) => {
-                  const isSelected = this.isSelected(sim.simRef);
+                  const isSelected = this.isSelected(sim.siteRef);
                   return (
                     <TableRow
-                      key={sim.simRef}
+                      key={sim.siteRef}
                       style={{ cursor: "default" }}
-                      onClick={(event) => this.handleRowClick(event, sim.simRef)}>
+                      onClick={(event) => this.handleRowClick(event, sim.siteRef)}>
                       <TableCell padding="checkbox">
                         <Checkbox checked={isSelected} />
                       </TableCell>
@@ -214,7 +212,6 @@ const simsQL = gql`
   query SimsQuery {
     viewer {
       sims {
-        simRef
         name
         simStatus
         siteRef

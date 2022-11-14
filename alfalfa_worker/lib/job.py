@@ -115,8 +115,14 @@ class Job(metaclass=JobMetaclass):
             self.set_job_status(JobStatus.STOPPED)
 
         except CalledProcessError as e:
-            self.logger.error(e.output)
-            self.record_run_error(e.output)
+            if e.output:
+                self.logger.error(e, exc_info=True)
+                self.logger.error(e.output.decode('utf-8'))
+                self.record_run_error(e.output.decode('utf-8'))
+            else:
+                self.logger.error(e, exc_info=True)
+                self.logger.error(str(traceback.format_exc()))
+                self.record_run_error(traceback.format_exc())
             self.set_job_status(JobStatus.ERROR)
             self.checkin_run()
         except Exception as e:
@@ -252,7 +258,7 @@ class Job(metaclass=JobMetaclass):
     @with_run()
     def set_run_time(self, sim_time):
         self.run.sim_time = sim_time
-        self.run_manager.update_db(self.run)
+        self.redis.hset(self.run.ref_id, "sim_time", str(sim_time))
 
     @with_run(return_on_fail=True)
     def record_run_error(self, error_log: str):

@@ -26,6 +26,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
+      - GIT_COMMIT
       - JOB_QUEUE_URL
       - MONGO_DB_NAME
       - MONGO_URL
@@ -49,7 +50,6 @@ services:
       - /srv/alfalfa/build
       - /srv/alfalfa/node_modules
   worker:
-    container_name: alfalfa_worker
     build:
       # the purpose of context one level above is to install the entire alfalfa package
       # and to copy the wait-for-it.sh and start_worker.sh files in the deploy directory

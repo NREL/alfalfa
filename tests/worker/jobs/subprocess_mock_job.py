@@ -1,4 +1,4 @@
-from subprocess import check_call
+from subprocess import check_call, check_output
 
 from alfalfa_worker.lib.job import message
 from tests.worker.lib.mock_job import MockJob
@@ -20,6 +20,11 @@ class SubprocessMockJob(MockJob):
     @message
     def failing_subprocess(self):
         check_call("exit 1", shell=True)
+        return True
+
+    @message
+    def failing_subprocess_with_output(self, test_string):
+        check_output(f"echo '{test_string}' && exit 1", shell=True)
         return True
 
     @message

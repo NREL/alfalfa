@@ -89,7 +89,7 @@ const simType = new GraphQLObjectType({
   name: "Sim",
   description: "A completed simulation, including any that may have stopped with errors.",
   fields: () => ({
-    simRef: {
+    id: {
       type: GraphQLString,
       description: "A unique identifier for the simulation"
     },
