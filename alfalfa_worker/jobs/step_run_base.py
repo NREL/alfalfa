@@ -253,7 +253,7 @@ class StepRunBase(Job):
         """Return a dictionary of point ids and current winning values"""
         write_values = {}
         prefix = f'site:{self.site.ref_id}:point:'
-        for key in self.redis.scan_iter(prefix + '*'):
+        for key in self.redis.keys(pattern=prefix + '*'):
             key = key.decode('UTF-8')
             _id = key[len(prefix):]
             write_array = self.redis.lrange(key, 0, -1)
