@@ -45,7 +45,7 @@ numpy = "1.21.6"
 # They are pinned to older versions as the min python version is 3.7
 # Lock to pillow 9.1.1 to avoid installation issues with Pillow 9.2 on Ubuntu
 matplotlib = "3.5.2"
-pillow = "9.1.1"
+pillow = "9.3.0"
 
 # The influxdb dependency will be removed once filebeat is configured
 influxdb = "^5.3.1"
