@@ -148,19 +148,25 @@ function removeSiteResolver(args) {
 
 function simsResolver(user, args, context) {
   return new Promise((resolve, reject) => {
-    let sims = [];
+    const sims = [];
     const simCollection = context.db.collection("simulation");
     simCollection
       .find(args)
       .toArray()
       .then((array) => {
         array.forEach((sim) => {
-          sim.simRef = sim.ref_id;
-          if (sim.s3Key) {
-            const params = { Bucket: process.env.S3_BUCKET, Key: sim.s3Key, Expires: 86400 };
-            sim.url = s3client.getSignedUrl("getObject", params);
-          }
-          sims.push(sim);
+          sims.push({
+            id: sim._id.toString(),
+            siteRef: sim.ref_id,
+            simStatus: sim.sim_status,
+            s3Key: sim.s3_key,
+            name: sim.name,
+            url: sim.s3_key
+              ? s3client.getSignedUrl("getObject", { Bucket: process.env.S3_BUCKET, Key: sim.s3_key, Expires: 86400 })
+              : undefined,
+            timeCompleted: sim.modified.toISOString(),
+            results: JSON.stringify(sim.results)
+          });
         });
         resolve(sims);
       })
@@ -174,14 +180,19 @@ function runResolver(user, run_id, context) {
   return context.db
     .collection("run")
     .findOne({ ref_id: run_id })
-    .then((doc) => {
+    .then(async (doc) => {
+      let sim_time = "";
+      const site_hash = await getHash(context.redis, run_id);
+      if (site_hash["sim_time"]) {
+        sim_time = site_hash["sim_time"];
+      }
       return {
         id: run_id,
         sim_type: doc.sim_type,
         status: doc.status,
         created: doc.created,
         modified: doc.modified,
-        sim_time: doc.sim_time,
+        sim_time,
         error_log: doc.error_log
       };
     });
@@ -223,16 +234,20 @@ async function sitesResolver(user, siteRef, context) {
       responseType: "json"
     })
     .then(({ body }) => {
-      return body.rows.map((row) => {
+      return body.rows.map(async (row) => {
         const site = {
           name: row.dis.replace(/^[a-z]:/, ""),
           siteRef: row.id.replace(/^[a-z]:/, ""),
           simStatus: row.simStatus.replace(/^[a-z]:/, ""),
-          simType: row.simType.replace(/^[a-z]:/, "")
+          simType: row.simType.replace(/^[a-z]:/, ""),
+          datetime: ""
         };
+        const site_hash = await getHash(context.redis, site.siteRef);
+        if (site_hash["sim_time"]) {
+          site.datetime = site_hash["sim_time"];
+        }
         if (site.siteRef in runs) {
           site.simStatus = runs[site.siteRef].status;
-          site.datetime = runs[site.siteRef].sim_time;
         }
         const { step } = row;
         if (step) {

@@ -4,14 +4,31 @@ if (fs.existsSync("../.env")) require("dotenv").config({ path: "../.env" });
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const npmRun = require("npm-run");
 const TerserPlugin = require("terser-webpack-plugin");
+const WebpackBeforeBuildPlugin = require("before-build-webpack");
 
 const isProd = process.env.NODE_ENV === "production";
+
+const getSha = () => {
+  let sha = process.env.GIT_COMMIT;
+  if (!sha) {
+    try {
+      sha = npmRun.execSync("git rev-parse HEAD", { cwd: __dirname }).toString().trim().substring(0, 7);
+    } catch (e) {
+      console.error("Failed to determine git sha");
+    }
+  }
+  fs.writeFileSync(path.resolve(__dirname, "build", "sha.json"), JSON.stringify({ sha }));
+};
 
 module.exports = {
   mode: isProd ? "production" : "development",
   devtool: isProd ? false : "source-map",
   entry: "./app.js",
+  cache: {
+    type: "filesystem"
+  },
   devServer: {
     static: {
       directory: path.join(__dirname, "public")
@@ -74,6 +91,10 @@ module.exports = {
     ]
   },
   plugins: [
+    new WebpackBeforeBuildPlugin((stats, callback) => {
+      getSha();
+      callback();
+    }),
     new HtmlWebpackPlugin({ template: "./index.html" }),
     new CopyPlugin({
       patterns: [

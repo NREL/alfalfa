@@ -1,17 +1,18 @@
-import AWS from "aws-sdk";
 import { Router } from "express";
-import got from "got";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { make, regex } from "simple-body-validator";
 import { version } from "../package.json";
+import AlfalfaAPI from "./api";
 
-AWS.config.update({ region: process.env.REGION || "us-east-1" });
-const sqs = new AWS.SQS();
-
-let db;
+let api, db, redis;
 const router = Router();
+const route = "/api/v2";
 
-const api = ({ db: _db }) => {
+const apiv2 = ({ db: _db, redis: _redis }) => {
   db = _db;
+  redis = _redis;
+  api = new AlfalfaAPI(db, redis);
   return router;
 };
 
@@ -19,207 +20,126 @@ router.get("/", (req, res) => {
   res.redirect(301, "/docs");
 });
 
-function mapHaystack(row) {
-  return Object.keys(row).reduce((result, key) => {
-    result[key] = row[key].replace(/^[a-z]:/, "");
-    return result;
-  }, {});
-}
+// Remove trailing slashes
+router.get(/\/$/, (req, res) => {
+  res.redirect(301, `${route}${req.url.slice(0, -1)}`);
+});
 
 /**
  * @openapi
- * /models:
+ * /sites:
  *   get:
- *     description: Return all models
- *     operationId: models
+ *     description: Return all sites
+ *     operationId: sites
  *     tags:
  *       - Alfalfa
  *     responses:
  *       200:
- *         description: models response
+ *         description: sites response
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Model'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Site'
  *             example:
  *               data:
  *                 - id: 4b8c6b40-f818-11ec-a8bd-75570e3e3a28
- *                   description: Building 1
- *                   uploadTimestamp: '2022-06-30 01:59:42.100453+00:00'
+ *                   name: Building 1
+ *                   uploadTimestamp: 2022-06-30 01:59:42.100453+00:00
  *                   uploadPath: uploads/4b8c6b40-f818-11ec-a8bd-75570e3e3a28/refrig_case_osw.zip
  *                 - id: 82ae8d50-f837-11ec-bda1-355419177ef9
- *                   description: Building 2
- *                   uploadTimestamp: '2022-06-30 05:43:06.884923+00:00'
+ *                   name: Building 2
+ *                   uploadTimestamp: 2022-06-30 05:43:06.884923+00:00
  *                   uploadPath: uploads/82ae8d50-f837-11ec-bda1-355419177ef9/refrig_case_osw_2.zip
  */
-router.get("/models", async (req, res) => {
-  const docs = {};
-  const cursor = db.collection("run").find();
-  for await (const doc of cursor) {
-    if (doc) docs[doc.ref_id] = doc;
-  }
-
-  got
-    .post("http://localhost/haystack/read", {
-      headers: {
-        Accept: "application/json"
-      },
-      json: {
-        meta: {
-          ver: "2.0"
-        },
-        cols: [
-          {
-            name: "filter"
-          }
-        ],
-        rows: [
-          {
-            filter: "s:site"
-          }
-        ]
-      },
-      responseType: "json"
-    })
-    .then(({ body }) => {
-      const models = body.rows.map((row) => {
-        const { id, dis: description } = mapHaystack(row);
-        const model = {
-          id,
-          description
-        };
-
-        const doc = docs[id];
-        if (doc) {
-          model.uploadTimestamp = doc.created;
-          model.uploadPath = doc.model;
-        }
-
-        return model;
-      });
-      res.json({ data: models });
-    })
+router.get("/sites", async (req, res) => {
+  api
+    .listSites()
+    .then((data) => res.json({ data }))
     .catch(() => res.sendStatus(500));
 });
 
 /**
  * @openapi
- * /models/{modelId}:
+ * /sites/{siteId}:
  *   get:
- *     description: Find a model by id
- *     operationId: model
+ *     description: Find a site by id
+ *     operationId: site
  *     tags:
  *       - Alfalfa
  *     responses:
  *       200:
- *         description: model response
+ *         description: site response
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Model'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: '#/components/schemas/Site'
  *             example:
  *               data:
  *                 id: 4b8c6b40-f818-11ec-a8bd-75570e3e3a28
- *                 description: Building 1
- *                 uploadTimestamp: '2022-06-30 01:59:42.100453+00:00'
+ *                 name: Building 1
+ *                 uploadTimestamp: 2022-06-30 01:59:42.100453+00:00
  *                 uploadPath: uploads/4b8c6b40-f818-11ec-a8bd-75570e3e3a28/refrig_case_osw.zip
- *       400:
- *         description: invalid ID supplied
+ *       404:
+ *         description: site with ID does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: Site with id '12345' does not exist
  */
-router.get("/models/:id", async (req, res) => {
-  const { id: modelId } = req.params;
-  const doc = await db.collection("run").findOne({ ref_id: modelId });
+router.get("/sites/:id", async (req, res) => {
+  const { id: siteId } = req.params;
 
-  got
-    .post("http://localhost/haystack/read", {
-      headers: {
-        Accept: "application/json"
-      },
-      json: {
-        meta: {
-          ver: "2.0"
-        },
-        cols: [
-          {
-            name: "filter"
-          }
-        ],
-        rows: [
-          {
-            filter: `s:site and id==@${modelId}`
-          }
-        ]
-      },
-      responseType: "json"
-    })
-    .then(({ body }) => {
-      if (body.rows.length === 0) {
-        res.sendStatus(400);
-        return;
+  api
+    .findSite(siteId)
+    .then((data) => {
+      if (data) {
+        return res.json({ data });
+      } else {
+        return res.status(404).json({ error: `Site with id '${siteId}' does not exist` });
       }
-
-      const { id, dis: description } = mapHaystack(body.rows[0]);
-      const model = {
-        id,
-        description
-      };
-
-      if (doc) {
-        model.uploadTimestamp = doc.created;
-        model.uploadPath = doc.model;
-      }
-
-      res.json({ data: model });
     })
     .catch(() => res.sendStatus(500));
 });
 
+// TODO
+router.get("/sites/:id/points", async (req, res) => {});
+
 /**
  * @openapi
- * /models/{modelId}:
+ * /sites/{siteId}:
  *   delete:
- *     description: Delete a model by id
- *     operationId: deleteModel
+ *     description: Delete a site by id
+ *     operationId: deleteSite
  *     tags:
  *       - Alfalfa
  *     responses:
  *       204:
- *         description: the model was deleted successfully
+ *         description: the site was deleted successfully
  */
-router.delete("/models/:id", (req, res) => {
-  const { id: modelId } = req.params;
+router.delete("/sites/:id", (req, res) => {
+  const { id: siteId } = req.params;
 
-  got
-    .post("http://localhost/haystack/invokeAction", {
-      headers: {
-        Accept: "application/json"
-      },
-      json: {
-        meta: {
-          ver: "2.0",
-          id: `r:${modelId}`,
-          action: "s:removeSite"
-        },
-        cols: [
-          {
-            name: "empty" // At least one column is required
-          }
-        ],
-        rows: []
-      },
-      responseType: "json"
-    })
+  api
+    .removeSite(siteId)
     .then(() => res.sendStatus(204))
     .catch(() => res.sendStatus(500));
 });
 
 /**
  * @openapi
- * /models/{modelId}/start:
+ * /sites/{siteId}/start:
  *   post:
- *     description: Start a model run
+ *     description: Start a site run
  *     operationId: startRun
  *     tags:
  *       - Alfalfa
@@ -243,11 +163,11 @@ router.delete("/models/:id", (req, res) => {
  *                 example: 5
  *               externalClock:
  *                 type: boolean
- *                 description: The model will only advance when explicitly told to via an external call
+ *                 description: The site will only advance when explicitly told to via an external call
  *                 example: false
  *               realtime:
  *                 type: boolean
- *                 description: The model will advance at 1x speed
+ *                 description: The site will advance at 1x speed
  *                 example: false
  *             required:
  *               - startDatetime
@@ -256,9 +176,17 @@ router.delete("/models/:id", (req, res) => {
  *       204:
  *         description: the run was started successfully
  */
-router.post("/models/:id/start", async (req, res) => {
-  const { id: modelId } = req.params;
+router.post("/sites/:id/start", async (req, res) => {
+  const { id: siteId } = req.params;
   const { body } = req;
+  let data;
+  try {
+    data = JSON.parse(body);
+  } catch (e) {
+    return res.status(400).json({
+      error: "Invalid JSON body"
+    });
+  }
 
   const rules = {
     startDatetime: ["required", regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)],
@@ -268,55 +196,65 @@ router.post("/models/:id/start", async (req, res) => {
     externalClock: "strict|boolean"
   };
 
-  const validator = make(body, rules);
+  const validator = make(data, rules);
   if (!validator.stopOnFirstFailure().validate()) {
     return res.status(400).json({
       error: validator.errors().first()
     });
   }
 
-  if (!(body.timescale || body.realtime || body.externalClock)) {
+  if (!(data.timescale || data.realtime || data.externalClock)) {
     return res.status(400).json({
       error: "At least one of timescale, realtime, or externalClock must be specified."
     });
   }
 
-  if (body.realtime && body.externalClock) {
+  if (data.realtime && data.externalClock) {
     return res.status(400).json({
       error: "Realtime and externalClock cannot both be enabled."
     });
   }
 
-  const { sim_type } = await db.collection("run").findOne({ ref_id: modelId });
-  const { startDatetime, endDatetime, timescale, realtime, externalClock } = body;
-  const params = {
-    MessageBody: `{
-      "job": "alfalfa_worker.jobs.${sim_type === "MODELICA" ? "modelica" : "openstudio"}.StepRun",
-      "params": {
-        "run_id": "${modelId}",
-        "start_datetime": "${startDatetime}",
-        "end_datetime": "${endDatetime}",
-        "timescale": "${timescale || 5}",
-        "realtime": "${!!realtime}",
-        "external_clock": "${!!externalClock}"
+  api
+    .startRun(siteId, data)
+    .then((data) => {
+      if (data?.error) {
+        return res.status(400).json(data);
+      } else {
+        return res.sendStatus(204);
       }
-    }`,
-    QueueUrl: process.env.JOB_QUEUE_URL,
-    MessageGroupId: "Alfalfa"
-  };
-  sqs.sendMessage(params, (err, data) => {
-    if (err) {
+    })
+    .catch(() => {
       return res.sendStatus(500);
-    }
-    res.sendStatus(204);
-  });
+    });
 });
 
 /**
  * @openapi
- * /models/{modelId}/stop:
+ * /sites/{siteId}/advance:
  *   post:
- *     description: Stop a model run
+ *     description: Advances a site run
+ *     operationId: advanceRun
+ *     tags:
+ *       - Alfalfa
+ *     responses:
+ *       204:
+ *         description: the run was advanced successfully
+ */
+router.post("/sites/:id/advance", (req, res) => {
+  const { id: siteId } = req.params;
+
+  api
+    .advanceRun(siteId)
+    .then(() => res.sendStatus(204))
+    .catch(() => res.sendStatus(500));
+});
+
+/**
+ * @openapi
+ * /sites/{siteId}/stop:
+ *   post:
+ *     description: Stop a site run
  *     operationId: stopRun
  *     tags:
  *       - Alfalfa
@@ -324,29 +262,11 @@ router.post("/models/:id/start", async (req, res) => {
  *       204:
  *         description: the run was stopped successfully
  */
-router.post("/models/:id/stop", (req, res) => {
-  const { id: modelId } = req.params;
+router.post("/sites/:id/stop", (req, res) => {
+  const { id: siteId } = req.params;
 
-  got
-    .post("http://localhost/haystack/invokeAction", {
-      headers: {
-        Accept: "application/json"
-      },
-      json: {
-        meta: {
-          ver: "2.0",
-          id: `r:${modelId}`,
-          action: "s:stopSite"
-        },
-        cols: [
-          {
-            name: "empty" // At least one column is required
-          }
-        ],
-        rows: []
-      },
-      responseType: "json"
-    })
+  api
+    .stopRun(siteId)
     .then(() => res.sendStatus(204))
     .catch(() => res.sendStatus(500));
 });
@@ -355,7 +275,7 @@ router.post("/models/:id/stop", (req, res) => {
  * @openapi
  * /version:
  *   get:
- *     description: Return the Alfalfa version
+ *     description: Return the Alfalfa version and git SHA
  *     operationId: version
  *     tags:
  *       - Alfalfa
@@ -369,15 +289,23 @@ router.post("/models/:id/stop", (req, res) => {
  *               properties:
  *                 version:
  *                   type: string
+ *                 sha:
+ *                   type: string
  *             example:
- *               version: 0.3.0
+ *               version: 0.4.0
+ *               sha: c90d0641cb
  */
 router.get("/version", (req, res) => {
-  res.json({ version });
+  let sha = {};
+  const shaPath = path.resolve(__dirname, "./sha.json");
+  if (existsSync(shaPath)) {
+    sha = JSON.parse(readFileSync(shaPath, "utf-8"));
+  }
+  res.json({ version, ...sha });
 });
 
 router.get("*", (req, res) => {
   res.sendStatus(404);
 });
 
-export default api;
+export default apiv2;

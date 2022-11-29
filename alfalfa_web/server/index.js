@@ -99,7 +99,7 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
       });
     });
 
-    app.use("/api/v2/", apiv2({ db }));
+    app.use("/api/v2/", apiv2({ db, redis }));
 
     app.all("/haystack/*", (req, res) => {
       const path = url.parse(req.url).pathname.replace(/^\/haystack/, "");
@@ -127,6 +127,14 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
           res.end();
         });
       });
+    });
+
+    // Redirect incomplete and nonexistent API URLs to /docs
+    app.get("/api/*", (req, res) => {
+      res.redirect(301, "/docs");
+    });
+    app.get("/haystack", (req, res) => {
+      res.redirect(301, "/docs");
     });
 
     app.use(historyApiFallback());

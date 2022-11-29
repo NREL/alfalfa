@@ -139,10 +139,6 @@ class RunManager(LoggerMixinBase):
         # configure the data for the new database format - do not include the old _id field, if it is there
         run_dict.pop('_id') if '_id' in run_dict else None
 
-        # remove sim_time since it is None, which isn't valid in the database, so leave empty and
-        # it will not be in the database, yet.
-        run_dict.pop('sim_time')
-
         # grab the model to assign it to the relationship later
         model_path = run_dict.pop('model')
         model = Model(path=model_path).save()
@@ -170,12 +166,10 @@ class RunManager(LoggerMixinBase):
         #    * job_history
         #    * status
         #    * modified (which is implicit)
-        #    * sim_time
         #    * error_log
         new_obj = {
             'job_history': run_dict['job_history'],
             'status': run_dict['status'],
-            'sim_time': run_dict['sim_time'],
             'error_log': run_dict['error_log'],
         }
         # check if the site is assigned yet and create site relationship -
@@ -211,9 +205,6 @@ class RunManager(LoggerMixinBase):
         # TODO: the Run object should already be a db object, update this
         run = Run(**run_obj.to_dict())
         run.points = self.get_points(run)
-
-        # why are we setting this time?
-        run.sim_time = run_obj.sim_time
 
         return run
 

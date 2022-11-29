@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from subprocess import check_call
+from subprocess import check_output
 
 from alfalfa_worker.jobs.openstudio import lib_dir
 from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
@@ -33,18 +33,18 @@ class CreateRun(Job):
         # If there are requirements.txt files in the model create a python virtual environment and install packaged there
         requirements = self.run.glob("**/requirements.txt")
         if len(requirements) > 0:
-            check_call(["python", "-m", "venv", "--system-site-packages", "--symlinks", str(self.dir / '.venv')])
+            check_output(["python", "-m", "venv", "--system-site-packages", "--symlinks", str(self.dir / '.venv')])
             for requirements_file in requirements:
-                check_call([str(self.dir / '.venv' / 'bin' / 'pip'), "install", "-r", str(requirements_file)])
+                check_output([str(self.dir / '.venv' / 'bin' / 'pip'), "install", "-r", str(requirements_file)])
 
         # locate the "default" workflow
         default_workflow_path: str = lib_dir / 'workflow/workflow.osw'
 
         # Merge the default workflow measures into the user submitted workflow
-        check_call(['openstudio', str(lib_dir / 'merge_osws.rb'), str(default_workflow_path), str(submitted_osw_path)])
+        check_output(['openstudio', str(lib_dir / 'merge_osws.rb'), str(default_workflow_path), str(submitted_osw_path)])
 
         # run workflow
-        check_call(['openstudio', 'run', '-m', '-w', str(submitted_osw_path)])
+        check_output(['openstudio', 'run', '-m', '-w', str(submitted_osw_path)])
 
         points_json_path = submitted_workflow_path / 'reports/haystack_report_haystack.json'
         mapping_json_path = submitted_workflow_path / 'reports/haystack_report_mapping.json'

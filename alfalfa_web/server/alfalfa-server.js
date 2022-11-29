@@ -2,8 +2,9 @@ import AWS from "aws-sdk";
 import hs from "nodehaystack";
 import os from "os";
 import { v1 as uuidv1 } from "uuid";
+import AlfalfaAPI from "./api";
 import dbops, { NUM_LEVELS } from "./dbops";
-import { del, getPointKey, mapRedisArray, scan } from "./utils";
+import { getPointKey, mapRedisArray } from "./utils";
 
 // The purpose of this file is to consolidate operations to the database
 // in a single place. Clients may transform the data into and out of
@@ -169,6 +170,7 @@ class AlfalfaServer extends HServer {
     this.sites = this.db.collection("site");
     this.mrecs = this.db.collection("recs");
     this.recs = {};
+    this.api = new AlfalfaAPI(this.db, this.redis);
   }
 
   recToDict(rec) {
@@ -576,11 +578,7 @@ class AlfalfaServer extends HServer {
       });
       callback(null, EMPTY_HGRID);
     } else if (action === "removeSite") {
-      // Shouldn't this all happen on the backend?
-      this.mrecs.deleteMany({ "rec.siteRef": rec.id().val });
-
-      const keys = await scan(this.redis, `site:${rec.id().val}*`);
-      if (keys.length) await del(this.redis, keys);
+      await this.api.removeSite(rec.id().val);
 
       callback(null, EMPTY_HGRID);
     }
