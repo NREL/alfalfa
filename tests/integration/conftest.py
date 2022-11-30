@@ -1,7 +1,7 @@
 # Consider factoring this out of the test file
 import os
+import shutil
 import tempfile
-import zipfile
 from pathlib import Path
 
 
@@ -15,19 +15,11 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("broken_model_path", model_paths)
 
 
-def zipdir(path, ziph):
-    # ziph is zipfile handle
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            ziph.write(os.path.join(root, file))
-
-
 def create_zip(model_dir):
     zip_file_fd, zip_file_path = tempfile.mkstemp(suffix='.zip')
+    zip_file_path = Path(zip_file_path)
+    shutil.make_archive(zip_file_path.parent / zip_file_path.stem, "zip", model_dir)
 
-    zipf = zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED)
-    zipdir(model_dir, zipf)
-    zipf.close()
     return zip_file_path
 
 

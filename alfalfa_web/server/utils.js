@@ -8,6 +8,19 @@ function del(client, keys) {
   });
 }
 
+// Return the value of a specific property from a redis hash
+function getHashValue(client, key, prop) {
+  return new Promise((resolve, reject) => {
+    client.hget(key, prop, (err, result) => (err ? reject(err) : resolve(result)));
+  });
+}
+
+function setHashValue(client, key, prop, value) {
+  return new Promise((resolve, reject) => {
+    client.hset(key, prop, value, (err, result) => (err ? reject(err) : resolve(result)));
+  });
+}
+
 // Return all properties from a redis hash
 function getHash(client, key) {
   return new Promise((resolve, reject) => {
@@ -42,10 +55,36 @@ function scan(client, pattern, cursor = "0", keys = []) {
   });
 }
 
+function mapHaystack(obj) {
+  return Object.keys(obj).reduce((result, key) => {
+    if (Array.isArray(obj[key])) {
+      result[key] = obj[key].map((record) => mapHaystack(record));
+    } else if (typeof obj[key] === "string") {
+      const isNumber = obj[key].startsWith("n:");
+      if (isNumber) {
+        result[key] = Number(obj[key].replace(/^[a-z]:/, ""));
+      } else {
+        result[key] = obj[key].replace(/^[a-z]:/, "");
+      }
+    } else {
+      result[key] = obj[key].toString();
+    }
+    return result;
+  }, {});
+}
+
+function reduceById(arr, obj) {
+  return { ...arr, [obj._id]: obj };
+}
+
 module.exports = {
   del,
   getHash,
+  getHashValue,
   getPointKey,
+  mapHaystack,
   mapRedisArray,
-  scan
+  reduceById,
+  scan,
+  setHashValue
 };

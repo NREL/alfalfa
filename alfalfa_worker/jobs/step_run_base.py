@@ -236,13 +236,14 @@ class StepRunBase(Job):
                 kpis = None
 
             Simulation(
-                name=self.site.name,
+                name=self.site.dis.replace('s:', ''),
                 site=self.site,
+                ref_id=self.site.ref_id,
                 time_completed=time,
                 sim_status="Complete",
                 s3_key=f"run/{self.run.ref_id}.tar.gz",
                 results=kpis
-            )
+            ).save()
 
     def cleanup(self) -> None:
         super().cleanup()

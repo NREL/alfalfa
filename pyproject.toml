@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "alfalfa"
-version = "0.4.0"
+version = "0.4.1"
 description = "Alfalfa is a web service that converts building energy models in OpenStudio/EnergyPlus, Spawn of EnergyPlus, or Modelica to interactive virtual buildings."
 authors = [
     'Kyle Benne <kyle.benne@nrel.gov>',
@@ -38,7 +38,7 @@ Cython = "^0.29.28"
 numpy = "1.21.6"
 
 # needed for some dependencies -- ignoring for now
-setuptools = "65.3.0"
+# setuptools = "65.3.0"
 # urllib3 = "^1.26.12"
 
 # These libraries are used for the data generator/testcase.
