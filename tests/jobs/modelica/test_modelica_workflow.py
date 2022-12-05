@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from pathlib import Path
 from time import sleep
 
@@ -26,8 +27,8 @@ def test_simple_internal_clock(mock_dispatcher: MockDispatcher, model_path: Path
     params = {
         "run_id": run.ref_id,
         "external_clock": False,
-        "start_datetime": "0",
-        "end_datetime": "1000",
+        "start_datetime": str(datetime(2019, 1, 2, 0, 0, 0)),
+        "end_datetime": str(datetime(2019, 1, 3, 0, 0, 0)),
         "timescale": "5",
         "realtime": None
     }
@@ -51,12 +52,12 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
     run = create_run_job.run
 
     wait_for_run_status(run, RunStatus.READY)
-    start_dt = 0
+    start_dt = datetime(2019, 1, 2, 0, 0, 0)
     params = {
         "run_id": run.ref_id,
         "external_clock": True,
         "start_datetime": str(start_dt),
-        "end_datetime": "1000",
+        "end_datetime": str(datetime(2019, 1, 3, 0, 0, 0)),
         "timescale": "1",
         "realtime": None
     }
@@ -77,7 +78,7 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
 
         # The above should hold in advance state.
         wait_for_job_status(step_run_job, JobStatus.WAITING)
-        updated_dt += 60
+        updated_dt += timedelta(minutes=1)
         assert updated_dt == run.sim_time
 
     # -- Advance a single time step
@@ -85,7 +86,7 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
 
     # The above should hold in advance state.
     sleep(65)
-    updated_dt += 60
+    updated_dt += timedelta(minutes=1)
     assert updated_dt == run.sim_time
 
     # Shut down
