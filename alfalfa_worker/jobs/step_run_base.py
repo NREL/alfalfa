@@ -5,6 +5,7 @@ from typing import Dict
 import pytz
 from influxdb import InfluxDBClient
 
+from alfalfa_worker.lib.enums import RunStatus
 from alfalfa_worker.lib.job import (
     Job,
     JobException,
@@ -12,7 +13,6 @@ from alfalfa_worker.lib.job import (
     message
 )
 from alfalfa_worker.lib.models import Rec, Simulation, Site
-from alfalfa_worker.lib.run import RunStatus
 
 
 class StepRunBase(Job):

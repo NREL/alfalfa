@@ -1,8 +1,8 @@
 from uuid import uuid4
 
 from alfalfa_worker.dispatcher import Dispatcher
+from alfalfa_worker.lib.enums import RunStatus
 from alfalfa_worker.lib.job import JobStatus
-from alfalfa_worker.lib.run import RunStatus
 from tests.worker.jobs.empty_job_1 import EmptyJob1
 from tests.worker.jobs.empty_job_2 import EmptyJob2
 from tests.worker.jobs.error_mock_job import ErrorMockJob

@@ -21,7 +21,7 @@ from alfalfa_client.alfalfa_client import AlfalfaClient
 class TestSimpleThermostat(TestCase):
 
     def setUp(self):
-        self.alfalfa = AlfalfaClient(url='http://localhost')
+        self.alfalfa = AlfalfaClient(host='http://localhost')
         fmu_path = os.path.join(os.path.dirname(__file__), 'models', 'simple_thermostat.fmu')
         self.model_id = self.alfalfa.submit(fmu_path)
 
@@ -50,7 +50,7 @@ class TestSimpleThermostat(TestCase):
 
         # Having not set any inputs the fmu will be at the initial state.
         # The control signal output "rea" is at 0.0
-        outputs = self.alfalfa.outputs(self.model_id)
+        outputs = self.alfalfa.get_outputs(self.model_id)
         rea = outputs.get("rea")
         assert rea == pytest.approx(0.0)
 
@@ -67,19 +67,19 @@ class TestSimpleThermostat(TestCase):
         assert float(time) == pytest.approx(120.0)
 
         # When temperature is over setpoint controller returns 0.0
-        outputs = self.alfalfa.outputs(self.model_id)
+        outputs = self.alfalfa.get_outputs(self.model_id)
         rea = outputs.get("rea")
         assert rea == pytest.approx(0.0)
 
         # Now override the measured (zone) temperature such that it is below setpoint
-        self.alfalfa.setInputs(self.model_id, {"oveWriMeasuredTemp_u": 283.15, "oveWriSetPoint_u": 294.15})
+        self.alfalfa.set_inputs(self.model_id, {"oveWriMeasuredTemp_u": 283.15, "oveWriSetPoint_u": 294.15})
 
         self.alfalfa.advance([self.model_id])
         time = self.alfalfa.get_sim_time(self.model_id)
         assert float(time) == pytest.approx(180.0)
 
         # When temperature is below setpoint controller returns 1.0
-        outputs = self.alfalfa.outputs(self.model_id)
+        outputs = self.alfalfa.get_outputs(self.model_id)
         rea = outputs.get("rea")
         assert rea == pytest.approx(1.0)
 

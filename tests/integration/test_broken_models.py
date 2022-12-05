@@ -7,7 +7,7 @@ from alfalfa_client.lib import AlfalfaException
 
 @pytest.mark.integration
 def test_broken_models(broken_model_path):
-    alfalfa = AlfalfaClient(url='http://localhost')
+    alfalfa = AlfalfaClient(host='http://localhost')
     with pytest.raises(AlfalfaException):
         run_id = alfalfa.submit(str(broken_model_path))
         if broken_model_path.suffix == ".zip":
@@ -24,6 +24,6 @@ def test_broken_models(broken_model_path):
                 end_datetime=1000)
 
         for _ in range(5):
-            alfalfa.advance([run_id])
+            alfalfa.advance(run_id)
 
         alfalfa.stop(run_id)

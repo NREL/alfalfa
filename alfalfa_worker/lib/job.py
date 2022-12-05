@@ -7,14 +7,13 @@ from enum import Enum
 from json.decoder import JSONDecodeError
 from pathlib import Path
 from subprocess import CalledProcessError
-from typing import List
 from xmlrpc.client import Boolean
 
-from redis import Redis
-
-from alfalfa_worker.lib.point import Point
-from alfalfa_worker.lib.run import Run, RunStatus
-from alfalfa_worker.lib.sim_type import SimType
+from alfalfa_worker.lib.alfalfa_connections_manager import (
+    AlafalfaConnectionsManager
+)
+from alfalfa_worker.lib.enums import RunStatus, SimType
+from alfalfa_worker.lib.models import Run
 
 
 def message(func):
@@ -64,8 +63,10 @@ class JobMetaclass(type):
             # Variables
             self.run = None
 
+            connections_manager = AlafalfaConnectionsManager()
+
             # Redis
-            self.redis = Redis(host=os.environ['REDIS_HOST'])
+            self.redis = connections_manager.redis
             self.redis_pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
             logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
             self.logger = logging.getLogger(self.__class__.__name__)
@@ -228,7 +229,6 @@ class Job(metaclass=JobMetaclass):
 
     def checkout_run(self, run_id: str) -> Run:
         run = self.run_manager.checkout_run(run_id)
-        self.run_manager.update_db(run)
         self.register_run(run)
         return run
 
@@ -236,42 +236,36 @@ class Job(metaclass=JobMetaclass):
     def checkin_run(self):
         return self.run_manager.checkin_run(self.run)
 
-    def create_run_from_model(self, upload_id: str, model_name: str, sim_type=SimType.OPENSTUDIO, run_id=None) -> None:
-        run = self.run_manager.create_run_from_model(upload_id, model_name, sim_type, run_id=run_id)
+    def create_run_from_model(self, model_id: str, sim_type=SimType.OPENSTUDIO, run_id=None) -> None:
+        run = self.run_manager.create_run_from_model(model_id, sim_type, run_id=run_id)
         self.register_run(run)
-        self.run_manager.update_db(run)
 
     def create_empty_run(self):
         run = self.run_manager.create_empty_run()
         self.register_run(run)
 
     @with_run()
-    def add_points(self, points: List[Point]):
-        self.run_manager.add_points_to_run(self.run, points)
-
-    @with_run()
     def set_run_status(self, status: RunStatus):
         self.logger.info(f"Setting run status to {status.name}")
         self.run.status = status
-        self.run_manager.update_db(self.run)
+        self.run.save()
 
     @with_run()
     def set_run_time(self, sim_time):
         self.run.sim_time = sim_time
-        self.redis.hset(self.run.ref_id, "sim_time", str(sim_time))
 
     @with_run(return_on_fail=True)
     def record_run_error(self, error_log: str):
         self.set_run_status(RunStatus.ERROR)
         self.run.error_log = error_log
-        self.run_manager.update_db(self.run)
+        self.run.save()
 
     def register_run(self, run: Run):
         self.run = run
         self.run.job_history.append(self.job_path())
+        self.run.save()
         self.logger.info(run.dir)
         self.redis_pubsub.subscribe(run.ref_id)
-        self.redis.hset(self.run.ref_id, 'control', 'idle')
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh = logging.FileHandler(self.dir / 'jobs.log')
         fh.setFormatter(formatter)
