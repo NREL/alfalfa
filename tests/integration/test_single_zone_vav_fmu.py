@@ -15,7 +15,7 @@ class TestSingleZoneVAVFMU(TestCase):
         fmu_path = os.path.join(os.path.dirname(__file__), 'models', 'single_zone_vav.fmu')
         model_id = alfalfa.submit(fmu_path)
 
-        alfalfa.wait(model_id, "READY")
+        alfalfa.wait(model_id, "ready")
 
         end_datetime = datetime(2019, 1, 1, 0, 5)
         alfalfa.start(

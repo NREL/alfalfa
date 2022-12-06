@@ -12,12 +12,18 @@ from tests.integration.conftest import create_zip
 @pytest.mark.integration
 class TestRefrigCaseOSW(TestCase):
 
-    def test_insufficient_args_passed_to_start(self):
+    def test_invalid_start_conditions(self):
         zip_file_path = create_zip('refrig_case_osw')
         alfalfa = AlfalfaClient(host='http://localhost')
         model_id = alfalfa.submit(zip_file_path)
         with pytest.raises(AlfalfaException):
-            alfalfa.start(model_id)
+            alfalfa.start(
+                model_id,
+                external_clock=False,
+                start_datetime=datetime.datetime(2019, 1, 2, 0, 0, 0),
+                end_datetime=datetime.datetime(2019, 1, 1, 0, 0, 0),
+                timescale=5
+            )
 
     def test_simple_internal_clock(self):
         zip_file_path = create_zip('refrig_case_osw')
@@ -40,7 +46,7 @@ class TestRefrigCaseOSW(TestCase):
         sleep(60)
         alfalfa.wait(model_id, "complete")
         model_time = alfalfa.get_sim_time(model_id)
-        assert end_datetime.strftime("%Y-%m-%d %H:%M") in model_time
+        assert end_datetime == model_time
 
     def test_simple_external_clock(self):
         zip_file_path = create_zip('refrig_case_osw')
@@ -114,8 +120,8 @@ class TestRefrigCaseOSW(TestCase):
         alfalfa.advance([model_id])
 
         outputs = alfalfa.get_outputs(model_id)
-        assert pytest.approx(outputs["Test_Point_1_Value"], 12), "Test_Point_1 value has not been processed by the model"
-        assert pytest.approx(outputs["Test_Point_1_Enable_Value"], 1), "Enable flag for Test_Point_1 is not set correctly"
+        assert outputs["Test_Point_1_Value"] == pytest.approx(12), "Test_Point_1 value has not been processed by the model"
+        assert outputs["Test_Point_1_Enable_Value"] == pytest.approx(1), "Enable flag for Test_Point_1 is not set correctly"
 
         # Shut down
         alfalfa.stop(model_id)

@@ -110,7 +110,7 @@ class AlfalfaAPI {
   readOutputPoint = async (siteRef, pointId) => {
     const key = getPointKey(siteRef, pointId);
     var value = await getHashValue(this.redis, key, "curVal");
-    return value.substr(2);
+    return parseFloat(value.substr(2));
   };
 
   writeInputPoint = async (siteRef, pointId, value) => {
