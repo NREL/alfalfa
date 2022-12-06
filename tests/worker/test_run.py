@@ -101,5 +101,7 @@ def test_job_history(dispatcher: Dispatcher):
     wait_for_job_status(empty_job_2, JobStatus.STOPPED)
 
     # make sure job_histories are correct
+    run_1.reload()
+    run_2.reload()
     assert run_1.job_history == [EmptyJob1.job_path(), EmptyJob2.job_path()]
     assert run_2.job_history == [EmptyJob2.job_path(), EmptyJob1.job_path()]

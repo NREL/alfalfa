@@ -412,6 +412,10 @@ class Model(TimestampedDocument):
     model_name = StringField(required=True)
 
 
+def uuid4_str() -> str:
+    return str(uuid4())
+
+
 class Point(TimestampedDocument):
     meta = {
         'collection': 'point',
@@ -449,7 +453,7 @@ class Point(TimestampedDocument):
         return f"site:{self.run.ref_id}:point:{self.ref_id}"
 
     # External reference ID
-    ref_id = StringField(default=str(uuid4()), unique_with=['run'])
+    ref_id = StringField(default=uuid4_str, unique_with=['run'])
     run = ReferenceField('Run')
     name = StringField(default="", max_length=255)
     point_type = EnumField(PointType, required=True)
@@ -504,7 +508,7 @@ class Run(TimestampedDocument):
         point.save()
 
     # external ID used to track this object
-    ref_id = StringField(default=str(uuid4()))
+    ref_id = StringField(default=uuid4_str, unique=True)
 
     # The site is required but it only shows up after the haystack points
     # are extracted.

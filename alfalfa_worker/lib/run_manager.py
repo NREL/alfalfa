@@ -79,7 +79,6 @@ class RunManager(LoggerMixinBase):
         run_path.mkdir()
         run.dir = run_path
         run.save()
-        # self.register_run(run)
         return run
 
     def checkin_run(self, run: Run):
