@@ -405,15 +405,19 @@ class Rec(TimestampedDocument):
     rec = EmbeddedDocumentField(RecInstance)
 
 
+def uuid4_str() -> str:
+    return str(uuid4())
+
+
 class Model(TimestampedDocument):
     meta = {'collection': 'model'}
 
-    ref_id = StringField(required=True)
+    @property
+    def path(self):
+        return "uploads/%s/%s" % (self.ref_id, self.model_name)
+
+    ref_id = StringField(default=uuid4_str, required=True)
     model_name = StringField(required=True)
-
-
-def uuid4_str() -> str:
-    return str(uuid4())
 
 
 class Point(TimestampedDocument):

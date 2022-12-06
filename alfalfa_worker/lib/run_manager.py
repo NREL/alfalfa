@@ -1,6 +1,7 @@
 import os
 import shutil
 import tarfile
+import tempfile
 import zipfile
 from pathlib import Path
 from uuid import uuid4
@@ -42,6 +43,20 @@ class RunManager(LoggerMixinBase):
     def s3_upload(self, file_path: os.PathLike, key: str):
         """Upload a file to s3"""
         self.s3_bucket.upload_file(str(file_path), key)
+
+    def create_model(self, file_path: os.PathLike) -> Model:
+        file_path = Path(file_path)
+        if file_path.is_dir():
+            temp_dir = Path(tempfile.gettempdir())
+            file_path = Path(shutil.make_archive(temp_dir / file_path.stem, "zip", file_path))
+
+        model_name = file_path.name
+        model = Model(model_name=model_name)
+        model.save()
+
+        self.s3_upload(file_path, model.path)
+
+        return model
 
     def create_run_from_model(self, model_id: str, sim_type=SimType.OPENSTUDIO, run_id=None) -> Run:
         """Create a new Run with the contents of a model"""

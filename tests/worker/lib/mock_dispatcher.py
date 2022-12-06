@@ -18,6 +18,3 @@ class MockDispatcher(Dispatcher):
         thread = threading.Thread(target=job.start)
         thread.start()
         return job
-
-    def add_model(self, model_path: os.PathLike):
-        return self.run_manager.add_model(model_path)

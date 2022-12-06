@@ -279,7 +279,6 @@ class StepRun(StepRunBase):
 
             for point in self.run.input_points:
                 value = point.value
-                self.logger.info(f"point: {point.name}, value: {point.value}")
                 if value is None:
                     continue
                 index = self.variables.get_input_index(point.ref_id)
