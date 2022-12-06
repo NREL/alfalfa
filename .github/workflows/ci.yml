@@ -22,7 +22,7 @@ jobs:
           python-version: "3.8"
 
       - name: Run pre-commit
-        uses: pre-commit/action@v2.0.0
+        uses: pre-commit/action@v3.0.0
         with:
           extra_args: --all-files
 
@@ -59,7 +59,7 @@ jobs:
       - name: Start dependencies
         run: |
           printenv
-          docker-compose -f tests/worker/unit-test-compose.yml up -d
+          docker compose up -d mongo redis minio mc goaws
 
       - name: Run tests with pytest
         run: |
