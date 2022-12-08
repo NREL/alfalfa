@@ -7,6 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import boto3
+from mongoengine import connect
 
 from alfalfa_worker.lib.alfalfa_connections_manager import (
     AlafalfaConnectionsManager
@@ -23,6 +24,7 @@ class RunManager(LoggerMixinBase):
         super().__init__("RunManager")
 
         connections_manager = AlafalfaConnectionsManager()
+        connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
 
         # Setup S3
         self.s3 = connections_manager.s3
