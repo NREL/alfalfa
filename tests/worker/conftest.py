@@ -10,7 +10,7 @@ def env_setup(monkeypatch):
     monkeypatch.setenv('AWS_SECRET_ACCESS_KEY', 'password')
     monkeypatch.setenv('NODE_ENV', 'production')
     monkeypatch.setenv('S3_URL', 'http://localhost:9000')
-    monkeypatch.setenv('REDIS_HOST', 'redis')
+    monkeypatch.setenv('REDIS_HOST', 'localhost')
     monkeypatch.setenv('S3_BUCKET', 'alfalfa')
     monkeypatch.setenv('JOB_QUEUE_URL', 'http://localhost:4100/queue/local-queue1')
     monkeypatch.setenv('MONGO_URL', 'mongodb://localhost:27017')

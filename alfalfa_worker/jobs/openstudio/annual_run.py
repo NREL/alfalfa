@@ -1,8 +1,8 @@
 import subprocess
 
 from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
+from alfalfa_worker.lib.enums import RunStatus
 from alfalfa_worker.lib.job import Job
-from alfalfa_worker.lib.run import RunStatus
 
 
 class AnnualRun(AlfalfaConnectionsBase, Job):

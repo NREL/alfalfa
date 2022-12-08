@@ -2,7 +2,9 @@ import json
 from datetime import datetime, timedelta
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
+from alfalfa_worker.lib.enums import PointType
 from alfalfa_worker.lib.job import message
+from alfalfa_worker.lib.models import Point
 from alfalfa_worker.lib.testcase import TestCase
 
 
@@ -105,28 +107,19 @@ class StepRun(StepRunBase):
         # is what should be applied to the simulation according to Project Haystack
         # convention. If there is no value in the array, then it will not be passed to the
         # simulation.
-        for point_id, write_value in self.get_write_array_values().items():
-            dis = self.id_and_dis.get(point_id)
-            # automatically add the "activate" input.
-            if dis:
-                u[dis] = write_value
-                u[dis.replace('_u', '_activate')] = 1
+        for point in self.run.input_points:
+            value = point.value
+            if value is not None:
+                u[point.name] = value
+                u[point.name.replace('_u', '_activate')] = 1
 
         y_output = self.tc.advance(u)
         self.logger.debug(f"FMU output is {y_output}")
         self.update_sim_status()
 
         # get each of the simulation output values and feed to the database
-        for key in y_output.keys():
-            if key != 'time':
-                output_id = self.tagid_and_outputs[key]
-                value_y = y_output[key]
-
-                key = f'site:{self.site.ref_id}:rec:{output_id}'
-                self.redis.hset(key, mapping={
-                    'curStatus': 's:ok',
-                    'curVal': f"n:{value_y}"
-                })
+        for point in self.run.output_points:
+            point.value = y_output[point.name]
 
         if self.historian_enabled:
             self.write_outputs_to_influx(y_output)
@@ -170,7 +163,13 @@ class StepRun(StepRunBase):
             print("Unable to write to influx: %s" % e)
 
     def setup_points(self):
-        pass
+        for id, dis in self.id_and_dis.items():
+            point = Point(ref_id=id, name=dis)
+            if dis in self.tagid_and_outputs.keys():
+                point.point_type = PointType.OUTPUT
+            else:
+                point.point_type = PointType.INPUT
+            self.run.add_point(point)
 
     @message
     def advance(self):

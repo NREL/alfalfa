@@ -4,6 +4,7 @@ import path from "node:path";
 import { make, regex } from "simple-body-validator";
 import { version } from "../package.json";
 import AlfalfaAPI from "./api";
+import { v1 as uuidv1 } from "uuid";
 
 let api, db, redis;
 const router = Router();
@@ -111,8 +112,64 @@ router.get("/sites/:id", async (req, res) => {
     .catch(() => res.sendStatus(500));
 });
 
-// TODO
-router.get("/sites/:id/points", async (req, res) => {});
+router.get("/sites/:id/time", async (req, res) => {
+  const { id: siteId } = req.params;
+
+  api
+    .getSiteTime(siteId)
+    .then((time) => res.json({ time }))
+    .catch(() => res.sendStatus(500));
+});
+
+router.get("/sites/:id/points", (req, res) => {
+  const { id: siteId } = req.params;
+  api
+    .listPoints(siteId, undefined, true)
+    .then((data) => res.json({ data }))
+    .catch(() => res.sendStatus(500));
+});
+
+router.get("/sites/:id/points/inputs", (req, res) => {
+  const { id: siteId } = req.params;
+  api
+    .listPoints(siteId, /(INPUT)|(BIDIRECTIONAL)/)
+    .then((data) => res.json({ data }))
+    .catch(() => res.sendStatus(500));
+});
+
+router.get("/sites/:id/points/outputs", (req, res) => {
+  const { id: siteId } = req.params;
+  api
+    .listPoints(siteId, /(OUTPUT)|(BIDIRECTIONAL)/, true)
+    .then((data) => res.json({ data }))
+    .catch(() => res.sendStatus(500));
+});
+router.put("/sites/:id/points/inputs", async (req, res) => {
+  const { id: siteId } = req.params;
+  const { points: writePoints } = req.body;
+
+  try {
+    for (const point of writePoints) {
+      if (point.name) {
+        point.id = await api.pointIdFromName(siteId, point.name);
+      }
+      await api.writeInputPoint(siteId, point.id, point.value);
+    }
+    res.sendStatus(204);
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(500);
+  }
+});
+
+router.put("/sites/:id/points/:pointId", (req, res) => {
+  const { id: siteId, pointId: pointId } = req.params;
+  const { value: value } = req.body;
+  api
+    .writeInputPoint(siteId, pointId, value)
+    .then(() => res.sendStatus(204))
+    .catch(() => res.sendStatus(500));
+});
 
 /**
  * @openapi
@@ -178,15 +235,7 @@ router.delete("/sites/:id", (req, res) => {
  */
 router.post("/sites/:id/start", async (req, res) => {
   const { id: siteId } = req.params;
-  const { body } = req;
-  let data;
-  try {
-    data = JSON.parse(body);
-  } catch (e) {
-    return res.status(400).json({
-      error: "Invalid JSON body"
-    });
-  }
+  const { body: data } = req;
 
   const rules = {
     startDatetime: ["required", regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)],
@@ -302,6 +351,61 @@ router.get("/version", (req, res) => {
     sha = JSON.parse(readFileSync(shaPath, "utf-8"));
   }
   res.json({ version, ...sha });
+});
+
+router.get("/models", async (req, res) => {
+  api
+    .listModels()
+    .then((data) => res.json({ data }))
+    .catch(() => res.sendStatus(500));
+});
+
+router.post("/models/:id/createRun", (req, res) => {
+  const { id: modelID } = req.params;
+  api
+    .createRunFromModel(modelID)
+    .then((runID) => {
+      res.json({ runID: runID });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.sendStatus(500);
+    });
+});
+
+// Create a post url for file uploads
+// from a browser
+router.post("/models/upload", (req, res) => {
+  const { modelName: modelName } = req.body;
+  const modelID = uuidv1();
+  const modelPath = `uploads/${modelID}/${modelName}`;
+
+  api.createModel(modelID, modelName);
+
+  // Construct a new postPolicy.
+  const params = {
+    Bucket: process.env.S3_BUCKET,
+    Fields: {
+      key: modelPath
+    }
+  };
+
+  api.s3.createPresignedPost(params, function (err, data) {
+    if (err) {
+      throw err;
+    } else {
+      // if you're running locally and using internal Docker networking ( "http://minio:9000")
+      // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
+      if (process.env.S3_URL_EXTERNAL) {
+        data.url = `${process.env.S3_URL_EXTERNAL}/${process.env.S3_BUCKET}`;
+      } else {
+        data.url = `${process.env.S3_URL}/${process.env.S3_BUCKET}`;
+      }
+      data.modelID = modelID;
+      res.send(JSON.stringify(data));
+      res.end();
+    }
+  });
 });
 
 router.get("*", (req, res) => {
