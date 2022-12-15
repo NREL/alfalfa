@@ -55,7 +55,7 @@ influxdb = "^5.3.1"
 # required for tests to pass right now. There are often issues when pinning to a branch
 # and calling poetry update. I have had to completely remove my venv and reinstall in order
 # to get the latest updates.
-alfalfa-client = "^0.4.0"
+alfalfa-client = {git = "https://git@github.com/nrel/alfalfa-client.git", branch = "rest_api"}
 autopep8 = "^1.4.4"
 pre-commit = "^2.20.0"
 pytest = "^6.2.5"

@@ -102,6 +102,7 @@ function writePoint(id, siteRef, level, value, db, redis) {
         who: new Array(NUM_LEVELS).fill(null)
       });
     } catch (err) {
+      console.error(err);
       reject(err);
     }
   });

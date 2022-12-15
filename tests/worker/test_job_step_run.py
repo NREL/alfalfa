@@ -5,8 +5,8 @@ from time import sleep
 import pytest
 
 from alfalfa_worker.dispatcher import Dispatcher
+from alfalfa_worker.lib.enums import RunStatus
 from alfalfa_worker.lib.job import JobStatus
-from alfalfa_worker.lib.run import RunStatus
 from tests.worker.jobs.step_run_mock_job import StepRunMockJob
 from tests.worker.utilities import (
     send_message_and_wait,

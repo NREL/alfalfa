@@ -9,8 +9,6 @@ from mongoengine import connect
 
 # use the mongo test config file
 from alfalfa_worker.lib.models import Rec, Run, Site
-from alfalfa_worker.lib.run import Run as RunWorker
-from alfalfa_worker.lib.sim_type import SimType
 from tests.worker.helpers.mock_mongo_data import rec_data, run_data, site_data
 
 
@@ -97,10 +95,3 @@ class TestModelObjectsWithFixtures():
 
         recs = site.recs(rec__damper='s:enabled')
         assert len(recs) == 0
-
-    def test_model_to_dict(self):
-        run_obj = Run.objects.get(ref_id='run_id_123')
-
-        run = RunWorker(**run_obj.to_dict())
-        assert run.sim_type == SimType.OPENSTUDIO
-        assert run.created == run_obj.created

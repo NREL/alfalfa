@@ -183,8 +183,8 @@ function runResolver(user, run_id, context) {
     .then(async (doc) => {
       let sim_time = "";
       const site_hash = await getHash(context.redis, run_id);
-      if (site_hash["sim_time"]) {
-        sim_time = site_hash["sim_time"];
+      if (site_hash.sim_time) {
+        sim_time = site_hash.sim_time;
       }
       return {
         id: run_id,
@@ -243,8 +243,8 @@ async function sitesResolver(user, siteRef, context) {
           datetime: ""
         };
         const site_hash = await getHash(context.redis, site.siteRef);
-        if (site_hash["sim_time"]) {
-          site.datetime = site_hash["sim_time"];
+        if (site_hash.sim_time) {
+          site.datetime = site_hash.sim_time;
         }
         if (site.siteRef in runs) {
           site.simStatus = runs[site.siteRef].status;
