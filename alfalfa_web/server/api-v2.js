@@ -376,7 +376,7 @@ router.post("/models/:id/createRun", (req, res) => {
 // Create a post url for file uploads
 // from a browser
 router.post("/models/upload", (req, res) => {
-  const { modelName: modelName } = req.body;
+  const { modelName } = req.body;
   const modelID = uuidv1();
   const modelPath = `uploads/${modelID}/${modelName}`;
 
@@ -402,8 +402,7 @@ router.post("/models/upload", (req, res) => {
         data.url = `${process.env.S3_URL}/${process.env.S3_BUCKET}`;
       }
       data.modelID = modelID;
-      res.send(JSON.stringify(data));
-      res.end();
+      res.json(data);
     }
   });
 });

@@ -1,6 +1,5 @@
 import AWS from "aws-sdk";
 import { v1 as uuidv1 } from "uuid";
-import { Advancer } from "./advancer";
 import { writePoint } from "./dbops";
 import { del, getHashValue, getPointKey, mapHaystack, reduceById, scan, setHashValue, getHash } from "./utils";
 
@@ -17,7 +16,6 @@ class AlfalfaAPI {
     this.redis = redis;
     this.pub = redis.duplicate();
     this.sub = redis.duplicate();
-    this.advancer = new Advancer(this.redis, this.pub, this.sub);
 
     AWS.config.update({ region: process.env.REGION || "us-east-1" });
     this.sqs = new AWS.SQS();
@@ -32,7 +30,7 @@ class AlfalfaAPI {
       const sites = (await this.sites.find().toArray()).map(mapHaystack).reduce(reduceById, {});
 
       for await (const run of this.runs.find()) {
-        let model = models[run.model];
+        const model = models[run.model];
         runs.push({
           id: run.ref_id,
           name: sites[run.site]?.dis,
@@ -94,8 +92,8 @@ class AlfalfaAPI {
             name: point.name,
             type: point.point_type
           };
-          if (getValue && point.point_type != "INPUT") {
-            pointDict["value"] = await this.readOutputPoint(siteRef, point.ref_id);
+          if (getValue && point.point_type !== "INPUT") {
+            pointDict.value = await this.readOutputPoint(siteRef, point.ref_id);
           }
           points.push(pointDict);
         }
@@ -109,15 +107,15 @@ class AlfalfaAPI {
 
   readOutputPoint = async (siteRef, pointId) => {
     const key = getPointKey(siteRef, pointId);
-    var value = await getHashValue(this.redis, key, "curVal");
-    return parseFloat(value.substr(2));
+    const value = await getHashValue(this.redis, key, "curVal");
+    return parseFloat(value.replace(/^[a-z]:/, ""));
   };
 
   writeInputPoint = async (siteRef, pointId, value) => {
     const run = this.runs.findOne({ ref_id: siteRef });
     const point = this.points.findOne({ run: run._id, ref_id: pointId });
 
-    if (point.point_type == "OUTPUT") {
+    if (point.point_type === "OUTPUT") {
       return Promise.reject("Cannot write to an Output point");
     }
     return writePoint(pointId, siteRef, 1, value, this.db, this.redis);
@@ -223,7 +221,7 @@ class AlfalfaAPI {
         }
         const response = await getHashValue(this.redis, siteRef, message_id);
         if (!response) return;
-        finalize(JSON.parse(response).status == "ok", response);
+        finalize(JSON.parse(response).status === "ok", response);
       }, pollingInterval);
     });
   };
