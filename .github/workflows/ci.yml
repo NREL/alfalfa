@@ -125,7 +125,7 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
         run: |
           printenv
-          docker-compose up --build -d
+          docker-compose up --build -d --scale worker=2
 
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1
@@ -147,6 +147,11 @@ jobs:
         run: |
           poetry install
           poetry run pytest --timeout=600 -m "integration"
+
+      - name: Run worker scale tests with pytest
+        run: |
+          poetry install
+          poetry run pytest -m "scale"
 
       - name: Dump docker logs on failure
         if: failure()
@@ -179,7 +184,7 @@ jobs:
         run: |
           export HISTORIAN_ENABLE=true
           printenv
-          docker-compose -f docker-compose.yml -f docker-compose.historian.yml up --build -d
+          docker-compose -f docker-compose.yml -f docker-compose.historian.yml up --build -d --scale worker=2
 
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1
@@ -201,6 +206,11 @@ jobs:
         run: |
           poetry install
           poetry run pytest --timeout=600 -m "integration"
+
+      - name: Run worker scale tests with pytest
+        run: |
+          poetry install
+          poetry run pytest -m "scale"
 
       - name: Dump docker logs on failure
         if: failure()
