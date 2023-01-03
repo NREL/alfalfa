@@ -28,9 +28,6 @@ requests = "2.28.1"
 scipy = "1.9.3"
 symfit = "^0.5.5"
 
-# chardet = "3.0.4"
-# urllib3 = "1.26.11"
-
 # These dependency versions are also defined
 # in the alfalfa_worker Dockerfile and need
 # to be updated if changed here.
@@ -39,7 +36,6 @@ numpy = "1.24.1"
 
 # needed for some dependencies -- ignoring for now
 # setuptools = "65.3.0"
-# urllib3 = "^1.26.12"
 
 # These libraries are used for the data generator/testcase.
 # Lock to pillow 9.1.1 to avoid installation issues with Pillow 9.2 on Ubuntu
