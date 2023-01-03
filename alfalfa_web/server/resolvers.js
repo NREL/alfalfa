@@ -243,7 +243,7 @@ async function sitesResolver(user, siteRef, context) {
           datetime: ""
         };
         const site_hash = await getHash(context.redis, site.siteRef);
-        if (site_hash.sim_time) {
+        if (site_hash && site_hash.sim_time) {
           site.datetime = site_hash.sim_time;
         }
         if (site.siteRef in runs) {
