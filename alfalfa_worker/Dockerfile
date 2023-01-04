@@ -203,7 +203,7 @@ WORKDIR /alfalfa/alfalfa_worker
 ENV SEPARATE_PROCESS_JVM /usr/lib/jvm/java-8-openjdk-amd64/
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
 
-CMD ["/alfalfa/start_worker.sh"]
+CMD ["/alfalfa/deploy/start_worker.sh"]
 
 # **** Staged build for running in development mode ****
 FROM base AS dev
