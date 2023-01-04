@@ -1,4 +1,3 @@
-# Copyright 2019
 # Author: Nicholas Long
 # This class calculates the predicted mean vote and percent people dissatisfied based on the methodology in
 # ASHRAE Standard 55 Normative Appendix B and in accordance with ISO 7730.
