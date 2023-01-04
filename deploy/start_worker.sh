@@ -28,5 +28,5 @@ else
 fi
 
 cd /alfalfa
-echo $PATH
+echo "Python being used is: $(which python)"
 python3 -m alfalfa_worker
