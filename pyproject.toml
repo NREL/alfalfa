@@ -56,7 +56,6 @@ pytest = "~7.2"
 pycodestyle = "~2.10"
 pytest-cov = "~4.0"
 pytest-timeout = "~2.1"
-tox = "~4.1"
 
 [build-system]
 requires = ["poetry-core"]
