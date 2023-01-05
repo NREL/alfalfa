@@ -14,12 +14,9 @@ from mongoengine import (
     EmbeddedDocument,
     EmbeddedDocumentField,
     EnumField,
-    FloatField,
-    IntField,
     ListField,
     ReferenceField,
-    StringField,
-    UUIDField
+    StringField
 )
 from mongoengine.queryset.visitor import Q
 
