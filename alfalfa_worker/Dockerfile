@@ -153,7 +153,7 @@ RUN git clone --branch $SUNDIALS_TAG --depth 1 https://github.com/LLNL/sundials.
 # install and upgrade setuptools because this is needed for symfit (used in E+ Python)
 #    For Assimulo -- numpy, Cython must match the version in pypoetry.toml
 RUN ln -sf /usr/bin/python3 /usr/bin/python \
-    && python3 -m pip install setuptools==65.3.0 numpy==1.21.6 Cython==0.29.28
+    && python3 -m pip install setuptools==65.3.0 numpy==1.24.1 Cython==0.29.28
 
 # This is required for Assimulo to build correctly with setuptools 60+
 ENV SETUPTOOLS_USE_DISTUTILS stdlib
@@ -173,19 +173,15 @@ RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community
     && python setup.py install \
     && cd .. && rm -rf PyFMI
 
-
-# There are some tweaks because Ubuntu 20.04 has a PEP404 error with the version.
-# See https://bugs.launchpad.net/ubuntu/+source/python-debian/+bug/1926870
-# The below installs poetry 1.1.15 because 1.2.1 has the error.
-# It then copies over the poetry files and installs the dependencies with --no-dev
-RUN pip3 install poetry==1.1.15
+# Install poetry
+RUN pip3 install poetry==1.3.1
 
 # Copy and install poetry-based dependencies
 COPY pyproject.toml $BUILD_DIR
 COPY poetry.lock $BUILD_DIR
 
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev
+# Install 'production' dependencies from poetry
+RUN poetry install --no-dev
 
 # reinstall setuptools
 RUN pip3 install setuptools==65.3.0
@@ -211,7 +207,6 @@ FROM base AS dev
 # Reinstall poetry's dev dependencies by calling again without --no-dev,
 # then reinstall setuptools to have pkg_resources available
 RUN pip3 install virtualenv \
-    && poetry config virtualenvs.create false \
     && poetry install \
     && pip3 install setuptools==65.3.0
 

@@ -28,4 +28,11 @@ else
 fi
 
 cd /alfalfa
+# update the path to python, which is in the Poetry virtual environment
+# The dependency warning still exists, but it is a warning. Eventually this 
+# will be resolved when we move to a newer version of Ubuntu. 
+# See https://bugs.launchpad.net/ubuntu/+source/python-debian/+bug/1926870
+# Error: RequestsDependencyWarning: urllib3 (1.26.13) or chardet (3.0.4) doesn't match a supported version!
+#        warnings.warn("urllib3 ({}) or chardet ({}) doesn't match a supported "
+export PATH=$(poetry env info -p)/bin:${PATH}
 python3 -m alfalfa_worker
