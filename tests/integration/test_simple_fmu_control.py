@@ -114,7 +114,7 @@ class TestSimpleFMUControl(TestCase):
 
     @pytest.mark.skip
     def test_control(self):
-        alfalfa = AlfalfaClient(url='http://localhost')
+        alfalfa = AlfalfaClient(host='http://localhost')
 
         # Denver weather
         # 1/1/2019 00:00:00  - Note that we have to start at 1/1 right now.

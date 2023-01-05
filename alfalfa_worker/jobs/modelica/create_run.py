@@ -5,15 +5,17 @@ from uuid import uuid4
 
 from pyfmi import load_fmu
 
+from alfalfa_worker.lib.enums import RunStatus, SimType
 from alfalfa_worker.lib.job import Job
-from alfalfa_worker.lib.run import RunStatus
-from alfalfa_worker.lib.sim_type import SimType
 
 
 class CreateRun(Job):
 
-    def __init__(self, upload_id, model_name, run_id=None):
-        self.create_run_from_model(upload_id, model_name, SimType.MODELICA, run_id=run_id)
+    def __init__(self, model_id, run_id=None):
+        self.create_run_from_model(model_id, SimType.MODELICA, run_id=run_id)
+
+        model_name = self.run.model.model_name
+
         # Define FMU specific attributes
         self.upload_fmu: Path = self.dir / model_name
         self.fmu_path = self.dir / 'model.fmu'

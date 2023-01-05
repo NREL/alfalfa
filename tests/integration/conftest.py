@@ -16,9 +16,16 @@ def pytest_generate_tests(metafunc):
 
 
 def create_zip(model_dir):
-    osw_dir_path = os.path.join(os.path.dirname(__file__), 'models', model_dir)
     zip_file_fd, zip_file_path = tempfile.mkstemp(suffix='.zip')
     zip_file_path = Path(zip_file_path)
-    shutil.make_archive(zip_file_path.parent / zip_file_path.stem, "zip", osw_dir_path)
+    shutil.make_archive(zip_file_path.parent / zip_file_path.stem, "zip", model_dir)
 
     return zip_file_path
+
+
+def prepare_model(model_path):
+    model_path = Path(__file__).parents[0] / 'models' / model_path
+    if (model_path).is_dir():
+        return create_zip(str(model_path))
+    else:
+        return str(model_path)

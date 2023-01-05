@@ -56,6 +56,7 @@ function scan(client, pattern, cursor = "0", keys = []) {
 }
 
 function mapHaystack(obj) {
+  if (obj == null) return null;
   return Object.keys(obj).reduce((result, key) => {
     if (Array.isArray(obj[key])) {
       result[key] = obj[key].map((record) => mapHaystack(record));

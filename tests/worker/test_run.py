@@ -1,8 +1,8 @@
 from uuid import uuid4
 
 from alfalfa_worker.dispatcher import Dispatcher
+from alfalfa_worker.lib.enums import RunStatus
 from alfalfa_worker.lib.job import JobStatus
-from alfalfa_worker.lib.run import RunStatus
 from tests.worker.jobs.empty_job_1 import EmptyJob1
 from tests.worker.jobs.empty_job_2 import EmptyJob2
 from tests.worker.jobs.error_mock_job import ErrorMockJob
@@ -101,5 +101,7 @@ def test_job_history(dispatcher: Dispatcher):
     wait_for_job_status(empty_job_2, JobStatus.STOPPED)
 
     # make sure job_histories are correct
+    run_1.reload()
+    run_2.reload()
     assert run_1.job_history == [EmptyJob1.job_path(), EmptyJob2.job_path()]
     assert run_2.job_history == [EmptyJob2.job_path(), EmptyJob1.job_path()]

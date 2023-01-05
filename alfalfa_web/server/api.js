@@ -1,10 +1,11 @@
 import AWS from "aws-sdk";
 import { v1 as uuidv1 } from "uuid";
-import { Advancer } from "./advancer";
-import { del, mapHaystack, reduceById, scan } from "./utils";
+import { writePoint } from "./dbops";
+import { del, getHashValue, getPointKey, mapHaystack, reduceById, scan, setHashValue, getHash } from "./utils";
 
 class AlfalfaAPI {
   constructor(db, redis) {
+    this.db = db;
     this.models = db.collection("model");
     this.points = db.collection("point");
     this.recs = db.collection("recs");
@@ -15,10 +16,10 @@ class AlfalfaAPI {
     this.redis = redis;
     this.pub = redis.duplicate();
     this.sub = redis.duplicate();
-    this.advancer = new Advancer(this.redis, this.pub, this.sub);
 
     AWS.config.update({ region: process.env.REGION || "us-east-1" });
     this.sqs = new AWS.SQS();
+    this.s3 = new AWS.S3({ endpoint: process.env.S3_URL });
   }
 
   listSites = async () => {
@@ -29,12 +30,14 @@ class AlfalfaAPI {
       const sites = (await this.sites.find().toArray()).map(mapHaystack).reduce(reduceById, {});
 
       for await (const run of this.runs.find()) {
+        const model = models[run.model];
         runs.push({
           id: run.ref_id,
           name: sites[run.site]?.dis,
           status: run.status.toLowerCase(),
           uploadTimestamp: run.created,
-          uploadPath: models[run.model].path
+          uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
+          errorLog: run.error_log
         });
       }
       return runs;
@@ -56,13 +59,71 @@ class AlfalfaAPI {
           name: site?.dis,
           status: run.status.toLowerCase(),
           uploadTimestamp: run.created,
-          uploadPath: model.path
+          uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
+          errorLog: run.error_log
         };
       }
     } catch (e) {
       console.error(e);
       return Promise.reject();
     }
+  };
+
+  getSiteTime = async (siteRef) => {
+    try {
+      return await getHashValue(this.redis, siteRef, "sim_time");
+    } catch (e) {
+      return Promise.reject();
+    }
+  };
+
+  listPoints = async (siteRef, pointType, getValue = false) => {
+    try {
+      const points = [];
+      const run = await this.runs.findOne({ ref_id: siteRef });
+      if (run) {
+        const query = { run: run._id };
+        if (pointType) {
+          query.point_type = pointType;
+        }
+        for await (const point of this.points.find(query)) {
+          const pointDict = {
+            id: point.ref_id,
+            name: point.name,
+            type: point.point_type
+          };
+          if (getValue && point.point_type !== "INPUT") {
+            pointDict.value = await this.readOutputPoint(siteRef, point.ref_id);
+          }
+          points.push(pointDict);
+        }
+        return points;
+      }
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
+    }
+  };
+
+  readOutputPoint = async (siteRef, pointId) => {
+    const key = getPointKey(siteRef, pointId);
+    const value = await getHashValue(this.redis, key, "curVal");
+    return parseFloat(value.replace(/^[a-z]:/, ""));
+  };
+
+  writeInputPoint = async (siteRef, pointId, value) => {
+    const run = this.runs.findOne({ ref_id: siteRef });
+    const point = this.points.findOne({ run: run._id, ref_id: pointId });
+
+    if (point.point_type === "OUTPUT") {
+      return Promise.reject("Cannot write to an Output point");
+    }
+    return writePoint(pointId, siteRef, 1, value, this.db, this.redis);
+  };
+
+  pointIdFromName = async (siteRef, pointName) => {
+    const run = await this.runs.findOne({ ref_id: siteRef });
+    return (await this.points.findOne({ run: run._id, name: pointName })).ref_id;
   };
 
   removeSite = async (siteRef) => {
@@ -129,22 +190,98 @@ class AlfalfaAPI {
   };
 
   advanceRun = async (siteRef) => {
+    return await this.sendRunMessage(siteRef, "advance");
+  };
+
+  stopRun = async (siteRef) => {
     try {
-      await this.advancer.advance([siteRef]);
+      return await this.sendRunMessage(siteRef, "stop");
     } catch (e) {
       console.error(e);
       return Promise.reject();
     }
   };
 
-  stopRun = async (siteRef) => {
+  sendRunMessage = (siteRef, method, data = null, timeout = 6000, pollingInterval = 100) => {
+    return new Promise((resolve) => {
+      const message_id = uuidv1();
+      this.pub.publish(siteRef, JSON.stringify({ message_id: message_id, method: method, data: data }));
+      const send_time = Date.now();
+
+      let interval;
+
+      const finalize = (success, message = "") => {
+        clearInterval(interval);
+        resolve({ status: success, message: message });
+      };
+
+      interval = setInterval(async () => {
+        if (Date.now() - timeout > send_time) {
+          finalize(false, "no simulation reply");
+        }
+        const response = await getHashValue(this.redis, siteRef, message_id);
+        if (!response) return;
+        finalize(JSON.parse(response).status === "ok", response);
+      }, pollingInterval);
+    });
+  };
+
+  listModels = async () => {
     try {
-      await this.recs.updateOne({ ref_id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } });
-      this.pub.publish(siteRef, JSON.stringify({ message_id: uuidv1(), method: "stop" }));
+      const models = [];
+
+      for await (const model of this.models.find()) {
+        models.push({
+          id: model.id,
+          modelName: model.model_name
+        });
+      }
+
+      return models;
     } catch (e) {
       console.error(e);
       return Promise.reject();
     }
+  };
+
+  createModel = async (modelID, modelName) => {
+    const datetime = new Date();
+    this.models.insertOne({
+      ref_id: modelID,
+      model_name: modelName,
+      created: datetime,
+      modified: datetime,
+      _cls: "Model"
+    });
+  };
+
+  createRunFromModel = async (modelID) => {
+    let runID = uuidv1();
+    let model = await this.models.findOne({ ref_id: modelID });
+    let job = "alfalfa_worker.jobs.openstudio.CreateRun";
+    if (model.model_name.endsWith(".fmu")) {
+      job = "alfalfa_worker.jobs.modelica.CreateRun";
+    }
+
+    const params = {
+      MessageBody: `{
+        "job": "${job}",
+        "params": {
+          "model_id": "${modelID}",
+          "run_id": "${runID}"
+        }
+      }`,
+      QueueUrl: process.env.JOB_QUEUE_URL,
+      MessageGroupId: "Alfalfa"
+    };
+
+    this.sqs.sendMessage(params, (err, data) => {
+      if (err) {
+        console.error(err);
+      }
+    });
+
+    return runID;
   };
 }
 

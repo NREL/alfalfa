@@ -7,12 +7,13 @@ import mlep
 
 from alfalfa_worker.jobs.openstudio.lib.parse_variables import ParseVariables
 from alfalfa_worker.jobs.step_run_base import StepRunBase
+from alfalfa_worker.lib.enums import PointType
 from alfalfa_worker.lib.job import (
     JobException,
     JobExceptionExternalProcess,
     message
 )
-from alfalfa_worker.lib.point import Point, PointType
+from alfalfa_worker.lib.models import Point
 
 
 class StepRun(StepRunBase):
@@ -276,17 +277,15 @@ class StepRun(StepRunBase):
             self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
             self.ep.inputs[master_index] = 1
 
-            # look in the database for current writearrays which has an array of controller
-            # input values, the first element in the array with a value
-            # is what should be applied to the simulation according to Project Haystack
-            # convention. If there is no value in the array, then it will not be passed to the
-            # simulation.
-            for point_id, write_value in self.get_write_array_values().items():
-                index = self.variables.get_input_index(point_id)
+            for point in self.run.input_points:
+                value = point.value
+                if value is None:
+                    continue
+                index = self.variables.get_input_index(point.ref_id)
                 if index == -1:
-                    self.logger.error('bad input index for: %s' % point_id)
+                    self.logger.error('bad input index for: %s' % point.ref_id)
                 else:
-                    self.ep.inputs[index] = write_value
+                    self.ep.inputs[index] = value
                     self.ep.inputs[index + 1] = 1
 
         # Convert to tuple
@@ -295,20 +294,14 @@ class StepRun(StepRunBase):
 
     def write_outputs_to_redis(self):
         """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
-        for output_id in self.variables.get_output_ids():
-            output_index = self.variables.get_output_index(output_id)
+        for point in self.run.output_points:
+            output_index = self.variables.get_output_index(point.ref_id)
             if output_index == -1:
-                self.logger.error('bad output index for: %s' % output_id)
+                self.logger.error('bad output index for: %s' % (point.ref_id))
             else:
                 output_value = self.ep.outputs[output_index]
 
-                # TODO: Make this better with a bulk update
-                # Also at some point consider removing curVal and related fields after sim ends
-                key = f'site:{self.run.ref_id}:rec:{output_id}'
-                self.redis.hset(key, mapping={
-                    'curStatus': 's:ok',
-                    'curVal': f'n:{output_value}'
-                })
+                point.value = output_value
 
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
@@ -361,15 +354,14 @@ class StepRun(StepRunBase):
 
     def setup_points(self):
         self.logger.info('setting up points')
-        points = []
         for output_id in self.variables.get_output_ids():
             output_index = self.variables.get_output_index(output_id)
             if output_index == -1:
                 self.logger.error('bad output index for: %s' % output_id)
             else:
                 dis = self.variables.get_haystack_dis_given_id(output_id)
-                point = Point(output_id, dis, PointType.OUTPUT)
-                points.append(point)
+                point = Point(ref_id=output_id, name=dis, point_type=PointType.OUTPUT)
+                self.run.add_point(point)
 
         for input_id in self.variables.get_input_ids():
             input_index = self.variables.get_input_index(input_id)
@@ -377,10 +369,10 @@ class StepRun(StepRunBase):
                 self.logger.error('bad input index for: %s' % input_id)
             else:
                 dis = self.variables.get_haystack_dis_given_id(input_id)
-                point = Point(input_id, dis, PointType.INPUT)
-                points.append(point)
+                point = Point(ref_id=input_id, name=dis, point_type=PointType.INPUT)
+                self.run.add_point(point)
 
-        self.add_points(points)
+        self.run.save()
 
     def check_error_log(self):
         mlep_logs = self.dir.glob('**/mlep.log')
