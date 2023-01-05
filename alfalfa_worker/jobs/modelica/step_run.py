@@ -17,7 +17,7 @@ class StepRun(StepRunBase):
         self.sim_start_time = (self.start_datetime - datetime(sim_year, 1, 1)) / timedelta(seconds=1)
         self.sim_end_time = (self.end_datetime - datetime(sim_year, 1, 1)) / timedelta(seconds=1)
 
-        self.logger.info("current datetime at start of simulation: %", self.start_datetime)
+        self.logger.info(f"current datetime at start of simulation: {self.start_datetime}")
 
         fmupath = self.dir / 'model.fmu'
         tagpath = self.dir / 'tags.json'
