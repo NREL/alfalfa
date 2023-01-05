@@ -32,7 +32,7 @@ symfit = "^0.5.5"
 # Assimulo and PyFMI. Also needed for symfit (used in E+ Python)
 Cython = "0.29.28"
 numpy = "1.24.1"
-setuptools = "65.3.0"
+setuptools = "65.5.1"
 
 # These libraries are used for the data generator/testcase.
 # Lock to pillow 9.1.1 to avoid installation issues with Pillow 9.2 on Ubuntu
