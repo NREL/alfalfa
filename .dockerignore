@@ -1,11 +1,9 @@
 __pycache__
 .pytest_cache
-.tox
 .vscode
 .coverage
 dist
 docs
-tox.ini
 Dockerfile
 
 alfalfa_web/Dockerfile
