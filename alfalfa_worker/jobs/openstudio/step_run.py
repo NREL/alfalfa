@@ -1,7 +1,7 @@
 import os
 import socket
 from datetime import datetime, timedelta
-from time import sleep
+from time import sleep, time
 
 import mlep
 
@@ -34,6 +34,9 @@ class StepRun(StepRunBase):
 
         self.weather_file = os.path.realpath(self.dir / 'simulation' / 'sim.epw')
         self.str_format = "%Y-%m-%d %H:%M:%S"
+
+        # Constants
+        self.EP_READ_RETRY_TIMEOUT = 10  # How long to retry reading when we get invalid, zero-length, packets from E+
 
         # EnergyPlus MLEP initializations
         self.ep = mlep.MlepProcess()
@@ -118,6 +121,16 @@ class StepRun(StepRunBase):
     def update_outputs_from_ep(self):
         """Reads outputs from E+ step"""
         packet = self.ep.read()
+
+        self.logger.warning(f"Received packet with size 0, will retry for {self.EP_READ_RETRY_TIMEOUT} seconds")
+        start = time()
+        while len(packet) == 0 and time() - start < self.EP_READ_RETRY_TIMEOUT:
+            packet = self.ep.read()
+            sleep(1)
+        if len(packet) == 0:
+            self.check_error_log()
+            raise JobExceptionExternalProcess("Could not establish communication with EnergyPlus")
+
         _flag, _, outputs = mlep.mlep_decode_packet(packet)
         self.ep.outputs = outputs
 
