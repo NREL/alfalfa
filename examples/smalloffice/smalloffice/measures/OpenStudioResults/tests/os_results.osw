@@ -1,0 +1,54 @@
+{
+   "completed_at" : "20200207T091421Z",
+   "completed_status" : "Success",
+   "created_at" : "20171218T054334Z",
+   "current_step" : 2,
+   "eplusout_err" : "",
+   "file_paths" : [
+      "/Users/dgoldwas/Documents/GitHub/NREL/OpenStudio-measures/nrel_published/openstudio_results/tests/output/tariff/generated_files",
+      "./files",
+      "./weather",
+      "../../files",
+      "../../weather",
+      "./"
+   ],
+   "hash" : "625C40ED",
+   "measure_paths" : [ "../../../../" ],
+   "seed_file" : "TestOutput.osm",
+   "started_at" : "20200207T091340Z",
+   "steps" : [
+      {
+         "arguments" : {
+            "reg_monthly_details" : true
+         },
+         "measure_dir_name" : "openstudio_results",
+         "result" : {
+            "completed_at" : "20200207T091419Z",
+            "measure_class_name" : "OpenStudioResults",
+            "measure_display_name" : "OpenStudio Results",
+            "measure_name" : "openstudio_results",
+            "measure_taxonomy" : "Reporting.QAQC",
+            "measure_type" : "ReportingMeasure",
+            "measure_uid" : "a25386cd-60e4-46bc-8b11-c755f379d916",
+            "measure_version_id" : "e9df8827-787d-4143-ae5d-981299fbcdb7",
+            "measure_version_modified" : "20200207T091252Z",
+            "measure_xml_checksum" : "557BF06F",
+            "started_at" : "20200207T091406Z",
+            "stderr" : "",
+            "stdout" : "",
+            "step_errors" : [],
+            "step_files" : [
+               "/Users/dgoldwas/Documents/GitHub/NREL/OpenStudio-measures/nrel_published/openstudio_results/tests/output/tariff/run/001_openstudio_results/report.html"
+            ],
+            "step_final_condition" : "Generated report with 22 sections to ./report.html.",
+            "step_info" : [ "Monthly End Use by Fuel registerValues have been requested." ],
+            "step_initial_condition" : "Gathering data from EnergyPlus SQL file and OSM model. Will report in IP Units",
+            "step_result" : "Success",
+            "step_values" : [],
+            "step_warnings" : []
+         }
+      }
+   ],
+   "updated_at" : "20200207T091421Z",
+   "weather_file" : "../../USA_CO_Golden-NREL.724666_TMY3.epw"
+}

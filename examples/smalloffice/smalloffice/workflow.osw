@@ -1,0 +1,19 @@
+{
+   "created_at" : "20221129T145229Z",
+   "seed_file" : "../smalloffice.osm",
+   "steps" : 
+   [
+      {
+         "arguments" : 
+         {
+            "climate_zone" : "ASHRAE 169-2013-3A",
+            "template" : "90.1-2016"
+         },
+         "description" : "Creates the DOE Reference Building Models as starting points for other analyses.",
+         "measure_dir_name" : "create_doe_prototype_building",
+         "modeler_description" : "",
+         "name" : "Create DOE Prototype Building Copy"
+      }
+   ],
+   "updated_at" : "20221129T145426Z"
+}

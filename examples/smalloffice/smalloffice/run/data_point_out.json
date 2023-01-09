@@ -1,0 +1,9 @@
+{
+  "Create DOE Prototype Building Copy": {
+    "building_type": "SmallOffice",
+    "template": "90.1-2016",
+    "climate_zone": "ASHRAE 169-2013-3A",
+    "epw_file": "Not Applicable",
+    "applicable": true
+  }
+}

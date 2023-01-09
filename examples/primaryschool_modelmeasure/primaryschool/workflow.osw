@@ -1,0 +1,25 @@
+{
+   "created_at" : "20221118T161510Z",
+   "seed_file" : "../primaryschool.osm",
+"weather_file": "USA_CA_Red.Bluff.Muni.AP.725910_TMY.epw",
+  "measure_paths": [
+    "./measures/"
+  ],
+  "file_paths": [
+    "./files/"
+  ],
+  "run_directory": "./run/",
+   "steps" : 
+   [
+      {
+         "arguments" : 
+         {
+         },
+         "description" : "This method adds inputs and outputs for Alfalfa and generates a metadata model that follows the BRICK ontology.",
+         "measure_dir_name" : "add_alfalfa_io_from_brick",
+         "modeler_description" : "",
+         "name" : "Add I/O for alfalfa from BRICK"
+      }
+   ],
+   "updated_at" : "20221121T182624Z"
+}

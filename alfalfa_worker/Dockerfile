@@ -16,7 +16,7 @@ WORKDIR /home/alfalfa
 # This step should probably be connected to the next one, but due to the nature of NREL's
 # firewall this step must be run off VPN. This way you don't need to log off everytime you
 # update apt packaged, at least.
-RUN apt-get update \
+RUN apt-get update --allow-unauthenticated --allow-insecure-repositories\
     && apt install -y software-properties-common \
     && add-apt-repository ppa:openjdk-r/ppa \
     && rm -rf /var/lib/apt/lists/*
@@ -49,20 +49,35 @@ RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/jav
 
 WORKDIR $BUILD_DIR
 
-ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
-ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.3.0/OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 
-ENV ENERGYPLUS_VERSION 9.6.0
-ENV ENERGYPLUS_TAG 9.6-3.8
-ENV ENERGYPLUS_SHA e78d88a246
-ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-6-0
+ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.5.0+7b14ce1588-Ubuntu-20.04.deb
+ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.5.0/OpenStudio-3.5.0+7b14ce1588-Ubuntu-20.04.deb
+
+ENV ENERGYPLUS_VERSION 22.2.0
+ENV ENERGYPLUS_TAG 22.2.0
+ENV ENERGYPLUS_SHA c249759bad
+ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-22-2-0
 
 # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
 # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
 # might be revaluated
 ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/TShapinsky/EnergyPlus/releases/download/$ENERGYPLUS_TAG
-ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-Ubuntu20.04-x86_64.tar.gz
-ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
+ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-22.2.0-c249759bad-Linux-Ubuntu20.04-x86_64.tar.gz
+ENV ENERGYPLUS_DOWNLOAD_URL https://github.com/NREL/EnergyPlus/releases/download/v22.2.0/EnergyPlus-22.2.0-c249759bad-Linux-Ubuntu20.04-x86_64.tar.gz
+# ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
+# ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.3.0/OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
+
+# ENV ENERGYPLUS_VERSION 9.6.0
+# ENV ENERGYPLUS_TAG 9.6-3.8
+# ENV ENERGYPLUS_SHA e78d88a246
+# ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-6-0
+
+# # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
+# # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
+# # might be revaluated
+# ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/TShapinsky/EnergyPlus/releases/download/$ENERGYPLUS_TAG
+# ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-Ubuntu20.04-x86_64.tar.gz
+# ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
 
 # We would rather use the self extracting tarball distribution of EnergyPlus, but there appears to
 # be a bug in the installation script so using the tar.gz manually here and making our own links
@@ -202,14 +217,20 @@ WORKDIR /alfalfa/alfalfa_worker
 
 ENV SEPARATE_PROCESS_JVM /usr/lib/jvm/java-8-openjdk-amd64/
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+# for EPtoBRICK
+RUN pip3 install brickschema rdflib opyplus termcolor
 
 CMD ["/alfalfa/deploy/start_worker.sh"]
 
 # **** Staged build for running in development mode ****
 FROM base AS dev
 
-# Reinstall poetry's dev dependencies by calling again without `--only main`,
-RUN poetry install --with dev
+# Reinstall poetry's dev dependencies by calling again without --no-dev,
+# then reinstall setuptools to have pkg_resources available
+RUN pip3 install virtualenv \
+    && poetry config virtualenvs.create false \
+    && poetry install --with dev\
+    && pip3 install setuptools==65.3.0
 
 # for remote debugging
 RUN pip3 install remote-pdb
@@ -219,6 +240,9 @@ RUN pip3 install watchdog[watchmedo]
 
 # The docker-compose will require the mounting
 # of the files into the container, see docker-compose.dev.yml
+
+# for the EnergyPlus to BRICK measure
+RUN gem install rdf-rdfxml sparql-client rdf-turtle
 
 # Enable the ability to restart the service when
 # the files change

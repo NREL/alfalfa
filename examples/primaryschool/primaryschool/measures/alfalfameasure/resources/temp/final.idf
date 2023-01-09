@@ -1,0 +1,115 @@
+
+OS:Version,
+  {51ba6259-4629-4046-90dc-8f24719b4054}, !- Handle
+  3.4.0;                                  !- Version Identifier
+
+OS:Site,
+  {a9441a31-fec4-4933-9479-08da383f5599}, !- Handle
+  Site 1,                                 !- Name
+  ,                                       !- Latitude {deg}
+  ,                                       !- Longitude {deg}
+  ,                                       !- Time Zone {hr}
+  ,                                       !- Elevation {m}
+  ;                                       !- Terrain
+
+OS:YearDescription,
+  {2f8beea6-ec7b-4922-918e-c2241f03871a}; !- Handle
+
+OS:ClimateZones,
+  {5111895a-9bca-4d06-85c6-d17fc1e9d501}, !- Handle
+  ASHRAE,                                 !- Climate Zone Institution Name 1
+  ANSI/ASHRAE Standard 169,               !- Climate Zone Document Name 1
+  2006,                                   !- Climate Zone Document Year 1
+  ,                                       !- Climate Zone Value 1
+  CEC,                                    !- Climate Zone Institution Name 2
+  California Climate Zone Descriptions,   !- Climate Zone Document Name 2
+  1995,                                   !- Climate Zone Document Year 2
+  ;                                       !- Climate Zone Value 2
+
+OS:Building,
+  {33a15152-b177-4188-b342-d65d45e9067f}, !- Handle
+  Building 1,                             !- Name
+  ,                                       !- Building Sector Type
+  ,                                       !- North Axis {deg}
+  ,                                       !- Nominal Floor to Floor Height {m}
+  ,                                       !- Space Type Name
+  ,                                       !- Default Construction Set Name
+  ;                                       !- Default Schedule Set Name
+
+OS:Facility,
+  {265f0f82-66fc-4251-8dc9-54aef564249f}; !- Handle
+
+OS:SimulationControl,
+  {9d8054ec-212d-4aac-991e-088e7f68c92b}; !- Handle
+
+OS:Sizing:Parameters,
+  {b9afa6fe-13ce-4961-ba60-2333d50ed8b3}, !- Handle
+  1.25,                                   !- Heating Sizing Factor
+  1.15;                                   !- Cooling Sizing Factor
+
+OS:Timestep,
+  {652c8cae-0780-4b00-9d88-238470d072ca}, !- Handle
+  6;                                      !- Number of Timesteps per Hour
+
+OS:ShadowCalculation,
+  {0e0c691e-4295-480b-bfbe-0c68a813e1ad}, !- Handle
+  PolygonClipping,                        !- Shading Calculation Method
+  ,                                       !- Shading Calculation Update Frequency Method
+  20,                                     !- Shading Calculation Update Frequency
+  15000,                                  !- Maximum Figures in Shadow Overlap Calculations
+  ,                                       !- Polygon Clipping Algorithm
+  512,                                    !- Pixel Counting Resolution
+  ,                                       !- Sky Diffuse Modeling Algorithm
+  No,                                     !- Output External Shading Calculation Results
+  No,                                     !- Disable Self-Shading Within Shading Zone Groups
+  No;                                     !- Disable Self-Shading From Shading Zone Groups to Other Zones
+
+OS:HeatBalanceAlgorithm,
+  {d7bf8280-228a-4639-8a5e-f2fc5ce91388}, !- Handle
+  ConductionTransferFunction,             !- Algorithm
+  200;                                    !- Surface Temperature Upper Limit {C}
+
+OS:RunPeriod,
+  {efdd3bf9-afd8-4fa0-8796-f8204ae26b1a}, !- Handle
+  Run Period 1,                           !- Name
+  1,                                      !- Begin Month
+  1,                                      !- Begin Day of Month
+  12,                                     !- End Month
+  31,                                     !- End Day of Month
+  ,                                       !- Use Weather File Holidays and Special Days
+  ,                                       !- Use Weather File Daylight Saving Period
+  ,                                       !- Apply Weekend Holiday Rule
+  ,                                       !- Use Weather File Rain Indicators
+  ,                                       !- Use Weather File Snow Indicators
+  ;                                       !- Number of Times Runperiod to be Repeated
+
+OS:LifeCycleCost:Parameters,
+  {e8ef1efc-754e-4ea5-a7e0-9f0ade475791}, !- Handle
+  ,                                       !- Analysis Type
+  ,                                       !- Discounting Convention
+  ,                                       !- Inflation Approach
+  ,                                       !- Real Discount Rate
+  ,                                       !- Nominal Discount Rate
+  ,                                       !- Inflation
+  ,                                       !- Base Date Month
+  ,                                       !- Base Date Year
+  ,                                       !- Service Date Month
+  ,                                       !- Service Date Year
+  ;                                       !- Length of Study Period in Years
+
+OS:WeatherFile,
+  {7d1fbcb2-8884-4632-ba79-4b471225a0fe}, !- Handle
+  Red Bluff,                              !- City
+  CA,                                     !- State Province Region
+  USA,                                    !- Country
+  TMY--24216,                             !- Data Source
+  725910,                                 !- WMO Number
+  40.15,                                  !- Latitude {deg}
+  -122.25,                                !- Longitude {deg}
+  -8,                                     !- Time Zone {hr}
+  106,                                    !- Elevation {m}
+  /Users/tmarzull/Documents/BRICK/working/alfalfa/primaryschool_test/primaryschool/weather/USA_CA_Red.Bluff.Muni.AP.725910_TMY.epw, !- Url
+  7ADD07A1,                               !- Checksum
+  ,                                       !- Start Date Actual Year
+  Sunday;                                 !- Start Day of Week
+

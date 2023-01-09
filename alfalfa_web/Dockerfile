@@ -2,7 +2,7 @@ FROM node:16 AS base
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --allow-unauthenticated&& apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
