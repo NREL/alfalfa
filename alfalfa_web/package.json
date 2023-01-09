@@ -38,7 +38,7 @@
     "express-graphql": "github:axelstudios/express-graphql-16",
     "got": "^11.8.5",
     "graphql": "^16.5.0",
-    "luxon": "^3.0.3",
+    "luxon": "^3.2.1",
     "minio": "^7.0.28",
     "mongodb": "^3.7.3",
     "morgan": "^1.10.0",
