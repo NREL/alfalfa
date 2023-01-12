@@ -11,15 +11,6 @@
   "run_directory": "./run/",
    "steps" : 
    [
-      {
-         "arguments" : 
-         {
-         },
-         "description" : "This method adds inputs and outputs for Alfalfa and generates a metadata model that follows the BRICK ontology.",
-         "measure_dir_name" : "alfalfameasure",
-         "modeler_description" : "",
-         "name" : "Add I/O for alfalfa from BRICK"
-      }
    ],
    "updated_at" : "20221121T182624Z"
 }

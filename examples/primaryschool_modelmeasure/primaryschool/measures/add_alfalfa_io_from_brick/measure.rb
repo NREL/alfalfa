@@ -42,7 +42,7 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
   
     # Define the name of the Measure.
     def name
-      return 'Add I/O for alfalfa from BRICK'
+      return 'Add IO for alfalfa from BRICK'
     end
   
     # Human readable description
