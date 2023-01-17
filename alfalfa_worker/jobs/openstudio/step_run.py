@@ -85,6 +85,7 @@ class StepRun(StepRunBase):
         if self.ep.status != 0:
             raise JobExceptionExternalProcess('Could not start EnergyPlus: {}'.format(self.ep.msg))
         self.check_error_log()
+        sleep(120)
 
         try:
             [self.ep.status, self.ep.msg] = self.ep.accept_socket()
