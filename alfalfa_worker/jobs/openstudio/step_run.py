@@ -1,7 +1,7 @@
 import os
 import socket
 from datetime import datetime, timedelta
-from time import sleep, time
+from time import sleep
 
 import mlep
 
@@ -35,14 +35,11 @@ class StepRun(StepRunBase):
         self.weather_file = os.path.realpath(self.dir / 'simulation' / 'sim.epw')
         self.str_format = "%Y-%m-%d %H:%M:%S"
 
-        # Constants
-        self.EP_READ_RETRY_TIMEOUT = 10  # How long to retry reading when we get invalid, zero-length, packets from E+
-
         # EnergyPlus MLEP initializations
         self.ep = mlep.MlepProcess()
         self.ep.bcvtbDir = '/home/alfalfa/bcvtb/'
         self.ep.env = {'BCVTB_HOME': '/home/alfalfa/bcvtb'}
-        self.ep.accept_timeout = 10000
+        self.ep.accept_timeout = 120000
         self.ep.mapping = os.path.realpath(self.dir / 'simulation' / 'haystack_report_mapping.json')
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
@@ -90,6 +87,7 @@ class StepRun(StepRunBase):
             [self.ep.status, self.ep.msg] = self.ep.accept_socket()
         except socket.timeout:
             self.check_error_log()
+            raise JobExceptionExternalProcess('Timedout waiting for EnergyPlus')
 
         self.set_run_time(self.start_datetime)
 
@@ -121,15 +119,6 @@ class StepRun(StepRunBase):
     def update_outputs_from_ep(self):
         """Reads outputs from E+ step"""
         packet = self.ep.read()
-
-        self.logger.warning(f"Received packet with size 0, will retry for {self.EP_READ_RETRY_TIMEOUT} seconds")
-        start = time()
-        while len(packet) == 0 and time() - start < self.EP_READ_RETRY_TIMEOUT:
-            packet = self.ep.read()
-            sleep(1)
-        if len(packet) == 0:
-            self.check_error_log()
-            raise JobExceptionExternalProcess("Could not establish communication with EnergyPlus")
 
         _flag, _, outputs = mlep.mlep_decode_packet(packet)
         self.ep.outputs = outputs
