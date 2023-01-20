@@ -4,6 +4,9 @@ import shutil
 import tempfile
 from pathlib import Path
 
+import pytest
+from alfalfa_client.alfalfa_client import AlfalfaClient
+
 
 def pytest_generate_tests(metafunc):
     model_dir = Path(os.path.dirname(__file__)) / 'broken_models'
@@ -13,6 +16,34 @@ def pytest_generate_tests(metafunc):
         ]
 
         metafunc.parametrize("broken_model_path", model_paths)
+
+    model_dir = Path(os.path.dirname(__file__)) / 'models'
+    if "model_path" in metafunc.fixturenames:
+        model_paths = [
+            model_dir / 'refrig_case_osw',
+            model_dir / 'small_office',
+            model_dir / 'minimal_osw_resstock',
+            model_dir / 'simple_thermostat.fmu',
+            model_dir / 'single_zone_vav.fmu'
+        ]
+
+        metafunc.parametrize("model_path", model_paths)
+
+
+@pytest.fixture
+def alfalfa():
+    client = AlfalfaClient(host="http://localhost")
+    yield client
+
+
+@pytest.fixture
+def ref_id(model_path: Path, alfalfa: AlfalfaClient):
+    ref_id = alfalfa.submit(model_path)
+    yield ref_id
+
+    status = alfalfa.status(ref_id)
+    if status == "running":
+        alfalfa.stop()
 
 
 def create_zip(model_dir):
@@ -25,7 +56,4 @@ def create_zip(model_dir):
 
 def prepare_model(model_path):
     model_path = Path(__file__).parents[0] / 'models' / model_path
-    if (model_path).is_dir():
-        return create_zip(str(model_path))
-    else:
-        return str(model_path)
+    return str(model_path)
