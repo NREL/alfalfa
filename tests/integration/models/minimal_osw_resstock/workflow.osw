@@ -1,0 +1,11 @@
+{
+  "seed_file" : "bldg0000001-up00.osm",
+  "run_directory": "./run/",
+  "weather_file": "USA_OH_Dayton-Wright.Patterson.AFB.745700_TMY3.epw",
+  "file_paths": [
+    "./weather/",
+    "./files/"
+  ],
+  "steps" : [
+  ]
+}
