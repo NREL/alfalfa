@@ -1,5 +1,4 @@
 import json
-import logging
 from os import PathLike
 from pathlib import Path
 from typing import Dict, List
@@ -26,11 +25,9 @@ class Variables:
         result = {}
         files = self.run.glob(glob)
         for file in files:
-            logging.info(f"reading file: {file}")
             with open(str(file), 'r') as fp:
                 result.update(json.load(fp))
 
-        logging.info(f"loaded: {result}")
         return result
 
     def load_reports(self):
