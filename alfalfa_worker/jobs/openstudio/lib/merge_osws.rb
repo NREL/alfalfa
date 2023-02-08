@@ -21,14 +21,18 @@ alfalfa_eplus_steps = alfalfa_osw.getMeasureSteps(eplus_measure_type)
 # Given a WorkflowJSON, return the local measures directory relative to the osw
 # The goal is to avoid any global directories that are outside of the osw directory
 def measures_directory(osw)
-  measures_dir = nil
+  measures_dir = "measures"
   osw.measurePaths().each do |p|
     if p.has_relative_path()
       measures_dir = p
       break
     end
   end
-  return OpenStudio::toString(osw.absoluteRootDir() / measures_dir)
+  measures_dir = (osw.absoluteRootDir() / measures_dir).to_s
+  if !Dir.exist? measures_dir
+    Dir.mkdir(measures_dir)
+  end
+  return measures_dir
 end
 
 

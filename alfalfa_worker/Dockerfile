@@ -185,7 +185,8 @@ WORKDIR /alfalfa
 # Include the path to where alfalfa_worker is so that system calls can find it.
 ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
 
-COPY . /alfalfa
+COPY ./alfalfa_worker /alfalfa/alfalfa_worker
+COPY ./deploy /alfalfa/deploy
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 
 # update the path to python, which is in the Poetry virtual environment.
