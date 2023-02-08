@@ -21,7 +21,7 @@ module OpenStudio
         when 'EnergyManagementSystem:OutputVariable'.to_IddObjectType
           @hash['component'] = 'EMS'
           self.display_name = @object.name.get
-          @hash['variable'] = @object.getString(1).get
+          @hash['variable'] = @object.getString(0).get
           self.units = @object.getString(5).get
         when 'OS:Output:Variable'.to_IddObjectType
           @hash['component'] = @object.keyValue
