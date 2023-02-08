@@ -5,15 +5,13 @@ from time import sleep
 
 import mlep
 
-from alfalfa_worker.jobs.openstudio.lib.parse_variables import ParseVariables
+from alfalfa_worker.jobs.openstudio.lib.variables import Variables
 from alfalfa_worker.jobs.step_run_base import StepRunBase
-from alfalfa_worker.lib.enums import PointType
 from alfalfa_worker.lib.job import (
     JobException,
     JobExceptionExternalProcess,
     message
 )
-from alfalfa_worker.lib.models import Point
 
 
 class StepRun(StepRunBase):
@@ -49,10 +47,10 @@ class StepRun(StepRunBase):
         # Parse variables after Haystack measure
         self.variables_file = os.path.realpath(self.dir / 'simulation' / 'variables.cfg')
         self.haystack_json_file = os.path.realpath(self.dir / 'simulation' / 'haystack_report_haystack.json')
-        self.variables = ParseVariables(self.variables_file, self.ep.mapping, self.haystack_json_file)
+        self.variables = Variables(self.run)
 
         # Define MLEP inputs
-        self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
+        self.ep.inputs = [0] * (self.variables.get_num_inputs())
 
         # The idf RunPeriod is manipulated in order to get close to the desired start time,
         # but we can only get within 24 hours. We use "bypass" steps to quickly get to the
@@ -118,9 +116,20 @@ class StepRun(StepRunBase):
 
     def update_outputs_from_ep(self):
         """Reads outputs from E+ step"""
+        self.check_error_log()
         packet = self.ep.read()
 
         _flag, _, outputs = mlep.mlep_decode_packet(packet)
+        if _flag == -1:
+            self.check_error_log()
+            raise JobExceptionExternalProcess("EnergyPlus experienced unknown error")
+        elif _flag == -10:
+            self.check_error_log()
+            raise JobExceptionExternalProcess("EnergyPlus experienced initialization error")
+        elif _flag == -20:
+            self.check_error_log()
+            raise JobExceptionExternalProcess("EnergyPlus experienced time integration error")
+
         self.ep.outputs = outputs
 
     def step(self):
@@ -162,10 +171,10 @@ class StepRun(StepRunBase):
         :return:
         :rtype datetime()
         """
-        month_index = self.variables.output_index_from_type_and_name("current_month", "EMS")
-        day_index = self.variables.output_index_from_type_and_name("current_day", "EMS")
-        hour_index = self.variables.output_index_from_type_and_name("current_hour", "EMS")
-        minute_index = self.variables.output_index_from_type_and_name("current_minute", "EMS")
+        month_index = self.variables.month_index
+        day_index = self.variables.day_index
+        hour_index = self.variables.hour_index
+        minute_index = self.variables.minute_index
 
         day = int(round(self.ep.outputs[day_index]))
         hour = int(round(self.ep.outputs[hour_index]))
@@ -272,23 +281,24 @@ class StepRun(StepRunBase):
         Returns:
             tuple: list of inputs to set
         """
-        master_index = self.variables.input_index_from_variable_name("MasterEnable")
-        if self.master_enable_bypass:
-            self.ep.inputs[master_index] = 0
-        else:
-            self.ep.inputs = [0] * ((len(self.variables.get_input_ids())) + 1)
-            self.ep.inputs[master_index] = 1
+        # master_index = self.variables.input_index_from_variable_name("MasterEnable")
+        # if self.master_enable_bypass:
+        #     self.ep.inputs[master_index] = 0
+        # else:
+        self.ep.inputs = [0] * (self.variables.get_num_inputs())
+        # self.ep.inputs[master_index] = 1
 
-            for point in self.run.input_points:
-                value = point.value
-                if value is None:
-                    continue
-                index = self.variables.get_input_index(point.ref_id)
-                if index == -1:
-                    self.logger.error('bad input index for: %s' % point.ref_id)
-                else:
-                    self.ep.inputs[index] = value
-                    self.ep.inputs[index + 1] = 1
+        for point in self.run.input_points:
+            value = point.value
+            if value is None:
+                continue
+            index = self.variables.get_input_index(point.ref_id)
+            if index == -1:
+                self.logger.error('bad input index for: %s' % point.ref_id)
+            else:
+                self.ep.inputs[index] = value
+                if self.variables.has_enable(point.ref_id):
+                    self.ep.inputs[self.variables.get_input_enable_index(point.ref_id)] = 1
 
         # Convert to tuple
         inputs = tuple(self.ep.inputs)
@@ -322,13 +332,14 @@ class StepRun(StepRunBase):
             "time": f"{self.get_sim_time()}",
         }
         response = False
-        for output_id in self.variables.get_output_ids():
+        for output_point in self.run.output_points:
+            output_id = output_point.ref_id
             output_index = self.variables.get_output_index(output_id)
             if output_index == -1:
                 self.logger.error('bad output index for: %s' % output_id)
             else:
                 output_value = self.ep.outputs[output_index]
-                dis = self.variables.get_haystack_dis_given_id(output_id)
+                dis = output_point.name
                 base["fields"] = {
                     "value": output_value
                 }
@@ -353,28 +364,6 @@ class StepRun(StepRunBase):
         else:
             self.logger.info(
                 f"Successful write to influx.  Length of JSON: {len(json_body)}")
-
-    def setup_points(self):
-        self.logger.info('setting up points')
-        for output_id in self.variables.get_output_ids():
-            output_index = self.variables.get_output_index(output_id)
-            if output_index == -1:
-                self.logger.error('bad output index for: %s' % output_id)
-            else:
-                dis = self.variables.get_haystack_dis_given_id(output_id)
-                point = Point(ref_id=output_id, name=dis, point_type=PointType.OUTPUT)
-                self.run.add_point(point)
-
-        for input_id in self.variables.get_input_ids():
-            input_index = self.variables.get_input_index(input_id)
-            if input_index == -1:
-                self.logger.error('bad input index for: %s' % input_id)
-            else:
-                dis = self.variables.get_haystack_dis_given_id(input_id)
-                point = Point(ref_id=input_id, name=dis, point_type=PointType.INPUT)
-                self.run.add_point(point)
-
-        self.run.save()
 
     def check_error_log(self):
         mlep_logs = self.dir.glob('**/mlep.log')

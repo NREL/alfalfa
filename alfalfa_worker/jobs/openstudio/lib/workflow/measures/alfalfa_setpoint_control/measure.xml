@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>alfalfa_setpoint_control</name>
+  <uid>870213d3-36a2-4da2-9a04-c377a37fd4fe</uid>
+  <version_id>bf35c981-cffe-41a8-ac34-606ebbc44c7d</version_id>
+  <version_modified>20230125T214417Z</version_modified>
+  <xml_checksum>70995EFB</xml_checksum>
+  <class_name>AlfalfaSetpointControl</class_name>
+  <display_name>Alfalfa Setpoint Control</display_name>
+  <description>Add Setpoint Control to Alfalfa</description>
+  <modeler_description>Add Setpoint Control to Alfalfa</modeler_description>
+  <arguments />
+  <outputs />
+  <provenances />
+  <tags>
+    <tag>HVAC.HVAC Controls</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>EnergyPlusMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>3.1.0</identifier>
+        <min_compatible>3.1.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>6F11EE21</checksum>
+    </file>
+    <file>
+      <filename>output.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>4553AB66</checksum>
+    </file>
+    <file>
+      <filename>input.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9C7F46CA</checksum>
+    </file>
+  </files>
+</measure>

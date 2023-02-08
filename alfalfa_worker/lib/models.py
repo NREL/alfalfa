@@ -432,7 +432,7 @@ class Point(TimestampedDocument):
     def value(self):
         if self.point_type == PointType.OUTPUT:
             raise TypeError("Cannot read the value of a point with type OUTPUT")
-        write_array = self.redis.lrange(self.redis_key, 0, -1)
+        write_array = self.redis.lrange(self.redis_key + ':in', 0, -1)
         value = None
         for entry in write_array:
             if len(entry) > 0:
@@ -444,7 +444,7 @@ class Point(TimestampedDocument):
     def value(self, value):
         if self.point_type == PointType.INPUT:
             raise TypeError("Cannot write to a point with type INTPUT")
-        self.redis.hset(self.redis_key, mapping={
+        self.redis.hset(self.redis_key + ':out', mapping={
             'curStatus': 's:ok',
             'curVal': f'n:{value}'
         })
