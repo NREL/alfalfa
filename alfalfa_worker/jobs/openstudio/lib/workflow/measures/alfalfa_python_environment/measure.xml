@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <error>uninitialized constant Python</error>
+  <name>alfalfa_python_environment</name>
+  <uid>16125428-fcf9-4986-9d9b-3644225a2b6d</uid>
+  <version_id>310e60b6-6215-4d58-b10b-e21eddaaf129</version_id>
+  <version_modified>20221031T173904Z</version_modified>
+  <xml_checksum>9D2F1A23</xml_checksum>
+  <class_name>AlfalfaPythonEnvironment</class_name>
+  <display_name>Alfalfa Python Environment</display_name>
+  <description>Add alfalfa python environment to IDF</description>
+  <modeler_description>Add python script path to IDF</modeler_description>
+  <arguments />
+  <outputs />
+  <provenances />
+  <tags />
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>EnergyPlusMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.3.0</identifier>
+        <min_compatible>2.3.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>4A5B6A8D</checksum>
+    </file>
+  </files>
+</measure>

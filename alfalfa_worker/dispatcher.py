@@ -5,17 +5,19 @@ from importlib import import_module
 from pathlib import Path
 from typing import Dict
 
+from alfalfa_worker.lib.alfalfa_connections_manager import (
+    AlafalfaConnectionsManager
+)
 # Currently this is a child of WorkerJobBase, but mostly for the
 # alfalfa connections. WorkerJobBase could/should be updated to inherit
 # from a new class that just handles the alfalfa connections, then
 # the WorkerJobBase and Dispatcher can both inherit from the new class.
-from alfalfa_worker.lib.alfalfa_connections_base import AlfalfaConnectionsBase
 from alfalfa_worker.lib.job import Job, JobStatus
 from alfalfa_worker.lib.logger_mixins import DispatcherLoggerMixin
 from alfalfa_worker.lib.run_manager import RunManager
 
 
-class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
+class Dispatcher(DispatcherLoggerMixin):
     """Class to pop data off a queue and determine to where the work needs
     to go. Alfalfa works off a single queue and the work is identified
     based on the payload that is in the queue (model_name).
@@ -27,6 +29,9 @@ class Dispatcher(DispatcherLoggerMixin, AlfalfaConnectionsBase):
 
     def __init__(self, workdir: Path):
         super().__init__()
+        connections_manager = AlafalfaConnectionsManager()
+        self.sqs_queue = connections_manager.sqs_queue
+
         self.logger.info(f"Job queue url is {self.sqs_queue}")
 
         self.workdir = workdir

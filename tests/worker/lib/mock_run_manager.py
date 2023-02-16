@@ -6,8 +6,7 @@ from typing import Dict, List
 from uuid import uuid4
 
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
-from alfalfa_worker.lib.point import Point
-from alfalfa_worker.lib.run import Run
+from alfalfa_worker.lib.models import Point, Run
 from alfalfa_worker.lib.run_manager import RunManager
 
 

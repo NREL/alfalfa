@@ -20,6 +20,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
+      - GIT_COMMIT
       - JOB_QUEUE_URL
       - MONGO_DB_NAME
       - MONGO_URL
@@ -38,7 +39,7 @@ services:
   # Provides a local queue, conforming to AWS Queue (SQS) API
   goaws:
     container_name: alfalfa_goaws
-    image: pafortin/goaws
+    image: pafortin/goaws:v0.3.1
     ports:
       - "4100:4100"
   # Local implementation of s3
@@ -56,7 +57,7 @@ services:
       - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
   mc:
     container_name: alfalfa_mc
-    image: minio/mc
+    image: minio/mc:RELEASE.2022-12-13T00-23-28Z
     environment:
       - MINIO_ACCESS_KEY=${AWS_ACCESS_KEY_ID}
       - MINIO_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -70,10 +71,9 @@ services:
     depends_on:
       - minio
   worker:
-    container_name: alfalfa_worker
     build:
       # the purpose of context one level above is to install the entire alfalfa package
-      # and to copy the wait-for-it.sh and start_worker.sh files in the deploy directory
+      # and to copy the wait-for-it.sh and start_worker.sh files in the `deploy` directory
       dockerfile: alfalfa_worker/Dockerfile
       context: .
       target: base
@@ -100,16 +100,13 @@ services:
       - mc
       - mongo
       - redis
-    #volumes:
-    # TODO: Add in worker fmu volume
-    # TODO: Add in worker openstudio volume
   mongo:
     container_name: alfalfa_mongo
-    image: mongo:5.0.12
+    image: mongo:5.0.14
     ports:
       - "27017:27017"
   redis:
     container_name: alfalfa_redis
-    image: redis
+    image: redis:7.0.7
     ports:
       - "6379:6379"

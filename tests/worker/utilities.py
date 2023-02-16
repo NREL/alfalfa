@@ -3,8 +3,9 @@ import time
 from typing import Dict
 from uuid import uuid4
 
+from alfalfa_worker.lib.enums import RunStatus
 from alfalfa_worker.lib.job import Job, JobStatus
-from alfalfa_worker.lib.run import Run, RunStatus
+from alfalfa_worker.lib.models import Run
 
 
 def send_message(job: Job, method: str, params: Dict = {}):

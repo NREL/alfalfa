@@ -1,5 +1,9 @@
 import datetime
+import glob
 import json
+from pathlib import Path
+from typing import List
+from uuid import uuid4
 
 from mongoengine import (
     CASCADE,
@@ -9,15 +13,17 @@ from mongoengine import (
     DynamicField,
     EmbeddedDocument,
     EmbeddedDocumentField,
-    FloatField,
-    IntField,
+    EnumField,
     ListField,
     ReferenceField,
-    StringField,
-    UUIDField
+    StringField
 )
+from mongoengine.queryset.visitor import Q
 
-from alfalfa_worker.lib.sim_type import SimType
+from alfalfa_worker.lib.alfalfa_connections_manager import (
+    AlafalfaConnectionsManager
+)
+from alfalfa_worker.lib.enums import PointType, RunStatus, SimType
 
 
 class TimestampedDocument(Document):
@@ -396,10 +402,62 @@ class Rec(TimestampedDocument):
     rec = EmbeddedDocumentField(RecInstance)
 
 
+def uuid4_str() -> str:
+    return str(uuid4())
+
+
 class Model(TimestampedDocument):
     meta = {'collection': 'model'}
 
-    path = StringField(required=True, max_length=255)
+    @property
+    def path(self):
+        return "uploads/%s/%s" % (self.ref_id, self.model_name)
+
+    ref_id = StringField(default=uuid4_str, required=True)
+    model_name = StringField(required=True)
+
+
+class Point(TimestampedDocument):
+    meta = {
+        'collection': 'point',
+        'indexes': ['ref_id', 'run'],
+    }
+
+    def __init__(self, *args, **values):
+        connections_manager = AlafalfaConnectionsManager()
+        self.redis = connections_manager.redis
+        super().__init__(*args, **values)
+
+    @property
+    def value(self):
+        if self.point_type == PointType.OUTPUT:
+            raise TypeError("Cannot read the value of a point with type OUTPUT")
+        write_array = self.redis.lrange(self.redis_key, 0, -1)
+        value = None
+        for entry in write_array:
+            if len(entry) > 0:
+                value = float(entry.decode('UTF-8'))
+                break
+        return value
+
+    @value.setter
+    def value(self, value):
+        if self.point_type == PointType.INPUT:
+            raise TypeError("Cannot write to a point with type INTPUT")
+        self.redis.hset(self.redis_key, mapping={
+            'curStatus': 's:ok',
+            'curVal': f'n:{value}'
+        })
+
+    @property
+    def redis_key(self):
+        return f"site:{self.run.ref_id}:point:{self.ref_id}"
+
+    # External reference ID
+    ref_id = StringField(default=uuid4_str, unique_with=['run'])
+    run = ReferenceField('Run')
+    name = StringField(default="", max_length=255)
+    point_type = EnumField(PointType, required=True)
 
 
 class Run(TimestampedDocument):
@@ -408,8 +466,50 @@ class Run(TimestampedDocument):
         'indexes': ['ref_id'],
     }
 
+    def __init__(self, dir: Path = None, *args, **values):
+        super().__init__(*args, **values)
+        self.dir = dir
+        connections_manager = AlafalfaConnectionsManager()
+        self.redis = connections_manager.redis
+        redis_entry = self.redis.hget(self.ref_id, "sim_time")
+        if redis_entry:
+            self._sim_time = datetime.datetime.strptime(redis_entry.decode('UTF-8'), '%Y-%m-%d %H:%M:%S')
+        else:
+            self._sim_time = None
+
+    def get_point_by_id(self, id):
+        return Point.objects.get(ref_id=id, run=self)
+
+    def glob(self, search_str, recursive=True):
+        return glob.glob(str(self.dir / Path(search_str)), recursive=recursive)
+
+    @property
+    def points(self) -> List[Point]:
+        return Point.objects(run=self)
+
+    @property
+    def input_points(self) -> List[Point]:
+        return Point.objects(Q(point_type=PointType.INPUT) | Q(point_type=PointType.BIDIRECTIONAL), run=self)
+
+    @property
+    def output_points(self) -> List[Point]:
+        return Point.objects(Q(point_type=PointType.OUTPUT) | Q(point_type=PointType.BIDIRECTIONAL), run=self)
+
+    @property
+    def sim_time(self):
+        return self._sim_time
+
+    @sim_time.setter
+    def sim_time(self, value):
+        self._sim_time = value
+        self.redis.hset(self.ref_id, "sim_time", str(value))
+
+    def add_point(self, point: Point):
+        point.run = self
+        point.save()
+
     # external ID used to track this object
-    ref_id = StringField(required=True)
+    ref_id = StringField(default=uuid4_str, unique=True)
 
     # The site is required but it only shows up after the haystack points
     # are extracted.
@@ -418,12 +518,11 @@ class Run(TimestampedDocument):
 
     job_history = ListField(StringField(max_length=255))
 
-    sim_time = DynamicField(default=None)
-    sim_type = StringField(required=True, choices=SimType.possible_enums_as_string(), max_length=255)
-    # TODO: add in choices for status
-    status = StringField(required=True, max_length=255)
+    sim_type = EnumField(SimType, default=SimType.OTHER)
 
-    error_log = StringField(required=True, max_length=65535)
+    status = EnumField(RunStatus, default=RunStatus.CREATED)
+
+    error_log = StringField(default="")
 
 
 class Simulation(TimestampedDocument):
@@ -442,18 +541,3 @@ class Simulation(TimestampedDocument):
 
     s3_key = StringField()
     results = DictField()
-
-
-class Point(TimestampedDocument):
-    meta = {
-        'collection': 'point',
-        'indexes': ['run', 'ref_id'],
-    }
-
-    # External reference ID
-    ref_id = StringField()
-    name = StringField(required=True, max_length=255)
-    run = ReferenceField(Run, reverse_delete_rule=CASCADE)
-    point_type = StringField(required=True, choices=["Input", "Output", "Bidirectional"], max_length=50)
-    key = StringField()
-    value = DynamicField()

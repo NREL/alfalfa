@@ -113,8 +113,8 @@ class Sites extends React.Component {
   };
 
   handleRemoveSite = () => {
-    this.selectedSites().map((item) => {
-      this.props.removeSiteProp(item.siteRef);
+    this.selectedSites().map(({ siteRef }) => {
+      this.props.removeSiteProp(siteRef);
     });
   };
 

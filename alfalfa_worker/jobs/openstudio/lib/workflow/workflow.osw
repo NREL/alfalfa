@@ -27,7 +27,7 @@
       },
       {
          "arguments" : {},
-         "measure_dir_name" : "python",
+         "measure_dir_name" : "alfalfa_python_environment",
          "name" : "Python",
          "description" : "Add python to IDF",
          "modeler_description" : "Add python script path to IDF"
