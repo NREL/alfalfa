@@ -339,35 +339,29 @@ router.post("/sites/:id/stop", (req, res) => {
  *               foo: d4e2c041-0389-4933-8aa4-016d80283779
  *               bar: 9e2acb8e-974e-406b-a990-48e9743b01de
  */
-router.get("/aliases", async (req, res) => {
-  const docs = {};
-  const cursor = db.collection("alias").find();
-  for await (const doc of cursor) {
-    if (doc) docs[doc.name] = doc.ref_id;
-  }
-  res.json(docs);
+router.get("/aliases", (req, res) => {
+  api.getAliases().then((aliases) => {
+    res.json(aliases);
+  });
 });
 
-router.get("/aliases/:name", async (req, res) => {
-  const { name: alias_name } = req.params;
-  const alias = await db.collection("alias").findOne({ name: alias_name });
-  console.log(alias);
-  if (alias) {
-    res.json(alias);
-  } else {
-    res.sendStatus(404);
-  }
+router.get("/aliases/:alias", (req, res) => {
+  const { alias: aliasName } = req.params;
+  api.getAlias(aliasName).then((alias) => {
+    if (alias) {
+      res.json(alias);
+    } else {
+      res.status(404).json({ error: `Could not find alias '${aliasName}'` });
+    }
+  });
 });
 
-router.put("/aliases/:name", async (req, res) => {
-  const { name: alias_name } = req.params;
-  const { body } = req;
+router.put("/aliases/:alias", async (req, res) => {
+  const { alias: aliasName } = req.params;
+  const { siteId: siteId } = req.body;
 
-  db.collection("alias").updateOne(
-    { name: alias_name },
-    { $set: { name: alias_name, ref_id: body.ref_id } },
-    { upsert: true }
-  );
+  await api.setAlias(aliasName, siteId);
+
   res.sendStatus(200);
 });
 
