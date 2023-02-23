@@ -291,10 +291,7 @@ class AlfalfaAPI {
 
   getAlias = async (aliasName) => {
     const alias = await this.aliases.findOne({ name: aliasName });
-    if (!!alias) {
-      return alias.ref_id;
-    }
-    return null;
+    return alias ? alias.ref_id : null;
   };
 
   getAliases = async () => {
