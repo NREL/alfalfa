@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from time import sleep
+from uuid import uuid4
 
 import pytest
 from alfalfa_client.alfalfa_client import AlfalfaClient, SiteID
@@ -63,3 +64,10 @@ def test_simple_external_clock(alfalfa: AlfalfaClient, ref_id: SiteID):
     # Shut down
     alfalfa.stop(ref_id)
     alfalfa.wait(ref_id, "complete")
+
+
+@pytest.mark.integration
+def test_alias(alfalfa: AlfalfaClient):
+    ref_id = str(uuid4())
+    alfalfa.set_alias("test", ref_id)
+    assert alfalfa.get_alias("test") == ref_id

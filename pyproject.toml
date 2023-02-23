@@ -49,7 +49,7 @@ influxdb = "^5.3.1"
 # to get the latest updates.
 # alfalfa-client = "^0.5.0"
 # alfalfa-client = {path = "../alfalfa-client"}
-alfalfa-client = { git = "https://github.com/nrel/alfalfa-client.git", branch = "upgrade-dependencies" }
+alfalfa-client = { git = "https://github.com/nrel/alfalfa-client.git", branch = "alias_support" }
 autopep8 = "~2.0"
 pre-commit = "~2.21"
 pytest = "~7.2"

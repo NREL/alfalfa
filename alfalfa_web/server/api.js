@@ -12,6 +12,7 @@ class AlfalfaAPI {
     this.runs = db.collection("run");
     this.simulations = db.collection("simulation");
     this.sites = db.collection("site");
+    this.aliases = db.collection("alias");
 
     this.redis = redis;
     this.pub = redis.duplicate();
@@ -282,6 +283,24 @@ class AlfalfaAPI {
     });
 
     return runID;
+  };
+
+  setAlias = async (aliasName, refId) => {
+    await this.aliases.updateOne({ name: aliasName }, { $set: { name: aliasName, ref_id: refId } }, { upsert: true });
+  };
+
+  getAlias = async (aliasName) => {
+    const alias = await this.aliases.findOne({ name: aliasName });
+    return alias ? alias.ref_id : null;
+  };
+
+  getAliases = async () => {
+    const docs = {};
+    const cursor = this.aliases.find();
+    for await (const doc of cursor) {
+      if (doc) docs[doc.name] = doc.ref_id;
+    }
+    return docs;
   };
 }
 
