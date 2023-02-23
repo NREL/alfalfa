@@ -1,10 +1,10 @@
-import { Router } from "express";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { Router } from "express";
 import { make, regex } from "simple-body-validator";
+import { v1 as uuidv1 } from "uuid";
 import { version } from "../package.json";
 import AlfalfaAPI from "./api";
-import { v1 as uuidv1 } from "uuid";
 
 let api, db, redis;
 const router = Router();
@@ -410,7 +410,7 @@ router.post("/models/:id/createRun", (req, res) => {
   api
     .createRunFromModel(modelID)
     .then((runID) => {
-      res.json({ runID: runID });
+      res.json({ runID });
     })
     .catch((err) => {
       console.log(err);
@@ -435,11 +435,11 @@ router.post("/models/upload", (req, res) => {
     }
   };
 
-  api.s3.createPresignedPost(params, function (err, data) {
+  api.s3.createPresignedPost(params, (err, data) => {
     if (err) {
       throw err;
     } else {
-      // if you're running locally and using internal Docker networking ( "http://minio:9000")
+      // if you're running locally and using internal Docker networking ("http://minio:9000")
       // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
       if (process.env.S3_URL_EXTERNAL) {
         data.url = `${process.env.S3_URL_EXTERNAL}/${process.env.S3_BUCKET}`;
