@@ -322,6 +322,51 @@ router.post("/sites/:id/stop", (req, res) => {
 
 /**
  * @openapi
+ * /aliases
+ *   get:
+ *     description: Return list of aliases
+ *     operationId: aliases
+ *     tags:
+ *       - Alfalfa
+ *     responses:
+ *       200:
+ *         description: aliases response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *             example:
+ *               foo: d4e2c041-0389-4933-8aa4-016d80283779
+ *               bar: 9e2acb8e-974e-406b-a990-48e9743b01de
+ */
+router.get("/aliases", (req, res) => {
+  api.getAliases().then((aliases) => {
+    res.json(aliases);
+  });
+});
+
+router.get("/aliases/:alias", (req, res) => {
+  const { alias: aliasName } = req.params;
+  api.getAlias(aliasName).then((alias) => {
+    if (alias) {
+      res.json(alias);
+    } else {
+      res.status(404).json({ error: `Could not find alias '${aliasName}'` });
+    }
+  });
+});
+
+router.put("/aliases/:alias", async (req, res) => {
+  const { alias: aliasName } = req.params;
+  const { siteId: siteId } = req.body;
+
+  await api.setAlias(aliasName, siteId);
+
+  res.sendStatus(200);
+});
+
+/**
+ * @openapi
  * /version:
  *   get:
  *     description: Return the Alfalfa version and git SHA
