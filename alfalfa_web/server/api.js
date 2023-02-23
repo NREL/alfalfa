@@ -286,7 +286,7 @@ class AlfalfaAPI {
   };
 
   setAlias = async (aliasName, refId) => {
-    this.aliases.updateOne({ name: aliasName }, { $set: { name: aliasName, ref_id: refId } }, { upsert: true });
+    await this.aliases.updateOne({ name: aliasName }, { $set: { name: aliasName, ref_id: refId } }, { upsert: true });
   };
 
   getAlias = async (aliasName) => {
