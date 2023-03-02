@@ -74,6 +74,7 @@ class AlfalfaAPI {
     try {
       return await getHashValue(this.redis, siteRef, "sim_time");
     } catch (e) {
+      console.error(e);
       return Promise.reject();
     }
   };
@@ -191,7 +192,12 @@ class AlfalfaAPI {
   };
 
   advanceRun = async (siteRef) => {
-    return await this.sendRunMessage(siteRef, "advance");
+    try {
+      return await this.sendRunMessage(siteRef, "advance");
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
+    }
   };
 
   stopRun = async (siteRef) => {
