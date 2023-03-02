@@ -216,15 +216,6 @@ const queryType = new GraphQLObjectType({
   })
 });
 
-//const addJobMutation = new GraphQLObjectType({
-//  name: 'AddJob',
-//  type: GraphQLString,
-//  args: {
-//    modelFile : { type: new GraphQLNonNull(GraphQLString) },
-//  },
-//  resolve: (_,args,request) => {},
-//});
-
 const mutationType = new GraphQLObjectType({
   name: "Mutations",
   fields: () => ({

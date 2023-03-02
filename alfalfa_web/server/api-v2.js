@@ -1,10 +1,10 @@
-import { Router } from "express";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { Router } from "express";
 import { make, regex } from "simple-body-validator";
+import { v1 as uuidv1 } from "uuid";
 import { version } from "../package.json";
 import AlfalfaAPI from "./api";
-import { v1 as uuidv1 } from "uuid";
 
 let api, db, redis;
 const router = Router();
@@ -322,6 +322,51 @@ router.post("/sites/:id/stop", (req, res) => {
 
 /**
  * @openapi
+ * /aliases
+ *   get:
+ *     description: Return list of aliases
+ *     operationId: aliases
+ *     tags:
+ *       - Alfalfa
+ *     responses:
+ *       200:
+ *         description: aliases response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *             example:
+ *               foo: d4e2c041-0389-4933-8aa4-016d80283779
+ *               bar: 9e2acb8e-974e-406b-a990-48e9743b01de
+ */
+router.get("/aliases", (req, res) => {
+  api.getAliases().then((aliases) => {
+    res.json(aliases);
+  });
+});
+
+router.get("/aliases/:alias", (req, res) => {
+  const { alias: aliasName } = req.params;
+  api.getAlias(aliasName).then((alias) => {
+    if (alias) {
+      res.json(alias);
+    } else {
+      res.status(404).json({ error: `Could not find alias '${aliasName}'` });
+    }
+  });
+});
+
+router.put("/aliases/:alias", async (req, res) => {
+  const { alias: aliasName } = req.params;
+  const { siteId: siteId } = req.body;
+
+  await api.setAlias(aliasName, siteId);
+
+  res.sendStatus(200);
+});
+
+/**
+ * @openapi
  * /version:
  *   get:
  *     description: Return the Alfalfa version and git SHA
@@ -365,7 +410,7 @@ router.post("/models/:id/createRun", (req, res) => {
   api
     .createRunFromModel(modelID)
     .then((runID) => {
-      res.json({ runID: runID });
+      res.json({ runID });
     })
     .catch((err) => {
       console.log(err);
@@ -390,11 +435,11 @@ router.post("/models/upload", (req, res) => {
     }
   };
 
-  api.s3.createPresignedPost(params, function (err, data) {
+  api.s3.createPresignedPost(params, (err, data) => {
     if (err) {
       throw err;
     } else {
-      // if you're running locally and using internal Docker networking ( "http://minio:9000")
+      // if you're running locally and using internal Docker networking ("http://minio:9000")
       // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
       if (process.env.S3_URL_EXTERNAL) {
         data.url = `${process.env.S3_URL_EXTERNAL}/${process.env.S3_BUCKET}`;
