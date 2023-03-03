@@ -153,7 +153,7 @@ class Upload extends React.Component {
         // TODO: Need to configure this on server side
         xhr.open("POST", response.url, true);
 
-        let formData = new FormData();
+        const formData = new FormData();
         Object.entries(response.fields).forEach(([key, value]) => {
           formData.append(key, value);
         });
@@ -174,24 +174,10 @@ class Upload extends React.Component {
   }
 
   modelFileHint() {
-    if (this.state.modelFile) {
-      return this.state.modelFile.name;
-    } else {
-      return undefined;
-    }
-  }
-
-  weatherFileHint() {
-    if (this.state.weatherFile) {
-      return this.state.weatherFile.name;
-    } else {
-      return "Select Weather File";
-    }
+    return this.state.modelFile ? this.state.modelFile.name : undefined;
   }
 
   render() {
-    const { classes } = this.props;
-
     return (
       <div className={styles.root}>
         <LinearProgress variant="determinate" value={this.state.completed} />
