@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { Router } from "express";
 import { make, regex } from "simple-body-validator";
 import { v1 as uuidv1 } from "uuid";
@@ -322,7 +323,7 @@ router.post("/sites/:id/stop", (req, res) => {
 
 /**
  * @openapi
- * /aliases
+ * /aliases:
  *   get:
  *     description: Return list of aliases
  *     operationId: aliases
@@ -420,36 +421,28 @@ router.post("/models/:id/createRun", (req, res) => {
 
 // Create a post url for file uploads
 // from a browser
-router.post("/models/upload", (req, res) => {
+router.post("/models/upload", async (req, res) => {
   const { modelName } = req.body;
   const modelID = uuidv1();
   const modelPath = `uploads/${modelID}/${modelName}`;
 
-  api.createModel(modelID, modelName);
+  await api.createModel(modelID, modelName);
 
   // Construct a new postPolicy.
-  const params = {
+  const data = await createPresignedPost(api.s3, {
     Bucket: process.env.S3_BUCKET,
-    Fields: {
-      key: modelPath
-    }
-  };
-
-  api.s3.createPresignedPost(params, (err, data) => {
-    if (err) {
-      throw err;
-    } else {
-      // if you're running locally and using internal Docker networking ("http://minio:9000")
-      // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
-      if (process.env.S3_URL_EXTERNAL) {
-        data.url = `${process.env.S3_URL_EXTERNAL}/${process.env.S3_BUCKET}`;
-      } else {
-        data.url = `${process.env.S3_URL}/${process.env.S3_BUCKET}`;
-      }
-      data.modelID = modelID;
-      res.json(data);
-    }
+    Key: modelPath
   });
+
+  // if you're running locally and using internal Docker networking ("http://minio:9000")
+  // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
+  if (process.env.S3_URL_EXTERNAL) {
+    data.url = `${process.env.S3_URL_EXTERNAL}/${process.env.S3_BUCKET}`;
+  } else {
+    data.url = `${process.env.S3_URL}/${process.env.S3_BUCKET}`;
+  }
+  data.modelID = modelID;
+  res.json(data);
 });
 
 router.get("*", (req, res) => {

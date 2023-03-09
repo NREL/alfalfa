@@ -1,73 +1,80 @@
-import AWS from "aws-sdk";
+import path from "node:path";
+import { S3Client } from "@aws-sdk/client-s3";
+import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import got from "got";
-import path from "path";
 import { v1 as uuidv1 } from "uuid";
 import dbops from "./dbops";
 import { getHash, scan } from "./utils";
 
-AWS.config.update({ region: process.env.REGION || "us-east-1" });
-const sqs = new AWS.SQS();
-const s3client = new AWS.S3({ endpoint: process.env.S3_URL });
+const region = process.env.REGION || "us-east-1";
+const sqs = new SQSClient({ region });
+const s3client = new S3Client({ endpoint: process.env.S3_URL, region });
 
-function addSiteResolver(modelName, uploadID) {
+async function addSiteResolver(modelName, uploadID) {
   let run_id = uuidv1();
   let job = "alfalfa_worker.jobs.openstudio.CreateRun";
   if (modelName.endsWith(".fmu")) {
     job = "alfalfa_worker.jobs.modelica.CreateRun";
   }
-  const params = {
-    MessageBody: `{
-      "job": "${job}",
-      "params": {
-        "model_name": "${modelName}",
-        "upload_id": "${uploadID}",
-        "run_id": "${run_id}"
-      }
-    }`,
-    QueueUrl: process.env.JOB_QUEUE_URL,
-    MessageGroupId: "Alfalfa"
+
+  const messageBody = {
+    job,
+    params: {
+      model_name: modelName,
+      upload_id: uploadID,
+      run_id
+    }
   };
 
-  sqs.sendMessage(params, (err, data) => {
-    if (err) {
-      console.error(err);
-    }
-  });
+  try {
+    await sqs.send(
+      new SendMessageCommand({
+        MessageBody: JSON.stringify(messageBody),
+        QueueUrl: process.env.JOB_QUEUE_URL,
+        MessageGroupId: "Alfalfa"
+      })
+    );
+  } catch (err) {
+    console.error(err);
+  }
 
   return run_id;
 }
 
-function runSimResolver(modelName, uploadID) {
+async function runSimResolver(modelName, uploadID, context) {
   let job = "alfalfa_worker.jobs.openstudio.AnnualRun";
   if (modelName.endsWith(".fmu")) {
     job = "alfalfa_worker.jobs.modelica.AnnualRun";
   }
-  const params = {
-    MessageBody: `{
-      "job": "${job}",
-      "params": {
-        "model_name": "${modelName}",
-        "upload_id": "${uploadID}"
-      }
-    }`,
-    QueueUrl: process.env.JOB_QUEUE_URL,
-    MessageGroupId: "Alfalfa"
+
+  const messageBody = {
+    job,
+    params: {
+      model_name: modelName,
+      upload_id: uploadID
+    }
   };
 
-  sqs.sendMessage(params, (err, data) => {
-    if (err) {
-      console.error(err);
-    } else {
-      const simCollection = context.db.collection("simulation");
-      simCollection.insert({
-        _id: uploadID,
-        ref_id: uploadID,
-        siteRef: uploadID,
-        simStatus: "Queued",
-        name: path.parse(modelName).name.replace(".tar", "")
-      });
-    }
-  });
+  try {
+    await sqs.send(
+      new SendMessageCommand({
+        MessageBody: JSON.stringify(messageBody),
+        QueueUrl: process.env.JOB_QUEUE_URL,
+        MessageGroupId: "Alfalfa"
+      })
+    );
+
+    const simCollection = context.db.collection("simulation");
+    await simCollection.insertOne({
+      _id: uploadID,
+      ref_id: uploadID,
+      siteRef: uploadID,
+      simStatus: "Queued",
+      name: path.parse(modelName).name.replace(".tar", "")
+    });
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 function runSiteResolver(args, context) {
@@ -80,31 +87,35 @@ function runSiteResolver(args, context) {
   //  externalClock : { type: GraphQLBoolean },
   //},
   const runs = context.db.collection("run");
-  runs.findOne({ ref_id: args.siteRef }).then((doc) => {
+  runs.findOne({ ref_id: args.siteRef }).then(async (doc) => {
     let job = "alfalfa_worker.jobs.openstudio.StepRun";
     if (doc.sim_type === "MODELICA") {
       job = "alfalfa_worker.jobs.modelica.StepRun";
     }
-    const params = {
-      MessageBody: `{
-        "job": "${job}",
-        "params": {
-          "run_id": "${args.siteRef}",
-          "timescale": "${args.timescale || 5}",
-          "start_datetime": "${args.startDatetime}",
-          "end_datetime": "${args.endDatetime}",
-          "realtime": "${!!args.realtime}",
-          "external_clock": "${!!args.externalClock}"
-        }
-      }`,
-      QueueUrl: process.env.JOB_QUEUE_URL,
-      MessageGroupId: "Alfalfa"
-    };
-    sqs.sendMessage(params, (err, data) => {
-      if (err) {
-        console.error(err);
+
+    const messageBody = {
+      job,
+      params: {
+        run_id: `${args.siteRef}`,
+        timescale: `${args.timescale || 5}`,
+        start_datetime: `${args.startDatetime}`,
+        end_datetime: `${args.endDatetime}`,
+        realtime: `${!!args.realtime}`,
+        external_clock: `${!!args.externalClock}`
       }
-    });
+    };
+
+    try {
+      await sqs.send(
+        new SendMessageCommand({
+          MessageBody: JSON.stringify(messageBody),
+          QueueUrl: process.env.JOB_QUEUE_URL,
+          MessageGroupId: "Alfalfa"
+        })
+      );
+    } catch (err) {
+      console.error(err);
+    }
   });
 }
 

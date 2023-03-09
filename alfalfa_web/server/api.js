@@ -1,7 +1,8 @@
-import AWS from "aws-sdk";
+import { S3Client } from "@aws-sdk/client-s3";
+import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { v1 as uuidv1 } from "uuid";
 import { writePoint } from "./dbops";
-import { del, getHashValue, getPointKey, mapHaystack, reduceById, scan, setHashValue, getHash } from "./utils";
+import { del, getHashValue, getPointKey, mapHaystack, reduceById, scan } from "./utils";
 
 class AlfalfaAPI {
   constructor(db, redis) {
@@ -18,9 +19,9 @@ class AlfalfaAPI {
     this.pub = redis.duplicate();
     this.sub = redis.duplicate();
 
-    AWS.config.update({ region: process.env.REGION || "us-east-1" });
-    this.sqs = new AWS.SQS();
-    this.s3 = new AWS.S3({ endpoint: process.env.S3_URL });
+    const region = process.env.REGION || "us-east-1";
+    this.sqs = new SQSClient({ region });
+    this.s3 = new S3Client({ endpoint: process.env.S3_URL, region });
   }
 
   listSites = async () => {
@@ -117,8 +118,8 @@ class AlfalfaAPI {
   };
 
   writeInputPoint = async (siteRef, pointId, value) => {
-    const run = this.runs.findOne({ ref_id: siteRef });
-    const point = this.points.findOne({ run: run._id, ref_id: pointId });
+    const run = await this.runs.findOne({ ref_id: siteRef });
+    const point = await this.points.findOne({ run: run._id, ref_id: pointId });
 
     if (point.point_type === "OUTPUT") {
       return Promise.reject("Cannot write to an Output point");
@@ -182,12 +183,13 @@ class AlfalfaAPI {
           external_clock: String(!!externalClock)
         }
       };
-      const params = {
-        MessageBody: JSON.stringify(messageBody),
-        QueueUrl: process.env.JOB_QUEUE_URL,
-        MessageGroupId: "Alfalfa"
-      };
-      await this.sqs.sendMessage(params).promise();
+      await this.sqs.send(
+        new SendMessageCommand({
+          MessageBody: JSON.stringify(messageBody),
+          QueueUrl: process.env.JOB_QUEUE_URL,
+          MessageGroupId: "Alfalfa"
+        })
+      );
     } catch (e) {
       console.error(e);
       return Promise.reject();
@@ -256,7 +258,7 @@ class AlfalfaAPI {
 
   createModel = async (modelID, modelName) => {
     const datetime = new Date();
-    this.models.insertOne({
+    await this.models.insertOne({
       ref_id: modelID,
       model_name: modelName,
       created: datetime,
@@ -273,23 +275,25 @@ class AlfalfaAPI {
       job = "alfalfa_worker.jobs.modelica.CreateRun";
     }
 
-    const params = {
-      MessageBody: `{
-        "job": "${job}",
-        "params": {
-          "model_id": "${modelID}",
-          "run_id": "${runID}"
-        }
-      }`,
-      QueueUrl: process.env.JOB_QUEUE_URL,
-      MessageGroupId: "Alfalfa"
+    const messageBody = {
+      job,
+      params: {
+        model_id: modelID,
+        run_id: runID
+      }
     };
 
-    this.sqs.sendMessage(params, (err, data) => {
-      if (err) {
-        console.error(err);
-      }
-    });
+    try {
+      await this.sqs.send(
+        new SendMessageCommand({
+          MessageBody: JSON.stringify(messageBody),
+          QueueUrl: process.env.JOB_QUEUE_URL,
+          MessageGroupId: "Alfalfa"
+        })
+      );
+    } catch (e) {
+      console.error(e);
+    }
 
     return runID;
   };

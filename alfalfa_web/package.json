@@ -16,6 +16,9 @@
   "license": "ISC",
   "dependencies": {
     "@apollo/client": "^3.7.9",
+    "@aws-sdk/client-s3": "^3.287.0",
+    "@aws-sdk/client-sqs": "^3.287.0",
+    "@aws-sdk/s3-presigned-post": "^3.287.0",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
     "@fontsource/material-icons": "^4.5.4",
@@ -25,7 +28,6 @@
     "@mui/styles": "^5.11.9",
     "@mui/system": "^5.11.9",
     "@mui/x-date-pickers": "^5.0.19",
-    "aws-sdk": "^2.1321.0",
     "body-parser": "^1.20.2",
     "compression": "^1.7.4",
     "connect-history-api-fallback": "^2.0.0",

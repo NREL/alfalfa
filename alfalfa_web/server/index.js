@@ -1,16 +1,17 @@
-import AWS from "aws-sdk";
+import fs from "node:fs";
+import path from "node:path";
+import url from "node:url";
+import { S3Client } from "@aws-sdk/client-s3";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import bodyParser from "body-parser";
 import compression from "compression";
 import historyApiFallback from "connect-history-api-fallback";
 import cors from "cors";
 import express from "express";
-import fs from "fs";
 import { graphqlHTTP } from "express-graphql";
 import { MongoClient } from "mongodb";
 import morgan from "morgan";
-import path from "path";
 import { createClient } from "redis";
-import url from "url";
 import { Advancer } from "./advancer";
 import alfalfaServer from "./alfalfa-server";
 import apiv2 from "./api-v2";
@@ -18,7 +19,8 @@ import { schema } from "./schema";
 
 const isProd = process.env.NODE_ENV === "production";
 
-const client = new AWS.S3({ endpoint: process.env.S3_URL });
+const region = process.env.REGION || "us-east-1";
+const client = new S3Client({ endpoint: process.env.S3_URL, region });
 
 const redis = createClient({ host: process.env.REDIS_HOST });
 
@@ -73,30 +75,23 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
 
     // Create a post url for file uploads
     // from a browser
-    app.post("/upload-url", (req, res) => {
+    app.post("/upload-url", async (req, res) => {
       // Construct a new postPolicy.
-      const params = {
-        Bucket: process.env.S3_BUCKET,
-        Fields: {
-          key: req.body.name
-        }
-      };
 
-      client.createPresignedPost(params, function (err, data) {
-        if (err) {
-          throw err;
-        } else {
-          // if you're running locally and using internal Docker networking ( "http://minio:9000")
-          // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
-          if (process.env.S3_URL_EXTERNAL) {
-            data.url = `${process.env.S3_URL_EXTERNAL}/${process.env.S3_BUCKET}`;
-          } else {
-            data.url = `${process.env.S3_URL}/${process.env.S3_BUCKET}`;
-          }
-          res.send(JSON.stringify(data));
-          res.end();
-        }
+      const data = await createPresignedPost(client, {
+        Bucket: process.env.S3_BUCKET,
+        Key: req.body.name
       });
+
+      // if you're running locally and using internal Docker networking ("http://minio:9000")
+      // as your S3_URL, you need to specify an alternate S3_URL_EXTERNAL to POST to, ie "http://localhost:9000"
+      if (process.env.S3_URL_EXTERNAL) {
+        data.url = `${process.env.S3_URL_EXTERNAL}/${process.env.S3_BUCKET}`;
+      } else {
+        data.url = `${process.env.S3_URL}/${process.env.S3_BUCKET}`;
+      }
+      res.send(JSON.stringify(data));
+      res.end();
     });
 
     app.use("/api/v2/", apiv2({ db, redis }));

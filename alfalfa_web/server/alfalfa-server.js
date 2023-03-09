@@ -1,6 +1,6 @@
-import AWS from "aws-sdk";
+import os from "node:os";
+import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import hs from "nodehaystack";
-import os from "os";
 import { v1 as uuidv1 } from "uuid";
 import AlfalfaAPI from "./api";
 import dbops, { NUM_LEVELS } from "./dbops";
@@ -27,8 +27,8 @@ const {
 
 const EMPTY_HGRID = new HGridBuilder().toGrid();
 
-AWS.config.update({ region: process.env.REGION || "us-east-1" });
-const sqs = new AWS.SQS();
+const region = process.env.REGION || "us-east-1";
+const sqs = new SQSClient({ region });
 
 class AlfalfaWatch extends HWatch {
   constructor(db, id, dis, lease) {
@@ -546,30 +546,32 @@ class AlfalfaServer extends HServer {
   async onInvokeAction(rec, action, args, callback) {
     if (action === "runSite") {
       // this is probably never called
-      this.mrecs.updateOne({ ref_id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
-        let body = { id: rec.id().val, op: "InvokeAction", action: action };
+      this.mrecs.updateOne({ ref_id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(async () => {
+        const messageBody = {
+          id: rec.id().val,
+          op: "InvokeAction",
+          action
+        };
 
         for (const it = args.iterator(); it.hasNext(); ) {
           const entry = it.next();
           const name = entry.getKey();
-          const val = entry.getValue();
-          body[name] = val.val;
+          const { val } = entry.getValue();
+          messageBody[name] = val;
         }
 
-        const params = {
-          MessageBody: JSON.stringify(body),
-          QueueUrl: process.env.JOB_QUEUE_URL,
-          MessageGroupId: "Alfalfa"
-        };
-
-        sqs.sendMessage(params, function (err, data) {
-          if (err) {
-            console.log(err, err.stack); // an error occurred
-            callback(null, HGridBuilder.dictsToGrid([]));
-          } else {
-            callback(null, HGridBuilder.dictsToGrid([]));
-          }
-        });
+        try {
+          await sqs.send(
+            new SendMessageCommand({
+              MessageBody: JSON.stringify(messageBody),
+              QueueUrl: process.env.JOB_QUEUE_URL,
+              MessageGroupId: "Alfalfa"
+            })
+          );
+        } catch (err) {
+          console.log(err, err.stack); // an error occurred
+        }
+        callback(null, HGridBuilder.dictsToGrid([]));
       });
     } else if (action === "stopSite") {
       const siteRef = rec.id().val;
