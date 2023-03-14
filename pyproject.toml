@@ -57,6 +57,9 @@ pycodestyle = "~2.10"
 pytest-cov = "~4.0"
 pytest-timeout = "~2.1"
 
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.20.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

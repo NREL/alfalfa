@@ -47,15 +47,13 @@ class TestRefrigCaseOSW(TestCase):
         alfalfa.set_inputs(model_id, inputs)
 
         outputs = alfalfa.get_outputs(model_id)
-        assert "Test_Point_1_Value" in outputs.keys(), "Echo point for Test_Point_1 is not in outputs"
-        assert "Test_Point_1_Enable_Value" in outputs.keys(), "Echo point for Test_Point_1_Enable is not in outputs"
+        assert "Test_Point_1" in outputs.keys(), "Echo point for Test_Point_1 is not in outputs"
 
         # -- Advance a single time step
         alfalfa.advance([model_id])
 
         outputs = alfalfa.get_outputs(model_id)
-        assert outputs["Test_Point_1_Value"] == pytest.approx(12), "Test_Point_1 value has not been processed by the model"
-        assert outputs["Test_Point_1_Enable_Value"] == pytest.approx(1), "Enable flag for Test_Point_1 is not set correctly"
+        assert outputs["Test_Point_1"] == pytest.approx(12), "Test_Point_1 value has not been processed by the model"
 
         # Shut down
         alfalfa.stop(model_id)

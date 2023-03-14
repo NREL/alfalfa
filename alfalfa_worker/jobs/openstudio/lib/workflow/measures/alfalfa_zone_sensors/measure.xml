@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <error>cannot load such file -- alfalfa</error>
+  <name>alfalfa_zone_sensors</name>
+  <uid>870213d3-36a2-4da2-9a04-c377a37fd4fe</uid>
+  <version_id>f0fb23f6-6d8d-41a7-be6d-8d8f27416c33</version_id>
+  <version_modified>20230127T210421Z</version_modified>
+  <xml_checksum>70995EFB</xml_checksum>
+  <class_name>AlfalfaZoneSensors</class_name>
+  <display_name>Alfalfa Setpoint Control</display_name>
+  <description>Add Setpoint Control to Alfalfa</description>
+  <modeler_description>Add Setpoint Control to Alfalfa</modeler_description>
+  <arguments />
+  <outputs />
+  <provenances />
+  <tags>
+    <tag>HVAC.HVAC Controls</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>EnergyPlusMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>3.1.0</identifier>
+        <min_compatible>3.1.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>4FCE96E6</checksum>
+    </file>
+  </files>
+</measure>
