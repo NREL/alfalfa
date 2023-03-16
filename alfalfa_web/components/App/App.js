@@ -4,6 +4,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AppBar, Grid, Toolbar, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Docs } from "../Docs/Docs";
 import { Sims } from "../Sims/Sims";
 import { Sites } from "../Sites/Sites";
 import { Upload } from "../Upload/Upload";
@@ -34,7 +35,14 @@ export const App = () => {
                 <Grid item>
                   <Link to={"/sims"} style={{ textDecoration: "none", color: "unset" }}>
                     <Typography variant="button" color="inherit" sx={{ m: 1 }}>
-                      Completed-Simulations
+                      Completed Simulations
+                    </Typography>
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <Link to={"/docs"} style={{ textDecoration: "none", color: "unset" }}>
+                    <Typography variant="button" color="inherit" sx={{ m: 1 }}>
+                      API Docs
                     </Typography>
                   </Link>
                 </Grid>
@@ -45,6 +53,7 @@ export const App = () => {
             <Route path="/" element={<Upload />} />
             <Route path="/sites" element={<Sites />} />
             <Route path="/sims" element={<Sims />} />
+            <Route path="/docs" element={<Docs />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>

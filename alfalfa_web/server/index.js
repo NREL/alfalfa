@@ -35,7 +35,7 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
       });
     });
 
-    app.get("/docs", (req, res) => {
+    app.get("/redoc", (req, res) => {
       const docsPath = path.join(__dirname, "/app/docs.html");
 
       fsp
