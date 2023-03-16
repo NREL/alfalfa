@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { MoreVert } from "@mui/icons-material";
 import { Button, Checkbox, Grid, IconButton, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import ky from "ky";
+import { ErrorDialog } from "./ErrorDialog";
 import { PointDialog } from "./PointDialog";
 import { StartDialog } from "./StartDialog";
 
@@ -9,6 +10,7 @@ export const Sites = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
   const [sites, setSites] = useState([]);
+  const [showErrorDialog, setShowErrorDialog] = useState(null);
   const [showPointDialog, setShowPointDialog] = useState(null);
   const [showStartDialog, setShowStartDialog] = useState(null);
 
@@ -50,6 +52,11 @@ export const Sites = () => {
 
   const isRemoveButtonDisabled = () => {
     return !selectedSites().some(({ status }) => validStates.remove.includes(status));
+  };
+
+  const handleOpenErrorDialog = (event, site) => {
+    event.stopPropagation();
+    setShowErrorDialog(site);
   };
 
   const handleOpenPointDialog = (event, site) => {
@@ -95,9 +102,10 @@ export const Sites = () => {
 
   return (
     <Grid container direction="column">
-      {showPointDialog && <PointDialog site={showPointDialog} onClose={() => setShowPointDialog(false)} />}
+      {showErrorDialog && <ErrorDialog site={showErrorDialog} onClose={() => setShowErrorDialog(null)} />}
+      {showPointDialog && <PointDialog site={showPointDialog} onClose={() => setShowPointDialog(null)} />}
       {showStartDialog && (
-        <StartDialog onStartSimulation={handleStartSimulation} onClose={() => setShowStartDialog(false)} />
+        <StartDialog onStartSimulation={handleStartSimulation} onClose={() => setShowStartDialog(null)} />
       )}
       <Grid item>
         <Table>
@@ -124,7 +132,15 @@ export const Sites = () => {
                   </TableCell>
                   <TableCell padding="none">{site.name}</TableCell>
                   <TableCell>{site.id}</TableCell>
-                  <TableCell>{site.status.toUpperCase()}</TableCell>
+                  <TableCell>
+                    {site.status === "error" && site.errorLog ? (
+                      <Button variant="text" onClick={(event) => handleOpenErrorDialog(event, site)}>
+                        {site.status.toUpperCase()}
+                      </Button>
+                    ) : (
+                      site.status.toUpperCase()
+                    )}
+                  </TableCell>
                   <TableCell>{site.datetime}</TableCell>
                   <TableCell>
                     <IconButton onClick={(event) => handleOpenPointDialog(event, site)}>
