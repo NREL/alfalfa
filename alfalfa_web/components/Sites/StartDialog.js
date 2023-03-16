@@ -15,7 +15,7 @@ import {
 import { DateTimePicker } from "@mui/x-date-pickers";
 import { DateTime } from "luxon";
 
-export const StartDialog = ({ onClose, onStartSimulation, type }) => {
+export const StartDialog = ({ onClose, onStartSimulation }) => {
   const timeFormat = "y-LL-dd HH:mm:ss";
 
   const currentTime = DateTime.now();
@@ -24,102 +24,23 @@ export const StartDialog = ({ onClose, onStartSimulation, type }) => {
   const [timescale, setTimescale] = useState(5);
   const [selectedStartTime, setSelectedStartTime] = useState(currentTime);
   const [selectedEndTime, setSelectedEndTime] = useState(currentTime);
-  const [selectedStartSeconds, setSelectedStartSeconds] = useState(0);
-  const [selectedEndSeconds, setSelectedEndSeconds] = useState(86400);
 
   const handleTimescaleChange = (event) => {
     setTimescale(Number(event.target.value));
   };
 
-  const handleStartSecondChange = (event) => {
-    setSelectedStartSeconds(event.target.value);
-  };
-
-  const handleEndSecondChange = (event) => {
-    setSelectedEndSeconds(event.target.value);
-  };
-
   const handleRequestStart = () => {
-    if (type === "osm") {
-      onStartSimulation(
-        selectedStartTime.toFormat(timeFormat),
-        selectedEndTime.toFormat(timeFormat),
-        timescale,
-        realtime,
-        externalClock
-      );
-    } else {
-      onStartSimulation(
-        selectedStartSeconds.toString(),
-        selectedEndSeconds.toString(),
-        timescale,
-        realtime,
-        externalClock
-      );
-    }
+    onStartSimulation(
+      selectedStartTime.toFormat(timeFormat),
+      selectedEndTime.toFormat(timeFormat),
+      timescale,
+      realtime,
+      externalClock
+    );
     onClose();
   };
 
-  const runDisabled = () => {
-    if (type === "osm") {
-      return selectedEndTime < selectedStartTime;
-    }
-    return selectedEndSeconds < selectedStartSeconds;
-  };
-
-  let start;
-  let stop;
-  if (type === "osm") {
-    start = (
-      <Grid item xs={6}>
-        <DateTimePicker
-          label="EnergyPlus Start Time"
-          format={timeFormat}
-          value={selectedStartTime}
-          onChange={setSelectedStartTime}
-          slotProps={{ textField: { sx: { width: "100%" } } }}
-        />
-      </Grid>
-    );
-
-    stop = (
-      <Grid item xs={6}>
-        <DateTimePicker
-          label="EnergyPlus End Time"
-          format={timeFormat}
-          value={selectedEndTime}
-          onChange={setSelectedEndTime}
-          slotProps={{ textField: { sx: { width: "100%" } } }}
-        />
-      </Grid>
-    );
-  } else {
-    start = (
-      <Grid item xs={6}>
-        <TextField
-          label="FMU Start Time"
-          value={selectedStartSeconds}
-          onChange={handleStartSecondChange}
-          InputLabelProps={{ shrink: true }}
-          inputProps={{ type: "number", min: 0, max: selectedEndSeconds }}
-          sx={{ width: "100%" }}
-        />
-      </Grid>
-    );
-
-    stop = (
-      <Grid item xs={6}>
-        <TextField
-          label="FMU Stop Time"
-          value={selectedEndSeconds}
-          onChange={handleEndSecondChange}
-          InputLabelProps={{ shrink: true }}
-          inputProps={{ type: "number", min: selectedStartSeconds }}
-          sx={{ width: "100%" }}
-        />
-      </Grid>
-    );
-  }
+  const runDisabled = () => selectedEndTime < selectedStartTime;
 
   return (
     <div>
@@ -134,8 +55,24 @@ export const StartDialog = ({ onClose, onStartSimulation, type }) => {
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} style={{ paddingTop: 8 }}>
-            {start}
-            {stop}
+            <Grid item xs={6}>
+              <DateTimePicker
+                label="Start Time"
+                format={timeFormat}
+                value={selectedStartTime}
+                onChange={setSelectedStartTime}
+                slotProps={{ textField: { sx: { width: "100%" } } }}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <DateTimePicker
+                label="End Time"
+                format={timeFormat}
+                value={selectedEndTime}
+                onChange={setSelectedEndTime}
+                slotProps={{ textField: { sx: { width: "100%" } } }}
+              />
+            </Grid>
             <Grid item xs={12}>
               <TextField
                 label="Timescale"

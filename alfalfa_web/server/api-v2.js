@@ -507,11 +507,11 @@ router.delete("/sites/:siteId", (req, res) => {
  *             properties:
  *               startDatetime:
  *                 type: string
- *                 description: EnergyPlus Start Time
+ *                 description: Start Time
  *                 example: 2022-06-30 12:00:00
  *               endDatetime:
  *                 type: string
- *                 description: EnergyPlus End Time
+ *                 description: End Time
  *                 example: 2022-06-30 12:10:00
  *               timescale:
  *                 type: number
@@ -542,14 +542,7 @@ router.post("/sites/:siteId/start", async (req, res) => {
   const { siteId } = req.params;
   const { body } = req;
 
-  const simType = await api.getSimType(siteId);
-  if (!simType) {
-    return res.status(404).json({
-      error: `Site ID '${siteId}' does not exist`
-    });
-  }
-
-  const timeValidator = simType === "OPENSTUDIO" ? /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/ : /^\d+$/;
+  const timeValidator = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
   const error = validate(
     { ...body, siteId },
     {
@@ -574,6 +567,12 @@ router.post("/sites/:siteId/start", async (req, res) => {
   if (realtime && externalClock) {
     return res.status(400).json({
       error: "Realtime and externalClock cannot both be enabled."
+    });
+  }
+
+  if (!(await api.findSite(siteId))) {
+    return res.status(404).json({
+      error: `Site ID '${siteId}' does not exist`
     });
   }
 

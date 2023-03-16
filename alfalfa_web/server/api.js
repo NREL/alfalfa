@@ -99,16 +99,6 @@ class AlfalfaAPI {
     }
   };
 
-  getSimType = async (siteRef) => {
-    try {
-      const run = await this.runs.findOne({ ref_id: siteRef });
-      if (run) return run.sim_type;
-    } catch (e) {
-      console.error(e);
-      return Promise.reject();
-    }
-  };
-
   getSiteTime = async (siteRef) => {
     try {
       return await getHashValue(this.redis, siteRef, "sim_time");

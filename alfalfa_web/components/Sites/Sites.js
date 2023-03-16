@@ -36,11 +36,6 @@ export const Sites = () => {
   const selectedSites = () => sites.filter(({ id }) => selected.includes(id));
 
   const handleRowClick = (event, siteRef) => {
-    // Don't let two different simulation types be selected
-    const { simType } = sites.find(({ id }) => id === siteRef);
-    const [firstSite] = selectedSites();
-    if (firstSite && firstSite.simType !== simType) return;
-
     const newSelected = selected.includes(siteRef) ? selected.filter((id) => id !== siteRef) : [...selected, siteRef];
     setSelected(newSelected);
   };
@@ -102,11 +97,7 @@ export const Sites = () => {
     <Grid container direction="column">
       {showPointDialog && <PointDialog site={showPointDialog} onClose={() => setShowPointDialog(false)} />}
       {showStartDialog && (
-        <StartDialog
-          type={selectedSites()[0].simType}
-          onStartSimulation={handleStartSimulation}
-          onClose={() => setShowStartDialog(false)}
-        />
+        <StartDialog onStartSimulation={handleStartSimulation} onClose={() => setShowStartDialog(false)} />
       )}
       <Grid item>
         <Table>
