@@ -78,6 +78,10 @@ function reduceById(arr, obj) {
   return { ...arr, [obj._id]: obj };
 }
 
+function reduceByRefId(arr, obj) {
+  return { ...arr, [obj.ref_id]: obj };
+}
+
 module.exports = {
   del,
   getHash,
@@ -86,6 +90,7 @@ module.exports = {
   mapHaystack,
   mapRedisArray,
   reduceById,
+  reduceByRefId,
   scan,
   setHashValue
 };

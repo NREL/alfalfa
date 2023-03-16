@@ -1,7 +1,12 @@
-import AWS from "aws-sdk";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import { fromEnv } from "@aws-sdk/credential-providers";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { DateTime } from "luxon";
 import { v1 as uuidv1 } from "uuid";
 import { writePoint } from "./dbops";
-import { del, getHashValue, getPointKey, mapHaystack, reduceById, scan, setHashValue, getHash } from "./utils";
+import { del, getHash, getHashValue, getPointKey, mapHaystack, reduceById, reduceByRefId, scan } from "./utils";
 
 class AlfalfaAPI {
   constructor(db, redis) {
@@ -16,11 +21,19 @@ class AlfalfaAPI {
 
     this.redis = redis;
     this.pub = redis.duplicate();
-    this.sub = redis.duplicate();
 
-    AWS.config.update({ region: process.env.REGION || "us-east-1" });
-    this.sqs = new AWS.SQS();
-    this.s3 = new AWS.S3({ endpoint: process.env.S3_URL });
+    const credentials = fromEnv();
+    const region = process.env.REGION || "us-east-1";
+    this.sqs = new SQSClient({
+      credentials,
+      endpoint: new URL(process.env.JOB_QUEUE_URL).origin,
+      region
+    });
+    this.s3 = new S3Client({
+      credentials,
+      endpoint: process.env.S3_URL_EXTERNAL || process.env.S3_URL,
+      region
+    });
   }
 
   listSites = async () => {
@@ -28,18 +41,27 @@ class AlfalfaAPI {
       const runs = [];
 
       const models = (await this.models.find().toArray()).reduce(reduceById, {});
-      const sites = (await this.sites.find().toArray()).map(mapHaystack).reduce(reduceById, {});
+      const sites = (await this.sites.find().toArray()).map(mapHaystack).reduce(reduceByRefId, {});
 
       for await (const run of this.runs.find()) {
+        const siteRef = run.ref_id;
         const model = models[run.model];
-        runs.push({
-          id: run.ref_id,
-          name: sites[run.site]?.dis,
-          status: run.status.toLowerCase(),
-          uploadTimestamp: run.created,
-          uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
-          errorLog: run.error_log
-        });
+        const site = sites[siteRef];
+
+        if (site) {
+          const siteHash = await getHash(this.redis, siteRef);
+
+          runs.push({
+            id: siteRef,
+            name: site.dis,
+            status: run.status.toLowerCase(),
+            simType: site.sim_type,
+            datetime: siteHash?.sim_time ?? "",
+            uploadTimestamp: run.created,
+            uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
+            errorLog: run.error_log
+          });
+        }
       }
       return runs;
     } catch (e) {
@@ -53,16 +75,23 @@ class AlfalfaAPI {
       const run = await this.runs.findOne({ ref_id: siteRef });
       if (run) {
         const model = await this.models.findOne({ _id: run.model });
-        const site = mapHaystack(await this.sites.findOne({ _id: run.site }));
+        let site = await this.sites.findOne({ ref_id: siteRef });
 
-        return {
-          id: run.ref_id,
-          name: site?.dis,
-          status: run.status.toLowerCase(),
-          uploadTimestamp: run.created,
-          uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
-          errorLog: run.error_log
-        };
+        if (site) {
+          site = mapHaystack(site);
+          const siteHash = await getHash(this.redis, siteRef);
+
+          return {
+            id: run.ref_id,
+            name: site?.dis,
+            status: run.status.toLowerCase(),
+            simType: site.sim_type,
+            datetime: siteHash?.sim_time ?? "",
+            uploadTimestamp: run.created,
+            uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
+            errorLog: run.error_log
+          };
+        }
       }
     } catch (e) {
       console.error(e);
@@ -85,9 +114,9 @@ class AlfalfaAPI {
       const run = await this.runs.findOne({ ref_id: siteRef });
       if (run) {
         const query = { run: run._id };
-        if (pointType) {
-          query.point_type = pointType;
-        }
+        if (pointType) query.point_type = pointType;
+        // const myPoints = await this.points.find(query).toArray()
+
         for await (const point of this.points.find(query)) {
           const pointDict = {
             id: point.ref_id,
@@ -108,17 +137,16 @@ class AlfalfaAPI {
   };
 
   readOutputPoint = async (siteRef, pointId) => {
-    const key = getPointKey(siteRef, pointId) + ":out";
+    const key = `${getPointKey(siteRef, pointId)}:out`;
     const value = await getHashValue(this.redis, key, "curVal");
-    if (value) {
+    if (value !== null) {
       return parseFloat(value.replace(/^[a-z]:/, ""));
     }
-    return null;
   };
 
   writeInputPoint = async (siteRef, pointId, value) => {
-    const run = this.runs.findOne({ ref_id: siteRef });
-    const point = this.points.findOne({ run: run._id, ref_id: pointId });
+    const run = await this.runs.findOne({ ref_id: siteRef });
+    const point = await this.points.findOne({ run: run._id, ref_id: pointId });
 
     if (point.point_type === "OUTPUT") {
       return Promise.reject("Cannot write to an Output point");
@@ -136,23 +164,32 @@ class AlfalfaAPI {
       // Delete site
       const { value: site } = await this.sites.findOneAndDelete({ ref_id: siteRef });
 
-      // Delete points
-      for await (const run of this.runs.find({ site: site._id })) {
-        await this.points.deleteMany({ run: run._id });
+      if (site) {
+        // Delete points
+        for await (const run of this.runs.find({ ref_id: site.ref_id })) {
+          await this.points.deleteMany({ run: run._id });
+        }
+
+        // Delete runs
+        await this.runs.deleteMany({ ref_id: site.ref_id });
+
+        // Delete recs
+        await this.recs.deleteMany({ site: site._id });
+
+        // Delete simulations
+        await this.simulations.deleteMany({ site: site._id });
+
+        // Delete aliases
+        await this.aliases.deleteMany({ ref_id: site.ref_id });
+
+        // Delete redis keys
+        const keys = await scan(this.redis, `site:${siteRef}*`);
+        if (keys.length) await del(this.redis, keys);
+        const key = await scan(this.redis, siteRef);
+        if (key.length) await del(this.redis, key);
+
+        return true;
       }
-
-      // Delete runs
-      await this.runs.deleteMany({ site: site._id });
-
-      // Delete recs
-      await this.recs.deleteMany({ site: site._id });
-
-      // Delete simulations
-      await this.simulations.deleteMany({ site: site._id });
-
-      // Delete redis keys
-      const keys = await scan(this.redis, `site:${siteRef}*`);
-      if (keys.length) await del(this.redis, keys);
     } catch (e) {
       console.error(e);
       return Promise.reject();
@@ -163,11 +200,7 @@ class AlfalfaAPI {
     try {
       const { sim_type, status } = await this.runs.findOne({ ref_id: siteRef });
 
-      if (status !== "READY") {
-        return {
-          error: "Run is not in 'READY' state"
-        };
-      }
+      if (status !== "READY") return { error: "Run is not in 'READY' state" };
 
       const { startDatetime, endDatetime, timescale, realtime, externalClock } = data;
 
@@ -177,17 +210,18 @@ class AlfalfaAPI {
           run_id: siteRef,
           start_datetime: startDatetime,
           end_datetime: endDatetime,
-          timescale: String(timescale || 5),
-          realtime: String(!!realtime),
-          external_clock: String(!!externalClock)
+          timescale: `${timescale || 5}`,
+          realtime: `${!!realtime}`,
+          external_clock: `${!!externalClock}`
         }
       };
-      const params = {
-        MessageBody: JSON.stringify(messageBody),
-        QueueUrl: process.env.JOB_QUEUE_URL,
-        MessageGroupId: "Alfalfa"
-      };
-      await this.sqs.sendMessage(params).promise();
+      await this.sqs.send(
+        new SendMessageCommand({
+          MessageBody: JSON.stringify(messageBody),
+          QueueUrl: process.env.JOB_QUEUE_URL,
+          MessageGroupId: "Alfalfa"
+        })
+      );
     } catch (e) {
       console.error(e);
       return Promise.reject();
@@ -238,16 +272,12 @@ class AlfalfaAPI {
 
   listModels = async () => {
     try {
-      const models = [];
-
-      for await (const model of this.models.find()) {
-        models.push({
-          id: model.id,
-          modelName: model.model_name
-        });
-      }
-
-      return models;
+      return (await this.models.find().toArray()).map(({ ref_id: id, model_name: modelName, created, modified }) => ({
+        id,
+        modelName,
+        created,
+        modified
+      }));
     } catch (e) {
       console.error(e);
       return Promise.reject();
@@ -256,7 +286,7 @@ class AlfalfaAPI {
 
   createModel = async (modelID, modelName) => {
     const datetime = new Date();
-    this.models.insertOne({
+    await this.models.insertOne({
       ref_id: modelID,
       model_name: modelName,
       created: datetime,
@@ -266,50 +296,149 @@ class AlfalfaAPI {
   };
 
   createRunFromModel = async (modelID) => {
-    let runID = uuidv1();
-    let model = await this.models.findOne({ ref_id: modelID });
-    let job = "alfalfa_worker.jobs.openstudio.CreateRun";
-    if (model.model_name.endsWith(".fmu")) {
-      job = "alfalfa_worker.jobs.modelica.CreateRun";
-    }
+    try {
+      const runID = uuidv1();
+      const model = await this.models.findOne({ ref_id: modelID });
+      if (model) {
+        const job = `alfalfa_worker.jobs.${model.model_name.endsWith(".fmu") ? "modelica" : "openstudio"}.CreateRun`;
 
-    const params = {
-      MessageBody: `{
-        "job": "${job}",
-        "params": {
-          "model_id": "${modelID}",
-          "run_id": "${runID}"
-        }
-      }`,
-      QueueUrl: process.env.JOB_QUEUE_URL,
-      MessageGroupId: "Alfalfa"
-    };
+        const messageBody = {
+          job,
+          params: {
+            model_id: modelID,
+            run_id: runID
+          }
+        };
 
-    this.sqs.sendMessage(params, (err, data) => {
-      if (err) {
-        console.error(err);
+        await this.sqs.send(
+          new SendMessageCommand({
+            MessageBody: JSON.stringify(messageBody),
+            QueueUrl: process.env.JOB_QUEUE_URL,
+            MessageGroupId: "Alfalfa"
+          })
+        );
+
+        return { runID };
       }
-    });
-
-    return runID;
-  };
-
-  setAlias = async (aliasName, refId) => {
-    await this.aliases.updateOne({ name: aliasName }, { $set: { name: aliasName, ref_id: refId } }, { upsert: true });
-  };
-
-  getAlias = async (aliasName) => {
-    const alias = await this.aliases.findOne({ name: aliasName });
-    return alias ? alias.ref_id : null;
-  };
-
-  getAliases = async () => {
-    const docs = {};
-    const cursor = this.aliases.find();
-    for await (const doc of cursor) {
-      if (doc) docs[doc.name] = doc.ref_id;
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
     }
-    return docs;
+  };
+
+  setAlias = async (alias, refId) => {
+    try {
+      const site = await this.sites.findOne({ ref_id: refId });
+      if (site) {
+        return await this.aliases.updateOne(
+          { name: alias },
+          { $set: { name: alias, ref_id: refId } },
+          { upsert: true }
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
+    }
+  };
+
+  findAlias = async (aliasName) => {
+    try {
+      const alias = await this.aliases.findOne({ name: aliasName });
+      if (alias) return alias.ref_id;
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
+    }
+  };
+
+  listAliases = async () => {
+    try {
+      return (await this.aliases.find().toArray()).reduce((aliases, { name, ref_id }) => {
+        aliases[name] = ref_id;
+        return aliases;
+      }, {});
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
+    }
+  };
+
+  removeAlias = async (alias) => {
+    try {
+      const { deletedCount } = await this.aliases.deleteOne({ name: alias });
+      return deletedCount;
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
+    }
+  };
+
+  createUploadPost = async (modelName) => {
+    try {
+      const modelID = uuidv1();
+      const modelPath = `uploads/${modelID}/${modelName}`;
+
+      await this.createModel(modelID, modelName);
+
+      const presignedPost = await createPresignedPost(this.s3, {
+        Bucket: process.env.S3_BUCKET,
+        Key: modelPath
+      });
+
+      return {
+        ...presignedPost,
+        url: `${process.env.S3_URL_EXTERNAL || process.env.S3_URL}/${process.env.S3_BUCKET}`,
+        modelID
+      };
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
+    }
+  };
+
+  listSimulations = async () => {
+    try {
+      const sims = [];
+
+      const simulations = await this.simulations.find().toArray();
+      for (const {
+        ref_id: id,
+        name,
+        time_completed: timeCompleted,
+        sim_status: status,
+        s3_key: key,
+        results
+      } of simulations) {
+        const url = key
+          ? await getSignedUrl(
+              this.s3,
+              new GetObjectCommand({
+                Bucket: process.env.S3_BUCKET,
+                Key: key,
+                ResponseContentDisposition: `attachment; filename="${name}.tar.gz"`
+              }),
+              {
+                expiresIn: 86400
+              }
+            )
+          : undefined;
+
+        sims.push({
+          id,
+          name,
+          timeCompleted: DateTime.fromISO(timeCompleted.replace(" ", "T"), { zone: "UTC" }).toISO(),
+          status: status.toLowerCase(),
+          url,
+          results
+        });
+      }
+
+      return sims;
+    } catch (e) {
+      console.error(e);
+      return Promise.reject();
+    }
   };
 }
 

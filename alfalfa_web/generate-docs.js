@@ -23,17 +23,44 @@ const openapiSpecification = swaggerJsdoc({
     servers: [
       {
         url: "/api/v2",
-        description: `${serverType} server`
+        description: `${serverType} API v2 Server`
       }
     ],
     tags: [
       {
-        name: "Alfalfa",
-        description: "Alfalfa API v2 endpoints"
+        name: "About",
+        description: "Operations related to the status of Alfalfa"
+      },
+      {
+        name: "Alias",
+        description: "Manage site id aliases"
+      },
+      {
+        name: "Model",
+        description: "Manage models"
+      },
+      {
+        name: "Simulation",
+        description: "Manage completed simulations, including any that may have stopped with errors"
+      },
+      {
+        name: "Site",
+        description: "Manage sites"
       },
       {
         name: "Haystack",
-        description: "Project Haystack API endpoints"
+        description:
+          "Operations using Project Haystack API endpoints\n\n[Haystack API Documentation](https://project-haystack.org/doc/docHaystack/Ops)"
+      }
+    ],
+    "x-tagGroups": [
+      {
+        name: "Alfalfa API",
+        tags: ["About", "Alias", "Model", "Simulation", "Site"]
+      },
+      {
+        name: "Project Haystack API",
+        tags: ["Haystack"]
       }
     ],
     components: {
@@ -42,7 +69,74 @@ const openapiSpecification = swaggerJsdoc({
           type: "object",
           properties: {
             error: {
+              type: "string",
+              description: "Error message",
+              example: "Something went wrong"
+            }
+          }
+        },
+        Model: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              format: "uuid"
+            },
+            modelName: {
               type: "string"
+            },
+            created: {
+              type: "dateTime"
+            },
+            modified: {
+              type: "dateTime"
+            }
+          }
+        },
+        Point: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              format: "uuid"
+            },
+            name: {
+              type: "string"
+            },
+            type: {
+              type: "string",
+              enum: ["INPUT", "OUTPUT", "BIDIRECTIONAL"]
+            },
+            value: {
+              type: "float",
+              description:
+                "Value is only returned for `OUTPUT` and `BIDIRECTIONAL` points if available. Values are not returned when using the `/points/inputs` endpoint"
+            }
+          },
+          required: ["id", "name", "type"]
+        },
+        Simulation: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              format: "uuid"
+            },
+            name: {
+              type: "string"
+            },
+            timeCompleted: {
+              type: "dateTime"
+            },
+            status: {
+              type: "string",
+              enum: ["complete", "error"]
+            },
+            url: {
+              type: "string"
+            },
+            results: {
+              type: "object"
             }
           }
         },
@@ -50,16 +144,53 @@ const openapiSpecification = swaggerJsdoc({
           type: "object",
           properties: {
             id: {
-              type: "string"
+              type: "string",
+              format: "uuid"
             },
             name: {
               type: "string"
             },
-            uploadTimestamp: {
+            status: {
+              type: "string",
+              enum: [
+                "created",
+                "preprocessing",
+                "ready",
+                "starting",
+                "started",
+                "running",
+                "stopping",
+                "complete",
+                "error"
+              ]
+            },
+            simType: {
               type: "string"
+            },
+            datetime: {
+              type: "string"
+            },
+            uploadTimestamp: {
+              type: "dateTime"
             },
             uploadPath: {
               type: "string"
+            },
+            errorLog: {
+              type: "string"
+            }
+          }
+        },
+        Version: {
+          type: "object",
+          properties: {
+            version: {
+              type: "string",
+              description: "The current Alfalfa release version"
+            },
+            sha: {
+              type: "string",
+              description: "The git SHA of Alfalfa that is deployed"
             }
           }
         }
