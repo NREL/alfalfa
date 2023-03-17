@@ -17,7 +17,7 @@ export const App = () => {
     <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterLuxon}>
         <div className={styles.root}>
-          <AppBar position="static">
+          <AppBar position="static" sx={{ zIndex: 1 }}>
             <Toolbar>
               <Link to={"/"} className={styles.title} style={{ textDecoration: "none", color: "unset" }}>
                 <Typography variant="h5" color="inherit">

@@ -4,11 +4,13 @@ import "@fontsource/roboto";
 import "normalize.css/normalize.css";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
-import { App } from "./components/App/App.js";
+import { App } from "./App/App.js";
 
 ReactDOM.render(
   <BrowserRouter>
-    <App />
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
   </BrowserRouter>,
   document.getElementById("root")
 );
