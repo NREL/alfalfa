@@ -64,6 +64,47 @@ const openapiSpecification = swaggerJsdoc({
       }
     ],
     components: {
+      parameters: {
+        Alias: {
+          name: "alias",
+          in: "path",
+          description: "Alias name",
+          required: true,
+          schema: {
+            type: "string"
+          }
+        },
+        ModelID: {
+          name: "modelId",
+          in: "path",
+          description: "Model ID",
+          required: true,
+          schema: {
+            type: "string",
+            format: "uuid"
+          }
+        },
+        PointID: {
+          name: "pointId",
+          in: "path",
+          description: "Point ID",
+          required: true,
+          schema: {
+            type: "string",
+            format: "uuid"
+          }
+        },
+        SiteID: {
+          name: "siteId",
+          in: "path",
+          description: "Site ID",
+          required: true,
+          schema: {
+            type: "string",
+            format: "uuid"
+          }
+        }
+      },
       schemas: {
         Error: {
           type: "object",
@@ -86,10 +127,12 @@ const openapiSpecification = swaggerJsdoc({
               type: "string"
             },
             created: {
-              type: "dateTime"
+              type: "string",
+              format: "date-time"
             },
             modified: {
-              type: "dateTime"
+              type: "string",
+              format: "date-time"
             }
           }
         },
@@ -126,7 +169,8 @@ const openapiSpecification = swaggerJsdoc({
               type: "string"
             },
             timeCompleted: {
-              type: "dateTime"
+              type: "string",
+              format: "date-time"
             },
             status: {
               type: "string",
@@ -171,7 +215,8 @@ const openapiSpecification = swaggerJsdoc({
               type: "string"
             },
             uploadTimestamp: {
-              type: "dateTime"
+              type: "string",
+              format: "date-time"
             },
             uploadPath: {
               type: "string"
@@ -202,4 +247,4 @@ const openapiSpecification = swaggerJsdoc({
 mkdirp.sync("build/app/assets");
 fs.writeFileSync("build/app/openapi.json", JSON.stringify(openapiSpecification));
 
-npmRun.execSync("redoc-cli build openapi.json -t ../../docs.hbs", { cwd: __dirname + "/build/app" });
+npmRun.execSync("redocly build-docs openapi.json -t ../../docs.hbs", { cwd: __dirname + "/build/app" });
