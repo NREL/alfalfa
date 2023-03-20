@@ -32,6 +32,7 @@ class AlfalfaAPI {
     this.s3 = new S3Client({
       credentials,
       endpoint: process.env.S3_URL_EXTERNAL || process.env.S3_URL,
+      forcePathStyle: true,
       region
     });
   }

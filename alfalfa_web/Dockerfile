@@ -23,9 +23,6 @@ FROM base AS dev
 # The docker-compose will require the mounting
 # of the files into the container, see docker-compose.dev.yml
 
-# install nodemon to restart the service when the files change
-RUN npm install -g nodemon
-
 WORKDIR /srv/alfalfa
 
 # Run in watch mode so it will automatically restart

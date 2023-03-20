@@ -25,19 +25,9 @@ const getSha = () => {
 module.exports = {
   mode: isProd ? "production" : "development",
   devtool: isProd ? false : "source-map",
-  entry: "./app.js",
+  entry: "./components/app.js",
   cache: {
     type: "filesystem"
-  },
-  devServer: {
-    static: {
-      directory: path.join(__dirname, "public")
-    },
-    compress: true,
-    port: 80
-  },
-  watchOptions: {
-    ignored: ["**/node_modules", "**/scripts", "**/server"]
   },
   output: {
     path: path.resolve(__dirname, "build/app"),
@@ -52,6 +42,9 @@ module.exports = {
         }
       })
     ]
+  },
+  performance: {
+    hints: false
   },
   module: {
     rules: [

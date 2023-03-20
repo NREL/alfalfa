@@ -3,7 +3,7 @@ import path from "node:path";
 import url from "node:url";
 import bodyParser from "body-parser";
 import compression from "compression";
-import historyApiFallback from "connect-history-api-fallback";
+import history from "connect-history-api-fallback";
 import express from "express";
 import { MongoClient } from "mongodb";
 import morgan from "morgan";
@@ -11,6 +11,7 @@ import { createClient } from "redis";
 import alfalfaServer from "./alfalfa-server";
 import apiv2 from "./api-v2";
 
+const isProd = process.env.NODE_ENV === "production";
 const redis = createClient({ host: process.env.REDIS_HOST });
 
 MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
@@ -35,13 +36,21 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
       });
     });
 
-    app.get("/docs", (req, res) => {
-      const docsPath = path.join(__dirname, "/app/docs.html");
+    let cachedDocs;
+    app.get("/redoc", async (req, res) => {
+      if (isProd && cachedDocs) {
+        return res.type("html").send(cachedDocs);
+      }
 
-      fsp
-        .access(docsPath, fsp.constants.F_OK)
-        .then(() => res.sendFile(docsPath))
-        .catch(() => res.status(404).type("txt").send("Documentation has not been generated"));
+      const docsPath = path.join(__dirname, "app/redoc-static.html");
+
+      try {
+        await fsp.access(docsPath, fsp.constants.F_OK);
+        res.sendFile(docsPath);
+        if (isProd) cachedDocs = await fsp.readFile(docsPath, "utf-8");
+      } catch (e) {
+        res.status(404).type("txt").send("Documentation has not been generated");
+      }
     });
 
     app.use("/api/v2/", apiv2({ api: app.locals.alfalfaServer.api }));
@@ -82,7 +91,7 @@ MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true })
       res.redirect(301, "/docs#tag/Haystack");
     });
 
-    app.use(historyApiFallback());
+    app.use(history());
     app.use("/", express.static(path.join(__dirname, "app")));
 
     const server = app.listen(80, () => {

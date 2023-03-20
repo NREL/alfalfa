@@ -91,6 +91,8 @@ router.get("/sites", async (req, res) => {
  *     description: Lookup a site by id
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       200:
  *         description: Site response
@@ -147,6 +149,8 @@ router.get("/sites/:siteId", async (req, res) => {
  *     description: Return the current time of the simulation if it has been started
  *     tags:
  *       - Simulation
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       200:
  *         description: Time response
@@ -185,6 +189,8 @@ router.get("/sites/:siteId/time", async (req, res) => {
  *     description: Return list of points for a site
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       200:
  *         description: Points response
@@ -250,6 +256,8 @@ router.get("/sites/:siteId/points", (req, res) => {
  *     description: Return list of input and bidirectional points for a site, bidirectional values are excluded
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       200:
  *         description: Points response
@@ -296,6 +304,8 @@ router.get("/sites/:siteId/points/inputs", (req, res) => {
  *     description: Return list of output and bidirectional points for a site
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       200:
  *         description: Points response
@@ -344,6 +354,8 @@ router.get("/sites/:siteId/points/outputs", (req, res) => {
  *     description: Set the write array values for multiple input and bidirectional points for a site given point ids or names
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     requestBody:
  *       content:
  *         application/json:
@@ -362,7 +374,8 @@ router.get("/sites/:siteId/points/outputs", (req, res) => {
  *                       type: string
  *                       example: HVACFanOnOff
  *                     value:
- *                       type: float
+ *                       type: number
+ *                       format: float
  *                       example: 0
  *                   anyOf:
  *                     - required:
@@ -412,6 +425,9 @@ router.put("/sites/:siteId/points/inputs", async (req, res) => {
  *     description: Set the write array value for an input or bidirectional point for a site
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/PointID'
  *     requestBody:
  *       content:
  *         application/json:
@@ -419,7 +435,8 @@ router.put("/sites/:siteId/points/inputs", async (req, res) => {
  *             type: object
  *             properties:
  *               value:
- *                 type: float
+ *                 type: number
+ *                 format: float
  *                 example: 0
  *             required:
  *               - value
@@ -456,6 +473,8 @@ router.put("/sites/:siteId/points/:pointId", (req, res) => {
  *     operationId: Delete site
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       204:
  *         description: The site was deleted successfully
@@ -499,6 +518,8 @@ router.delete("/sites/:siteId", (req, res) => {
  *     description: Start a site run
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     requestBody:
  *       content:
  *         application/json:
@@ -593,6 +614,8 @@ router.post("/sites/:siteId/start", async (req, res) => {
  *     description: Advances a site run by one minute
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       204:
  *         description: The run was advanced successfully
@@ -636,6 +659,8 @@ router.post("/sites/:siteId/advance", (req, res) => {
  *     description: Stop a site run
  *     tags:
  *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       204:
  *         description: The run was stopped successfully
@@ -708,6 +733,8 @@ router.get("/aliases", (req, res) => {
  *     description: Lookup the site id of an alias
  *     tags:
  *       - Alias
+ *     parameters:
+ *       - $ref: '#/components/parameters/Alias'
  *     responses:
  *       200:
  *         description: Alias response
@@ -749,6 +776,8 @@ router.get("/aliases/:alias", (req, res) => {
  *     description: Create or update an alias to point to a site id
  *     tags:
  *       - Alias
+ *     parameters:
+ *       - $ref: '#/components/parameters/Alias'
  *     responses:
  *       204:
  *         description: The alias was set successfully
@@ -792,6 +821,8 @@ router.put("/aliases/:alias", async (req, res) => {
  *     operationId: Delete alias
  *     tags:
  *       - Alias
+ *     parameters:
+ *       - $ref: '#/components/parameters/Alias'
  *     responses:
  *       204:
  *         description: The alias was deleted successfully
@@ -969,6 +1000,8 @@ router.post("/models/upload", async (req, res) => {
  *     description: Create a run for a model
  *     tags:
  *       - Model
+ *     parameters:
+ *       - $ref: '#/components/parameters/ModelID'
  *     responses:
  *       200:
  *         description: Create run response
