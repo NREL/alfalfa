@@ -1,312 +1,181 @@
-import { gql } from "@apollo/client";
-import { graphql } from "@apollo/client/react/hoc";
+import React, { useEffect, useState } from "react";
 import { MoreVert } from "@mui/icons-material";
 import { Button, Checkbox, Grid, IconButton, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
-import { withStyles } from "@mui/styles";
-import React from "react";
-import StartDialog from "../StartDialog/StartDialog";
-import PointDialogComponent from "./PointDialogComponent";
+import ky from "ky";
+import { ErrorDialog } from "./ErrorDialog";
+import { PointDialog } from "./PointDialog";
+import { StartDialog } from "./StartDialog";
 
-const pointsQL = gql`
-  query PointsQuery($siteRef: String!) {
-    viewer {
-      sites(siteRef: $siteRef) {
-        points {
-          dis
-          tags {
-            key
-            value
-          }
-        }
-      }
-    }
-  }
-`;
+export const Sites = () => {
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState([]);
+  const [sites, setSites] = useState([]);
+  const [showErrorDialog, setShowErrorDialog] = useState(null);
+  const [showPointDialog, setShowPointDialog] = useState(null);
+  const [showStartDialog, setShowStartDialog] = useState(null);
 
-const PointDialog = graphql(pointsQL, {
-  options: (props) => {
-    let siteRef = "";
-    if (props.site) {
-      siteRef = props.site.siteRef;
-    }
-    return {
-      pollInterval: 1000,
-      variables: {
-        siteRef
-      }
-    };
-  }
-})(PointDialogComponent);
-
-class Sites extends React.Component {
-  state = {
-    selected: [],
-    disabled: true,
-    showPointsSiteRef: null,
-    startDialogType: "osm"
+  const validStates = {
+    start: ["ready"],
+    stop: ["preprocessing", "starting", "started", "running", "stopping"],
+    remove: ["ready", "complete", "error"]
   };
 
-  isSelected = (siteRef) => {
-    return this.state.selected.indexOf(siteRef) !== -1;
+  const fetchSites = async () => {
+    const { data: sites } = await ky("/api/v2/sites").json();
+    setSites(sites);
+    setLoading(false);
   };
 
-  handleRowClick = (event, siteRef) => {
-    const { selected } = this.state;
-    const selectedIndex = selected.indexOf(siteRef);
-    let newSelected = [];
+  useEffect(() => {
+    fetchSites();
+    const id = setInterval(fetchSites, 1000);
 
-    // Don't let two different simulation types be selected
-    const firstSimType = "osm";
+    return () => clearInterval(id);
+  }, []);
 
-    const clickedSite = this.props.data.viewer.sites.find((s) => s.siteRef === siteRef);
-    const firstSite = this.selectedSites()[0];
-    const simType = clickedSite.simType;
-    if (firstSite && simType !== firstSite.simType) {
-      return;
-    }
+  const isSelected = (siteRef) => selected.includes(siteRef);
 
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, siteRef);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
+  const selectedSites = () => sites.filter(({ id }) => selected.includes(id));
 
-    this.setState({ selected: newSelected, startDialogType: simType });
+  const handleRowClick = (event, siteRef) => {
+    const newSelected = selected.includes(siteRef) ? selected.filter((id) => id !== siteRef) : [...selected, siteRef];
+    setSelected(newSelected);
   };
 
-  isStartButtonDisabled = () => {
-    const readyItem = this.selectedSites().some((item) => item.simStatus === "READY");
-
-    return !readyItem;
+  const isStartButtonDisabled = () => {
+    return !selectedSites().some(({ status }) => validStates.start.includes(status));
   };
 
-  isStopButtonDisabled = () => {
-    const runningItem = this.selectedSites().some((item) => {
-      return ["RUNNING", "PREPROCESSING", "STARTING", "STARTED", "STOPPING"].includes(item.simStatus);
-    });
-
-    return !runningItem;
+  const isStopButtonDisabled = () => {
+    return !selectedSites().some(({ status }) => validStates.stop.includes(status));
   };
 
-  isRemoveButtonDisabled = () => {
-    const stoppedItem = this.selectedSites().some((item) => {
-      return ["READY", "COMPLETE", "ERROR"].includes(item.simStatus);
-    });
-
-    return !stoppedItem;
+  const isRemoveButtonDisabled = () => {
+    return !selectedSites().some(({ status }) => validStates.remove.includes(status));
   };
 
-  handleStartSimulation = (startDatetime, endDatetime, timescale, realtime, externalClock) => {
-    this.selectedSites().map((item) => {
-      this.props.startSimProp(item.siteRef, startDatetime, endDatetime, timescale, realtime, externalClock);
-    });
+  const handleOpenErrorDialog = (event, site) => {
+    event.stopPropagation();
+    setShowErrorDialog(site);
   };
 
-  handleStopSimulation = () => {
-    this.selectedSites().map((item) => {
-      this.props.stopSimProp(item.siteRef);
-    });
+  const handleOpenPointDialog = (event, site) => {
+    event.stopPropagation();
+    setShowPointDialog(site);
   };
 
-  handleRemoveSite = () => {
-    this.selectedSites().map(({ siteRef }) => {
-      this.props.removeSiteProp(siteRef);
-    });
+  const handleStartSimulation = (startDatetime, endDatetime, timescale, realtime, externalClock) => {
+    selectedSites()
+      .filter(({ status }) => validStates.start.includes(status))
+      .map(async ({ id }) => {
+        await ky
+          .post(`/api/v2/sites/${id}/start`, {
+            json: {
+              startDatetime,
+              endDatetime,
+              timescale,
+              realtime,
+              externalClock
+            }
+          })
+          .json();
+      });
   };
 
-  selectedSites = () => {
-    return this.props.data.viewer.sites.filter((site) => {
-      return this.state.selected.some((siteRef) => siteRef === site.siteRef);
-    });
+  const handleStopSimulation = () => {
+    selectedSites()
+      .filter(({ status }) => validStates.stop.includes(status))
+      .map(async ({ id }) => {
+        await ky.post(`/api/v2/sites/${id}/stop`).json();
+      });
   };
 
-  handleRequestShowPoints = (e, site) => {
-    this.setState({ showSite: site });
-    e.stopPropagation();
+  const handleRemoveSite = () => {
+    selectedSites()
+      .filter(({ status }) => validStates.remove.includes(status))
+      .map(async ({ id }) => {
+        await ky.delete(`/api/v2/sites/${id}`).json();
+      });
   };
 
-  handleRequestClosePoints = () => {
-    this.setState({ showSite: null });
-  };
+  if (loading) return null;
 
-  render = () => {
-    const { classes } = this.props;
-
-    if (this.props.data.loading) {
-      return null;
-    } else {
-      const isStartDisabled = this.isStartButtonDisabled();
-      const isStopDisabled = this.isStopButtonDisabled();
-      const isRemoveDisabled = this.isRemoveButtonDisabled();
-
-      return (
-        <Grid container direction="column">
-          <PointDialog site={this.state.showSite} onBackdropClick={this.handleRequestClosePoints} />
-          <Grid item>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox" />
-                  <TableCell>Name</TableCell>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Time</TableCell>
-                  <TableCell />
+  return (
+    <Grid container direction="column">
+      {showErrorDialog && <ErrorDialog site={showErrorDialog} onClose={() => setShowErrorDialog(null)} />}
+      {showPointDialog && <PointDialog site={showPointDialog} onClose={() => setShowPointDialog(null)} />}
+      {showStartDialog && (
+        <StartDialog onStartSimulation={handleStartSimulation} onClose={() => setShowStartDialog(null)} />
+      )}
+      <Grid item>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell padding="checkbox" />
+              <TableCell>Name</TableCell>
+              <TableCell>ID</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Time</TableCell>
+              <TableCell>Points</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sites.map((site) => {
+              return (
+                <TableRow
+                  key={site.id}
+                  selected={false}
+                  style={{ cursor: "default" }}
+                  onClick={(event) => handleRowClick(event, site.id)}>
+                  <TableCell padding="checkbox">
+                    <Checkbox checked={isSelected(site.id)} />
+                  </TableCell>
+                  <TableCell padding="none">{site.name}</TableCell>
+                  <TableCell>{site.id}</TableCell>
+                  <TableCell>
+                    {site.status === "error" && site.errorLog ? (
+                      <Button variant="text" onClick={(event) => handleOpenErrorDialog(event, site)}>
+                        {site.status.toUpperCase()}
+                      </Button>
+                    ) : (
+                      site.status.toUpperCase()
+                    )}
+                  </TableCell>
+                  <TableCell>{site.datetime}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={(event) => handleOpenPointDialog(event, site)}>
+                      <MoreVert />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {this.props.data.viewer.sites.map((site, i) => {
-                  const isSelected = this.isSelected(site.siteRef);
-                  return (
-                    <TableRow
-                      key={site.siteRef}
-                      selected={false}
-                      style={{ cursor: "default" }}
-                      onClick={(event) => this.handleRowClick(event, site.siteRef)}>
-                      <TableCell padding="checkbox">
-                        <Checkbox checked={isSelected} />
-                      </TableCell>
-                      <TableCell padding="none">{site.name}</TableCell>
-                      <TableCell>{site.siteRef}</TableCell>
-                      <TableCell>{site.simStatus}</TableCell>
-                      <TableCell>{site.datetime}</TableCell>
-                      <TableCell>
-                        <IconButton onClick={(event) => this.handleRequestShowPoints(event, site)}>
-                          <MoreVert />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Grid>
+      <Grid item>
+        <Grid container justifyContent="flex-start" alignItems="center" style={{ marginLeft: 0, paddingLeft: 16 }}>
+          <Grid item>
+            <Button
+              variant="contained"
+              disabled={isStartButtonDisabled()}
+              onClick={() => setShowStartDialog(true)}
+              sx={{ m: 1 }}>
+              Start Test
+            </Button>
           </Grid>
           <Grid item>
-            <Grid
-              className={classes.controls}
-              container
-              justifyContent="flex-start"
-              alignItems="center"
-              style={{ marginLeft: 0, paddingLeft: 16 }}>
-              <Grid item>
-                <StartDialog
-                  type={this.state.startDialogType}
-                  disabled={isStartDisabled}
-                  onStartSimulation={this.handleStartSimulation}
-                />
-              </Grid>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  className={classes.button}
-                  disabled={isStopDisabled}
-                  onClick={this.handleStopSimulation}>
-                  Stop Test
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  className={classes.button}
-                  disabled={isRemoveDisabled}
-                  onClick={this.handleRemoveSite}>
-                  Remove Test Case
-                </Button>
-              </Grid>
-            </Grid>
+            <Button variant="contained" disabled={isStopButtonDisabled()} onClick={handleStopSimulation} sx={{ m: 1 }}>
+              Stop Test
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button variant="contained" disabled={isRemoveButtonDisabled()} onClick={handleRemoveSite} sx={{ m: 1 }}>
+              Remove Test Case
+            </Button>
           </Grid>
         </Grid>
-      );
-    }
-  };
-}
-
-const styles = (theme) => ({
-  controls: {
-    marginLeft: 16
-  },
-  button: {
-    margin: `${theme.spacing(1)}!important`
-  }
-});
-
-const sitesQL = gql`
-  query QueueQuery {
-    viewer {
-      sites {
-        name
-        datetime
-        siteRef
-        simStatus
-        simType
-        step
-      }
-    }
-  }
-`;
-
-// TODO: make an input type
-const runSiteQL = gql`
-  mutation runSiteMutation(
-    $siteRef: String!
-    $startDatetime: String
-    $endDatetime: String
-    $timescale: Float
-    $realtime: Boolean
-    $externalClock: Boolean
-  ) {
-    runSite(
-      siteRef: $siteRef
-      startDatetime: $startDatetime
-      endDatetime: $endDatetime
-      timescale: $timescale
-      realtime: $realtime
-      externalClock: $externalClock
-    )
-  }
-`;
-
-const stopSiteQL = gql`
-  mutation stopSiteMutation($siteRef: String!) {
-    stopSite(siteRef: $siteRef)
-  }
-`;
-
-const removeSiteQL = gql`
-  mutation removeSiteMutation($siteRef: String!) {
-    removeSite(siteRef: $siteRef)
-  }
-`;
-
-const withStyle = withStyles(styles)(Sites);
-
-const withStart = graphql(runSiteQL, {
-  props: ({ mutate }) => ({
-    startSimProp: (siteRef, startDatetime, endDatetime, timescale, realtime, externalClock) =>
-      mutate({ variables: { siteRef, startDatetime, endDatetime, timescale, realtime, externalClock } })
-  })
-})(withStyle);
-
-const withStop = graphql(stopSiteQL, {
-  props: ({ mutate }) => ({
-    stopSimProp: (siteRef) => mutate({ variables: { siteRef } })
-  })
-})(withStart);
-
-const withRemove = graphql(removeSiteQL, {
-  props: ({ mutate }) => ({
-    removeSiteProp: (siteRef) => mutate({ variables: { siteRef } })
-  })
-})(withStop);
-
-const withSites = graphql(sitesQL, {
-  options: {
-    pollInterval: 1000
-  }
-})(withRemove);
-
-export default withSites;
+      </Grid>
+    </Grid>
+  );
+};

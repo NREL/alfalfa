@@ -230,7 +230,7 @@ class Haystack < OpenStudio::Ruleset::ModelUserScript
     outputVariable = OpenStudio::Model::OutputVariable.new(outVarName,model)
     outputVariable.setKeyValue("#{key.name.to_s}")
     outputVariable.setReportingFrequency(report_freq)
-    outputVariable.setName(outVarName)
+    outputVariable.setName(emsName)
     outputVariable.setExportToBCVTB(true)
 
     sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, outputVariable)

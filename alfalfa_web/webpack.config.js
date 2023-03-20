@@ -1,12 +1,12 @@
-const fs = require("fs");
+const fs = require("node:fs");
 if (fs.existsSync("../.env")) require("dotenv").config({ path: "../.env" });
 
-const path = require("path");
+const path = require("node:path");
+const WebpackBeforeBuildPlugin = require("before-build-webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const npmRun = require("npm-run");
 const TerserPlugin = require("terser-webpack-plugin");
-const WebpackBeforeBuildPlugin = require("before-build-webpack");
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -25,19 +25,9 @@ const getSha = () => {
 module.exports = {
   mode: isProd ? "production" : "development",
   devtool: isProd ? false : "source-map",
-  entry: "./app.js",
+  entry: "./components/app.js",
   cache: {
     type: "filesystem"
-  },
-  devServer: {
-    static: {
-      directory: path.join(__dirname, "public")
-    },
-    compress: true,
-    port: 80
-  },
-  watchOptions: {
-    ignored: ["**/node_modules", "**/scripts", "**/server"]
   },
   output: {
     path: path.resolve(__dirname, "build/app"),
@@ -52,6 +42,9 @@ module.exports = {
         }
       })
     ]
+  },
+  performance: {
+    hints: false
   },
   module: {
     rules: [
