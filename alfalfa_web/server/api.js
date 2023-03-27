@@ -21,6 +21,7 @@ class AlfalfaAPI {
 
     this.redis = redis;
     this.pub = redis.duplicate();
+    this.pub.connect();
 
     const credentials = fromEnv();
     const region = process.env.REGION || "us-east-1";
@@ -248,9 +249,9 @@ class AlfalfaAPI {
   };
 
   sendRunMessage = (siteRef, method, data = null, timeout = 6000, pollingInterval = 100) => {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       const message_id = uuidv1();
-      this.pub.publish(siteRef, JSON.stringify({ message_id: message_id, method: method, data: data }));
+      await this.pub.publish(siteRef, JSON.stringify({ message_id: message_id, method: method, data: data }));
       const send_time = Date.now();
 
       let interval;

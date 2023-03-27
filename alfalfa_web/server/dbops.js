@@ -20,26 +20,17 @@ function findCurrentWinningValue(array) {
   return null;
 }
 
-// Get a point by siteRef and display name
-function getPoint(siteRef, name, db) {
-  const mrecs = db.collection("recs");
-  return mrecs.findOne({ "rec.siteRef": `r:${siteRef}`, "rec.dis": `s:${name}` });
-}
-
 async function getWriteArray(siteRef, id, redis) {
   const key = `${getPointKey(siteRef, id)}:in`;
-  return new Promise((resolve, reject) => {
-    // If the key isn't set the array will be empty
-    redis.lrange(key, 0, -1, (err, array) =>
-      err ? reject(err) : resolve(array.length ? mapRedisArray(array) : undefined)
-    );
-  });
+  const array = await redis.lRange(key, 0, -1);
+  return array.length ? mapRedisArray(array) : undefined;
 }
 
 function writePoint(id, siteRef, level, value, db, redis) {
   return new Promise(async (resolve, reject) => {
     const key = `${getPointKey(siteRef, id)}:in`;
     const mrecs = db.collection("recs");
+    value = String(value);
 
     if (!Number.isInteger(level) || level < 1 || level > NUM_LEVELS) {
       level = 17;
@@ -52,22 +43,14 @@ function writePoint(id, siteRef, level, value, db, redis) {
       if (array) {
         // Update
         array[level - 1] = value;
-        await new Promise((resolve, reject) => {
-          redis.lset(key, level - 1, value, (err, result) => (!err && result === "OK" ? resolve() : reject(err)));
-        });
+        await redis.lSet(key, level - 1, value);
         currentWinningValue = findCurrentWinningValue(array);
       } else {
         // Insert
-        await new Promise((resolve, reject) => {
-          array = new Array(NUM_LEVELS).fill("");
-          array[level - 1] = value;
-          redis.rpush(key, array, (err, result) => {
-            if (err) return reject(err);
-            if (result === NUM_LEVELS) return resolve();
-            else return reject(`Unexpected RPUSH result: ${result}`);
-          });
-          array = mapRedisArray(array);
-        });
+        array = new Array(NUM_LEVELS).fill("");
+        array[level - 1] = value;
+        await redis.rPush(key, array);
+        array = mapRedisArray(array);
         currentWinningValue = {
           val: value,
           level
@@ -110,7 +93,6 @@ function writePoint(id, siteRef, level, value, db, redis) {
 
 module.exports = {
   NUM_LEVELS,
-  getPoint,
   getWriteArray,
   writePoint
 };
