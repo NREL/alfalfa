@@ -1,6 +1,5 @@
-import AWS from "aws-sdk";
+import os from "node:os";
 import hs from "nodehaystack";
-import os from "os";
 import { v1 as uuidv1 } from "uuid";
 import AlfalfaAPI from "./api";
 import dbops, { NUM_LEVELS } from "./dbops";
@@ -8,7 +7,7 @@ import { getPointKey, mapRedisArray } from "./utils";
 
 // The purpose of this file is to consolidate operations to the database
 // in a single place. Clients may transform the data into and out of
-// these functions for their own api purposes. ie Haystack api, GraphQL api.
+// these functions for their own api purposes. ie Haystack api, REST api.
 const {
   HBool,
   HDateTime,
@@ -26,9 +25,6 @@ const {
 } = hs;
 
 const EMPTY_HGRID = new HGridBuilder().toGrid();
-
-AWS.config.update({ region: process.env.REGION || "us-east-1" });
-const sqs = new AWS.SQS();
 
 class AlfalfaWatch extends HWatch {
   constructor(db, id, dis, lease) {
@@ -160,13 +156,11 @@ class AlfalfaWatch extends HWatch {
  * @constructor
  */
 class AlfalfaServer extends HServer {
-  constructor(mongodb, redis, pub, sub) {
+  constructor(mongodb, redis) {
     super();
 
     this.db = mongodb;
     this.redis = redis;
-    this.pub = pub;
-    this.sub = sub;
     this.sites = this.db.collection("site");
     this.mrecs = this.db.collection("recs");
     this.recs = {};
@@ -178,8 +172,6 @@ class AlfalfaServer extends HServer {
     // of haystack, so check if rec is not none first.
     const db = new HDictBuilder();
     if (rec) {
-      const keys = Object.keys(rec);
-
       for (const [key, recValue] of Object.entries(rec)) {
         const r = new HJsonReader(recValue);
         try {
@@ -203,7 +195,6 @@ class AlfalfaServer extends HServer {
       HStdOps.about,
       HStdOps.formats,
       HStdOps.hisRead,
-      HStdOps.invokeAction,
       HStdOps.nav,
       HStdOps.ops,
       HStdOps.pointWrite,
@@ -537,51 +528,6 @@ class AlfalfaServer extends HServer {
 
   onHisWrite(rec, items, callback) {
     callback(new Error("Unsupported Operation"));
-  }
-
-  //////////////////////////////////////////////////////////////////////////
-  //Actions
-  //////////////////////////////////////////////////////////////////////////
-
-  async onInvokeAction(rec, action, args, callback) {
-    if (action === "runSite") {
-      // this is probably never called
-      this.mrecs.updateOne({ ref_id: rec.id().val }, { $set: { "rec.simStatus": "s:Starting" } }).then(() => {
-        let body = { id: rec.id().val, op: "InvokeAction", action: action };
-
-        for (const it = args.iterator(); it.hasNext(); ) {
-          const entry = it.next();
-          const name = entry.getKey();
-          const val = entry.getValue();
-          body[name] = val.val;
-        }
-
-        const params = {
-          MessageBody: JSON.stringify(body),
-          QueueUrl: process.env.JOB_QUEUE_URL,
-          MessageGroupId: "Alfalfa"
-        };
-
-        sqs.sendMessage(params, function (err, data) {
-          if (err) {
-            console.log(err, err.stack); // an error occurred
-            callback(null, HGridBuilder.dictsToGrid([]));
-          } else {
-            callback(null, HGridBuilder.dictsToGrid([]));
-          }
-        });
-      });
-    } else if (action === "stopSite") {
-      const siteRef = rec.id().val;
-      this.mrecs.updateOne({ ref_id: siteRef }, { $set: { "rec.simStatus": "s:Stopping" } }).then(() => {
-        this.pub.publish(siteRef, JSON.stringify({ message_id: uuidv1(), method: "stop" }));
-      });
-      callback(null, EMPTY_HGRID);
-    } else if (action === "removeSite") {
-      await this.api.removeSite(rec.id().val);
-
-      callback(null, EMPTY_HGRID);
-    }
   }
 }
 

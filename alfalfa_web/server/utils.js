@@ -56,6 +56,7 @@ function scan(client, pattern, cursor = "0", keys = []) {
 }
 
 function mapHaystack(obj) {
+  if (obj == null) return null;
   return Object.keys(obj).reduce((result, key) => {
     if (Array.isArray(obj[key])) {
       result[key] = obj[key].map((record) => mapHaystack(record));
@@ -77,6 +78,10 @@ function reduceById(arr, obj) {
   return { ...arr, [obj._id]: obj };
 }
 
+function reduceByRefId(arr, obj) {
+  return { ...arr, [obj.ref_id]: obj };
+}
+
 module.exports = {
   del,
   getHash,
@@ -85,6 +90,7 @@ module.exports = {
   mapHaystack,
   mapRedisArray,
   reduceById,
+  reduceByRefId,
   scan,
   setHashValue
 };

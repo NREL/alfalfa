@@ -2,12 +2,16 @@
  * @openapi
  * /about:
  *   get:
- *     description: Summary information for server
+ *     operationId: About
+ *     description: |
+ *       Summary information for server
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#about" target="_blank">About op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: about response
+ *         description: About response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -17,12 +21,16 @@
  * @openapi
  * /formats:
  *   get:
- *     description: Grid data formats supported by this server
+ *     operationId: Formats
+ *     description: |
+ *       Grid data formats supported by this server
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Filetypes" target="_blank">Filetypes documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: formats response
+ *         description: Formats response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -32,27 +40,16 @@
  * @openapi
  * /hisRead:
  *   get:
- *     description: Read time series from historian
+ *     operationId: HisRead
+ *     description: |
+ *       Read time series from historian
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#hisRead" target="_blank">HisRead op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: hisRead response
- *   servers:
- *     - url: /haystack
- *       description: Haystack server
- */
-
-/**
- * @openapi
- * /invokeAction:
- *   get:
- *     description: Invoke action on target entity
- *     tags:
- *       - Haystack
- *     responses:
- *       200:
- *         description: invokeAction response
+ *         description: HisRead response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -62,12 +59,16 @@
  * @openapi
  * /nav:
  *   get:
- *     description: Navigate record tree
+ *     operationId: Nav
+ *     description: |
+ *       Navigate record tree
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#nav" target="_blank">Nav op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: nav response
+ *         description: Nav response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -77,12 +78,16 @@
  * @openapi
  * /ops:
  *   get:
- *     description: Operations supported by this server
+ *     operationId: Ops
+ *     description: |
+ *       Operations supported by this server
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#ops" target="_blank">Ops op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: ops response
+ *         description: Ops response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -92,12 +97,16 @@
  * @openapi
  * /pointWrite:
  *   get:
- *     description: Read/write writable point priority array
+ *     operationId: PointWrite
+ *     description: |
+ *       Read/write writable point priority array
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#pointWrite" target="_blank">PointWrite op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: pointWrite response
+ *         description: PointWrite response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -107,12 +116,16 @@
  * @openapi
  * /read:
  *   get:
- *     description: Read entity records in database
+ *     operationId: Read
+ *     description: |
+ *       Read entity records in database
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#read" target="_blank">Read op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: read response
+ *         description: Read response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -122,12 +135,16 @@
  * @openapi
  * /watchPoll:
  *   get:
- *     description: Watch poll cov or refresh
+ *     operationId: WatchPoll
+ *     description: |
+ *       Watch poll COV or refresh
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#watchPoll" target="_blank">WatchPoll op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: watchPoll response
+ *         description: WatchPoll response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -137,12 +154,16 @@
  * @openapi
  * /watchSub:
  *   get:
- *     description: Watch subscription
+ *     operationId: WatchSub
+ *     description: |
+ *       Watch subscription
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#watchSub" target="_blank">WatchSub op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: watchSub response
+ *         description: WatchSub response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server
@@ -152,12 +173,16 @@
  * @openapi
  * /watchUnsub:
  *   get:
- *     description: Watch unsubscription
+ *     operationId: WatchUnsub
+ *     description: |
+ *       Watch unsubscription
+ *
+ *       <a href="https://project-haystack.org/doc/docHaystack/Ops#watchUnsub" target="_blank">WatchUnsub op documentation</a>
  *     tags:
  *       - Haystack
  *     responses:
  *       200:
- *         description: watchUnsub response
+ *         description: WatchUnsub response
  *   servers:
  *     - url: /haystack
  *       description: Haystack server

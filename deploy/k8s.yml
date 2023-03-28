@@ -164,7 +164,7 @@ items:
                 - /bin/sh
                 - -c
                 - " sleep 5; /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ACCESS_KEY}
-                  ${MINIO_SECRET_KEY}; /usr/bin/mc mb myminio/alfalfa; /usr/bin/mc policy
+                  ${MINIO_SECRET_KEY}; /usr/bin/mc mb myminio/alfalfa; /usr/bin/mc anonymous
                   public myminio/alfalfa; "
               env:
                 - name: MINIO_ACCESS_KEY

@@ -22,7 +22,7 @@ jobs:
           python-version: "3.8"
 
       - name: Run pre-commit
-        uses: pre-commit/action@v2.0.0
+        uses: pre-commit/action@v3.0.0
         with:
           extra_args: --all-files
 
@@ -33,10 +33,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.7.0
-        # Defaults to the latest version of MongoDB
 
       - name: Install Python
         uses: actions/setup-python@v2
@@ -49,7 +45,7 @@ jobs:
           # use a newer version of poetry in this test, but
           # poetry in the dockerfile is a bit older because
           # of a urllib3 issue
-          poetry-version: 1.2.1
+          poetry-version: 1.3.1
 
       - name: Install poetry dependencies
         run: |
@@ -59,6 +55,11 @@ jobs:
         run: |
           cat /etc/issue
           python --version
+
+      - name: Start dependencies
+        run: |
+          printenv
+          docker compose up -d mongo redis minio mc goaws
 
       - name: Run tests with pytest
         run: |
@@ -80,7 +81,7 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
         run: |
           printenv
-          docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d worker
+          docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d worker mongo redis minio mc goaws
 
       - name: Wait another 30s for the containers to start
         uses: jakejarvis/wait-action@master
@@ -90,13 +91,9 @@ jobs:
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
 
-      - name: Run modelica job tests in Docker worker container
+      - name: Run job tests in Docker worker container
         run: |
-          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m docker tests/jobs/modelica -o log_cli=true -o log_level=info"
-
-      - name: Run openstudio job tests in Docker worker container
-        run: |
-          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m docker tests/jobs/openstudio -o log_cli=true -o log_level=info"
+          docker exec alfalfa_worker_1 bash -c "cd /alfalfa && pytest -m docker tests/jobs -o log_cli=true -o log_level=info"
 
       - name: Dump docker logs on failure
         if: failure()
@@ -121,14 +118,14 @@ jobs:
           # use a newer version of poetry in this test, but
           # poetry in the dockerfile is a bit older because
           # of a urllib3 issue
-          poetry-version: 1.2.1
+          poetry-version: 1.3.1
 
       - name: Build and run stack
         env:
           GIT_COMMIT: ${{ github.sha }}
         run: |
           printenv
-          docker-compose up --build -d
+          docker-compose up --build -d --scale worker=2
 
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1
@@ -150,6 +147,11 @@ jobs:
         run: |
           poetry install
           poetry run pytest --timeout=600 -m "integration"
+
+      - name: Run worker scale tests with pytest
+        run: |
+          poetry install
+          poetry run pytest -m "scale"
 
       - name: Dump docker logs on failure
         if: failure()
@@ -174,7 +176,7 @@ jobs:
           # use a newer version of poetry in this test, but
           # poetry in the dockerfile is a bit older because
           # of a urllib3 issue
-          poetry-version: 1.2.1
+          poetry-version: 1.3.1
 
       - name: Build and run stack
         env:
@@ -182,7 +184,7 @@ jobs:
         run: |
           export HISTORIAN_ENABLE=true
           printenv
-          docker-compose -f docker-compose.yml -f docker-compose.historian.yml up --build -d
+          docker-compose -f docker-compose.yml -f docker-compose.historian.yml up --build -d --scale worker=2
 
       - name: Wait for web server
         uses: nev7n/wait_for_response@v1
@@ -204,6 +206,11 @@ jobs:
         run: |
           poetry install
           poetry run pytest --timeout=600 -m "integration"
+
+      - name: Run worker scale tests with pytest
+        run: |
+          poetry install
+          poetry run pytest -m "scale"
 
       - name: Dump docker logs on failure
         if: failure()

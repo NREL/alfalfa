@@ -2,23 +2,22 @@ import json
 from datetime import datetime, timedelta
 
 from alfalfa_worker.jobs.step_run_base import StepRunBase
+from alfalfa_worker.lib.enums import PointType
 from alfalfa_worker.lib.job import message
+from alfalfa_worker.lib.models import Point
 from alfalfa_worker.lib.testcase import TestCase
 
 
 class StepRun(StepRunBase):
-    def __init__(self, run_id, realtime, timescale, external_clock, start_datetime="0", end_datetime=str(60 * 60 * 24 * 365)) -> None:
+    def __init__(self, run_id, realtime, timescale, external_clock, start_datetime: datetime, end_datetime) -> None:
         self.checkout_run(run_id)
-        historian_year = 2017
-        self.sim_start_time = float(start_datetime)
-        self.sim_end_time = float(end_datetime)
-        start_datetime = str(datetime(historian_year, 1, 1, 0, 0, 0) + timedelta(seconds=float(start_datetime)))
-        end_datetime = str(datetime(historian_year, 1, 1, 0, 0, 0) + timedelta(seconds=float(end_datetime)))
         super().__init__(run_id, realtime, timescale, external_clock, start_datetime, end_datetime)
         self.logger.info(f"{start_datetime}, {end_datetime}")
+        sim_year = self.start_datetime.year
+        self.sim_start_time = (self.start_datetime - datetime(sim_year, 1, 1)) / timedelta(seconds=1)
+        self.sim_end_time = (self.end_datetime - datetime(sim_year, 1, 1)) / timedelta(seconds=1)
 
-        self.current_datetime = datetime(historian_year, 1, 1, 0, 0, 0) + timedelta(seconds=self.sim_start_time)
-        print("current datetime at start of simulation: %", self.current_datetime)
+        self.logger.info(f"current datetime at start of simulation: {self.start_datetime}")
 
         fmupath = self.dir / 'model.fmu'
         tagpath = self.dir / 'tags.json'
@@ -46,7 +45,7 @@ class StepRun(StepRunBase):
 
         # run the FMU simulation
         self.simtime = self.sim_start_time
-        self.set_run_time(self.simtime)
+        self.set_run_time(self.start_datetime)
 
         # Allow model to warm up in first timestep without failing due to falling behind timescale
         self.first_step_warmup = True
@@ -95,11 +94,10 @@ class StepRun(StepRunBase):
         return timedelta(seconds=self.step_size)
 
     def update_sim_status(self):
-        self.simtime = self.tc.final_time
-        self.set_run_time(self.simtime)
+        self.set_run_time(self.get_sim_time())
 
     def get_sim_time(self) -> datetime:
-        return datetime(self.start_datetime.year, 1, 1, 0, 0, 0) + timedelta(seconds=float(self.simtime))
+        return datetime(self.start_datetime.year, 1, 1, 0, 0, 0) + timedelta(seconds=float(self.tc.final_time))
 
     def step(self):
         # u represents simulation input values
@@ -109,39 +107,22 @@ class StepRun(StepRunBase):
         # is what should be applied to the simulation according to Project Haystack
         # convention. If there is no value in the array, then it will not be passed to the
         # simulation.
-        for point_id, write_value in self.get_write_array_values().items():
-            dis = self.id_and_dis.get(point_id)
-            # automatically add the "activate" input.
-            if dis:
-                u[dis] = write_value
-                u[dis.replace('_u', '_activate')] = 1
+        for point in self.run.input_points:
+            value = point.value
+            if value is not None:
+                u[point.name] = value
+                u[point.name.replace('_u', '_activate')] = 1
 
         y_output = self.tc.advance(u)
         self.logger.debug(f"FMU output is {y_output}")
         self.update_sim_status()
-        self.increment_datetime()
 
         # get each of the simulation output values and feed to the database
-        for key in y_output.keys():
-            if key != 'time':
-                output_id = self.tagid_and_outputs[key]
-                value_y = y_output[key]
-
-                key = f'site:{self.site.ref_id}:rec:{output_id}'
-                self.redis.hset(key, mapping={
-                    'curStatus': 's:ok',
-                    'curVal': f"n:{value_y}"
-                })
+        for point in self.run.output_points:
+            point.value = y_output[point.name]
 
         if self.historian_enabled:
             self.write_outputs_to_influx(y_output)
-
-    def increment_datetime(self):
-        """
-        The current datetime is incremented.
-        :return:
-        """
-        self.current_datetime += timedelta(seconds=self.step_size)
 
     def write_outputs_to_influx(self, outputs):
         """
@@ -151,7 +132,7 @@ class StepRun(StepRunBase):
         json_body = []
         base = {
             "measurement": self.run.ref_id,
-            "time": "%s" % self.current_datetime,
+            "time": "%s" % self.get_sim_time(),
         }
         response = False
         # get each of the simulation output values and feed to the database
@@ -182,7 +163,13 @@ class StepRun(StepRunBase):
             print("Unable to write to influx: %s" % e)
 
     def setup_points(self):
-        pass
+        for id, dis in self.id_and_dis.items():
+            point = Point(ref_id=id, name=dis)
+            if dis in self.tagid_and_outputs.keys():
+                point.point_type = PointType.OUTPUT
+            else:
+                point.point_type = PointType.INPUT
+            self.run.add_point(point)
 
     @message
     def advance(self):

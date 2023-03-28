@@ -26,10 +26,12 @@
 require 'json'
 require 'openstudio'
 require 'rexml/document'
-
+require 'alfalfa'
 # start the measure
 class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
 
+  include OpenStudio::Alfalfa::OpenStudioMixin
+  include OpenStudio::Alfalfa::Utils
   # human readable name
   def name
     return "ExportBCVTB"
@@ -42,44 +44,18 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
 
   # human readable description of modeling approach
   def modeler_description
-    return "This measure loops through outputvariables, EMS:outputvariables and ExternalInterface objects and will create the variables.cfg xml file for BCVTB.
+    return "This measure loops through output_variables, EMS:output_variables and ExternalInterface objects and will create the variables.cfg xml file for BCVTB.
             Those variables need to be in cfg file, being used for data exchange."
   end
 
-  def create_ems_str(id)
-    #return string formatted with no spaces or '-' (can be used as EMS var name)
-    return "#{id.gsub(/[\s-]/,'_')}"
-  end
-
-  def add_xml_output(object, energyPlusName)
-    #output variable
-    variable = REXML::Element.new "variable"
-    variable.attributes["source"] = "EnergyPlus"
-    energyplus = REXML::Element.new "EnergyPlus"
-    energyplus.attributes["name"] = energyPlusName
-    energyplus.attributes["type"] = object
-    variable.add_element energyplus
-    return variable
-  end
-
-  def add_xml_ptolemy(type, name)
-    #schedule
-    variable = REXML::Element.new "variable"
-    variable.attributes["source"] = "Ptolemy"
-    energyplus = REXML::Element.new "EnergyPlus"
-    energyplus.attributes[type] = name
-    variable.add_element energyplus
-    return variable
-  end
-
-  #define the arguments that the user will input
+  # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     return args
-  end #end the arguments method
+  end
 
-  #define what happens when the measure is run
+
   def run(model, runner, user_arguments)
     super(model, runner, user_arguments)
 
@@ -88,47 +64,25 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
       return false
     end
 
-    runner.registerInitialCondition("Creating BCVTB XML file.")
+    # loop through output_variables
+    output_variables = model.getOutputVariables
+    output_variables = output_variables.sort_by { |m| [m.keyValue.to_s, m.name.to_s.downcase] }
+    output_variables.each do |outvar|
+      next if outvar.variableName.downcase.end_with? '_enable_value'
 
-    counter = 0
-    #initialize BCVTB XML config file elements
-    bcvtb = REXML::Element.new "BCVTB-variables"
+      register_output(outvar) if outvar.exportToBCVTB
+    end
 
-    #loop through outputVariables
-    outputVariables = model.getOutputVariables
-    target=open('checkvar.txt','w')
-    #alphabetize
-    #outputVariables = outputVariables.sort_by{ |m| [ m.name.to_s.downcase, m.keyValue.to_s]}
-    outputVariables = outputVariables.sort_by{ |m| [ m.keyValue.to_s, m.name.to_s.downcase]}
-    outputVariables.each do |outvar|
-      #If flag set to true and keyValue is not * then add output variable to BCVTB xml
-      #print outvar
-      target.write(outvar)
-      if (outvar.exportToBCVTB)
-      #if (outvar.exportToBCVTB )
-        bcvtb.add_element add_xml_output(outvar.variableName, outvar.keyValue)
-        runner.registerInfo("Added #{outvar.variableName.to_s} #{outvar.keyValue.to_s} to BCVTB XML file.")
-        counter += 1
-      end
-    end  #end outputVariables
-    target.close
+    # loop through ems_output_variables
+    ems_output_variables = model.getEnergyManagementSystemOutputVariables
+    # alphabetize
+    ems_output_variables = ems_output_variables.sort_by { |m| m.name.to_s.downcase }
+    ems_output_variables.each do |outvar|
+      next unless outvar.exportToBCVTB
+      next if outvar.emsVariableName.downcase.end_with? '_enable_value'
 
-    #loop through EMSOutputVariables
-    #my time variables will be written to cfg file here
-    emsOutputVariables = model.getEnergyManagementSystemOutputVariables
-    #alphabetize
-    emsOutputVariables = emsOutputVariables.sort_by{ |m| m.name.to_s.downcase }
-    emsOutputVariables.each do |outvar|
-      #If flag set to true and keyValue is not * then add output variable to BCVTB xml
-      if (outvar.exportToBCVTB)
-#         print "\n Watchout Here!!!  "
-        print outvar.emsVariableName.to_s
-        print outvar.nameString
-        bcvtb.add_element add_xml_output(outvar.nameString, "EMS")
-        runner.registerInfo("Added #{outvar.nameString} to BCVTB XML file.")
-        counter += 1
-      end
-    end  #end EMSOutputVariables
+      register_output(outvar)
+    end
 
     # find all EnergyManagementSystemGlobalVariable objects and
     # replace those that have exportToBCVTB set to true
@@ -136,97 +90,98 @@ class ExportBCVTB < OpenStudio::Ruleset::ModelUserScript
     ems_programs = model.getEnergyManagementSystemPrograms
     ems_subroutines = model.getEnergyManagementSystemSubroutines
 
-    emsGlobals = model.getEnergyManagementSystemGlobalVariables
+    ems_globals = model.getEnergyManagementSystemGlobalVariables
 
-    emsGlobals.each do |emsvar|
-      if ( emsvar.exportToBCVTB )
-        emsGlobalName = emsvar.nameString
-        emsGlobalHandle = emsvar.handle.to_s
-        emsvar.remove
+    ems_globals.each do |emsvar|
+      next unless emsvar.exportToBCVTB
 
-        eevar = OpenStudio::Model::ExternalInterfaceVariable.new(model, emsGlobalName, 0)
-        eevarHandle = eevar.handle.to_s
+      ems_global_name = emsvar.nameString
+      ems_global_handle = emsvar.handle.to_s
+      emsvar.remove
 
-        ems_programs.each do |prog|
-          body = prog.body
-          body.gsub!(emsGlobalHandle, eevarHandle)
-          prog.setBody(body)
-        end
+      eevar = OpenStudio::Model::ExternalInterfaceVariable.new(model, ems_global_name, 0)
+      eevar_handle = eevar.handle.to_s
 
-        ems_subroutines.each do |prog|
-          body = prog.body
-          body.gsub!(emsGlobalHandle, eevarHandle)
-          prog.setBody(body)
-        end
+      ems_programs.each do |prog|
+        body = prog.body
+        body.gsub!(ems_global_handle, eevar_handle)
+        prog.setBody(body)
+      end
 
-        emsOutputVariables.each do |outvar|
-          this_ems_var_name = outvar.emsVariableName
-          if this_ems_var_name == emsGlobalHandle
-            outvar.setEMSVariableName(eevarHandle)
-          end
-        end
+      ems_subroutines.each do |prog|
+        body = prog.body
+        body.gsub!(ems_global_handle, eevar_handle)
+        prog.setBody(body)
+      end
+
+      ems_output_variables.each do |outvar|
+        this_ems_var_name = outvar.emsVariableName
+        outvar.setEMSVariableName(eevar_handle) if this_ems_var_name == ems_global_handle
       end
     end
 
-    #loop through ExternalInterfaceVariables
-    externalVariables = model.getExternalInterfaceVariables
-    #alphabetize
-    externalVariables = externalVariables.sort_by{ |m| m.name.to_s.downcase }
-    externalVariables.each do |outvar|
-      #If flag set to true and keyValue is not * then add output variable to BCVTB xml
-      if (outvar.exportToBCVTB)
-        bcvtb.add_element add_xml_ptolemy("variable", outvar.name)
-        runner.registerInfo("Added #{outvar.name.to_s} to BCVTB XML file.")
-        counter += 1
+    # loop through ExternalInterfaceVariables
+    external_variables = model.getExternalInterfaceVariables
+    # alphabetize
+    external_variables = external_variables.sort_by { |m| m.name.to_s.downcase }
+    external_variables.each_index do |index|
+      outvar = external_variables[index]
+      next unless outvar.exportToBCVTB
+
+      var_name = outvar.name.to_s
+
+      input_object = register_input(outvar)
+      next unless index + 1 < external_variables.length
+
+      next_variable = external_variables[index + 1]
+      next_var_name = next_variable.name.to_s
+      if next_var_name.start_with?(var_name) && next_var_name.gsub(var_name, '').downcase == '_enable'
+        input_object.enable_variable = next_variable
+        external_variables.delete_at(index + 1)
       end
-    end  #end ExternalInterfaceVariables
+    end
 
-    #loop through ExternalInterfaceSchedule
-    externalSchedules = model.getExternalInterfaceSchedules
-    #alphabetize
-    externalSchedules = externalSchedules.sort_by{ |m| m.name.to_s.downcase }
-    externalSchedules.each do |schedule|
-      #If flag set to true and keyValue is not * then add output variable to BCVTB xml
-      if (schedule.exportToBCVTB)
-        bcvtb.add_element add_xml_ptolemy("schedule", schedule.name)
-        runner.registerInfo("Added #{schedule.name.to_s} to BCVTB XML file.")
-        counter += 1
+    # loop through ExternalInterfaceSchedule
+    external_schedules = model.getExternalInterfaceSchedules
+    # alphabetize
+    external_schedules = external_schedules.sort_by { |m| m.name.to_s.downcase }
+    external_schedules.each do |schedule|
+      register_input(schedule) if schedule.exportToBCVTB
+    end
+
+    # loop through ExternalInterfaceActuators
+    external_actuators = model.getExternalInterfaceActuators
+    # alphabetize
+    external_actuators = external_actuators.sort_by { |m| m.name.to_s.downcase }
+    external_actuators.each do |actuator|
+      register_input(actuator) if actuator.exportToBCVTB
+    end
+
+    @outputs.delete_if do |output|
+      next unless output.component == 'EMS'
+
+      variable_name = output.display_name
+      if variable_name.downcase.end_with? '_value'
+        variable_name = variable_name[0, variable_name.length - '_value'.length]
       end
-    end  #end ExternalInterfaceSchedules
 
-    #loop through ExternalInterfaceActuators
-    externalActuators = model.getExternalInterfaceActuators
-    #alphabetize
-    externalActuators = externalActuators.sort_by{ |m| m.name.to_s.downcase }
-    externalActuators.each do |actuator|
-      #If flag set to true and keyValue is not * then add output variable to BCVTB xml
-      if (actuator.exportToBCVTB)
-        bcvtb.add_element add_xml_ptolemy("actuator", actuator.name)
-        runner.registerInfo("Added #{actuator.name.to_s} to BCVTB XML file.")
-        counter += 1
+      input_object = get_input_by_name(variable_name)
+      input_object&.echo = output
+      next unless input_object.nil?
+
+      if variable_name.downcase.end_with? '_enable'
+        variable_name = variable_name[0, variable_name.length - '_enable'.length]
       end
-    end  #end ExternalInterfaceActuators
 
-    runner.registerFinalCondition("The building has exported #{counter} variables to XML file.")
+      input_object = get_input_by_name(variable_name)
+      next if input_object.nil?
 
-    #create variables.cfg file for BCVTB
-    doc = REXML::Document.new
-    doc.add_element bcvtb
-    #create header
-    fo = File.open('report_variables.cfg', 'w')
-      fo.puts '<?xml version="1.0" encoding="ISO-8859-1"?>'
-      fo.puts '<!DOCTYPE BCVTB-variables SYSTEM "variables.dtd">'
-    fo.close
-    #add xml part
-    formatter = REXML::Formatters::Pretty.new
-    formatter.compact = true
-    File.open('report_variables.cfg',"a"){|file| file.puts formatter.write(doc.root,"")}
+      true
+    end
+
+    report_inputs_outputs
 
     return true
-
-  end #end the run method
-
-end #end the measure
-
-# register the measure to be used by the application
+  end
+end
 ExportBCVTB.new.registerWithApplication

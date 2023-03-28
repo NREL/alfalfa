@@ -20,6 +20,27 @@
       },
       {
          "arguments" : {},
+         "measure_dir_name" : "alfalfa_setpoint_control",
+         "name" : "Alfalfa Setpoint Control",
+         "description" : "Add Setpoint Control to Alfalfa",
+         "modeler_description" : "Add Setpoint Control to Alfalfa"
+      },
+      {
+         "arguments" : {},
+         "measure_dir_name" : "alfalfa_zone_sensors",
+         "name" : "Alfalfa Zone Sensors",
+         "description" : "Add Zone Sensors",
+         "modeler_description" : "Add Zone Sensors"
+      },
+      {
+         "arguments" : {},
+         "measure_dir_name" : "alfalfa_site_sensors",
+         "name" : "Alfalfa Site Sensors",
+         "description" : "Add Site Sensors",
+         "modeler_description" : "Add Site Sensors"
+      },
+      {
+         "arguments" : {},
          "description" : "This measure will create the variables.cfg xml file for BCVTB",
          "measure_dir_name" : "export_bcvtb",
          "modeler_description" : "This measure loops through outputvariables, EMS:outputvariables and ExternalInterface objects and will create the variables.cfg xml file for BCVTB.",

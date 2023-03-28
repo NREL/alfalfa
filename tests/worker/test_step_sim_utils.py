@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest import TestCase
 
-from alfalfa_worker.lib.sim_type import SimType
+from alfalfa_worker.lib.enums import SimType
 from alfalfa_worker.step_sim_utils import valid_date
 
 

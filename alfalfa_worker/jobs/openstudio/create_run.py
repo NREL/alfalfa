@@ -4,17 +4,17 @@ from pathlib import Path
 from subprocess import check_output
 
 from alfalfa_worker.jobs.openstudio import lib_dir
+from alfalfa_worker.jobs.openstudio.lib.variables import Variables
+from alfalfa_worker.lib.enums import RunStatus, SimType
 from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
-from alfalfa_worker.lib.run import RunStatus
-from alfalfa_worker.lib.sim_type import SimType
 from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
 from alfalfa_worker.lib.utils import rel_symlink
 
 
 class CreateRun(Job):
 
-    def __init__(self, upload_id, model_name, run_id=None):
-        self.create_run_from_model(upload_id, model_name, SimType.OPENSTUDIO, run_id=run_id)
+    def __init__(self, model_id, run_id=None):
+        self.create_run_from_model(model_id, SimType.OPENSTUDIO, run_id=run_id)
 
     def exec(self):
         self.set_run_status(RunStatus.PREPROCESSING)
@@ -44,7 +44,12 @@ class CreateRun(Job):
         check_output(['openstudio', str(lib_dir / 'merge_osws.rb'), str(default_workflow_path), str(submitted_osw_path)])
 
         # run workflow
-        check_output(['openstudio', 'run', '-m', '-w', str(submitted_osw_path)])
+        check_output(['openstudio', '--include', '/alfalfa/alfalfa_worker/jobs/openstudio/lib/alfalfa-lib/', 'run', '-m', '-w', str(submitted_osw_path)])
+
+        self.logger.info('Generating variables from measure reports')
+        self.variables = Variables(self.run)
+        self.variables.load_reports()
+        self.variables.generate_points()
 
         points_json_path = submitted_workflow_path / 'reports/haystack_report_haystack.json'
         mapping_json_path = submitted_workflow_path / 'reports/haystack_report_mapping.json'
@@ -73,6 +78,7 @@ class CreateRun(Job):
         idf_src_dir = idf_src_path.parents[0]
         variables_ep_path = idf_src_dir / 'variables.cfg'
         rel_symlink(variables_src_path, variables_ep_path)
+        self.variables.write_files(simulation_dir)
 
         # hack. need to find a more general approach to preserve osw resources that might be needed at simulation time
         for file in self.run.glob(submitted_workflow_path / 'python' / '*'):

@@ -1,6 +1,6 @@
 // The purpose of this file is to consolidate operations to the database
 // in a single place. Clients may transform the data into and out of
-// these functions for their own api purposes. ie Haystack api, GraphQL api.
+// these functions for their own api purposes. ie Haystack api, REST api.
 
 import { getPointKey, mapRedisArray } from "./utils";
 
@@ -27,7 +27,7 @@ function getPoint(siteRef, name, db) {
 }
 
 async function getWriteArray(siteRef, id, redis) {
-  const key = getPointKey(siteRef, id);
+  const key = `${getPointKey(siteRef, id)}:in`;
   return new Promise((resolve, reject) => {
     // If the key isn't set the array will be empty
     redis.lrange(key, 0, -1, (err, array) =>
@@ -38,7 +38,7 @@ async function getWriteArray(siteRef, id, redis) {
 
 function writePoint(id, siteRef, level, value, db, redis) {
   return new Promise(async (resolve, reject) => {
-    const key = getPointKey(siteRef, id);
+    const key = `${getPointKey(siteRef, id)}:in`;
     const mrecs = db.collection("recs");
 
     if (!Number.isInteger(level) || level < 1 || level > NUM_LEVELS) {
@@ -102,6 +102,7 @@ function writePoint(id, siteRef, level, value, db, redis) {
         who: new Array(NUM_LEVELS).fill(null)
       });
     } catch (err) {
+      console.error(err);
       reject(err);
     }
   });
