@@ -251,14 +251,14 @@ class AlfalfaAPI {
   sendRunMessage = (siteRef, method, data = null, timeout = 6000, pollingInterval = 100) => {
     return new Promise(async (resolve) => {
       const message_id = uuidv1();
-      await this.pub.publish(siteRef, JSON.stringify({ message_id: message_id, method: method, data: data }));
+      await this.pub.publish(siteRef, JSON.stringify({ message_id, method, data }));
       const send_time = Date.now();
 
       let interval;
 
       const finalize = (success, message = "") => {
         clearInterval(interval);
-        resolve({ status: success, message: message });
+        resolve({ status: success, message });
       };
 
       interval = setInterval(async () => {
