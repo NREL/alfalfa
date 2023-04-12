@@ -75,9 +75,10 @@ class AlfalfaAPI {
 
         if (site) {
           const siteHash = await getHash(this.redis, siteRef);
+          site = mapHaystack(site);
 
-          site_dict.name = site?.dis;
-          site_dict.datetime = siteHash?.sim_time;
+          site_dict.name = site?.dis ?? site_dict.name;
+          site_dict.datetime = siteHash?.sim_time ?? "";
         }
         return site_dict;
       }
