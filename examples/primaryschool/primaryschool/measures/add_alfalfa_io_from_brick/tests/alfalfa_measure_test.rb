@@ -53,31 +53,6 @@ class AlfalfaBRICKTest < Minitest::Test
 
   end
 
-  # # Create a set of models, return a list of failures
-  # def test_brick_import
-  #   runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new())
-  #   ab = AddAlfalfaIOFromBRICK.new
-  #   puts ab.find_points(File.join(@input_dir, 'in.ttl'), runner)
-  # end
-
-  # def test_input_creation
-  #   path = OpenStudio::Path.new(File.join(@input_dir, 'primaryschool.osm'))
-  #   model = OpenStudio::Model::Model.load(path)
-  #   assert((not model.empty?))
-  #   model = model.get
-  #   runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new())
-  #   ab = AddAlfalfaIOFromBRICK.new
-  #   ab.create_input(model, "pvavtk#{'_'.ord()}podtk#{'_'.ord()}1_supply_outlet_node_Temperature_Setpoint", 'Timestep', runner)
-  # end
-
-  # def test_python_binding
-  #   path = OpenStudio::Path.new(File.join(@input_dir, 'initial.idf'))
-  #   ab = AddAlfalfaIOFromBRICK.new
-  #   runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new())
-  #   ttlout = ab.extract_graph(path, runner)
-  #   puts ("Created graph at #{ttlout}")
-  # end
-
   def test_entireRun
     path = OpenStudio::Path.new(File.join(@input_dir, 'primaryschool.osm'))
     model = OpenStudio::Model::Model.load(path).get

@@ -159,7 +159,7 @@
     },
     "ZoneHVAC:UnitVentilator": {
         "rules": {
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_air_fan_name",
                 "heating_coil_name",
                 "cooling_coil_name"
@@ -177,7 +177,7 @@
     },
     "ZoneHVAC:UnitHeater": {
         "rules": {
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_air_fan_name",
                 "heating_coil_name"
             ],
@@ -191,7 +191,7 @@
     },
     "ZoneHVAC:EvaporativeCoolerUnit": {
         "rules": {
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_air_fan_name",
                 "first_evaporative_cooler_object_name",
                 "second_evaporative_cooler_name"
@@ -245,7 +245,7 @@
             "addOutlets": [
                 "air_outlet_node_name"
             ],
-            "unpackReheatSystem": [
+            "genericUnpack": [
                 "reheat_coil_name"
             ]
         }
@@ -278,7 +278,7 @@
             "addOutlets": [
                 "air_outlet_node_name"
             ],
-            "unpackReheatSystem": [
+            "genericUnpack": [
                 "reheat_coil_name"
             ]
         }
@@ -291,7 +291,7 @@
             "addOutlets": [
                 "air_outlet_node_name"
             ],
-            "unpackReheatSystem": [
+            "genericUnpack": [
                 "fan_name",
                 "heating_coil_name"
             ]
@@ -315,7 +315,7 @@
             "addOutlets": [
                 "air_outlet_node_name"
             ],
-            "unpackReheatSystem": [
+            "genericUnpack": [
                 "reheat_coil_name"
             ]
         }
@@ -741,7 +741,7 @@
                 "condenser_air_outlet_node_name",
                 "storage_tank_plant_connection_outlet_node_name"
             ],
-            "unpackStorage": [
+            "genericUnpack": [
                 "supply_water_storage_tank_name",
                 "condensate_collection_water_storage_tank_name"
             ]
@@ -755,7 +755,7 @@
             "addOutlets": [
                 "air_outlet_node_name"
             ],
-            "unpackStorage": [
+            "genericUnpack": [
                 "water_storage_tank_name"
             ]
         }
@@ -768,7 +768,7 @@
             "addOutlets": [
                 "air_outlet_node_name"
             ],
-            "unpackStorage": [
+            "genericUnpack": [
                 "water_storage_tank_name"
             ]
         }
@@ -783,7 +783,7 @@
                 "process_air_outlet_node_name",
                 "regeneration_fan_inlet_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "regeneration_coil_name",
                 "regeneration_fan_name"
             ]
@@ -791,7 +791,7 @@
     },
     "Dehumidifier:Desiccant:System": {
         "rules": {
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "desiccant_heat_exchanger_name",
                 "regeneration_air_fan_name",
                 "regeneration_air_heater_name",
@@ -850,7 +850,7 @@
             "addOutlets": [
                 "furnace_air_outlet_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_fan_name",
                 "heating_coil_name"
             ]
@@ -864,7 +864,7 @@
             "addOutlets": [
                 "furnace_air_outlet_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_fan_name",
                 "heating_coil_name",
                 "cooling_coil_name",
@@ -880,7 +880,7 @@
             "addOutlets": [
                 "unitary_system_air_outlet_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_fan_name",
                 "heating_coil_name"
             ]
@@ -894,7 +894,7 @@
             "addOutlets": [
                 "unitary_system_air_outlet_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_fan_name",
                 "heating_coil_name",
                 "cooling_coil_name",
@@ -910,7 +910,7 @@
             "addOutlets": [
                 "air_outlet_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_air_fan_name",
                 "heating_coil_name",
                 "cooling_coil_name",
@@ -938,7 +938,7 @@
             "addOutlets": [
                 "air_outlet_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_air_fan_name",
                 "heating_coil_name",
                 "cooling_coil_name",
@@ -956,7 +956,7 @@
                 "air_outlet_node_name",
                 "bypass_duct_splitter_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "outdoor_air_mixer_name",
                 "supply_air_fan_name",
                 "heating_coil_name",
@@ -974,7 +974,7 @@
                 "air_outlet_node_name",
                 "heat_recovery_water_outlet_node_name"
             ],
-            "unpackFanCoilSystem": [
+            "genericUnpack": [
                 "supply_air_fan_name",
                 "heating_coil_name",
                 "cooling_coil_name",

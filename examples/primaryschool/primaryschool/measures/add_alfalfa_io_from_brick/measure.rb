@@ -68,42 +68,19 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
     def find_points(ttlpath, s, p, o, runner)
 
         pypath = "#{File.join(File.dirname(__FILE__), "resources", "getpoints.py")}"
-        #pointnames = `python3 #{pypath} #{ttlpath}`
         res = `python3 #{pypath} #{ttlpath} #{s} #{p} #{o}`
         res = res
         res = res.split(',')
         res.reject! { |c| c.empty? }
-        #res.each_slice(3).to_a
-        #puts res
         pnames = Array.new
         i = 0
         res.each do |point|
-          #puts point[0]
           if i % 3 == 0
             pnames << point.gsub(/[\[\]\']*/, '').lstrip.rstrip 
-            #puts point.gsub(/[\[\]']*/, '').lstrip.rstrip 
           end
           i += 1
         end  
-        #puts pnames 
         return pnames.reject { |c| c.empty? }
-        # res = res.split('] [')
-        # keys = res[0].tr('[]\'', '')
-        # keys = keys.split(',')
-        # nkeys = Array.new
-        # keys.each do |key|
-        #   nkeys << key.lstrip
-        # end
-        # vars = res[1].tr('[]\'', '')
-        # vars = vars.split(',')
-        # nvars = Array.new
-        # vars.each do |var|
-        #   nvars << fvar = var.lstrip
-        # end
-        # runner.registerInfo("Found #{keys.length()} points in the EnergyPlus model")
-        # return nkeys, nvars
-  
-  
     end
   
     def create_output(model, var, key, freq, runner)
@@ -135,11 +112,6 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
       fkey = key.gsub("_#{var}", "")
       outname = key.gsub("_#{var}", " #{var.tr('_', ' ')}")
 
-      # puts key
-      # puts var
-      # puts vartype
-      # puts fkey
-      # puts outname
       # create reporting output variable
       new_var = OpenStudio::Model::OutputVariable.new(
         vartype, # from variable dictionary (eplusout.rdd)
@@ -150,7 +122,6 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
       nfkey = model.getModelObjectsByName(fkey, exactMatch=false)
       new_var.setReportingFrequency(freq) # Detailed, Timestep, Hourly, Daily, Monthly, RunPeriod, Annual
       new_var.setKeyValue(fkey) # from variable dictionary (eplusout.rdd)
-      #new_var.setKeyValue(key)
       new_var.setExportToBCVTB(true)
       runner.registerInfo("#{key.tr('_', ' ')} has key #{fkey}")
     
@@ -210,7 +181,6 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
 
       componentname = name.gsub("_#{cstr}", '')
       comp = model.getModelObjectByName(componentname)
-      #comp = model.getModelObjectByName(name)
 
       comp = comp.get
       # comp.emsActuatorNames().each do |actuator|
@@ -313,10 +283,10 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
     def create_io(model, ttlpath, freq, runner)
       
       ### DEBUG ###
-      output_EMS = model.getOutputEnergyManagementSystem
-      output_EMS.setInternalVariableAvailabilityDictionaryReporting('Verbose')
-      output_EMS.setEMSRuntimeLanguageDebugOutputLevel('Verbose')
-      output_EMS.setActuatorAvailabilityDictionaryReporting('ErrorsOnly')
+      # output_EMS = model.getOutputEnergyManagementSystem
+      # output_EMS.setInternalVariableAvailabilityDictionaryReporting('Verbose')
+      # output_EMS.setEMSRuntimeLanguageDebugOutputLevel('Verbose')
+      # output_EMS.setActuatorAvailabilityDictionaryReporting('ErrorsOnly')
       ### /DEBUG ###
 
 
@@ -345,28 +315,6 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
           end
         end
       end
-
-      # keys.zip(vars).each do |key, var|
-      #   puts key, var
-      #   if key.include? "_Setpoint"
-      #     supportedstp.each do |pointtype|
-      #       if var.include? pointtype
-      #         create_input(model, fixPythonFormat(key), freq, runner)
-      #         runner.registerInfo("#{key} is a: #{pointtype.gsub('_', ' ')}")
-      #         break
-      #       end
-      #     end
-      #   elsif key.include? "_Sensor"
-      #     supportedsen.each do |pointtype|
-      #       if var.include? pointtype
-      #         create_output(model, pointtype, fixPythonFormat(key), freq, runner)
-      #         runner.registerInfo("#{key} is a: #{pointtype}")
-      #         break
-      #       end
-      #     end
-      #   end
-        
-      # end
     end
 
     def fixPythonFormat(name)
@@ -380,10 +328,6 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
     def unformatname(name)
       return name.lstrip.gsub("_", " ").gsub("tk#{'-'.ord()}", "-").gsub("tk#{'.'.ord()}", ".").gsub("tk#{'_'.ord()}", "_")
     end
-
-    # def getEp2brick():
-    #   if !File.exists?('/alfalfa/ep2x'):
-    #     Git.clone('https://github.com/NREL/ep2x.git', branch: 'development', path:'/alfalfa')
 
     # Define what happens when the measure is run.
     def run(model, runner, user_arguments)
@@ -402,20 +346,13 @@ class AddAlfalfaIOFromBRICK < OpenStudio::Measure::ModelMeasure
         Dir.mkdir(temp_files)
       end
 
-      # Make sure no names are too long
-      #model.modelObjects.each do |mobj|
-      #mobj.setName(SecureRandom.hex(10))
-      #end
-
       temp_idf = File.join(temp_files, 'initial.idf')
       translator = OpenStudio::EnergyPlus::ForwardTranslator.new
       workspace = translator.translateModel(model)
       workspace.save(temp_idf, true)
-      #fixidf(temp_idf, runner)
       ttlpath = extract_graph(temp_idf, runner)
 
       # Find all sensors and setpoints
-      #keys, vars = find_points(ttlpath, runner)
       create_io(model, ttlpath, freq, runner)#keys, vars, freq, runner)
 
       temp_idf = File.join(temp_files, 'final.idf')

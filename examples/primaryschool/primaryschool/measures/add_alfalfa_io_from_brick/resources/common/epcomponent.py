@@ -53,7 +53,6 @@ class Extractor():
                             suff = 0
                             while newelement.name in self.components.keys():
                                 if self.checkduplicate(newelement):
-                                    m.printMessage(f"While looking for renamed elements, it turns out we already saw {newelement.name} before... Updating it now.")
                                     newelement.update(self.components[newelement.name])
                                     break
                                 else:
@@ -202,13 +201,6 @@ class Component():
                     self.extensibleMethod([{"method": "addInlets", "type_": "node", "attr_": "name"}], otheridf=nodelistref)
                 elif key == "outlets":
                     self.extensibleMethod([{"method": "addOutlets", "type_": "node", "attr_": "name"}], otheridf=nodelistref)
-        # if "inlet" in nodelists.keys():
-        #     for nodelist in nodelists["inlet"]:
-                
-        #         ## TODO: this returns a string, not an idf element. Why?
-        # if "outlet" in nodelists.keys():
-        #     for nodelist in nodelists["outlet"]:
-        #         return getattr(self.idfelem, nodelist)
 
     def addConnectors(self, connectors):
         for connector in connectors:
@@ -253,17 +245,6 @@ class Component():
             m.printMessage(f"Success. Found {len(res)} components in {listname}", lvl='debug')
         else:
             m.printMessage(f"There are no components in list {listname} with type {type_} and attribute {attr_}.", lvl='debug')
-        # for i in range(1, 100):
-        #     if attr_ != "":
-        #         attrstr = f"{type_}_{attr_}_{i}"
-        #     else:
-        #         attrstr = f"{type_}_{i}"
-        #     try:
-        #         m.printMessage(f"Fetching {attrstr} in {eplist}", lvl='debug')
-        #         if getattr(eplist, attrstr) is not None:
-        #             res.extend([getattr(eplist, attrstr)])
-        #     except:
-        #         break
         return res
 
     def getListElements(self, listname):
@@ -277,7 +258,6 @@ class Component():
         for branch in branchnames:
             bsc = self.unpackList({"list" : branch, "type_" : 'component', "attr_": 'name'})
             subcomponents.extend(bsc)
-        #self.addPredicate("hasPart", subcomponents)
         return subcomponents
 
     def unpackBranchList(self, branchlistnames):
@@ -299,20 +279,9 @@ class Component():
             subcomponents = unpacklist
         return subcomponents
 
-    def unpackStorage(self, storagelist):
-        return self.genericUnpack(storagelist)
-
-    def unpackReheatSystem(self, reheatlist):
-        #self.manualPredicate({"predicate": "hasPart", "elements": reheatlist})
-        return self.genericUnpack(reheatlist)
-
-    def unpackFanCoilSystem(self, fancoillist):
-        #self.manualPredicate({"predicate": "hasPart", "elements": fancoillist})
-        return self.genericUnpack(fancoillist)
-
     def zoneEquipment(self, equiplist):
         self.zoneequip = self.unpackList({"list" : self.idfelem, "type_" : 'zone_equipment', "attr_": 'name'})
-        #self.manualPredicate({"predicate": "isLocationOf", "elements": self.zoneequip})
+
 
     def extensibleMethod(self, mdict, otheridf=None):
         if otheridf is not None:
