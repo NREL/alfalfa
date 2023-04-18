@@ -1,0 +1,2663 @@
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix ep2b: <http://eptobrick.com#> .
+
+ep2b:OfficeSmall a brick:Building .
+
+ep2b:attic a brick:Zone .
+
+<http://eptobrick.com#core_zn&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20direct&20air&20inlet&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20return&20air&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#core_zn&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:core_zn .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+<http://eptobrick.com#core_zn&20water&20equipment&20water&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#core_zn&20water&20equipment> .
+
+ep2b:core_zn_lights a brick:Lighting ;
+    brick:hasLocation ep2b:core_zn .
+
+ep2b:core_zn_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:core_zn .
+
+ep2b:exterior_lights_a a brick:Lighting .
+
+ep2b:exterior_lights_b a brick:Lighting .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20inlet&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20return&20air&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_1&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:perimeter_zn_1 .
+
+ep2b:perimeter_zn_1_lights a brick:Lighting ;
+    brick:hasLocation ep2b:perimeter_zn_1 .
+
+ep2b:perimeter_zn_1_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:perimeter_zn_1 .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20inlet&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20return&20air&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_2&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:perimeter_zn_2 .
+
+ep2b:perimeter_zn_2_lights a brick:Lighting ;
+    brick:hasLocation ep2b:perimeter_zn_2 .
+
+ep2b:perimeter_zn_2_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:perimeter_zn_2 .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20inlet&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20return&20air&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_3&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:perimeter_zn_3 .
+
+ep2b:perimeter_zn_3_lights a brick:Lighting ;
+    brick:hasLocation ep2b:perimeter_zn_3 .
+
+ep2b:perimeter_zn_3_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:perimeter_zn_3 .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name&20atinlet_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20inlet&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20return&20air&20node&20name_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#perimeter_zn_4&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:perimeter_zn_4 .
+
+ep2b:perimeter_zn_4_lights a brick:Lighting ;
+    brick:hasLocation ep2b:perimeter_zn_4 .
+
+ep2b:perimeter_zn_4_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:perimeter_zn_4 .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20supply&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581&20zone&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_fan-psz-ac&581_coolcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatc-psz-ac&581_suppheatingnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oa-psz-ac&581_fannode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20fan> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oainlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oarelief&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582&20zone&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_fan-psz-ac&582_coolcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatc-psz-ac&582_suppheatingnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oa-psz-ac&582_fannode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20fan> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oainlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oarelief&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583&20zone&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_fan-psz-ac&583_coolcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatc-psz-ac&583_suppheatingnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oa-psz-ac&583_fannode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20fan> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oainlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oarelief&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584&20zone&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_fan-psz-ac&584_coolcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatc-psz-ac&584_suppheatingnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oa-psz-ac&584_fannode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20fan> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oainlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oarelief&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585&20zone&20equipment&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20return&20air&20mixer> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_fan-psz-ac&585_coolcnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatc-psz-ac&585_suppheatingnode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oa-psz-ac&585_fannode_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20fan> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oainlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oarelief&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe-shwsys1&20demand&20mixer_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer> a brick:Water_Loop ;
+    brick:feeds <http://eptobrick.com#core_zn&20water&20equipment__1> ;
+    brick:hasPart <http://eptobrick.com#core_zn&20water&20equipment__1>,
+        <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer-shwsys1&20demand&20outlet&20pipe_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20demand&20splitter> a brick:Water_Loop ;
+    brick:feeds <http://eptobrick.com#core_zn&20water&20equipment__1> ;
+    brick:hasPart <http://eptobrick.com#core_zn&20water&20equipment__1>,
+        <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20pump-shwsys1&20water&20heaternodeviaconnector_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20pump> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20equip&20bypass&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20inlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer> a brick:Water_Loop ;
+    brick:hasPart <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe>,
+        <http://eptobrick.com#shwsys1&20water&20heater> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer-shwsys1&20supply&20outlet&20pipe_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Air_Flow_Sensor> a brick:Air_Flow_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Air_Flow_Setpoint> a brick:Air_Flow_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Enthalpy_Sensor> a brick:Enthalpy_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Enthalpy_Setpoint> a brick:Enthalpy_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Humidity_Sensor> a brick:Humidity_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Humidity_Setpoint> a brick:Humidity_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Pressure_Sensor> a brick:Pressure_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Pressure_Setpoint> a brick:Pressure_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Temperature_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20node_Temperature_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf ep2b:shwsys1 .
+
+<http://eptobrick.com#shwsys1&20supply&20splitter> a brick:Water_Loop ;
+    brick:hasPart <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe>,
+        <http://eptobrick.com#shwsys1&20water&20heater> .
+
+<http://eptobrick.com#psz-ac&581> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&581_heatpump>,
+        <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&582_heatpump>,
+        <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&583_heatpump>,
+        <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&584_heatpump>,
+        <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&585_heatpump>,
+        <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&581&20fan>,
+        <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&582&20fan>,
+        <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&583&20fan>,
+        <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&584&20fan>,
+        <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&585&20fan>,
+        <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+ep2b:perimeter_zn_1 a brick:Zone .
+
+ep2b:perimeter_zn_2 a brick:Zone .
+
+ep2b:perimeter_zn_3 a brick:Zone .
+
+ep2b:perimeter_zn_4 a brick:Zone .
+
+<http://eptobrick.com#shwsys1&20water&20heater> a brick:Water_Heater ;
+    brick:hasLocation ep2b:core_zn .
+
+ep2b:core_zn a brick:Zone .
+
+<http://eptobrick.com#core_zn&20water&20equipment__1> a brick:Equipment ;
+    brick:hasLocation ep2b:core_zn .
+
+<http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#shwsys1&20pump> a brick:Pump .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#psz-ac&581&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&581> .
+
+<http://eptobrick.com#psz-ac&582&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&582> .
+
+<http://eptobrick.com#psz-ac&583&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&583> .
+
+<http://eptobrick.com#psz-ac&584&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&584> .
+
+<http://eptobrick.com#psz-ac&585&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&585> .
+
+<http://eptobrick.com#core_zn&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#psz-ac&581_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20fan>,
+        <http://eptobrick.com#psz-ac&581_heatpump> .
+
+<http://eptobrick.com#psz-ac&582_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20fan>,
+        <http://eptobrick.com#psz-ac&582_heatpump> .
+
+<http://eptobrick.com#psz-ac&583_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20fan>,
+        <http://eptobrick.com#psz-ac&583_heatpump> .
+
+<http://eptobrick.com#psz-ac&584_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20fan>,
+        <http://eptobrick.com#psz-ac&584_heatpump> .
+
+<http://eptobrick.com#psz-ac&585_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20fan>,
+        <http://eptobrick.com#psz-ac&585_heatpump> .
+
+ep2b:shwsys1 a brick:Equipment ;
+    brick:feeds <http://eptobrick.com#core_zn&20water&20equipment__1> ;
+    brick:hasPart <http://eptobrick.com#core_zn&20water&20equipment__1>,
+        <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe>,
+        <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe>,
+        <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe>,
+        <http://eptobrick.com#shwsys1&20pump>,
+        <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe>,
+        <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe>,
+        <http://eptobrick.com#shwsys1&20water&20heater> .
+

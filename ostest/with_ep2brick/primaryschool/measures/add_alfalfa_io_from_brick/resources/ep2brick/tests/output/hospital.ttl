@@ -1,0 +1,5 @@
+@prefix brick1: <https://brickschema.org/schema/1.0.1/Brick#> .
+@prefix hospital: <http://change.me#> .
+
+hospital:vav_1 a brick1:AHU .
+

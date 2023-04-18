@@ -1,0 +1,322 @@
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix ep2b: <http://eptobrick.com#> .
+
+ep2b:OfficeSmall a brick:Building .
+
+ep2b:attic a brick:Zone .
+
+<http://eptobrick.com#core_zn&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#core_zn&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:core_zn .
+
+ep2b:core_zn_lights a brick:Lighting ;
+    brick:hasLocation ep2b:core_zn .
+
+ep2b:core_zn_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:core_zn .
+
+ep2b:exterior_lights_a a brick:Lighting .
+
+ep2b:exterior_lights_b a brick:Lighting .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_1&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:perimeter_zn_1 .
+
+ep2b:perimeter_zn_1_lights a brick:Lighting ;
+    brick:hasLocation ep2b:perimeter_zn_1 .
+
+ep2b:perimeter_zn_1_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:perimeter_zn_1 .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_2&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:perimeter_zn_2 .
+
+ep2b:perimeter_zn_2_lights a brick:Lighting ;
+    brick:hasLocation ep2b:perimeter_zn_2 .
+
+ep2b:perimeter_zn_2_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:perimeter_zn_2 .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_3&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:perimeter_zn_3 .
+
+ep2b:perimeter_zn_3_lights a brick:Lighting ;
+    brick:hasLocation ep2b:perimeter_zn_3 .
+
+ep2b:perimeter_zn_3_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:perimeter_zn_3 .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air&20adu> a brick:Terminal_Unit ;
+    brick:hasPart <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#perimeter_zn_4&20thermostat> a brick:Thermostat ;
+    brick:isPointOf ep2b:perimeter_zn_4 .
+
+ep2b:perimeter_zn_4_lights a brick:Lighting ;
+    brick:hasLocation ep2b:perimeter_zn_4 .
+
+ep2b:perimeter_zn_4_miscplug_equip a brick:Electrical_Equipment ;
+    brick:hasLocation ep2b:perimeter_zn_4 .
+
+<http://eptobrick.com#psz-ac&581&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&581> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581_coolc-psz-ac&581_heatcnode_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&582> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582_coolc-psz-ac&582_heatcnode_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&583> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583_coolc-psz-ac&583_heatcnode_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&584> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584_coolc-psz-ac&584_heatcnode_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20return&20air&20mixer> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#psz-ac&585> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Sensor> a brick:Temperature_Sensor ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585_coolc-psz-ac&585_heatcnode_Setpoint> a brick:Temperature_Setpoint ;
+    brick:isPointOf <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+ep2b:shwsys1 a brick:Equipment ;
+    brick:feeds <http://eptobrick.com#core_zn&20water&20equipment__1> ;
+    brick:hasPart <http://eptobrick.com#shwsys1&20demand&20bypass&20pipe>,
+        <http://eptobrick.com#shwsys1&20demand&20inlet&20pipe>,
+        <http://eptobrick.com#shwsys1&20demand&20outlet&20pipe>,
+        <http://eptobrick.com#shwsys1&20pump>,
+        <http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe>,
+        <http://eptobrick.com#shwsys1&20supply&20outlet&20pipe>,
+        <http://eptobrick.com#shwsys1&20water&20heater> .
+
+<http://eptobrick.com#shwsys1&20demand&20mixer> a brick:Water_Loop .
+
+<http://eptobrick.com#shwsys1&20demand&20splitter> a brick:Water_Loop .
+
+<http://eptobrick.com#shwsys1&20supply&20mixer> a brick:Water_Loop .
+
+<http://eptobrick.com#shwsys1&20supply&20splitter> a brick:Water_Loop .
+
+<http://eptobrick.com#core_zn&20water&20equipment__1> a brick:Equipment ;
+    brick:hasLocation ep2b:core_zn .
+
+<http://eptobrick.com#psz-ac&581> a brick:AHU ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> ;
+    brick:hasPart <http://eptobrick.com#psz-ac&581&20supply&20air&20splitter>,
+        <http://eptobrick.com#psz-ac&581_heatpump>,
+        <http://eptobrick.com#psz-ac&581_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&581_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20fan>,
+        <http://eptobrick.com#psz-ac&581_heatpump> .
+
+<http://eptobrick.com#psz-ac&582> a brick:AHU ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> ;
+    brick:hasPart <http://eptobrick.com#psz-ac&582&20supply&20air&20splitter>,
+        <http://eptobrick.com#psz-ac&582_heatpump>,
+        <http://eptobrick.com#psz-ac&582_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&582_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20fan>,
+        <http://eptobrick.com#psz-ac&582_heatpump> .
+
+<http://eptobrick.com#psz-ac&583> a brick:AHU ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> ;
+    brick:hasPart <http://eptobrick.com#psz-ac&583&20supply&20air&20splitter>,
+        <http://eptobrick.com#psz-ac&583_heatpump>,
+        <http://eptobrick.com#psz-ac&583_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&583_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20fan>,
+        <http://eptobrick.com#psz-ac&583_heatpump> .
+
+<http://eptobrick.com#psz-ac&584> a brick:AHU ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> ;
+    brick:hasPart <http://eptobrick.com#psz-ac&584&20supply&20air&20splitter>,
+        <http://eptobrick.com#psz-ac&584_heatpump>,
+        <http://eptobrick.com#psz-ac&584_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&584_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20fan>,
+        <http://eptobrick.com#psz-ac&584_heatpump> .
+
+<http://eptobrick.com#psz-ac&585> a brick:AHU ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> ;
+    brick:hasPart <http://eptobrick.com#psz-ac&585&20supply&20air&20splitter>,
+        <http://eptobrick.com#psz-ac&585_heatpump>,
+        <http://eptobrick.com#psz-ac&585_oamixing&20box> .
+
+<http://eptobrick.com#psz-ac&585_oamixing&20box> a brick:HVAC_Equipment ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20fan>,
+        <http://eptobrick.com#psz-ac&585_heatpump> .
+
+<http://eptobrick.com#shwsys1&20demand&20bypass&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#shwsys1&20demand&20inlet&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#shwsys1&20demand&20outlet&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#shwsys1&20pump> a brick:Pump .
+
+<http://eptobrick.com#shwsys1&20supply&20equipment&20bypass&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#shwsys1&20supply&20outlet&20pipe> a brick:Water_Distribution .
+
+<http://eptobrick.com#shwsys1&20water&20heater> a brick:Water_Heater ;
+    brick:hasLocation ep2b:core_zn .
+
+<http://eptobrick.com#core_zn&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#perimeter_zn_1&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#perimeter_zn_2&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#perimeter_zn_3&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#perimeter_zn_4&20direct&20air> a brick:CAV .
+
+<http://eptobrick.com#psz-ac&581&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&581&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#core_zn&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&581_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&581&20fan>,
+        <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&582&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#perimeter_zn_1&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&582_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&582&20fan>,
+        <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&583&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#perimeter_zn_2&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&583_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&583&20fan>,
+        <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&584&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#perimeter_zn_3&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&584_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&584&20fan>,
+        <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20fan> a brick:Fan ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20heating&20coil> a brick:Heating_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> a brick:Heating_Coil .
+
+<http://eptobrick.com#psz-ac&585&20supply&20air&20splitter> a brick:Air_Loop ;
+    brick:feeds <http://eptobrick.com#perimeter_zn_4&20direct&20air> .
+
+<http://eptobrick.com#psz-ac&585_heatpump> a brick:AHU ;
+    brick:hasPart <http://eptobrick.com#psz-ac&585&20fan>,
+        <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil>,
+        <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20heating&20coil>,
+        <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20supp&20heating&20coil> .
+
+ep2b:perimeter_zn_1 a brick:Zone .
+
+ep2b:perimeter_zn_2 a brick:Zone .
+
+ep2b:perimeter_zn_3 a brick:Zone .
+
+ep2b:perimeter_zn_4 a brick:Zone .
+
+<http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&581&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&582&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&583&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&584&20heat&20pump&20dx&20heating&20coil> .
+
+<http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20cooling&20coil> a brick:Cooling_Coil ;
+    brick:feeds <http://eptobrick.com#psz-ac&585&20heat&20pump&20dx&20heating&20coil> .
+
+ep2b:core_zn a brick:Zone .
+

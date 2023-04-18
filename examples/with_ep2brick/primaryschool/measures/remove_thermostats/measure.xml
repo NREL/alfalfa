@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>new_measure</name>
+  <uid>128acf95-2d59-41c3-8a67-da4b9d30e7cd</uid>
+  <version_id>a978d06a-f354-4a63-838d-f617135d7f13</version_id>
+  <version_modified>20230417T191202Z</version_modified>
+  <xml_checksum>0B6DEAE1</xml_checksum>
+  <class_name>AlfalfaRemoveThermostats</class_name>
+  <display_name>Alfalfa Remove Thermostats</display_name>
+  <description>Remove thermostats from the IDF to allow low-level HVAC nodedsetpoint override.</description>
+  <modeler_description>Remove thermostats from the IDF to allow low-level HVAC nodedsetpoint override.</modeler_description>
+  <arguments />
+  <outputs />
+  <provenances />
+  <tags>
+    <tag>HVAC.HVAC Controls</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>EnergyPlusMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>3.4.0</identifier>
+        <min_compatible>3.4.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>FC2DF3C0</checksum>
+    </file>
+  </files>
+</measure>

@@ -50,27 +50,32 @@ RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/jav
 WORKDIR $BUILD_DIR
 
 
-ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.5.0+7b14ce1588-Ubuntu-20.04.deb
-ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.5.0/OpenStudio-3.5.0+7b14ce1588-Ubuntu-20.04.deb
+ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
+ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.3.0/OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 
-ENV ENERGYPLUS_VERSION 22.2.0
-ENV ENERGYPLUS_TAG 22.2.0
-ENV ENERGYPLUS_SHA c249759bad
-ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-22-2-0
+# ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.5.0+7b14ce1588-Ubuntu-20.04.deb
+# ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.5.0/OpenStudio-3.5.0+7b14ce1588-Ubuntu-20.04.deb
+
+# ENV ENERGYPLUS_VERSION 22.2.0
+# ENV ENERGYPLUS_TAG 22.2.0
+# ENV ENERGYPLUS_SHA c249759bad
+# ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-22-2-0
+
+ENV ENERGYPLUS_VERSION 9.6.0
+ENV ENERGYPLUS_TAG more_io_2
+ENV ENERGYPLUS_SHA 7f54be3627
+ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-6-0
 
 # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
 # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
 # might be revaluated
 ENV ENERGYPLUS_DOWNLOAD_BASE_URL https://github.com/TShapinsky/EnergyPlus/releases/download/$ENERGYPLUS_TAG
-ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-22.2.0-c249759bad-Linux-Ubuntu20.04-x86_64.tar.gz
-ENV ENERGYPLUS_DOWNLOAD_URL https://github.com/NREL/EnergyPlus/releases/download/v22.2.0/EnergyPlus-22.2.0-c249759bad-Linux-Ubuntu20.04-x86_64.tar.gz
+ENV ENERGYPLUS_DOWNLOAD_FILENAME EnergyPlus-$ENERGYPLUS_VERSION-$ENERGYPLUS_SHA-Linux-Ubuntu20.04-x86_64.tar.gz
+ENV ENERGYPLUS_DOWNLOAD_URL $ENERGYPLUS_DOWNLOAD_BASE_URL/$ENERGYPLUS_DOWNLOAD_FILENAME
 # ENV OPENSTUDIO_DOWNLOAD_FILENAME OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 # ENV OPENSTUDIO_DOWNLOAD_URL https://github.com/NREL/OpenStudio/releases/download/v3.3.0/OpenStudio-3.3.0+ad235ff36e-Ubuntu-20.04.deb
 
-# ENV ENERGYPLUS_VERSION 9.6.0
-# ENV ENERGYPLUS_TAG 9.6-3.8
-# ENV ENERGYPLUS_SHA e78d88a246
-# ENV ENERGYPLUS_DIR /usr/local/EnergyPlus-9-6-0
+
 
 # # mlep / external interface needs parts of EnergyPlus that are not included with OpenStudio
 # # expandobjects, runenergyplus might be two examples, but the need to install EnergyPlus separately from OpenStudio
@@ -243,6 +248,7 @@ RUN pip3 install watchdog[watchmedo]
 
 # for the EnergyPlus to BRICK measure
 RUN gem install rdf-rdfxml sparql-client rdf-turtle
+RUN pip3 install brickschema rdflib opyplus termcolor
 
 # Enable the ability to restart the service when
 # the files change

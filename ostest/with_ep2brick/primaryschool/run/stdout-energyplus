@@ -1,0 +1,102 @@
+EnergyPlus Starting
+EnergyPlus, Version 22.1.0-ed759b17ee, YMD=2023.04.10 14:19
+Initializing Response Factors
+Calculating CTFs for "INTERIORFURNISHINGS"
+Calculating CTFs for "TYPICAL IEAD ROOF - HIGHLY REFLECTIVE R-25.64"
+Calculating CTFs for "TYPICAL INSULATED METAL DOOR R-2.7"
+Calculating CTFs for "TYPICAL INSULATED STEEL FRAMED EXTERIOR WALL R-12.99"
+Calculating CTFs for "TYPICAL INTERIOR WALL"
+Calculating CTFs for "FOUNDATION F 126 PERIM 0 AREA 2520"
+Calculating CTFs for "FOUNDATION F 126 PERIM 100 AREA 1900"
+Calculating CTFs for "FOUNDATION F 126 PERIM 170 AREA 3570"
+Calculating CTFs for "FOUNDATION F 126 PERIM 180 AREA 1620"
+Calculating CTFs for "FOUNDATION F 126 PERIM 190 AREA 1710"
+Calculating CTFs for "FOUNDATION F 126 PERIM 200 AREA 990"
+Calculating CTFs for "FOUNDATION F 126 PERIM 30 AREA 1920"
+Calculating CTFs for "FOUNDATION F 126 PERIM 350 AREA 3150"
+Calculating CTFs for "FOUNDATION F 126 PERIM 360 AREA 3150"
+Calculating CTFs for "FOUNDATION F 126 PERIM 400 AREA 3990"
+Calculating CTFs for "FOUNDATION F 126 PERIM 420 AREA 4410"
+Calculating CTFs for "FOUNDATION F 126 PERIM 530 AREA 4770"
+Calculating CTFs for "FOUNDATION F 126 PERIM 80 AREA 1680"
+Calculating CTFs for "FOUNDATION F 126 PERIM 90 AREA 5460"
+Initializing Window Optical Properties
+Initializing Solar Calculations
+Allocate Solar Module Arrays
+Initializing Zone and Enclosure Report Variables
+Initializing Surface (Shading) Report Variables
+Determining Shadowing Combinations
+Computing Window Shade Absorption Factors
+Proceeding with Initializing Solar Calculations
+Initializing Surfaces
+Initializing Outdoor environment for Surfaces
+Setting up Surface Reporting Variables
+Initializing Temperature and Flux Histories
+Initializing Window Shading
+Computing Interior Absorption Factors
+Computing Interior Diffuse Solar Absorption Factors
+Initializing Solar Heat Gains
+Initializing Internal Heat Gains
+Initializing Interior Solar Distribution
+Initializing Interior Convection Coefficients
+Gathering Information for Predefined Reporting
+Completed Initializing Surface Heat Balance
+Calculate Outside Surface Heat Balance
+Calculate Inside Surface Heat Balance
+Calculate Air Heat Balance
+Initializing HVAC
+Warming up
+Calculating Detailed Daylighting Factors, Start Date=07/21
+Warming up
+Warming up
+Warming up
+Warming up
+Warming up
+Performing Zone Sizing Simulation
+...for Sizing Period: #1 ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN CLG .4% CONDNS DB=>MWB
+Warming up
+Calculating Detailed Daylighting Factors, Start Date=01/21
+Warming up
+Warming up
+Warming up
+Warming up
+Warming up
+Warming up
+Performing Zone Sizing Simulation
+...for Sizing Period: #2 ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN HTG 99.6% CONDNS DB
+Calculating System sizing
+...for Sizing Period: #1 ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN CLG .4% CONDNS DB=>MWB
+Calculating System sizing
+...for Sizing Period: #2 ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN HTG 99.6% CONDNS DB
+Adjusting Air System Sizing
+Adjusting Standard 62.1 Ventilation Sizing
+Initializing Simulation
+Reporting Surfaces
+Beginning Primary Simulation
+Initializing New Environment Parameters
+Warming up {1}
+Calculating Detailed Daylighting Factors, Start Date=01/01
+Warming up {2}
+Warming up {3}
+Warming up {4}
+Warming up {5}
+Warming up {6}
+Warming up {7}
+Warming up {8}
+Warming up {9}
+Warming up {10}
+Warming up {11}
+Warming up {12}
+Warming up {13}
+Warming up {14}
+Warming up {15}
+Warming up {16}
+Warming up {17}
+Warming up {18}
+Warming up {19}
+Starting Simulation at 01/01/2006 for RUN PERIOD 1
+Writing tabular output file results using HTML format.
+Computing Life Cycle Costs and Reporting
+Writing final SQL reports
+EnergyPlus Run Time=00hr 01min 35.51sec
+EnergyPlus Completed Successfully.
