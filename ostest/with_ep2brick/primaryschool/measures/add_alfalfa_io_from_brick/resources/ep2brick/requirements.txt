@@ -1,4 +1,0 @@
-brickschema
-opyplus
-rdflib
-termcolor

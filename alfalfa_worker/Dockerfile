@@ -16,7 +16,7 @@ WORKDIR /home/alfalfa
 # This step should probably be connected to the next one, but due to the nature of NREL's
 # firewall this step must be run off VPN. This way you don't need to log off everytime you
 # update apt packaged, at least.
-RUN apt-get update --allow-unauthenticated --allow-insecure-repositories\
+RUN apt-get update \
     && apt install -y software-properties-common \
     && add-apt-repository ppa:openjdk-r/ppa \
     && rm -rf /var/lib/apt/lists/*
