@@ -20625,7 +20625,7 @@ OS:Schedule:Day,
 
 OS:Schedule:Day,
   {fc134b51-0f05-48f1-96e4-5d4f5fc7c679}, !- Handle
-  SchoolSecondary Kitchen Exhaust Fan Balanced Exhaust Fraction Schedule Winter Design Day, !- Name
+  Kitchen Exhaust Fan Balanced Exhaust Fraction Schedule Winter Design Day, !- Name
   {8f489787-587c-453f-8d62-38dd3aea2156}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   8,                                      !- Hour 1
@@ -20640,7 +20640,7 @@ OS:Schedule:Day,
 
 OS:Schedule:Day,
   {520eae26-1a7a-4127-a9c9-d60156b4e154}, !- Handle
-  SchoolSecondary Kitchen Exhaust Fan Balanced Exhaust Fraction Schedule Summer Design Day, !- Name
+  Kitchen Exhaust Fan Balanced Exhaust Fraction Schedule Summer Design Day, !- Name
   {8f489787-587c-453f-8d62-38dd3aea2156}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   8,                                      !- Hour 1
@@ -21392,7 +21392,7 @@ OS:Schedule:Day,
 
 OS:Schedule:Day,
   {33f3ca4b-b0c9-49ee-b95c-80c07168d75e}, !- Handle
-  SchoolPrimary Kitchen_ZN_1_FLR_1_Case:2_SELFCONTAINEDDISPLAYCASE_CaseStockingSched Winter Design Day, !- Name
+  Kitchen_ZN_1_FLR_1_Case:2_SELFCONTAINEDDISPLAYCASE_CaseStockingSched Winter Design Day, !- Name
   {2637b581-d468-4b31-805b-dff88123463f}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   6,                                      !- Hour 1
@@ -21428,7 +21428,7 @@ OS:Schedule:Day,
 
 OS:Schedule:Day,
   {ed6d3438-6d17-4c42-ba8d-60c1e46070e6}, !- Handle
-  SchoolPrimary Kitchen_ZN_1_FLR_1_Case:2_SELFCONTAINEDDISPLAYCASE_CaseStockingSched Summer Design Day, !- Name
+  Kitchen_ZN_1_FLR_1_Case:2_SELFCONTAINEDDISPLAYCASE_CaseStockingSched Summer Design Day, !- Name
   {2637b581-d468-4b31-805b-dff88123463f}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   6,                                      !- Hour 1
@@ -21578,7 +21578,7 @@ OS:Refrigeration:WalkIn:ZoneBoundary,
 
 OS:Schedule:Ruleset,
   {4f123d1c-7435-472e-939a-517fe24744ae}, !- Handle
-  SchoolSecondary Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched, !- Name
+  Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched, !- Name
   {36b095f2-4b63-4494-84c0-24297ad95cfd}, !- Schedule Type Limits Name
   {70b18a00-1556-473c-9153-4a84aa6ce5c3}, !- Default Day Schedule Name
   {ac59fd60-86b8-4051-86df-c58db6a6262b}, !- Summer Design Day Schedule Name
@@ -21586,7 +21586,7 @@ OS:Schedule:Ruleset,
 
 OS:Schedule:Day,
   {70b18a00-1556-473c-9153-4a84aa6ce5c3}, !- Handle
-  SchoolSecondary Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched Default, !- Name
+  Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched Default, !- Name
   {36b095f2-4b63-4494-84c0-24297ad95cfd}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   4,                                      !- Hour 1
@@ -21607,7 +21607,7 @@ OS:Schedule:Day,
 
 OS:Schedule:Day,
   {3a881d8f-1ff3-499d-accf-7d4849b0b1bc}, !- Handle
-  SchoolSecondary Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched Winter Design Day, !- Name
+  Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched Winter Design Day, !- Name
   {36b095f2-4b63-4494-84c0-24297ad95cfd}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   4,                                      !- Hour 1
@@ -21640,7 +21640,7 @@ OS:Schedule:Day,
 
 OS:Schedule:Day,
   {ac59fd60-86b8-4051-86df-c58db6a6262b}, !- Handle
-  SchoolSecondary Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched Summer Design Day, !- Name
+  Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched Summer Design Day, !- Name
   {36b095f2-4b63-4494-84c0-24297ad95cfd}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   4,                                      !- Hour 1
@@ -21692,7 +21692,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {31082a8f-dd70-4a13-b292-5219d1a16098}, !- Handle
-  SchoolSecondary Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched WntrDsn|SmrDsn|Wknd|Mon|Wed|Thu Day, !- Name
+  Kitchen_ZN_1_FLR_1_Case:1_WALKINFREEZER_WalkInStockingSched WntrDsn|SmrDsn|Wknd|Mon|Wed|Thu Day, !- Name
   {36b095f2-4b63-4494-84c0-24297ad95cfd}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   4,                                      !- Hour 1
@@ -25133,7 +25133,7 @@ OS:EnergyManagementSystem:ProgramCallingManager,
 
 OS:EnergyManagementSystem:Sensor,
   {1b1ff2f2-09c8-44d7-9087-885dc7b73db5}, !- Handle
-  Computer_Class_ZN_1_FLR_1ZN_LSr,        !- Name
+  bob,        !- Name
   Computer_Class_ZN_1_FLR_1 ZN,           !- Output Variable or Output Meter Index Key Name
   Zone Lights Electricity Rate;           !- Output Variable or Output Meter Name
 
@@ -25153,7 +25153,7 @@ OS:EnergyManagementSystem:Actuator,
 OS:EnergyManagementSystem:Program,
   {4c263420-fd56-4538-b2c8-71e1dfd83b66}, !- Handle
   SET_Computer_Class_ZN_1_FLR_1ZN_Light_EMS_Program, !- Name
-  SET Computer_Class_ZN_1_FLR_1ZN_LSr_IP=0.093*Computer_Class_ZN_1_FLR_1ZN_LSr/Computer_Class_ZN_1_FLR_1ZN_Area, !- Program Line 1
+  SET Computer_Class_ZN_1_FLR_1ZN_LSr_IP=0.093*bob/Computer_Class_ZN_1_FLR_1ZN_Area, !- Program Line 1
   IF (Business_Sensor <= 0) && (Computer_Class_ZN_1_FLR_1ZN_LSr_IP >= 0.02), !- Program Line 2
   SET Computer_Class_ZN_1_FLR_1ZN_Light1_Actuator = 0.02*Computer_Class_ZN_1_FLR_1ZN_Area/0.09290304, !- Program Line 3
   ELSE,                                   !- Program Line 4
@@ -27359,4 +27359,3 @@ OS:Daylighting:Control,
   1,                                      !- Probability Lighting will be Reset When Needed in Manual Stepped Control
   ,                                       !- Number of Daylighting Views
   22;                                     !- Maximum Allowable Discomfort Glare Index
-
