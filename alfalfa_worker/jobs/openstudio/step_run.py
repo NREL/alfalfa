@@ -290,11 +290,12 @@ class StepRun(StepRunBase):
 
         for point in self.run.input_points:
             value = point.value
-            if value is None:
-                continue
             index = self.variables.get_input_index(point.ref_id)
             if index == -1:
                 self.logger.error('bad input index for: %s' % point.ref_id)
+            elif value is None:
+                if self.variables.has_enable(point.ref_id):
+                    self.ep.inputs[self.variables.get_input_enable_index(point.ref_id)] = 0
             else:
                 self.ep.inputs[index] = value
                 if self.variables.has_enable(point.ref_id):
