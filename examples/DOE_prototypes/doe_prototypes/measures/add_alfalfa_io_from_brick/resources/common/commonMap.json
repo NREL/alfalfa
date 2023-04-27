@@ -1,0 +1,3867 @@
+{
+    "Building": {
+        "rules": {}
+    },
+    "Zone": {
+        "rules": {}
+    },
+    "ZoneControl:Thermostat": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "isPointOf",
+                "elements": [
+                    "zone_or_zonelist_name"
+                ]
+            },
+            "getSetpoint": [
+                "control"
+            ]
+        }
+    },
+    "ThermostatSetpoint:SingleHeating": {
+        "rules": {
+            "getValueFromSchedule": "setpoint_temperature_schedule_name"
+        }
+    },
+    "ThermostatSetpoint:SingleCooling": {
+        "rules": {
+            "getValueFromSchedule": "setpoint_temperature_schedule_name"
+        }
+    },
+    "ThermostatSetpoint:DualSetpoint": {
+        "rules": {
+            "dualSetpoint": [
+                "heating_setpoint_temperature_schedule_name",
+                "cooling_setpoint_temperature_schedule_name"
+            ]
+        }
+    },
+    "ZoneHVAC:FourPipeFanCoil": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "outdoor_air_mixer_name",
+                "supply_air_fan_name",
+                "cooling_coil_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "outdoor_air_mixer_name",
+                    "supply_air_fan_name",
+                    "cooling_coil_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:WindowAirConditioner": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "outdoor_air_mixer_name",
+                "supply_air_fan_name",
+                "dx_cooling_coil_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "outdoor_air_mixer_name",
+                    "supply_air_fan_name",
+                    "dx_cooling_coil_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:PackagedTerminalAirConditioner": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "outdoor_air_mixer_name",
+                "supply_air_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "outdoor_air_mixer_name",
+                    "supply_air_fan_name",
+                    "heating_coil_name",
+                    "cooling_coil_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:PackagedTerminalHeatPump": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "outdoor_air_mixer_name",
+                "supply_air_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "outdoor_air_mixer_name",
+                    "supply_air_fan_name",
+                    "heating_coil_name",
+                    "cooling_coil_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:WaterToAirHeatPump": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "outdoor_air_mixer_name",
+                "supply_air_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "outdoor_air_mixer_name",
+                    "supply_air_fan_name",
+                    "heating_coil_name",
+                    "cooling_coil_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:UnitVentilator": {
+        "rules": {
+            "genericUnpack": [
+                "supply_air_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name"
+            ],
+            "addInlets": [
+                "air_inlet_node_name",
+                "outdoor_air_node_name",
+                "mixed_air_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name",
+                "exhaust_air_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:UnitHeater": {
+        "rules": {
+            "genericUnpack": [
+                "supply_air_fan_name",
+                "heating_coil_name"
+            ],
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:EvaporativeCoolerUnit": {
+        "rules": {
+            "genericUnpack": [
+                "supply_air_fan_name",
+                "first_evaporative_cooler_object_name",
+                "second_evaporative_cooler_name"
+            ],
+            "addInlets": [
+                "outdoor_air_inlet_node_name",
+                "zone_relief_air_node_name"
+            ],
+            "addOutlets": [
+                "cooler_outlet_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:OutdoorAirUnit": {
+        "rules": {
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "supply_fan_name",
+                        "exhaust_fan_name"
+                    ]
+                }
+            ],
+            "genericUnpack": [
+                "supply_fan_name",
+                "exhaust_fan_name"
+            ],
+            "addInlets": [
+                "outdoor_air_node_name",
+                "airinlet_node_name"
+            ],
+            "addOutlets": [
+                "airoutlet_node_name",
+                "supply_fanoutlet_node_name"
+            ],
+            "TODO": "is it airoutlet and fanoutlet or air_outlet and fan_outlet?"
+        }
+    },
+    "AirTerminal:SingleDuct:ConstantVolume:Reheat": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "reheat_coil_name"
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:ConstantVolume:NoReheat": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:VAV:NoReheat": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:VAV:Reheat": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "reheat_coil_name"
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:VAV:Reheat:VariableSpeedFan": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "fan_name",
+                "heating_coil_name"
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:VAV:HeatAndCool:NoReheat": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:VAV:HeatAndCool:Reheat": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "reheat_coil_name"
+            ]
+        }
+    },
+    "ZoneHVAC:AirDistributionUnit": {
+        "rules": {
+            "genericUnpack": [
+                "air_terminal_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "air_terminal_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:EquipmentList": {
+        "rules": {
+            "zoneEquipment": [
+                "zone_equipment_name"
+            ]
+        }
+    },
+    "Fan:ConstantVolume": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Fan:VariableVolume": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Fan:OnOff": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Fan:ZoneExhaust": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Cooling:Water": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name",
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Cooling:Water:DetailedGeometry": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name",
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "CoilSystem:Cooling:Water": {
+        "rules": {
+            "unpackCoilSystem": [
+                "cooling_coil_name"
+            ]
+        }
+    },
+    "Coil:Cooling:DX": {
+        "rules": {
+            "addInlets": [
+                "evaporator_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "evaporator_outlet_node_name",
+                "condenser_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name_for_condenser_placement"
+                ]
+            }
+        }
+    },
+    "Coil:Cooling:DX:SingleSpeed": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name_for_condenser_placement"
+                ]
+            },
+            "addSetpoints": [
+                {
+                    "quantity": "Temperature",
+                    "node": "air_outlet_node_name"
+                }
+            ],
+            "addSensors": [
+                {
+                    "quantity": "Temperature",
+                    "node": "air_outlet_node_name"
+                }
+            ]
+        }
+    },
+    "Coil:Cooling:DX:TwoSpeed": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name_for_condenser_placement"
+                ]
+            }
+        }
+    },
+    "Coil:Cooling:DX:MultiSpeed": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name_for_condenser_placement"
+                ]
+            }
+        }
+    },
+    "Coil:Cooling:DX:VariableSpeed": {
+        "rules": {
+            "addInlets": [
+                "indoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "indoor_air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Cooling:DX:VariableRefrigerantFlow": {
+        "rules": {
+            "addInlets": [
+                "coil_air_inlet_node"
+            ],
+            "addOutlets": [
+                "coil_air_outlet_node"
+            ]
+        }
+    },
+    "Coil:Cooling:DX:VariableRefrigerantFlow:FluidTemperatureControl": {
+        "rules": {
+            "addInlets": [
+                "coil_air_inlet_node"
+            ],
+            "addOutlets": [
+                "coil_air_outlet_node"
+            ]
+        }
+    },
+    "Coil:Heating:DX:VariableRefrigerantFlow ": {
+        "rules": {
+            "addInlets": [
+                "coil_air_inlet_node"
+            ],
+            "addOutlets": [
+                "coil_air_outlet_node"
+            ]
+        }
+    },
+    "Coil:Heating:Electric": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Heating:Electric:MultiStage": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Heating:Fuel": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Heating:Gas:MultiStage": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Heating:DX:SingleSpeed": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name_for_evaporator_placement"
+                ]
+            }
+        }
+    },
+    "Coil:Heating:DX:MultiSpeed": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name_for_evaporator_placement"
+                ]
+            }
+        }
+    },
+    "Coil:Heating:DX:VariableSpeed": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Heating:Water": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name",
+                "water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name",
+                "water_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:Heating:Steam": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name",
+                "water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name",
+                "water_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:WaterHeating:AirToWaterHeatPump:Pumped": {
+        "rules": {
+            "addInlets": [
+                "evaporator_air_inlet_node_name",
+                "condenser_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "evaporator_air_outlet_node_name",
+                "condenser_water_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:WaterHeating:AirToWaterHeatPump:Wrapped": {
+        "rules": {
+            "addInlets": [
+                "evaporator_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "evaporator_air_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:WaterHeating:AirToWaterHeatPump:VariableSpeed": {
+        "rules": {
+            "addInlets": [
+                "evaporator_air_inlet_node_name",
+                "condenser_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "evaporator_air_outlet_node_name",
+                "condenser_water_outlet_node_name"
+            ]
+        }
+    },
+    "Coil:WaterHeating:Desuperheater": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ]
+        }
+    },
+    "CoilSystem:Cooling:DX": {
+        "rules": {
+            "addInlets": [
+                "dx_cooling_coil_system_inlet_node_name"
+            ],
+            "addOutlets": [
+                "dx_cooling_coil_system_outlet_node_name"
+            ],
+            "unpackCoilSystem": [
+                "cooling_coil_name"
+            ]
+        }
+    },
+    "CoilSystem:Heating:DX": {
+        "rules": {
+            "unpackCoilSystem": [
+                "heating_coil_name"
+            ]
+        }
+    },
+    "CoilSystem:Cooling:Water:HeatExchangerAssisted": {
+        "rules": {
+            "unpackCoilSystem": [
+                "heat_exchanger_name",
+                "cooling_coil_name"
+            ]
+        }
+    },
+    "CoilSystem:Cooling:DX:HeatExchangerAssisted": {
+        "rules": {
+            "unpackCoilSystem": [
+                "heat_exchanger_name",
+                "cooling_coil_name"
+            ]
+        }
+    },
+    "CoilSystem:IntegratedHeatPump:AirSource": {
+        "rules": {
+            "unpackCoilSystem": [
+                "space_cooling_coil_name",
+                "space_heating_coil_name",
+                "dedicated_water_heating_coil_name",
+                "scwh_coil_name",
+                "scdwh_cooling_coil_name",
+                "scdwh_water_heating_coil_name",
+                "shdwh_heating_coil_name",
+                "shdwh_water_heating_coil_name"
+            ]
+        }
+    },
+    "Coil:Cooling:DX:SingleSpeed:ThermalStorage": {
+        "rules": {
+            "addInlets": [
+                "evaporator_air_inlet_node_name",
+                "condenser_air_inlet_node_name",
+                "storage_tank_plant_connection_inlet_node_name"
+            ],
+            "addOutlets": [
+                "evaporator_air_outlet_node_name",
+                "condenser_air_outlet_node_name",
+                "storage_tank_plant_connection_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_water_storage_tank_name",
+                "condensate_collection_water_storage_tank_name"
+            ]
+        }
+    },
+    "Humidifier:Steam:Electric": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "water_storage_tank_name"
+            ]
+        }
+    },
+    "Humidifier:Steam:Gas": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "water_storage_tank_name"
+            ]
+        }
+    },
+    "Dehumidifier:Desiccant:NoFans": {
+        "rules": {
+            "addInlets": [
+                "process_air_inlet_node_name",
+                "regeneration_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "process_air_outlet_node_name",
+                "regeneration_fan_inlet_node_name"
+            ],
+            "genericUnpack": [
+                "regeneration_coil_name",
+                "regeneration_fan_name"
+            ]
+        }
+    },
+    "Dehumidifier:Desiccant:System": {
+        "rules": {
+            "genericUnpack": [
+                "desiccant_heat_exchanger_name",
+                "regeneration_air_fan_name",
+                "regeneration_air_heater_name",
+                "companion_cooling_coil_name"
+            ]
+        }
+    },
+    "HeatExchanger:AirToAir:FlatPlate": {
+        "rules": {
+            "addInlets": [
+                "supply_air_inlet_node_name",
+                "secondary_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "supply_air_outlet_node_name",
+                "secondary_air_outlet_node_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:UnitarySystem": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name",
+                "heat_recovery_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name",
+                "heat_recovery_water_outlet_node_name"
+            ],
+            "unpackUnitarySystem": [
+                "supply_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name",
+                "supplemental_heating_coil_name",
+                ""
+            ],
+            "addSetpoints": [
+                {
+                    "quantity": "Temperature",
+                    "node": "air_outlet_node_name"
+                }
+            ],
+            "addSensors": [
+                {
+                    "quantity": "Temperature",
+                    "node": "air_outlet_node_name"
+                }
+            ]
+        }
+    },
+    "AirLoopHVAC:Unitary:Furnace:HeatOnly": {
+        "rules": {
+            "addInlets": [
+                "furnace_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "furnace_air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_fan_name",
+                "heating_coil_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:Unitary:Furnace:HeatCool": {
+        "rules": {
+            "addInlets": [
+                "furnace_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "furnace_air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name",
+                "reheat_coil_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:UnitaryHeatOnly": {
+        "rules": {
+            "addInlets": [
+                "unitary_system_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "unitary_system_air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_fan_name",
+                "heating_coil_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:UnitaryHeatCool": {
+        "rules": {
+            "addInlets": [
+                "unitary_system_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "unitary_system_air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name",
+                "reheat_coil_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:UnitaryHeatPump:AirToAir": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_air_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name",
+                "supplemental_heating_coil_name"
+            ],
+            "addSetpoints": [
+                {
+                    "quantity": "Temperature",
+                    "node": "air_outlet_node_name"
+                }
+            ],
+            "addSensors": [
+                {
+                    "quantity": "Temperature",
+                    "node": "air_outlet_node_name"
+                }
+            ]
+        }
+    },
+    "AirLoopHVAC:UnitaryHeatPump:WaterToAir": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_air_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name",
+                "supplemental_heating_coil_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:UnitaryHeatCool:VAVChangeoverBypass": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name",
+                "bypass_duct_mixer_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name",
+                "bypass_duct_splitter_node_name"
+            ],
+            "genericUnpack": [
+                "outdoor_air_mixer_name",
+                "supply_air_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:UnitaryHeatPump:AirToAir:MultiSpeed": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name",
+                "heat_recovery_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name",
+                "heat_recovery_water_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_air_fan_name",
+                "heating_coil_name",
+                "cooling_coil_name",
+                "supplemental_heating_coil_name"
+            ]
+        }
+    },
+    "AirLoopHVAC": {
+        "rules": {
+            "addInlets": [
+                "supply_side_inlet_node_name",
+                "demand_side_outlet_node_name"
+            ],
+            "addNodelist":{
+                "outlets": [
+                    "demand_side_inlet_node_names",
+                    "supply_side_outlet_node_names"
+                ]
+            },
+            "unpackBranchList": [
+                "branch_list_name",
+                "connector_list_name"
+            ]
+
+        }
+    },
+    "AirLoopHVAC:OutdoorAirSystem": {
+        "rules": {
+            "genericUnpack": [
+                "outdoor_air_equipment_list_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "outdoor_air_equipment_list_name"
+                ]
+            }
+        }
+    },
+    "AirLoopHVAC:OutdoorAirSystem:EquipmentList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "component",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "component",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "OutdoorAir:Mixer": {
+        "rules": {
+            "addInlets": [
+                "outdoor_air_stream_node_name",
+                "return_air_stream_node_name"
+            ],
+            "addOutlets": [
+                "mixed_air_node_name",
+                "relief_air_stream_node_name"
+            ],
+            "addOAS": [
+                "outdoor_air_stream_node_name",
+                "return_air_stream_node_name",
+                "mixed_air_node_name",
+                "relief_air_stream_node_name"
+            ]
+        }
+    },
+    "HeatExchanger:AirToAir:SensibleAndLatent": {
+        "rules": {
+            "addInlets": [
+                "supply_air_inlet_node_name",
+                "exhaust_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "supply_air_outlet_node_name",
+                "exhaust_air_outlet_node_name"
+            ]
+        }
+    },
+    "ZoneTerminalUnitList": {
+        "rules": {}
+    },
+    "AirLoopHVAC:ZoneSplitter": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "addOutlets",
+                    "type_": "outlet",
+                    "attr_": "node_name"
+                }
+            ]
+        }
+    },
+    "AirLoopHVAC:SupplyPlenum": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "addOutlets",
+                    "type_": "outlet",
+                    "attr_": "node_name"
+                }
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "AirLoopHVAC:SupplyPath": {
+        "rules": {
+            "addInlets": [
+                "supply_air_path_inlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "component",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "component",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "AirLoopHVAC:ZoneMixer": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "addInlets",
+                    "type_": "inlet",
+                    "attr_": "node_name"
+                }
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:ReturnPlenum": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "addInlets",
+                    "type_": "inlet",
+                    "attr_": "node_name"
+                }
+            ],
+            "addOutlets": [
+                "outlet_node_name",
+                "induced_air_outlet_node_or_nodelist_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "AirLoopHVAC:ReturnPath": {
+        "rules": {
+            "addOutlets": [
+                "return_air_path_outlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "component",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "component",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "AirLoopHVAC:DedicatedOutdoorAirSystem": {
+        "rules": {
+            "genericUnpack": [
+                "airloophvac_outdoorairsystem_name",
+                "airloophvac_mixer_name",
+                "airloophvac_splitter_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "airloophvac_outdoorairsystem_name",
+                    "airloophvac_mixer_name",
+                    "airloophvac_splitter_name"
+                ]
+            }
+        }
+    },
+    "AirLoopHVAC:Mixer": {
+        "rules": {
+            "extensibleMethod": {
+                "method": "addInlets",
+                "type_": "inlet",
+                "attr_": "node_name"
+            },
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "AirLoopHVAC:Splitter": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "addOutlets",
+                    "type_": "outlet",
+                    "attr_": "node_name"
+                }
+            ]
+        }
+    },
+    "Connector:Splitter": {
+        "rules": {
+            "unpackBranch": [
+                "inlet_branch_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "unpackBranch",
+                    "type_": "outlet_branch",
+                    "attr_": "name"
+                }
+            ],
+            "TODO": "assign inlet/outlet branches to inlet/outlet"
+        }
+    },
+    "Connector:Mixer": {
+        "rules": {
+            "unpackBranch": [
+                "outlet_branch_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "unpackBranch",
+                    "type_": "inlet_branch",
+                    "attr_": "name"
+                }
+            ],
+            "TODO": "assign inlet/outlet branches to inlet/outlet"
+        }
+    },
+    "ConnectorList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "connector",
+                    "attr_": "name"
+                }
+            ]
+        }
+    },
+    "NodeList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "addNodes",
+                    "type_": "node",
+                    "attr_": "name"
+                }
+            ],
+            "TODO": "Manage nodelists. Maybe we should ignore."
+        }
+    },
+    "OutdoorAir:Node": {
+        "rules": {}
+    },
+    "Pipe:Adiabatic": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "Pipe:Adiabatic:Steam": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "Pipe:Indoor": {
+        "rules": {
+            "addInlets": [
+                "fluid_inlet_node_name"
+            ],
+            "addOutlets": [
+                "fluid_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "ambient_temperature_zone_name"
+                ]
+            }
+        }
+    },
+    "Pipe:Outdoor": {
+        "rules": {
+            "addInlets": [
+                "fluid_inlet_node_name"
+            ],
+            "addOutlets": [
+                "fluid_outlet_node_name"
+            ]
+        }
+    },
+    "Pipe:Underground": {
+        "rules": {
+            "addInlets": [
+                "fluid_inlet_node_name"
+            ],
+            "addOutlets": [
+                "fluid_outlet_node_name"
+            ]
+        }
+    },
+    "Pump:VariableSpeed": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "Pump:ConstantSpeed": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "Pump:VariableSpeed:Condensate": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "HeaderedPumps:ConstantSpeed": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ],
+            "TODO": "duplicateElement:number_of_pumps_in_bank",
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "HeaderedPumps:VariableSpeed": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ],
+            "TODO": "duplicateElement:number_of_pumps_in_bank",
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "SolarCollector:FlatPlate:Water": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "SolarCollector:FlatPlate:PhotovoltaicThermal": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name",
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "SolarCollectorPerformance:PhotovoltaicThermal:Simple": {
+        "rules": {}
+    },
+    "SolarCollector:IntegralCollectorStorage": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "SolarCollector:UnglazedTranspired": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "SolarCollector:UnglazedTranspired:Multisystem": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "addInlets",
+                    "type_": "outdoor_air_system",
+                    "attr_": "collector_inlet_node"
+                },
+                {
+                    "method": "addInlets",
+                    "type_": "outdoor_air_system",
+                    "attr_": "zone_node"
+                },
+                {
+                    "method": "addOutlets",
+                    "type_": "outdoor_air_system",
+                    "attr_": "collector_outlet_node"
+                },
+                {
+                    "method": "addOutlets",
+                    "type_": "outdoor_air_system",
+                    "attr_": "mixed_air_node"
+                }
+            ]
+        }
+    },
+    "Boiler:HotWater": {
+        "rules": {
+            "addInlets": [
+                "boiler_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "boiler_water_outlet_node_name"
+            ]
+        }
+    },
+    "Boiler:Steam": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "steam_outlet_node_name"
+            ]
+        }
+    },
+    "Chiller:Electric:EIR": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name"
+            ]
+        }
+    },
+    "Chiller:Electric:ReformulatedEIR": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name"
+            ]
+        }
+    },
+    "Chiller:Electric": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name"
+            ]
+        }
+    },
+    "Chiller:Absorption:Indirect": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name"
+            ]
+        }
+    },
+    "Chiller:Absorption": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name"
+            ]
+        }
+    },
+    "Chiller:ConstantCOP": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name"
+            ]
+        }
+    },
+    "Chiller:EngineDriven": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name"
+            ]
+        }
+    },
+    "Chiller:CombustionTurbine": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name"
+            ]
+        }
+    },
+    "ChillerHeater:Absorption:DirectFired": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name",
+                "hot_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name",
+                "hot_water_outlet_node_name"
+            ]
+        }
+    },
+    "ChillerHeater:Absorption:DoubleEffect": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "condenser_inlet_node_name",
+                "hot_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "condenser_outlet_node_name",
+                "hot_water_outlet_node_name"
+            ]
+        }
+    },
+    "HeatPump:PlantLoop:EIR:Cooling": {
+        "rules": {
+            "addInlets": [
+                "load_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "load_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ]
+        }
+    },
+    "HeatPump:PlantLoop:EIR:Heating": {
+        "rules": {
+            "addInlets": [
+                "load_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "load_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ]
+        }
+    },
+    "HeatPump:WaterToWater:EquationFit:Heating": {
+        "rules": {
+            "addInlets": [
+                "load_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "load_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ]
+        }
+    },
+    "HeatPump:WaterToWater:EquationFit:Cooling": {
+        "rules": {
+            "addInlets": [
+                "load_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "load_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ]
+        }
+    },
+    "HeatPump:WaterToWater:ParameterEstimation:Cooling": {
+        "rules": {
+            "addInlets": [
+                "load_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "load_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ]
+        }
+    },
+    "HeatPump:WaterToWater:ParameterEstimation:Heating": {
+        "rules": {
+            "addInlets": [
+                "load_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "load_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ]
+        }
+    },
+    "DistrictCooling": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name"
+            ]
+        }
+    },
+    "DistrictHeating": {
+        "rules": {
+            "addInlets": [
+                "hot_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "hot_water_outlet_node_name"
+            ]
+        }
+    },
+    "PlantComponent:TemperatureSource": {
+        "rules": {
+            "addInlets": [
+                "inlet_node"
+            ],
+            "addOutlets": [
+                "outlet_node"
+            ]
+        }
+    },
+    "CentralHeatPumpSystem": {
+        "rules": {
+            "addInlets": [
+                "cooling_loop_inlet_node_name",
+                "source_loop_inlet_node_name",
+                "heating_loop_inlet_node_name"
+            ],
+            "addOutlets": [
+                "cooling_loop_outlet_node_name",
+                "source_loop_outlet_node_name",
+                "heating_loop_outlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "chiller_heater_modules_performance_component_name",
+                    "attr_": ""
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "chiller_heater_modules_performance_component_name",
+                    "attr_": "",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "ChillerHeaterPerformance:Electric:EIR": {
+        "rules": {}
+    },
+    "CoolingTower:SingleSpeed": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_water_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "supply_water_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "CoolingTower:TwoSpeed": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_water_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "supply_water_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "CoolingTower:VariableSpeed:Merkel": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_water_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "supply_water_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "CoolingTower:VariableSpeed": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_water_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "supply_water_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "EvaporativeFluidCooler:SingleSpeed": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_water_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "supply_water_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "EvaporativeFluidCooler:TwoSpeed": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_water_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "supply_water_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "FluidCooler:SingleSpeed": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ]
+        }
+    },
+    "FluidCooler:TwoSpeed": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ]
+        }
+    },
+    "GroundHeatExchanger:System": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "GroundHeatExchanger:Vertical:Properties": {
+        "rules": {}
+    },
+    "GroundHeatExchanger:Vertical:Array": {
+        "rules": {}
+    },
+    "GroundHeatExchanger:Vertical:Single": {
+        "rules": {}
+    },
+    "GroundHeatExchanger:ResponseFactors": {
+        "rules": {}
+    },
+    "GroundHeatExchanger:Pond": {
+        "rules": {
+            "addInlets": [
+                "fluid_inlet_node_name"
+            ],
+            "addOutlets": [
+                "fluid_outlet_node_name"
+            ]
+        }
+    },
+    "GroundHeatExchanger:Surface": {
+        "rules": {
+            "addInlets": [
+                "fluid_inlet_node_name"
+            ],
+            "addOutlets": [
+                "fluid_outlet_node_name"
+            ]
+        }
+    },
+    "GroundHeatExchanger:HorizontalTrench": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "GroundHeatExchanger:Slinky": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "HeatExchanger:FluidToFluid": {
+        "rules": {
+            "addInlets": [
+                "loop_demand_side_inlet_node_name",
+                "loop_supply_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "loop_demand_side_outlet_node_name",
+                "loop_supply_side_outlet_node_name"
+            ]
+        }
+    },
+    "WaterHeater:Mixed": {
+        "rules": {
+            "addInlets": [
+                "use_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "use_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "ambient_temperature_zone_name"
+                ]
+            },
+            "TODO": "This needs fixing. Inlets and outlets are None, the component entries do not appear in IDF but are valid against epJSON"
+        }
+    },
+    "WaterHeater:Stratified": {
+        "rules": {
+            "addInlets": [
+                "use_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "use_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "ambient_temperature_zone_name"
+                ]
+            }
+        }
+    },
+    "WaterHeater:HeatPump:PumpedCondenser": {
+        "rules": {
+            "addInlets": [
+                "inlet_air_mixer_node_name",
+                "tank_use_side_inlet_node_name",
+                "outdoor_air_node_name",
+                "air_inlet_node_name",
+                "condenser_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_air_splitter_node_name",
+                "tank_use_side_outlet_node_name",
+                "exhaust_air_node_name",
+                "air_outlet_node_name",
+                "condenser_water_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "fan_name",
+                "dx_coil_name",
+                "tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "fan_name",
+                    "dx_coil_name",
+                    "tank_name"
+                ]
+            }
+        }
+    },
+    "WaterHeater:HeatPump:WrappedCondenser": {
+        "rules": {
+            "addInlets": [
+                "inlet_air_mixer_node_name",
+                "tank_use_side_inlet_node_name",
+                "outdoor_air_node_name",
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_air_splitter_node_name",
+                "tank_use_side_outlet_node_name",
+                "exhaust_air_node_name",
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "fan_name",
+                "dx_coil_name",
+                "tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "fan_name",
+                    "dx_coil_name",
+                    "tank_name"
+                ]
+            }
+        }
+    },
+    "ThermalStorage:Ice:Simple": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "ThermalStorage:Ice:Detailed": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "ThermalStorage:ChilledWater:Mixed": {
+        "rules": {
+            "addInlets": [
+                "use_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "use_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "ambient_temperature_zone_name"
+                ]
+            }
+        }
+    },
+    "ThermalStorage:ChilledWater:Stratified": {
+        "rules": {
+            "addInlets": [
+                "use_side_inlet_node_name",
+                "source_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "use_side_outlet_node_name",
+                "source_side_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "ambient_temperature_zone_name"
+                ]
+            }
+        }
+    },
+    "PlantLoop": {
+        "rules": {
+            "addInlets": [
+                "demand_side_inlet_node_name",
+                "plant_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "demand_side_outlet_node_name",
+                "plant_side_outlet_node_name"
+            ],
+            "unpackBranchList": [
+                "plant_side_branch_list_name",
+                "demand_side_branch_list_name"
+            ],
+            "unpackConnector": [
+                "plant_side_connector_list_name",
+                "demand_side_connector_list_name"
+            ]
+        }
+    },
+    "CondenserLoop": {
+        "rules": {
+            "addInlets": [
+                "demand_side_inlet_node_name",
+                "condenser_side_inlet_node_name"
+            ],
+            "addOutlets": [
+                "demand_side_outlet_node_name",
+                "condenser_side_outlet_node_name"
+            ],
+            "unpackBranchList": [
+                "condenser_demand_side_branch_list_name",
+                "condenser_side_branch_list_name"
+            ],
+            "unpackConnector": [
+                "condenser_demand_side_connector_list_name",
+                "condenser_side_connector_list_name"
+            ]
+        }
+    },
+    "PlantEquipmentList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "equipment",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "equipment",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "CondenserEquipmentList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "equipment",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "equipment",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "ZoneHVAC:ForcedAir:UserDefined": {
+        "rules": {
+            "addInlets": [
+                "secondary_air_inlet_node_name",
+                "primary_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "secondary_air_outlet_node_name",
+                "primary_air_outlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "addInlets",
+                    "type_": "plant_connection",
+                    "attr_": "inlet_node_name"
+                },
+                {
+                    "method": "addOutlets",
+                    "type_": "plant_connection",
+                    "attr_": "outlet_node_name"
+                }
+            ],
+            "genericUnpack": [
+                "supply_inlet_water_storage_tank_name",
+                "collection_outlet_water_storage_tank_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "ambient_zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "supply_inlet_water_storage_tank_name",
+                        "collection_outlet_water_storage_tank_name"
+                    ]
+                }
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:UserDefined": {
+        "rules": {
+            "addInlets": [
+                "secondary_air_inlet_node_name",
+                "primary_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "secondary_air_outlet_node_name",
+                "primary_air_outlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "addInlets",
+                    "type_": "plant_connection",
+                    "attr_": "inlet_node_name"
+                },
+                {
+                    "method": "addOutlets",
+                    "type_": "plant_connection",
+                    "attr_": "outlet_node_name"
+                }
+            ],
+            "genericUnpack": [
+                "supply_inlet_water_storage_tank_name",
+                "collection_outlet_water_storage_tank_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "ambient_zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "supply_inlet_water_storage_tank_name",
+                        "collection_outlet_water_storage_tank_name"
+                    ]
+                }
+            ]
+        }
+    },
+    "Coil:UserDefined": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "addInlets",
+                    "type_": "plant_connection",
+                    "attr_": "inlet_node_name"
+                },
+                {
+                    "method": "addInlets",
+                    "type_": "air_connection",
+                    "attr_": "inlet_node_name"
+                },
+                {
+                    "method": "addOutlets",
+                    "type_": "plant_connection",
+                    "attr_": "outlet_node_name"
+                },
+                {
+                    "method": "addOutlets",
+                    "type_": "air_connection",
+                    "attr_": "outlet_node_name"
+                }
+            ],
+            "genericUnpack": [
+                "supply_inlet_water_storage_tank_name",
+                "collection_outlet_water_storage_tank_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "ambient_zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "supply_inlet_water_storage_tank_name",
+                        "collection_outlet_water_storage_tank_name"
+                    ]
+                }
+            ]
+        }
+    },
+    "PlantComponent:UserDefined": {
+        "rules": {
+            "addInlets": [
+                "air_connection_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_connection_outlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "addInlets",
+                    "type_": "plant_connection",
+                    "attr_": "inlet_node_name"
+                },
+                {
+                    "method": "addOutlets",
+                    "type_": "plant_connection",
+                    "attr_": "outlet_node_name"
+                }
+            ],
+            "genericUnpack": [
+                "supply_inlet_water_storage_tank_name",
+                "collection_outlet_water_storage_tank_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "ambient_zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "supply_inlet_water_storage_tank_name",
+                        "collection_outlet_water_storage_tank_name"
+                    ]
+                }
+            ]
+        }
+    },
+    "Refrigeration:Case": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "Refrigeration:CompressorRack": {
+        "rules": {
+            "addInlets": [
+                "condenser_air_inlet_node_name",
+                "water_cooled_condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_cooled_condenser_outlet_node_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "heat_rejection_zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "refrigeration_case_name_or_walkin_name_or_caseandwalkinlist_name",
+                        "evaporative_water_supply_tank_name"
+                    ]
+                }
+            ],
+            "TODO": "add predicate for linked refrigeration case",
+            "genericUnpack": [
+                "refrigeration_case_name_or_walkin_name_or_caseandwalkinlist_name",
+                "evaporative_water_supply_tank_name"
+            ]
+        }
+    },
+    "Refrigeration:CaseAndWalkInList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "case_or_walkin",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "case_or_walkin",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "Refrigeration:Condenser:AirCooled": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name_or_zone_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "air_inlet_node_name_or_zone_name"
+                ]
+            }
+        }
+    },
+    "Refrigeration:Condenser:EvaporativeCooled": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "air_inlet_node_name_or_zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "evaporative_water_supply_tank_name"
+                    ]
+                }
+            ],
+            "genericUnpack": [
+                "evaporative_water_supply_tank_name"
+            ]
+        }
+    },
+    "Refrigeration:Condenser:WaterCooled": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ]
+        }
+    },
+    "Refrigeration:Condenser:Cascade": {
+        "rules": {}
+    },
+    "Refrigeration:GasCooler:AirCooled": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ]
+        }
+    },
+    "Refrigeration:TransferLoadList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "cascade_condenser_name_or_secondary_system",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "cascade_condenser_name_or_secondary_system",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "Refrigeration:Subcooler": {
+        "rules": {
+            "genericUnpack": [
+                "capacity_providing_system"
+            ],
+            "manualPredicate": {
+                "predicate": "isPartOf",
+                "elements": [
+                    "capacity_providing_system"
+                ]
+            }
+        }
+    },
+    "Refrigeration:Compressor": {
+        "rules": {}
+    },
+    "Refrigeration:CompressorList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "refrigeration_compressor",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "refrigeration_compressor",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "Refrigeration:System": {
+        "rules": {
+            "genericUnpack": [
+                "high_stage_compressor_or_compressorlist_name",
+                "liquid_suction_heat_exchanger_subcooler_name",
+                "mechanical_subcooler_name",
+                "compressor_or_compressorlist_name",
+                "refrigeration_condenser_name",
+                "refrigeration_transfer_load_or_transferload_list_name",
+                "refrigerated_case_or_walkin_or_caseandwalkinlist_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "high_stage_compressor_or_compressorlist_name",
+                    "liquid_suction_heat_exchanger_subcooler_name",
+                    "mechanical_subcooler_name",
+                    "compressor_or_compressorlist_name",
+                    "refrigeration_condenser_name",
+                    "refrigeration_transfer_load_or_transferload_list_name",
+                    "refrigerated_case_or_walkin_or_caseandwalkinlist_name"
+                ]
+            }
+        }
+    },
+    "Refrigeration:TranscriticalSystem": {
+        "rules": {
+            "genericUnpack": [
+                "medium_temperature_refrigerated_case_or_walkin_or_caseandwalkinlist_name",
+                "low_temperature_refrigerated_case_or_walkin_or_caseandwalkinlist_name",
+                "refrigeration_gas_cooler_name",
+                "high_pressure_compressor_or_compressorlist_name",
+                "low_pressure_compressor_or_compressorlist_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "medium_temperature_refrigerated_case_or_walkin_or_caseandwalkinlist_name",
+                    "low_temperature_refrigerated_case_or_walkin_or_caseandwalkinlist_name",
+                    "refrigeration_gas_cooler_name",
+                    "high_pressure_compressor_or_compressorlist_name",
+                    "low_pressure_compressor_or_compressorlist_name"
+                ]
+            }
+        }
+    },
+    "Refrigeration:SecondarySystem": {
+        "rules": {
+            "genericUnpack": [
+                "refrigerated_case_or_walkin_or_caseandwalkinlist_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "refrigerated_case_or_walkin_or_caseandwalkinlist_name"
+                ]
+            }
+        }
+    },
+    "Refrigeration:WalkIn": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "zone",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "zone",
+                    "attr_": "name",
+                    "predicate": "hasLocation"
+                }
+            ]
+        }
+    },
+    "Refrigeration:AirChiller": {
+        "rules": {}
+    },
+    "ZoneHVAC:RefrigerationChillerSet": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            },
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "air_chiller",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "air_chiller",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "Generator:InternalCombustionEngine": {
+        "rules": {
+            "addInlets": [
+                "heat_recovery_inlet_node_name"
+            ],
+            "addOutlets": [
+                "heat_recovery_outlet_node_name"
+            ]
+        }
+    },
+    "Generator:CombustionTurbine": {
+        "rules": {
+            "addInlets": [
+                "outdoor_air_inlet_node_name",
+                "heat_recovery_inlet_node_name"
+            ],
+            "addOutlets": [
+                "heat_recovery_outlet_node_name"
+            ]
+        }
+    },
+    "Generator:MicroTurbine": {
+        "rules": {
+            "addInlets": [
+                "combustion_air_inlet_node_name",
+                "heat_recovery_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "combustion_air_outlet_node_name",
+                "heat_recovery_water_outlet_node_name"
+            ]
+        }
+    },
+    "Generator:Photovoltaic": {
+        "rules": {}
+    },
+    "Generator:PVWatts": {
+        "rules": {}
+    },
+    "ElectricLoadCenter:Inverter:PVWatts": {
+        "rules": {}
+    },
+    "Generator:FuelCell": {
+        "rules": {
+            "genericUnpack": [
+                "stack_cooler_name",
+                "inverter_name",
+                "electrical_storage_name",
+                "heat_exchanger_name",
+                "auxiliary_heater_name",
+                "water_supply_name",
+                "fuel_supply_name",
+                "air_supply_name",
+                "power_module_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "stack_cooler_name",
+                    "inverter_name",
+                    "electrical_storage_name",
+                    "heat_exchanger_name",
+                    "auxiliary_heater_name",
+                    "water_supply_name",
+                    "fuel_supply_name",
+                    "air_supply_name",
+                    "power_module_name"
+                ]
+            }
+        }
+    },
+    "Generator:FuelCell:PowerModule": {
+        "rules": {
+            "addInlets": [
+                "dilution_inlet_air_node_name"
+            ],
+            "addOutlets": [
+                "dilution_outlet_air_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "Generator:FuelCell:AirSupply": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ]
+        }
+    },
+    "Generator:FuelCell:WaterSupply": {
+        "rules": {}
+    },
+    "Generator:FuelCell:AuxiliaryHeater": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name_to_receive_skin_losses"
+                ]
+            }
+        }
+    },
+    "Generator:FuelCell:ExhaustGasToWaterHeatExchanger": {
+        "rules": {
+            "addInlets": [
+                "heat_recovery_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "exhaust_outlet_air_node_name",
+                "heat_recovery_water_outlet_node_name"
+            ]
+        }
+    },
+    "Generator:FuelCell:ElectricalStorage": {
+        "rules": {}
+    },
+    "Generator:FuelCell:Inverter": {
+        "rules": {}
+    },
+    "Generator:FuelCell:StackCooler": {
+        "rules": {
+            "addInlets": [
+                "heat_recovery_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "heat_recovery_water_outlet_node_name"
+            ]
+        }
+    },
+    "Generator:MicroCHP": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name",
+                "cooling_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name",
+                "cooling_water_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name_to_receive_skin_losses"
+                ]
+            }
+        }
+    },
+    "Generator:FuelSupply": {
+        "rules": {}
+    },
+    "Generator:WindTurbine": {
+        "rules": {}
+    },
+    "ElectricLoadCenter:Generators": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "generator",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "generator",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "ElectricLoadCenter:Inverter:Simple": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ElectricLoadCenter:Inverter:FunctionOfPower": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ElectricLoadCenter:Inverter:LookUpTable": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ElectricLoadCenter:Storage:Simple": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ElectricLoadCenter:Storage:Battery": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ElectricLoadCenter:Storage:LiIonNMCBattery": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ElectricLoadCenter:Transformer": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ElectricLoadCenter:Distribution": {
+        "rules": {
+            "genericUnpack": [
+                "storage_converter_object_name",
+                "transformer_object_name",
+                "electrical_storage_object_name",
+                "generator_list_name",
+                "inverter_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "storage_converter_object_name",
+                    "transformer_object_name",
+                    "electrical_storage_object_name",
+                    "generator_list_name",
+                    "inverter_name"
+                ]
+            }
+        }
+    },
+    "ElectricLoadCenter:Storage:Converter": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "WaterUse:Storage": {
+        "rules": {
+            "genericUnpack": [
+                "other_tank_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "other_tank_name"
+                    ]
+                }
+            ]
+        }
+    },
+    "WaterUse:Connections": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ],
+            "genericUnpack": [
+                "reclamation_water_storage_tank_name",
+                "supply_water_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "reclamation_water_storage_tank_name",
+                    "supply_water_storage_tank_name"
+                ]
+            },
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "water_use_equipment",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "water_use_equipment",
+                    "attr_": "name",
+                    "predicate": "feeds"
+                }
+            ]
+        }
+    },
+    "WaterUse:Equipment": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "WaterUse:Well": {
+        "rules": {
+            "genericUnpack": [
+                "storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "storage_tank_name"
+                ]
+            }
+        }
+    },
+    "WaterUse:RainCollector": {
+        "rules": {
+            "genericUnpack": [
+                "storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "storage_tank_name"
+                ]
+            }
+        }
+    },
+    "AirConditioner:VariableRefrigerantFlow": {
+        "rules": {
+            "addInlets": [
+                "condenser_inlet_node_name"
+            ],
+            "addOutlets": [
+                "condenser_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supply_water_storage_tank_name",
+                "zone_terminal_unit_list_name"
+            ],
+            "manualPredicate": [
+                {
+                    "manualPredicate": "hasPoint",
+                    "elements": [
+                        "zone_name_for_master_thermostat_location"
+                    ]
+                },
+                {
+                    "manualPredicate": "hasPart",
+                    "elements": [
+                        "supply_water_storage_tank_name",
+                        "zone_terminal_unit_list_name"
+                    ]
+                }
+            ]
+        }
+    },
+    "AirConditioner:VariableRefrigerantFlow:FluidTemperatureControl": {
+        "rules": {
+            "genericUnpack": [
+                "zone_terminal_unit_list_name",
+                "heat_pump_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "feeds",
+                    "elements": [
+                        "zone_terminal_unit_list_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "heat_pump_name"
+                    ]
+                }
+            ]
+        }
+    },
+    "AirConditioner:VariableRefrigerantFlow:FluidTemperatureControl:HR": {
+        "rules": {
+            "genericUnpack": [
+                "zone_terminal_unit_list_name"
+            ],
+            "manualPredicate": {
+                "predicate": "feeds",
+                "elements": [
+                    "zone_terminal_unit_list_name"
+                ]
+            }
+        }
+    },
+    "EvaporativeCooler:Direct:CelDekPad": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "water_supply_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "water_supply_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "EvaporativeCooler:Indirect:CelDekPad": {
+        "rules": {
+            "addInlets": [
+                "secondary_air_inlet_node_name",
+                "primary_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "primary_air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "water_supply_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "water_supply_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "EvaporativeCooler:Indirect:WetCoil": {
+        "rules": {
+            "addInlets": [
+                "secondary_air_inlet_node_name",
+                "primary_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "primary_air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "water_supply_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "water_supply_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "EvaporativeCooler:Indirect:ResearchSpecial": {
+        "rules": {
+            "addInlets": [
+                "relief_air_inlet_node_name",
+                "secondary_air_inlet_node_name",
+                "primary_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "secondary_air_outlet_node_name",
+                "primary_air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "water_supply_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "water_supply_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "EvaporativeCooler:Direct:ResearchSpecial": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "water_supply_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "water_supply_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "Coil:Heating:Desuperheater": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "isFedBy",
+                "elements": [
+                    "heating_source_name"
+                ]
+            }
+        }
+    },
+    "Coil:Heating:DX:VariableRefrigerantFlow:FluidTemperatureControl": {
+        "rules": {
+            "addInlets": [
+                "coil_air_inlet_node"
+            ],
+            "addOutlets": [
+                "coil_air_outlet_node"
+            ]
+        }
+    },
+    "Coil:Cooling:DX:TwoStageWithHumidityControlMode": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "condensate_collection_water_storage_tank_name",
+                "supply_water_storage_tank_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "condensate_collection_water_storage_tank_name",
+                    "supply_water_storage_tank_name"
+                ]
+            }
+        }
+    },
+    "Fan:ComponentModel": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "Fan:SystemModel": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:EquipmentConnections": {
+        "rules": {
+            "manualPredicate": [
+                {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+                },
+                {
+                "predicate": "feeds",
+                "elements": [
+                    "zone_name"
+                ]
+                },
+                {
+                    "predicate": "isFedBy",
+                    "elements": [
+                        "zone_name"
+                    ]
+                }
+            ],
+            "addNodelist": {
+                "inlets": [
+                    "zone_air_inlet_node_or_nodelist_name"
+                ],
+                "outlets": [
+                    "zone_return_air_node_or_nodelist_name",
+                    "zone_air_exhaust_node_or_nodelist_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:IdealLoadsAirSystem": {
+        "rules": {
+            "addInlets": [
+                "outdoor_air_inlet_node_name",
+                "system_inlet_air_node_name"
+            ],
+            "addOutlets": [
+                "zone_supply_air_node_name",
+                "zone_exhaust_air_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:Dehumidifier:DX": {
+        "rules": {
+            "addInlets": [
+                "air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:EnergyRecoveryVentilator": {
+        "rules": {
+            "genericUnpack": [
+                "exhaust_air_fan_name",
+                "supply_air_fan_name",
+                "heat_exchanger_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "exhaust_air_fan_name",
+                    "supply_air_fan_name",
+                    "heat_exchanger_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:HybridUnitaryHVAC": {
+        "rules": {
+            "addInlets": [
+                "outdoor_air_node_name",
+                "return_air_node_name"
+            ],
+            "addOutlets": [
+                "relief_node_name",
+                "supply_air_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:OutdoorAirUnit:EquipmentList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "component",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "component",
+                    "attr_": "name",
+                    "predicate": "hasPart"
+                }
+            ]
+        }
+    },
+    "ZoneHVAC:TerminalUnit:VariableRefrigerantFlow": {
+        "rules": {
+            "addInlets": [
+                "terminal_unit_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "terminal_unit_air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "supplemental_heating_coil_name",
+                "heating_coil_object_name",
+                "cooling_coil_object_name",
+                "outside_air_mixer_object_name",
+                "supply_air_fan_object_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasPoint",
+                    "elements": [
+                        "controlling_zone_or_thermostat_location"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "supplemental_heating_coil_name",
+                        "heating_coil_object_name",
+                        "cooling_coil_object_name",
+                        "outside_air_mixer_object_name",
+                        "supply_air_fan_object_name"
+                    ]
+                }
+            ]
+        }
+    },
+    "ZoneHVAC:Baseboard:RadiantConvective:Water": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:Baseboard:RadiantConvective:Steam": {
+        "rules": {}
+    },
+    "ZoneHVAC:Baseboard:RadiantConvective:Electric": {
+        "rules": {}
+    },
+    "ZoneHVAC:CoolingPanel:RadiantConvective:Water": {
+        "rules": {
+            "addInlets": [
+                "water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "water_outlet_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:Baseboard:Convective:Water": {
+        "rules": {
+            "addInlets": [
+                "inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:Baseboard:Convective:Electric": {
+        "rules": {}
+    },
+    "ZoneHVAC:LowTemperatureRadiant:VariableFlow": {
+        "rules": {
+            "addInlets": [
+                "cooling_water_inlet_node_name",
+                "heating_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "cooling_water_outlet_node_name",
+                "heating_water_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:LowTemperatureRadiant:ConstantFlow": {
+        "rules": {
+            "addInlets": [
+                "cooling_water_inlet_node_name",
+                "heating_water_inlet_node_name"
+            ],
+            "addOutlets": [
+                "cooling_water_outlet_node_name",
+                "heating_water_outlet_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:LowTemperatureRadiant:Electric": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:HighTemperatureRadiant": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "ZoneHVAC:VentilatedSlab": {
+        "rules": {
+            "addInlets": [
+                "cold_water_inlet_node_name",
+                "hot_water_or_steam_inlet_node_name",
+                "outdoor_air_node_name",
+                "return_air_node_name"
+            ],
+            "addOutlets": [
+                "relief_air_node_name",
+                "zone_supply_air_node_name"
+            ],
+            "manualPredicate": [
+                {
+                    "predicate": "hasLocation",
+                    "elements": [
+                        "zone_name"
+                    ]
+                },
+                {
+                    "predicate": "hasPart",
+                    "elements": [
+                        "cooling_coil_name",
+                        "heating_coil_name",
+                        "fan_name"
+                    ]
+                }
+            ],
+            "genericUnpack": [
+                "cooling_coil_name",
+                "heating_coil_name",
+                "fan_name"
+            ]
+        }
+    },
+    "ZoneHVAC:VentilatedSlab:SlabGroup": {
+        "rules": {
+            "TODO": "make manualPredicate extensible",
+            "TODO2": "make zone_x_name a hasLocation pred"
+        }
+    },
+    "AirTerminal:SingleDuct:SeriesPIU:Reheat": {
+        "rules": {
+            "addInlets": [
+                "secondary_air_inlet_node_name",
+                "supply_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "outlet_node_name",
+                "reheat_coil_air_inlet_node_name"
+            ],
+            "genericUnpack": [
+                "reheat_coil_name",
+                "fan_name",
+                "zone_mixer_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "reheat_coil_name",
+                    "fan_name",
+                    "zone_mixer_name"
+                ]
+            }
+        }
+    },
+    "AirTerminal:SingleDuct:ParallelPIU:Reheat": {
+        "rules": {
+            "addInlets": [
+                "secondary_air_inlet_node_name",
+                "supply_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "reheat_coil_air_inlet_node_name",
+                "outlet_node_name"
+            ],
+            "genericUnpack": [
+                "reheat_coil_name",
+                "fan_name",
+                "zone_mixer_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "reheat_coil_name",
+                    "fan_name",
+                    "zone_mixer_name"
+                ]
+            }
+        }
+    },
+    "AirTerminal:SingleDuct:ConstantVolume:FourPipeInduction": {
+        "rules": {
+            "addInlets": [
+                "induced_air_inlet_node_name",
+                "supply_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ],
+            "genericUnpack": [
+                "cooling_coil_name",
+                "heating_coil_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasPart",
+                "elements": [
+                    "cooling_coil_name",
+                    "heating_coil_name"
+                ]
+            }
+        }
+    },
+    "AirTerminal:SingleDuct:ConstantVolume:FourPipeBeam": {
+        "rules": {
+            "addInlets": [
+                "hot_water_inlet_node_name",
+                "chilled_water_inlet_node_name",
+                "primary_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "hot_water_outlet_node_name",
+                "chilled_water_outlet_node_name",
+                "primary_air_outlet_node_name"
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:ConstantVolume:CooledBeam": {
+        "rules": {
+            "addInlets": [
+                "chilled_water_inlet_node_name",
+                "supply_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "chilled_water_outlet_node_name",
+                "supply_air_outlet_node_name"
+            ]
+        }
+    },
+    "AirTerminal:SingleDuct:Mixer": {
+        "rules": {
+            "addInlets": [
+                "mixer_primary_air_inlet_node_name",
+                "mixer_secondary_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "mixer_outlet_node_name"
+            ]
+        }
+    },
+    "AirTerminal:DualDuct:ConstantVolume": {
+        "rules": {
+            "addInlets": [
+                "cold_air_inlet_node_name",
+                "hot_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "AirTerminal:DualDuct:VAV": {
+        "rules": {
+            "addInlets": [
+                "cold_air_inlet_node_name",
+                "hot_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "AirTerminal:DualDuct:VAV:OutdoorAir": {
+        "rules": {
+            "addInlets": [
+                "recirculated_air_inlet_node_name",
+                "outdoor_air_inlet_node_name"
+            ],
+            "addOutlets": [
+                "air_outlet_node_name"
+            ]
+        }
+    },
+    "ZoneHVAC:LowTemperatureRadiant:SurfaceGroup": {
+        "rules": {}
+    },
+    "Space": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_name"
+                ]
+            }
+        }
+    },
+    "SpaceList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "space",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "space",
+                    "attr_": "name",
+                    "predicate": "hasLocation"
+                }
+            ]
+        }
+    },
+    "ZoneList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "zone",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "zone",
+                    "attr_": "name",
+                    "predicate": "hasLocation"
+                }
+            ]
+        }
+    },
+    "ZoneGroup": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "genericUnpack",
+                    "type_": "zone_list",
+                    "attr_": "name"
+                },
+                {
+                    "method": "manualPredicate",
+                    "type_": "zone_list",
+                    "attr_": "name",
+                    "predicate": "hasLocation"
+                }
+            ]
+        }
+    },
+    "ZoneBaseboard:OutdoorTemperatureControlled": {
+        "rules": {
+            "genericUnpack": [
+                "zone_or_zonelist_or_space_or_spacelist_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_or_zonelist_or_space_or_spacelist_name"
+                ]
+            }
+        }
+    },
+    "ElectricEquipment:ITE:AirCooled": {
+        "rules": {
+            "addInlets": [
+                "supply_air_node_name"
+            ],
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_or_space_name"
+                ]
+            }
+        }
+    },
+    "SwimmingPool:Indoor": {
+        "rules": {
+            "addInlets": [
+                "pool_water_inlet_node"
+            ],
+            "addOutlets": [
+                "pool_water_outlet_node"
+            ]
+        }
+    },
+    "ElectricEquipment": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_or_zonelist_or_space_or_spacelist_name"
+                ]
+            }
+        }
+    },
+    "Lights": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_or_zonelist_or_space_or_spacelist_name"
+                ]
+            }
+        }
+    },
+    "GasEquipment": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_or_zonelist_or_space_or_spacelist_name"
+                ]
+            }
+        }
+    },
+    "HotWaterEquipment": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_or_zonelist_or_space_or_spacelist_name"
+                ]
+            }
+        }
+    },
+    "SteamEquipment": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_or_zonelist_or_space_or_spacelist_name"
+                ]
+            }
+        }
+    },
+    "OtherEquipment": {
+        "rules": {
+            "manualPredicate": {
+                "predicate": "hasLocation",
+                "elements": [
+                    "zone_or_zonelist_or_space_or_spacelist_name"
+                ]
+            }
+        }
+    },
+    "Exterior:Lights": {
+        "rules": {}
+    },
+    "Exterior:FuelEquipment": {
+        "rules": {
+            "addInlets": [],
+            "addOutlets": []
+        }
+    },
+    "Exterior:WaterEquipment": {
+        "rules": {}
+    },
+    "Branch": {
+        "modelica": {},
+        "rules": {
+            "extensibleMethod":[
+                {
+                    "method": "genericUnpack",
+                    "type_": "component",
+                    "attr_": "name"
+                }
+            ]
+        }
+    },
+    "BranchList": {
+        "modelica": {},
+        "rules": {
+            "extensibleMethod":[
+                {
+                    "method": "genericUnpack",
+                    "type_": "branch",
+                    "attr_": "name"
+                }
+            ]
+        }
+    },
+    "OutdoorAir:NodeList": {
+        "rules": {
+            "extensibleMethod": [
+                {
+                    "method": "addNodes",
+                    "type_": "node_or_nodelist_name",
+                    "attr_": ""
+                }
+            ]
+        }
+    }
+}
