@@ -134,7 +134,10 @@ export const Sites = () => {
                   <TableCell>{site.id}</TableCell>
                   <TableCell>
                     {site.status === "error" && site.errorLog ? (
-                      <Button variant="text" onClick={(event) => handleOpenErrorDialog(event, site)}>
+                      <Button
+                        variant="text"
+                        style={{ marginLeft: -9 }}
+                        onClick={(event) => handleOpenErrorDialog(event, site)}>
                         {site.status.toUpperCase()}
                       </Button>
                     ) : (
