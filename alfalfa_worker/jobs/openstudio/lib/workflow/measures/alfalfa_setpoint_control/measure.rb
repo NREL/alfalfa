@@ -62,6 +62,8 @@ class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
           schedule = target
         elsif target_type == 'Schedule:Year'.to_IddObjectType
           schedule = target
+        elsif target_type == 'Schedule:Constant'.to_IddObjectType
+          schedule = target
         end
         next if schedule.nil?
 
