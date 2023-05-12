@@ -140,6 +140,10 @@ class AlfalfaAPI {
     if (point.point_type === "OUTPUT") {
       return Promise.reject("Cannot write to an Output point");
     }
+
+    if (value == null) {
+      value = "null";
+    }
     return writePoint(pointId, siteRef, 1, value, this.db, this.redis);
   };
 
