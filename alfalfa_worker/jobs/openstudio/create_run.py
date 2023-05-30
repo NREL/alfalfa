@@ -44,7 +44,7 @@ class CreateRun(Job):
         check_output(['openstudio', str(lib_dir / 'merge_osws.rb'), str(default_workflow_path), str(submitted_osw_path)])
 
         # run workflow
-        check_output(['openstudio', '--include', '/alfalfa/alfalfa_worker/jobs/openstudio/lib/alfalfa-lib/', 'run', '-m', '-w', str(submitted_osw_path)])
+        check_output(['openstudio', '--gem_path', '/var/lib/gems/2.7.0', 'run', '-m', '-w', str(submitted_osw_path)])
 
         self.logger.info('Generating variables from measure reports')
         self.variables = Variables(self.run)

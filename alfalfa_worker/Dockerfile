@@ -37,6 +37,7 @@ RUN apt-get update \
     python3-venv \
     python3-pip \
     libblas-dev \
+    ruby-full \
     && rm -rf /var/lib/apt/lists/*
 
 # Use set in update-alternatives instead of config to
@@ -181,11 +182,13 @@ RUN git clone --branch $PYFMI_TAG --depth 1 https://github.com/modelon-community
     && cd .. && rm -rf PyFMI
 
 WORKDIR /alfalfa
-
 # Include the path to where alfalfa_worker is so that system calls can find it.
 ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
 
 COPY ./alfalfa_worker /alfalfa/alfalfa_worker
+RUN cd alfalfa_worker/jobs/openstudio/lib/alfalfa \
+    && gem build alfalfa.gemspec \
+    && gem install ./alfalfa-0.0.0.gem
 COPY ./deploy /alfalfa/deploy
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 

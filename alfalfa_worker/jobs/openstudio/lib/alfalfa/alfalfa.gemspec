@@ -17,6 +17,7 @@ Gem::Specification.new do |spec|
  # spec.files         = Dir.chdir(File.expand_path(__dir__)) do
  #   `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|lib.measures.*tests|spec|features)/}) }
  # end
+  spec.files         = ["lib/alfalfa_mixin.rb", "lib/alfalfa.rb", "lib/energy_plus_mixin.rb", "lib/input.rb", "lib/openstudio_mixin.rb", "lib/output.rb", "lib/point.rb", "lib/utils.rb", "lib/version.rb"]
   spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
