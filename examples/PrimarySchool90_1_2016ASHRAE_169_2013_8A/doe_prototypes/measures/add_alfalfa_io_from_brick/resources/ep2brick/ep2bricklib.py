@@ -19,7 +19,7 @@ class Extractor(epc.Extractor):
         super(Extractor, self).__init__()
         self.graph = Graph()
         self.BRICK = Namespace('https://brickschema.org/schema/Brick#') #1.0.1 is not supported anymore
-        self.EX = Namespace('http://xm.pl#')
+        self.EX = Namespace('http://eptobrick.com#')
         self.graph.bind('brick', self.BRICK)
         self.graph.bind('rdfs', RDFS)
         self.graph.bind('rdf', RDF)
