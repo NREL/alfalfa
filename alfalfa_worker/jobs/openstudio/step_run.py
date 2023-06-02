@@ -37,7 +37,7 @@ class StepRun(StepRunBase):
         self.ep = mlep.MlepProcess()
         self.ep.bcvtbDir = '/alfalfa/bcvtb/'
         self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
-        self.ep.accept_timeout = 5000
+        self.ep.accept_timeout = 5000  # The number of milliseconds to wait every time we attempt to connect to e+
         self.ep.mapping = os.path.realpath(self.dir / 'simulation' / 'haystack_report_mapping.json')
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
@@ -58,6 +58,7 @@ class StepRun(StepRunBase):
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
         self.first_timestep = True
+        # Job will wait this number of seconds for an energyplus model to start before throwing an error
         self.model_start_timeout = 300
 
     def time_per_step(self):
