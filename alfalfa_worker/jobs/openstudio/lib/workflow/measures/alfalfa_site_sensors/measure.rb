@@ -58,8 +58,7 @@ class AlfalfaSiteSensors < OpenStudio::Measure::EnergyPlusMeasure
     end
 
     fuels = [
-      'Electricity',
-      'NaturalGas'
+      'Electricity'
     ]
 
     fuels.each do |fuel|
