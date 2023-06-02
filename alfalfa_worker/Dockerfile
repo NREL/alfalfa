@@ -1,4 +1,4 @@
-FROM ghcr.io/nrel/alfalfa-dependencies:1 AS base
+FROM ghcr.io/nrel/alfalfa-dependencies:main AS base
 
 USER root
 
