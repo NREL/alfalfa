@@ -79,7 +79,7 @@ class AlfalfaPythonEnvironment < OpenStudio::Ruleset::WorkspaceUserScript
         python_paths.append(run_dir_match[1] + "/.venv/lib/python3.8/site-packages")
       end
 
-      i = 3
+      i = 4
       while python_paths.length() > 0 && i < 20 do
         if o.getString(i, false, true).empty?
           o.setString(i, python_paths.pop)
