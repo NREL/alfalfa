@@ -436,7 +436,11 @@ class Point(TimestampedDocument):
         value = None
         for entry in write_array:
             if len(entry) > 0:
-                value = float(entry.decode('UTF-8'))
+                string_value = entry.decode('UTF-8')
+                if string_value == "null":
+                    value = None
+                else:
+                    value = float(entry.decode('UTF-8'))
                 break
         return value
 

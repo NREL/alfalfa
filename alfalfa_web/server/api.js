@@ -42,27 +42,11 @@ class AlfalfaAPI {
     try {
       const runs = [];
 
-      const models = (await this.models.find().toArray()).reduce(reduceById, {});
-      const sites = (await this.sites.find().toArray()).map(mapHaystack).reduce(reduceByRefId, {});
-
       for await (const run of this.runs.find()) {
-        const siteRef = run.ref_id;
-        const model = models[run.model];
-        const site = sites[siteRef];
+        const site = await this.findSite(run.ref_id);
 
         if (site) {
-          const siteHash = await getHash(this.redis, siteRef);
-
-          runs.push({
-            id: siteRef,
-            name: site.dis,
-            status: run.status.toLowerCase(),
-            simType: site.sim_type,
-            datetime: siteHash?.sim_time ?? "",
-            uploadTimestamp: run.created,
-            uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
-            errorLog: run.error_log
-          });
+          runs.push(site);
         }
       }
       return runs;
@@ -79,21 +63,25 @@ class AlfalfaAPI {
         const model = await this.models.findOne({ _id: run.model });
         let site = await this.sites.findOne({ ref_id: siteRef });
 
-        if (site) {
-          site = mapHaystack(site);
-          const siteHash = await getHash(this.redis, siteRef);
+        const site_dict = {
+          id: siteRef,
+          name: model.model_name,
+          status: run.status.toLowerCase(),
+          datetime: "",
+          simType: run.sim_type,
+          uploadTimestamp: run.created,
+          uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
+          errorLog: run.error_log
+        };
 
-          return {
-            id: run.ref_id,
-            name: site?.dis,
-            status: run.status.toLowerCase(),
-            simType: site.sim_type,
-            datetime: siteHash?.sim_time ?? "",
-            uploadTimestamp: run.created,
-            uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
-            errorLog: run.error_log
-          };
+        if (site) {
+          const siteHash = await getHash(this.redis, siteRef);
+          site = mapHaystack(site);
+
+          site_dict.name = site?.dis ?? site_dict.name;
+          site_dict.datetime = siteHash?.sim_time ?? "";
         }
+        return site_dict;
       }
     } catch (e) {
       console.error(e);
@@ -152,6 +140,10 @@ class AlfalfaAPI {
 
     if (point.point_type === "OUTPUT") {
       return Promise.reject("Cannot write to an Output point");
+    }
+
+    if (value == null) {
+      value = "null";
     }
     return writePoint(pointId, siteRef, 1, value, this.db, this.redis);
   };

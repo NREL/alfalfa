@@ -26,7 +26,7 @@ module OpenStudio
         # strings beginning with numbers will be prepended with '_'
         # @param [String] id String to process into an EMS valid string
         id = id.gsub(/[\s-]/, '_')
-        id = "_#{id}" if !!(id =~ /[0-9].*/)
+        id = "_#{id}" if (id =~ /[0-9].*/) == 0
         id
       end
     end

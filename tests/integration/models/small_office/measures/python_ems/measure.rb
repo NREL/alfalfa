@@ -80,15 +80,15 @@ class PythonEMS < OpenStudio::Ruleset::WorkspaceUserScript
       n.setString(2, 'Yes')
       # set site packages location depending on operating system
       if (RUBY_PLATFORM =~ /linux/) != nil
-        n.setString(3, '/usr/local/lib/python3.7/dist-packages')
+        n.setString(4, '/usr/local/lib/python3.7/dist-packages')
       elsif (RUBY_PLATFORM =~ /darwin/) != nil
-        n.setString(3, '/usr/local/lib/python3.7/site-packages')
+        n.setString(4, '/usr/local/lib/python3.7/site-packages')
       elsif (RUBY_PLATFORM =~ /cygwin|mswin|mingw|bccwin|wince|emx/) != nil
         h = ENV['USERPROFILE'].gsub('\\', '/')
-        n.setString(3, "#{h}/AppData/Local/Programs/Python/Python37/Lib/site-packages")
+        n.setString(4, "#{h}/AppData/Local/Programs/Python/Python37/Lib/site-packages")
       end
       # add python dir
-      n.setString(4, py_dir)
+      n.setString(5, py_dir)
       ws.addObject(n)
   
       # add python plugin instance

@@ -16,7 +16,7 @@ services:
       context: .
       # The dev instance still needs works, so default to base for now
       target: dev
-    image: ${WEB_REGISTRY_URI}:${VERSION_TAG}
+    image: ${REGISTRY_BASE_URI}/web:${VERSION_TAG}
     ports:
       - target: 80
         published: 80
@@ -56,7 +56,7 @@ services:
       dockerfile: alfalfa_worker/Dockerfile
       context: .
       target: dev
-    image: ${WORKER_REGISTRY_URI}:${VERSION_TAG}
+    image: ${REGISTRY_BASE_URI}/worker:${VERSION_TAG}
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -80,4 +80,5 @@ services:
       - mongo
       - redis
     volumes:
-      - ./:/alfalfa
+      - ./alfalfa_worker:/alfalfa/alfalfa_worker
+      - ./tests:/alfalfa/tests

@@ -1,7 +1,7 @@
 import os
 import socket
 from datetime import datetime, timedelta
-from time import sleep
+from time import sleep, time
 
 import mlep
 
@@ -35,9 +35,9 @@ class StepRun(StepRunBase):
 
         # EnergyPlus MLEP initializations
         self.ep = mlep.MlepProcess()
-        self.ep.bcvtbDir = '/home/alfalfa/bcvtb/'
-        self.ep.env = {'BCVTB_HOME': '/home/alfalfa/bcvtb'}
-        self.ep.accept_timeout = 120000
+        self.ep.bcvtbDir = '/alfalfa/bcvtb/'
+        self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
+        self.ep.accept_timeout = 5000  # The number of milliseconds to wait every time we attempt to connect to e+
         self.ep.mapping = os.path.realpath(self.dir / 'simulation' / 'haystack_report_mapping.json')
         self.ep.workDir = os.path.split(self.idf_file)[0]
         self.ep.arguments = (self.idf_file, self.weather_file)
@@ -58,6 +58,8 @@ class StepRun(StepRunBase):
         # it will be set to False once the desired start time is reach
         self.master_enable_bypass = True
         self.first_timestep = True
+        # Job will wait this number of seconds for an energyplus model to start before throwing an error
+        self.model_start_timeout = 300
 
     def time_per_step(self):
         return timedelta(seconds=3600.0 / self.time_steps_per_hour)
@@ -79,12 +81,18 @@ class StepRun(StepRunBase):
         (self.ep.status, self.ep.msg) = self.ep.start()
         if self.ep.status != 0:
             raise JobExceptionExternalProcess('Could not start EnergyPlus: {}'.format(self.ep.msg))
-        self.check_error_log()
 
-        try:
-            [self.ep.status, self.ep.msg] = self.ep.accept_socket()
-        except socket.timeout:
+        start_time = time()
+
+        while time() < start_time + self.model_start_timeout and not self.ep.is_running:
             self.check_error_log()
+
+            try:
+                [self.ep.status, self.ep.msg] = self.ep.accept_socket()
+            except socket.timeout:
+                pass
+
+        if not self.ep.is_running:
             raise JobExceptionExternalProcess('Timedout waiting for EnergyPlus')
 
         self.set_run_time(self.start_datetime)
@@ -290,11 +298,12 @@ class StepRun(StepRunBase):
 
         for point in self.run.input_points:
             value = point.value
-            if value is None:
-                continue
             index = self.variables.get_input_index(point.ref_id)
             if index == -1:
                 self.logger.error('bad input index for: %s' % point.ref_id)
+            elif value is None:
+                if self.variables.has_enable(point.ref_id):
+                    self.ep.inputs[self.variables.get_input_enable_index(point.ref_id)] = 0
             else:
                 self.ep.inputs[index] = value
                 if self.variables.has_enable(point.ref_id):
