@@ -18,7 +18,7 @@ export const Sites = () => {
     start: ["ready"],
     stop: ["preprocessing", "starting", "started", "running", "stopping"],
     remove: ["ready", "complete", "error"],
-    download: ["read", "complete", "error"]
+    download: ["ready", "complete", "error"]
   };
 
   const fetchSites = async () => {
