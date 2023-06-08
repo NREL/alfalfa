@@ -696,6 +696,27 @@ router.post("/sites/:siteId/stop", (req, res) => {
     .catch(() => res.sendStatus(500));
 });
 
+router.get("/sites/:siteId/download", (req, res) => {
+  const { siteId } = req.params;
+
+  const error = validate(
+    { siteId },
+    {
+      siteId: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+
+  api
+    .getSiteDownloadPath(siteId)
+    .then((url) => {
+      res.redirect(url);
+    })
+    .catch(() => {
+      res.sendStatus(500);
+    });
+});
+
 /**
  * @openapi
  * /aliases:
