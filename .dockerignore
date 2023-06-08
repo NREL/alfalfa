@@ -5,6 +5,7 @@ __pycache__
 dist
 docs
 Dockerfile
+.venv/*
 
 alfalfa_web/Dockerfile
 alfalfa_web/build

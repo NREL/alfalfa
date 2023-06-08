@@ -23,7 +23,7 @@ services:
         - INFLUXDB_DB
         - INFLUXDB_HOST
     hostname: grafana
-    image: ${HISTORIAN_GUI_REGISTRY_URI}:${VERSION_TAG}
+    image: ${REGISTRY_BASE_URI}/grafana:${VERSION_TAG}
     ports:
       - "3000:3000"
     environment:

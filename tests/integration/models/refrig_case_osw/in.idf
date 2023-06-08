@@ -1,4 +1,4 @@
-  Version,9.6;
+  Version,23.1;
 
   Building,
     Refrig Case Model,       !- Name
@@ -315,12 +315,12 @@
 
   ZoneInfiltration:DesignFlowRate,
     Infiltration,            !- Name
-    Zn1,                     !- Zone or ZoneList Name
+    Zn1,                     !- Zone or ZoneList or Space or SpaceList Name
     Infil Sch,               !- Schedule Name
     Flow/Zone,               !- Design Flow Rate Calculation Method
     0.1416,                  !- Design Flow Rate {m3/s}
-    ,                        !- Flow per Zone Floor Area {m3/s-m2}
-    ,                        !- Flow per Exterior Surface Area {m3/s-m2}
+    ,                        !- Flow Rate per Floor Area {m3/s-m2}
+    ,                        !- Flow Rate per Exterior Surface Area {m3/s-m2}
     ,                        !- Air Changes per Hour {1/hr}
     1,                       !- Constant Term Coefficient
     0,                       !- Temperature Term Coefficient
@@ -585,7 +585,8 @@
     0.78,                    !- Gross Rated Sensible Heat Ratio
     3.9,                     !- Gross Rated Cooling COP {W/W}
     1.415841,                !- Rated Air Flow Rate {m3/s}
-    ,                        !- Rated Evaporator Fan Power Per Volume Flow Rate {W/(m3/s)}
+    ,                        !- 2017 Rated Evaporator Fan Power Per Volume Flow Rate {W/(m3/s)}
+    ,                        !- 2023 Rated Evaporator Fan Power Per Volume Flow Rate {W/(m3/s)}
     RTU Cool Coil Inlet Node,!- Air Inlet Node Name
     RTU Heat Coil Inlet Node,!- Air Outlet Node Name
     CoolCapfT,               !- Total Cooling Capacity Function of Temperature Curve Name
@@ -781,7 +782,8 @@
     8760,                    !- Number of Hours of Data
     Comma,                   !- Column Separator
     No,                      !- Interpolate to Timestep
-    1;                       !- Minutes per Item
+    1,                       !- Minutes per Item
+    Yes;                     !- Adjust Schedule for Daylight Savings
 
   Schedule:File,
     rh_sch,                  !- Name
@@ -792,12 +794,14 @@
     8760,                    !- Number of Hours of Data
     Comma,                   !- Column Separator
     No,                      !- Interpolate to Timestep
-    1;                       !- Minutes per Item
+    1,                       !- Minutes per Item
+    Yes;                     !- Adjust Schedule for Daylight Savings
 
   PythonPlugin:SearchPaths,
     Python Search Paths,     !- Name
     Yes,                     !- Add Current Working Directory to Search Path
     Yes,                     !- Add Input File Directory to Search Path
+    Yes,                     !- Add epin Environment Variable to Search Path
     ,                        !- Search Path 1
     ,                        !- Search Path 2
     ,                        !- Search Path 3

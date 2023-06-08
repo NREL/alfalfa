@@ -82,16 +82,16 @@ class PrepareIDF < OpenStudio::Ruleset::WorkspaceUserScript
     # modify python plugin search paths
     workspace.getObjectsByType('PythonPlugin_SearchPaths'.to_IddObjectType).each do |o|
       if (RUBY_PLATFORM =~ /linux/) != nil
-        o.setString(3,'/usr/local/lib/python3.7/dist-packages')
-        o.setString(4,'/usr/local/EnergyPlus-9-6-0')
+        o.setString(4,'/usr/local/lib/python3.7/dist-packages')
+        o.setString(5,'/usr/local/EnergyPlus-9-6-0')
       elsif (RUBY_PLATFORM =~ /darwin/) != nil
-        o.setString(3,'/usr/local/lib/python3.8/site-packages')
-        o.setString(4,'/Applications/EnergyPlus-9-6-0')
+        o.setString(4,'/usr/local/lib/python3.8/site-packages')
+        o.setString(5,'/Applications/EnergyPlus-9-6-0')
       elsif (RUBY_PLATFORM =~ /cygwin|mswin|mingw|bccwin|wince|emx/) != nil
-        o.setString(3,"#{ENV['USERPROFILE']}/AppData/Local/Programs/Python/Python37/Lib/site-packages")
-        o.setString(4,'C:/EnergyPlusV9-6-0')
+        o.setString(4,"#{ENV['USERPROFILE']}/AppData/Local/Programs/Python/Python37/Lib/site-packages")
+        o.setString(5,'C:/EnergyPlusV9-6-0')
       end
-      runner.workflow.absoluteFilePaths.each {|p| o.setString(5,p.to_s) if p.to_s.include?('python')}
+      runner.workflow.absoluteFilePaths.each {|p| o.setString(6,p.to_s) if p.to_s.include?('python')}
     end
   end
 
