@@ -103,12 +103,15 @@ export const Sites = () => {
       });
   };
 
-  const handleDownloadSite = () => {
-    selectedSites()
+  const handleDownloadSite = async () => {
+    const ids = selectedSites()
       .filter(({ status }) => validStates.download.includes(status))
-      .map(({ id }) => {
-        window.open(`/api/v2/sites/${id}/download`);
-      });
+      .map(({ id }) => id);
+
+    for (const id of ids) {
+      location.href = `/api/v2/sites/${id}/download`;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
   };
 
   if (loading) return null;
