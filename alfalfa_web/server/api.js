@@ -21,6 +21,7 @@ class AlfalfaAPI {
 
     this.redis = redis;
     this.pub = redis.duplicate();
+    this.pub.connect();
 
     const credentials = fromEnv();
     const region = process.env.REGION || "us-east-1";
@@ -86,6 +87,21 @@ class AlfalfaAPI {
       console.error(e);
       return Promise.reject();
     }
+  };
+
+  getSiteDownloadPath = async (siteRef) => {
+    const signedURL = await getSignedUrl(
+      this.s3,
+      new GetObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: `run/${siteRef}.tar.gz`,
+        ResponseContentDisposition: `attachment; filename="${siteRef}.tar.gz"`
+      }),
+      {
+        expiresIn: 86400
+      }
+    );
+    return signedURL;
   };
 
   getSiteTime = async (siteRef) => {
@@ -240,16 +256,16 @@ class AlfalfaAPI {
   };
 
   sendRunMessage = (siteRef, method, data = null, timeout = 6000, pollingInterval = 100) => {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       const message_id = uuidv1();
-      this.pub.publish(siteRef, JSON.stringify({ message_id: message_id, method: method, data: data }));
+      await this.pub.publish(siteRef, JSON.stringify({ message_id, method, data }));
       const send_time = Date.now();
 
       let interval;
 
       const finalize = (success, message = "") => {
         clearInterval(interval);
-        resolve({ status: success, message: message });
+        resolve({ status: success, message });
       };
 
       interval = setInterval(async () => {

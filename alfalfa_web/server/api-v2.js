@@ -698,6 +698,51 @@ router.post("/sites/:siteId/stop", (req, res) => {
 
 /**
  * @openapi
+ * /sites/{siteId}/download:
+ *   get:
+ *     operationId: Download site
+ *     description: Download site by redirecting to the S3 tarball url
+ *     tags:
+ *       - Site
+ *     parameters:
+ *       - $ref: '#/components/parameters/SiteID'
+ *     responses:
+ *       302:
+ *         description: Download response
+ *         headers:
+ *           Location:
+ *             schema:
+ *               type: string
+ *               format: url
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+router.get("/sites/:siteId/download", (req, res) => {
+  const { siteId } = req.params;
+
+  const error = validate(
+    { siteId },
+    {
+      siteId: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+
+  api
+    .getSiteDownloadPath(siteId)
+    .then((url) => {
+      res.redirect(url);
+    })
+    .catch(() => {
+      res.sendStatus(500);
+    });
+});
+
+/**
+ * @openapi
  * /aliases:
  *   get:
  *     operationId: List aliases
