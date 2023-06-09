@@ -89,6 +89,21 @@ class AlfalfaAPI {
     }
   };
 
+  getSiteDownloadPath = async (siteRef) => {
+    const signedURL = await getSignedUrl(
+      this.s3,
+      new GetObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: `run/${siteRef}.tar.gz`,
+        ResponseContentDisposition: `attachment; filename="${siteRef}.tar.gz"`
+      }),
+      {
+        expiresIn: 86400
+      }
+    );
+    return signedURL;
+  };
+
   getSiteTime = async (siteRef) => {
     try {
       return await getHashValue(this.redis, siteRef, "sim_time");
