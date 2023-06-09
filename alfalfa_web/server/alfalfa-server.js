@@ -460,14 +460,8 @@ class AlfalfaServer extends HServer {
         );
       } else {
         array = new Array(NUM_LEVELS).fill("");
-        await new Promise((resolve, reject) => {
-          const key = getPointKey(siteRef, id);
-          this.redis.rpush(key, array, (err, result) => {
-            if (err) return reject(err);
-            if (result === NUM_LEVELS) return resolve();
-            else return reject(`Unexpected RPUSH result: ${result}`);
-          });
-        });
+        const key = getPointKey(siteRef, id);
+        await this.redis.rPush(key, array);
 
         await this.mrecs.updateOne(
           { ref_id: id },
