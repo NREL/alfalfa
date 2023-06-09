@@ -1,31 +1,16 @@
 // Delete multiple redis keys
 function del(client, keys) {
-  return new Promise((resolve, reject) => {
-    client.del(keys, (err, result) => {
-      if (err) return reject(err);
-      return resolve(result);
-    });
-  });
+  return client.del(keys);
 }
 
 // Return the value of a specific property from a redis hash
 function getHashValue(client, key, prop) {
-  return new Promise((resolve, reject) => {
-    client.hget(key, prop, (err, result) => (err ? reject(err) : resolve(result)));
-  });
-}
-
-function setHashValue(client, key, prop, value) {
-  return new Promise((resolve, reject) => {
-    client.hset(key, prop, value, (err, result) => (err ? reject(err) : resolve(result)));
-  });
+  return client.hGet(key, prop);
 }
 
 // Return all properties from a redis hash
 function getHash(client, key) {
-  return new Promise((resolve, reject) => {
-    client.hgetall(key, (err, result) => (err ? reject(err) : resolve(result)));
-  });
+  return client.hGetAll(key);
 }
 
 // Given a siteRef and pointId return the redis key
@@ -39,20 +24,12 @@ function mapRedisArray(array) {
 }
 
 // Find all redis keys matching a wildcard pattern
-function scan(client, pattern, cursor = "0", keys = []) {
-  return new Promise((resolve, reject) => {
-    client.scan(cursor, "MATCH", pattern, "COUNT", "10", async (err, result) => {
-      if (err) return reject(err);
-      cursor = result[0];
-      keys = keys.concat(result[1]);
-
-      if (cursor === "0") {
-        return resolve(keys.sort());
-      }
-      keys = await scan(client, pattern, cursor, keys);
-      return resolve(keys);
-    });
-  });
+async function scan(client, pattern) {
+  const keys = [];
+  for await (const key of client.scanIterator({ MATCH: pattern, COUNT: 100 })) {
+    keys.push(key);
+  }
+  return keys;
 }
 
 function mapHaystack(obj) {
@@ -91,6 +68,5 @@ module.exports = {
   mapRedisArray,
   reduceById,
   reduceByRefId,
-  scan,
-  setHashValue
+  scan
 };
