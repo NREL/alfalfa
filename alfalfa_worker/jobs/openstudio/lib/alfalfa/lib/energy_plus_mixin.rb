@@ -76,11 +76,15 @@ module OpenStudio
         input
       end
 
-      def create_enabled_input(name, variable_name)
-        # Create enabled input to actuate an EMS variable
+      def create_enabled_input(name, variable_name, default="Null")
+        # Create enabled input to actuate an EMS variable.
+        # This method creates an external variable with the specified name
+        # and an EMS program to copy the value to the specified variable if enabled
+        # or the default value otherwise
         #
         # @param [String] name Name of input to create
         # @param [String] variable_name EMS name of variable to control
+        # @param [String] default Value to have when not enabled. Default to null for actuator control
         #
         # @return [Input]
         program_name = create_ems_str("#{name}_program")
@@ -93,7 +97,7 @@ module OpenStudio
           IF #{enable_name},
           SET #{variable_name} = #{name},
           ELSE,
-          SET #{variable_name} = Null,
+          SET #{variable_name} = #{default},
           ENDIF;
           "
         new_program_object = OpenStudio::IdfObject.load(new_program_string).get
