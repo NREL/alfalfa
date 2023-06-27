@@ -23,7 +23,7 @@ RUN poetry install --only main
 ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
 
 COPY ./alfalfa_worker /alfalfa/alfalfa_worker
-RUN cd alfalfa_worker/jobs/openstudio/lib/alfalfa \
+RUN cd alfalfa_worker/jobs/openstudio/lib/alfalfa-lib-gem \
     && gem build alfalfa.gemspec \
     && gem install ./alfalfa-0.0.0.gem
 COPY ./deploy /alfalfa/deploy
