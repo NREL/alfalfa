@@ -29,7 +29,7 @@ module OpenStudio
           self.display_name = @object.name.get
         when 'OS:EnergyManagementSystem:OutputVariable'.to_IddObjectType
           @hash['component'] = 'EMS'
-          @hash['variable'] = @object.emsVariableName
+          @hash['variable'] = @object.name.get
           self.display_name = @object.name.get
         else
           raise "#{output_type.valueDescription} is not a valid output type"

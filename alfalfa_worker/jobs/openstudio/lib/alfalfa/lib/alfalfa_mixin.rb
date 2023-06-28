@@ -11,6 +11,13 @@ module OpenStudio
         # Create reports of input and outputs for alfalfa
         # Must be executed at the end of the measure to expose points in alfalfa
 
+        @inputs.each do |input|
+          next if input.echo.nil?
+          next if @outputs.include? input.echo
+
+          @outputs.append(input.echo)
+        end
+
         inputs_dict = {}
         outputs_dict = {}
         @inputs.each do |input|

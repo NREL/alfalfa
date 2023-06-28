@@ -42,7 +42,7 @@ module OpenStudio
         #
         # @return [Input]
         external_variable = OpenStudio::Model::ExternalInterfaceVariable.new(@model, create_ems_str(name), initial_value)
-
+        external_variable.setExportToBCVTB(false)
         Input.new(external_variable)
       end
 
@@ -66,7 +66,7 @@ module OpenStudio
           "SET #{variable_name} = #{name},",
           "ELSE,",
           "SET #{variable_name} = #{default},",
-          "ENDIF;"])
+          "ENDIF"])
         register_program(new_program)
         alfalfa_input.enable_variable = alfalfa_input_enable
         alfalfa_input
@@ -81,16 +81,15 @@ module OpenStudio
         # @param [String] control_type Type of control
         # @param [Boolean] external When true an external interface variable with {name} will be created and returned
         #
-        # @return [ModelObject, (Input, Output)]
+        # @return [ModelObject, Input]
         if external
           actuator_name = create_ems_str("#{name}_actuator")
           actuator_object = create_actuator(actuator_name, component, component_type, control_type)
           input = create_enabled_input(name, actuator_name)
           input.actuator = actuator_object
-          echo_name = create_ems_str("#{actuator_name}_echo")
-          output = create_ems_output_variable(echo_name, actuator_name)
+          output = create_ems_output_variable(actuator_object)
           input.echo = output
-          return input, output
+          return input
         else
           OpenStudio::Model::EnergyManagementSystemActuator.new(component, component_type, control_type)
         end

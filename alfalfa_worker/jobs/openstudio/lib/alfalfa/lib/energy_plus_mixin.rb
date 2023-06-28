@@ -116,7 +116,7 @@ module OpenStudio
         # @param [String] control_type Type of control
         # @param [Boolean] external When true an external interface variable with {name} will be created and returned
         #
-        # @return [IdfObject, (Input, Output)]
+        # @return [IdfObject, Input]
         if external
           actuator_name = create_ems_str("#{name}_actuator")
           actuator_object = create_actuator(actuator_name, component, component_type, control_type)
@@ -125,7 +125,7 @@ module OpenStudio
           echo_name = create_ems_str("#{actuator_name}_echo")
           output = create_ems_output_variable(echo_name, actuator_name)
           input.echo = output
-          return input, output
+          return input
         else
           new_actuator_string = "
           EnergyManagementSystem:Actuator,

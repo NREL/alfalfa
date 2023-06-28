@@ -42,6 +42,7 @@ module OpenStudio
         actuator_type = get_idd_type(actuator_object)
 
         actuator_types = ['ExternalInterface:Actuator'.to_IddObjectType,
+                          'OS:EnergyManagementSystem:Actuator'.to_IddObjectType,
                           'EnergyManagementSystem:Actuator'.to_IddObjectType]
 
         raise "#{actuator_type.valueDescription} is not a valid actuator type" unless actuator_types.include? actuator_type
