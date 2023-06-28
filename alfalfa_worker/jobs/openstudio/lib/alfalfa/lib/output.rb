@@ -4,11 +4,11 @@ require_relative 'utils'
 require_relative 'point'
 module OpenStudio
   module Alfalfa
+    ##
+    # Output
+    #
+    # Class which represents an Output point to Alfalfa
     class Output < Point
-      ##
-      # Output
-      #
-      # Class which represents an Output point to Alfalfa
       include OpenStudio::Alfalfa::Utils
       def initialize(output_object)
         super(output_object)

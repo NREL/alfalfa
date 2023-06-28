@@ -3,11 +3,11 @@ require_relative 'utils'
 require_relative 'point'
 module OpenStudio
   module Alfalfa
+    ##
+    # Input
+    #
+    # Class which represents an Input point to Alfalfa
     class Input < Point
-      ##
-      # Input
-      #
-      # Class which represents an Input point to Alfalfa
       include OpenStudio::Alfalfa::Utils
       attr_reader :input_object
 
@@ -45,7 +45,9 @@ module OpenStudio
                           'OS:EnergyManagementSystem:Actuator'.to_IddObjectType,
                           'EnergyManagementSystem:Actuator'.to_IddObjectType]
 
-        raise "#{actuator_type.valueDescription} is not a valid actuator type" unless actuator_types.include? actuator_type
+        unless actuator_types.include? actuator_type
+          raise "#{actuator_type.valueDescription} is not a valid actuator type"
+        end
 
         @hash['actuated_component'] = actuator_object.getString(1).get
         @hash['actuated_component_type'] = actuator_object.getString(2).get
@@ -59,7 +61,9 @@ module OpenStudio
         enable_variable_types = ['ExternalInterface:Variable'.to_IddObjectType,
                                  'OS:ExternalInterface:Variable'.to_IddObjectType]
 
-        raise "#{enable_variable_type.valueDescription} is an invalid enable variable type" unless enable_variable_types.include? enable_variable_type
+        unless enable_variable_types.include? enable_variable_type
+          raise "#{enable_variable_type.valueDescription} is an invalid enable variable type"
+        end
 
         @hash['enable_variable'] = enable_variable.name.get
       end
