@@ -23,6 +23,9 @@ RUN poetry install --only main
 ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
 
 COPY ./alfalfa_worker /alfalfa/alfalfa_worker
+RUN cd alfalfa_worker/jobs/openstudio/lib/alfalfa-lib-gem \
+    && gem build alfalfa-lib-gem.gemspec \
+    && gem install ./alfalfa-lib-0.0.0.gem
 COPY ./deploy /alfalfa/deploy
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 

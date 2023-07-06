@@ -102,7 +102,7 @@ services:
       - redis
   mongo:
     container_name: alfalfa_mongo
-    image: mongo:5.0.14
+    image: mongo:6.0.6
     ports:
       - "27017:27017"
   redis:

@@ -17,7 +17,8 @@ export const Sites = () => {
   const validStates = {
     start: ["ready"],
     stop: ["preprocessing", "starting", "started", "running", "stopping"],
-    remove: ["ready", "complete", "error"]
+    remove: ["ready", "complete", "error"],
+    download: ["ready", "complete", "error"]
   };
 
   const fetchSites = async () => {
@@ -52,6 +53,10 @@ export const Sites = () => {
 
   const isRemoveButtonDisabled = () => {
     return !selectedSites().some(({ status }) => validStates.remove.includes(status));
+  };
+
+  const isDownloadButtonDisabled = () => {
+    return !selectedSites().some(({ status }) => validStates.download.includes(status));
   };
 
   const handleOpenErrorDialog = (event, site) => {
@@ -96,6 +101,17 @@ export const Sites = () => {
       .map(async ({ id }) => {
         await ky.delete(`/api/v2/sites/${id}`).json();
       });
+  };
+
+  const handleDownloadSite = async () => {
+    const ids = selectedSites()
+      .filter(({ status }) => validStates.download.includes(status))
+      .map(({ id }) => id);
+
+    for (const id of ids) {
+      location.href = `/api/v2/sites/${id}/download`;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
   };
 
   if (loading) return null;
@@ -175,6 +191,15 @@ export const Sites = () => {
           <Grid item>
             <Button variant="contained" disabled={isRemoveButtonDisabled()} onClick={handleRemoveSite} sx={{ m: 1 }}>
               Remove Test Case
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              disabled={isDownloadButtonDisabled()}
+              onClick={handleDownloadSite}
+              sx={{ m: 1 }}>
+              Download Site
             </Button>
           </Grid>
         </Grid>
