@@ -24,7 +24,7 @@ mongoengine = "~0.25"
 pandas = "~1.5"
 pymongo = "~4.3"
 redis = "~3.5"
-requests = "2.28.1"
+requests = "2.31.0"
 scipy = "1.9.3"
 symfit = "^0.5.5"
 
