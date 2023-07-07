@@ -22,8 +22,8 @@ module OpenStudio
 
       # Create Output Variable
       #
-      # @param[String] key Key of Output Variable
-      # @param[String] var Variable of Output Variable
+      # @param [String] key Key of Output Variable
+      # @param [String] var Variable of Output Variable
       #
       # @return [Output]
       def create_output_variable(key, var)
@@ -38,9 +38,9 @@ module OpenStudio
 
       # Create EMS Output Variable
       #
-      # @param[String] name Name of EMS Output Variable to create
-      # @param[String] variable EMS name of variable to connect to Output Variable
-      # @param[String] unit Unit of output
+      # @param [String] name Name of EMS Output Variable to create
+      # @param [String] variable EMS name of variable to connect to Output Variable
+      # @param [String] unit Unit of output
       #
       # @return [Output]
       def create_ems_output_variable(name, variable, unit = 'C')
