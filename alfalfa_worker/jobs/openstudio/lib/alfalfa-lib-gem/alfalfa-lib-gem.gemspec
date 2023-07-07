@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'alfalfa'
+  spec.name          = 'alfalfa-lib'
   spec.version       = OpenStudio::Alfalfa::VERSION
   spec.authors       = ['Tobias Shapinsky']
   spec.email         = ['tobias.shapinsky@nrel.gov']

@@ -37,7 +37,10 @@ export const Sims = () => {
 
   const handleDownload = async () => {
     for (const { url } of selectedSims()) {
-      if (url) location.href = url;
+      if (url) {
+        location.href = url;
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
     }
   };
 
