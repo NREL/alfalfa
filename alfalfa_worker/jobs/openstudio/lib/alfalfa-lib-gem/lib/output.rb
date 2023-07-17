@@ -4,11 +4,11 @@ require_relative 'utils'
 require_relative 'point'
 module OpenStudio
   module Alfalfa
+    ##
+    # Output
+    #
+    # Class which represents an Output point to Alfalfa
     class Output < Point
-      ##
-      # Output
-      #
-      # Class which represents an Output point to Alfalfa
       include OpenStudio::Alfalfa::Utils
       def initialize(output_object)
         super(output_object)
@@ -29,7 +29,7 @@ module OpenStudio
           self.display_name = @object.name.get
         when 'OS:EnergyManagementSystem:OutputVariable'.to_IddObjectType
           @hash['component'] = 'EMS'
-          @hash['variable'] = @object.emsVariableName
+          @hash['variable'] = @object.name.get
           self.display_name = @object.name.get
         else
           raise "#{output_type.valueDescription} is not a valid output type"
