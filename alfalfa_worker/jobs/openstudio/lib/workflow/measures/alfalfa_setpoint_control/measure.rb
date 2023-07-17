@@ -28,7 +28,7 @@ class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
 
   def create_schedule_actuator(target_schedule)
     schedule_name = target_schedule.name.get
-    actuator_input, _ = create_actuator(create_ems_str("#{schedule_name}_setpoint"), schedule_name, target_schedule.idfObject.iddObject.type.valueDescription, "Schedule Value", true)
+    actuator_input = create_actuator(create_ems_str("#{schedule_name}_setpoint"), schedule_name, target_schedule.idfObject.iddObject.type.valueDescription, "Schedule Value", true)
     schedule_value_output = create_output_variable(schedule_name, "Schedule Value")
     actuator_input.echo = schedule_value_output
     return actuator_input, schedule_value_output
