@@ -22,22 +22,13 @@ importlib-metadata = "~6.0"
 mlep = "0.1.1.dev3"
 mongoengine = "~0.25"
 pandas = "~1.5"
-pymongo = "~4.3"
 redis = "~4.5"
-requests = "2.28.1"
 scipy = "1.9.3"
 symfit = "^0.5.5"
-
-# These dependency versions are required to build
-# Assimulo and PyFMI. Also needed for symfit (used in E+ Python)
-Cython = "0.29.28"
-numpy = "1.24.1"
-setuptools = "65.5.1"
 
 # These libraries are used for the data generator/testcase.
 # Lock to pillow 9.1.1 to avoid installation issues with Pillow 9.2 on Ubuntu
 matplotlib = "3.6.2"
-pillow = "9.1.1"
 
 # The influxdb dependency will be removed once filebeat is configured
 influxdb = "^5.3.1"
