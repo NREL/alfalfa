@@ -1,6 +1,6 @@
 {
   "name": "alfalfa_web",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "A Haystack implementation",
   "scripts": {
     "build": "run-s clean && run-p build-app build-docs build-server",
