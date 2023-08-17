@@ -28,6 +28,7 @@ module OpenStudio
       # @return [String]
       def create_ems_str(id)
         id = id.gsub(/[\s-]/, '_')
+        id = id.gsub(/[^\w]/, '_')
         id = "_#{id}" if (id =~ /[0-9].*/) == 0
         id
       end
