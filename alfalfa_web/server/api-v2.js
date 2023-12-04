@@ -39,15 +39,15 @@ router.get(/\/$/, (req, res) => {
 
 /**
  * @openapi
- * /sites:
+ * /runs:
  *   get:
- *     operationId: List sites
- *     description: Return list of sites
+ *     operationId: List runs
+ *     description: Return list of runs
  *     tags:
- *       - Site
+ *       - Run
  *     responses:
  *       200:
- *         description: Sites response
+ *         description: Runs response
  *         content:
  *           application/json:
  *             schema:
@@ -76,7 +76,7 @@ router.get(/\/$/, (req, res) => {
  *                   uploadPath: uploads/82ae8d50-f837-11ec-bda1-355419177ef9/refrig_case_osw_2.zip
  *                   errorLog: ''
  */
-router.get("/sites", async (req, res) => {
+router.get("/runs", async (req, res) => {
   api
     .listSites()
     .then((data) => res.json({ data }))
@@ -85,17 +85,17 @@ router.get("/sites", async (req, res) => {
 
 /**
  * @openapi
- * /sites/{siteId}:
+ * /runs/{runId}:
  *   get:
- *     operationId: Get site
- *     description: Lookup a site by id
+ *     operationId: Get run
+ *     description: Lookup a run by id
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
  *       - $ref: '#/components/parameters/SiteID'
  *     responses:
  *       200:
- *         description: Site response
+ *         description: Run response
  *         content:
  *           application/json:
  *             schema:
@@ -110,31 +110,31 @@ router.get("/sites", async (req, res) => {
  *                 uploadTimestamp: 2022-06-30T05:43:06.885Z
  *                 uploadPath: uploads/4b8c6b40-f818-11ec-a8bd-75570e3e3a28/refrig_case_osw.zip
  *       404:
- *         description: Site ID does not exist
+ *         description: Run ID does not exist
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/sites/:siteId", async (req, res) => {
-  const { siteId } = req.params;
+router.get("/runs/:runId", async (req, res) => {
+  const { runId } = req.params;
 
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   api
-    .findSite(siteId)
+    .findSite(runId)
     .then((data) => {
       if (data) {
-        return res.json({ data });
+        return res.json(data);
       } else {
         return res.status(404).json({
-          error: `Site ID '${siteId}' does not exist`
+          error: `Site ID '${runId}' does not exist`
         });
       }
     })
@@ -143,14 +143,14 @@ router.get("/sites/:siteId", async (req, res) => {
 
 /**
  * @openapi
- * /sites/{siteId}/time:
+ * /runs/{runId}/time:
  *   get:
  *     operationId: Get simulation time
  *     description: Return the current time of the simulation if it has been started
  *     tags:
- *       - Simulation
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/runId'
  *     responses:
  *       200:
  *         description: Time response
@@ -164,84 +164,61 @@ router.get("/sites/:siteId", async (req, res) => {
  *             example:
  *               time: 2022-06-15 00:00:00
  */
-router.get("/sites/:siteId/time", async (req, res) => {
-  const { siteId } = req.params;
+router.get("/runs/:runId/time", async (req, res) => {
+  const { runId } = req.params;
 
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   api
-    .getSiteTime(siteId)
+    .getSiteTime(runId)
     .then((time) => res.json({ time }))
     .catch(() => res.sendStatus(500));
 });
 
 /**
  * @openapi
- * /sites/{siteId}/points:
+ * /runs/{runId}/points:
  *   get:
- *     operationId: List points
- *     description: Return list of points for a site
+ *     summary: Get the metadata for all points of an associated run
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/runId'
  *     responses:
- *       200:
- *         description: Points response
+ *       '200':
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Point'
- *             example:
- *               data:
- *                 - id: c5bfacf7-bd44-4061-a44c-940bb71ba91f
- *                   name: CaseDefrostStatus
- *                   type: BIDIRECTIONAL
- *                   value: 0
- *                 - id: a26d37f8-b479-46d2-8b0f-7e686be22223
- *                   name: MasterEnable
- *                   type: INPUT
- *                 - id: 8ed24c59-858d-48e8-ac4b-24b7bb688797
- *                   name: Case Compressor Power 2
- *                   type: OUTPUT
- *                   value: 209.7981895033449
- *       404:
- *         description: Site ID does not exist
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/pointMetadata'
  */
-router.get("/sites/:siteId/points", (req, res) => {
-  const { siteId } = req.params;
+router.get("/runs/:runId/points", (req, res) => {
+  const { runId } = req.params;
 
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   api
-    .listPoints(siteId, undefined, true)
+    .listPoints(runId, undefined, false)
     .then((data) => {
       if (data) {
-        return res.json({ data });
+        return res.json(data);
       } else {
         return res.status(404).json({
-          error: `Site ID '${siteId}' does not exist`
+          error: `Run ID '${runId}' does not exist`
         });
       }
     })
@@ -250,166 +227,245 @@ router.get("/sites/:siteId/points", (req, res) => {
 
 /**
  * @openapi
- * /sites/{siteId}/points/inputs:
- *   get:
- *     operationId: List input points
- *     description: Return list of input and bidirectional points for a site, bidirectional values are excluded
+ * /runs/{runId}/points:
+ *   post:
+ *     summary: Get metadata for specific points
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
- *     responses:
- *       200:
- *         description: Points response
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Point'
- *             example:
- *               data:
- *                 - id: c5bfacf7-bd44-4061-a44c-940bb71ba91f
- *                   name: CaseDefrostStatus
- *                   type: BIDIRECTIONAL
- *                 - id: a26d37f8-b479-46d2-8b0f-7e686be22223
- *                   name: MasterEnable
- *                   type: INPUT
- */
-router.get("/sites/:siteId/points/inputs", (req, res) => {
-  const { siteId } = req.params;
-
-  const error = validate(
-    { siteId },
-    {
-      siteId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
-  api
-    .listPoints(siteId, /^(INPUT|BIDIRECTIONAL)$/)
-    .then((data) => res.json({ data }))
-    .catch(() => res.sendStatus(500));
-});
-
-/**
- * @openapi
- * /sites/{siteId}/points/outputs:
- *   get:
- *     operationId: List output points
- *     description: Return list of output and bidirectional points for a site
- *     tags:
- *       - Site
- *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
- *     responses:
- *       200:
- *         description: Points response
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Point'
- *             example:
- *               data:
- *                 - id: c5bfacf7-bd44-4061-a44c-940bb71ba91f
- *                   name: CaseDefrostStatus
- *                   type: BIDIRECTIONAL
- *                   value: 0
- *                 - id: 8ed24c59-858d-48e8-ac4b-24b7bb688797
- *                   name: Case Compressor Power 2
- *                   type: OUTPUT
- *                   value: 209.7981895033449
- */
-router.get("/sites/:siteId/points/outputs", (req, res) => {
-  const { siteId } = req.params;
-
-  const error = validate(
-    { siteId },
-    {
-      siteId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
-  api
-    .listPoints(siteId, /^(OUTPUT|BIDIRECTIONAL)$/, true)
-    .then((data) => res.json({ data }))
-    .catch(() => res.sendStatus(500));
-});
-
-/**
- * @openapi
- * /sites/{siteId}/points/inputs:
- *   put:
- *     operationId: Update input points
- *     description: Set the write array values for multiple input and bidirectional points for a site given point ids or names
- *     tags:
- *       - Site
- *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/runId'
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               points:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       format: uuid
- *                     name:
- *                       type: string
- *                       example: HVACFanOnOff
- *                     value:
- *                       type: number
- *                       format: float
- *                       example: 0
- *                   anyOf:
- *                     - required:
- *                       - id
- *                       - value
- *                     - required:
- *                       - name
- *                       - value
+ *             oneOf:
+ *             - type: object
+ *               properties:
+ *                 points:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/pointId'
+ *             - type: object
+ *               properties:
+ *                 pointTypes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/pointType'
+ *           examples:
+ *             Points:
+ *               value:
+ *                 points:
+ *                 - 7cf4afb6-9c15-431f-9f50-11bca0870f77
+ *                 - Outdoor Air Temperature Sensor
+ *             Point Types:
+ *               value:
+ *                 pointTypes:
+ *                 - 'output'
  *     responses:
- *       204:
- *         description: The point write arrays were successfully updated
+ *       200:
+ *         description: 'OK'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/pointMetadata'
  */
-router.put("/sites/:siteId/points/inputs", async (req, res) => {
-  const { siteId } = req.params;
+router.post("/runs/:runId/points", (req, res) => {
+  const { runId } = req.params;
+  const { points, pointTypes } = req.body;
+
+  const error = validate(
+    { runId },
+    {
+      runId: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+
+  const query = {};
+  if (points) {
+    query.ref_id = new RegExp(`^${points.join("|")}$`);
+  } else if (pointTypes) {
+    query.point_type = new RegExp(`^${pointTypes.join("|")}$`);
+  }
+  api
+    .listPoints(runId, query)
+    .then((data) => res.json(data))
+    .catch(() => res.sendStatus(500));
+});
+
+/**
+ * @openapi
+ * /runs/{runId}/points/values:
+ *   get:
+ *     summary: Get values for all points
+ *     tags:
+ *       - Run
+ *     parameters:
+ *       - $ref: '#/components/parameters/runId'
+ *     responses:
+ *       200:
+ *         description: 'OK'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/pointValue'
+ */
+router.get("/runs/:runId/points/values", (req, res) => {
+  const { runId } = req.params;
+
+  const error = validate(
+    { runId },
+    {
+      runId: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+
+  api
+    .listPoints(runId, undefined, true)
+    .then((data) => {
+      if (data) {
+        return res.json({ data });
+      } else {
+        return res.status(404).json({
+          error: `Run ID '${siteId}' does not exist`
+        });
+      }
+    })
+    .catch(() => res.sendStatus(500));
+});
+
+/**
+ * @openapi
+ * /runs/{runId}/points/values:
+ *   post:
+ *     summary: Get values for specific points
+ *     tags:
+ *       - Run
+ *     parameters:
+ *       - $ref: '#/components/parameters/runId'
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             oneOf:
+ *             - type: object
+ *               properties:
+ *                 points:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/pointId'
+ *             - type: object
+ *               properties:
+ *                 pointTypes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/pointType'
+ *           examples:
+ *             Points:
+ *               value:
+ *                 points:
+ *                 - 7cf4afb6-9c15-431f-9f50-11bca0870f77
+ *                 - Outdoor Air Temperature Sensor
+ *             Point Types:
+ *               value:
+ *                 pointTypes:
+ *                 - 'output'
+ *     responses:
+ *       200:
+ *         description: 'OK'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/pointValue'
+ */
+router.post("/runs/:runId/points/values", (req, res) => {
+  const { runId } = req.params;
+  const { points, pointTypes } = req.body;
+
+  const error = validate(
+    { runId },
+    {
+      runId: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+
+  const query = {};
+  if (points) {
+    query.ref_id = new RegExp(`^${points.join("|")}$`);
+  } else if (pointTypes) {
+    query.point_type = new RegExp(`^${pointTypes.join("|")}$`);
+  }
+  api
+    .listPoints(runId, query, true)
+    .then((data) => res.json(data))
+    .catch(() => res.sendStatus(500));
+});
+
+/**
+ * @openapi
+ * /runs/{runId}/points/values:
+ *   put:
+ *     summary: Put new values to specified points
+ *     tags:
+ *       - points
+ *       - runs
+ *     parameters:
+ *       - $ref: 'components.yml#/components/parameters/runId'
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: 'components.yml#/components/schemas/pointValue'
+ *           example:
+ *             - id: 7cf4afb6-9c15-431f-9f50-11bca0870f77
+ *               value: 7.0
+ *             - id: 76d43bc5-9c56-48a8-b9e5-61a651b8dee4
+ *               value: 12.6
+ *             - id: 58b717ad-20a7-4cc6-89f1-f99b1938b0ef
+ *               value: 0.5
+ *     responses:
+ *       200:
+ *         description: 'Points successfully updated'
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ */
+router.put("/runs/:runId/points/values", async (req, res) => {
+  const { runId } = req.params;
   const { points } = req.body;
 
-  // TODO validate points input
-  // TODO Validate all point ids/names for existence, ensure that at least one of id/name is present
-  // TODO Confirm that points aren't OUTPUT types
+  console.log(points);
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   try {
-    for (const point of points) {
-      if (point.name && !point.id) {
-        point.id = await api.pointIdFromName(siteId, point.name);
-      }
-      await api.writeInputPoint(siteId, point.id, point.value);
-    }
+    const promises = points.map((point) => {
+      return api.writeInputPoint(runId, point.id, point.value);
+    });
+    await Promise.all(promises);
     res.sendStatus(204);
   } catch (e) {
     console.error(e);
@@ -419,39 +475,68 @@ router.put("/sites/:siteId/points/inputs", async (req, res) => {
 
 /**
  * @openapi
- * /sites/{siteId}/points/{pointId}:
- *   put:
- *     operationId: Update input point
- *     description: Set the write array value for an input or bidirectional point for a site
+ * /runs/{runId}/points/{pointId}:
+ *   get:
+ *     summary: Get data for point of a given ID
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
- *       - $ref: '#/components/parameters/PointID'
+ *       - $ref: '#/components/parameters/runId'
+ *       - $ref: '#/components/parameters/pointId'
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/pointData'
+ */
+router.get("/runs/:runId/points/:pointId", (req, res) => {
+  const { runId, pointId } = req.params;
+
+  const error = validate(
+    { runId, pointId },
+    {
+      runId: "required|uuid",
+      pointId: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+
+  const query = { ref_id: new RegExp(`^${pointId}$`) };
+  api
+    .listPoints(runId, query, true)
+    .then((data) => res.json(data[0]))
+    .catch(() => res.sendStatus(500));
+});
+
+/**
+ * @openapi
+ * /runs/{runId}/points/{pointId}:
+ *   put:
+ *     summary: Set value for point of given ID
+ *     tags:
+ *       - Run
+ *     parameters:
+ *       - $ref: '#/components/parameters/runId'
+ *       - $ref: '#/components/parameters/pointId'
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               value:
- *                 type: number
- *                 format: float
- *                 example: 0
- *             required:
- *               - value
+ *             $ref: '#/components/schemas/pointValue'
  *     responses:
  *       204:
- *         description: The point write array was successfully updated
+ *         description: The point was successfully updated
  */
-router.put("/sites/:siteId/points/:pointId", (req, res) => {
-  const { siteId, pointId } = req.params;
+router.put("/runs/:runId/points/:pointId", (req, res) => {
+  const { runId, pointId } = req.params;
   const { value } = req.body;
 
   // TODO validate point for existence
   // TODO Confirm that point isn't an OUTPUT type
   const error = validate(
-    { siteId, pointId, value },
+    { runId, pointId, value },
     {
       siteId: "required|uuid",
       pointId: "required|uuid",
@@ -461,49 +546,49 @@ router.put("/sites/:siteId/points/:pointId", (req, res) => {
   if (error) return res.status(400).json({ error });
 
   api
-    .writeInputPoint(siteId, pointId, value)
+    .writeInputPoint(runId, pointId, value)
     .then(() => res.sendStatus(204))
     .catch(() => res.sendStatus(500));
 });
 
 /**
  * @openapi
- * /sites/{siteId}:
+ * /runs/{runId}:
  *   delete:
- *     operationId: Delete site
+ *     operationId: Delete run
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/runId'
  *     responses:
  *       204:
- *         description: The site was deleted successfully
+ *         description: The run was deleted successfully
  *       404:
- *         description: Site ID does not exist
+ *         description: Run ID does not exist
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete("/sites/:siteId", (req, res) => {
-  const { siteId } = req.params;
+router.delete("/runs/:runId", (req, res) => {
+  const { runId } = req.params;
 
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   api
-    .removeSite(siteId)
+    .removeSite(runId)
     .then((data) => {
       if (data) {
         return res.sendStatus(204);
       } else {
         return res.status(404).json({
-          error: `Site ID '${siteId}' does not exist`
+          error: `Run ID '${runId}' does not exist`
         });
       }
     })
@@ -512,14 +597,14 @@ router.delete("/sites/:siteId", (req, res) => {
 
 /**
  * @openapi
- * /sites/{siteId}/start:
+ * /runs/{runId}/start:
  *   post:
  *     operationId: Start run
- *     description: Start a site run
+ *     description: Start a run
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/runId'
  *     requestBody:
  *       content:
  *         application/json:
@@ -540,7 +625,7 @@ router.delete("/sites/:siteId", (req, res) => {
  *                 example: 5
  *               externalClock:
  *                 type: boolean
- *                 description: The site will only advance when explicitly told to via an external call
+ *                 description: The run will only advance when explicitly told to via an external call
  *                 example: false
  *               realtime:
  *                 type: boolean
@@ -553,21 +638,21 @@ router.delete("/sites/:siteId", (req, res) => {
  *       204:
  *         description: The run was started successfully
  *       404:
- *         description: Site ID does not exist
+ *         description: Run ID does not exist
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/sites/:siteId/start", async (req, res) => {
-  const { siteId } = req.params;
+router.post("/runs/:runId/start", async (req, res) => {
+  const { runId } = req.params;
   const { body } = req;
 
   const timeValidator = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
   const error = validate(
-    { ...body, siteId },
+    { ...body, runId },
     {
-      siteId: "required|uuid",
+      runId: "required|uuid",
       startDatetime: ["required", regex(timeValidator)],
       endDatetime: ["required", regex(timeValidator)],
       timescale: "strict|numeric|min:1",
@@ -591,14 +676,14 @@ router.post("/sites/:siteId/start", async (req, res) => {
     });
   }
 
-  if (!(await api.findSite(siteId))) {
+  if (!(await api.findSite(runId))) {
     return res.status(404).json({
-      error: `Site ID '${siteId}' does not exist`
+      error: `Run ID '${runId}' does not exist`
     });
   }
 
   api
-    .startRun(siteId, body)
+    .startRun(runId, body)
     .then((data) => {
       if (data?.error) return res.status(400).json(data);
       return res.sendStatus(204);
@@ -608,43 +693,43 @@ router.post("/sites/:siteId/start", async (req, res) => {
 
 /**
  * @openapi
- * /sites/{siteId}/advance:
+ * /runs/{runId}/advance:
  *   post:
  *     operationId: Advance run
- *     description: Advances a site run by one minute
+ *     description: Advances a run by one minute
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/runId'
  *     responses:
  *       204:
  *         description: The run was advanced successfully
  *       404:
- *         description: Site ID does not exist
+ *         description: Run ID does not exist
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/sites/:siteId/advance", (req, res) => {
-  const { siteId } = req.params;
+router.post("/runs/:runId/advance", (req, res) => {
+  const { runId } = req.params;
 
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   api
-    .advanceRun(siteId)
+    .advanceRun(runId)
     .then((data) => {
       if (data) {
         return res.sendStatus(204);
       } else {
         return res.status(404).json({
-          error: `Site ID '${siteId}' does not exist`
+          error: `Run ID '${runId}' does not exist`
         });
       }
     })
@@ -653,43 +738,43 @@ router.post("/sites/:siteId/advance", (req, res) => {
 
 /**
  * @openapi
- * /sites/{siteId}/stop:
+ * /runs/{runId}/stop:
  *   post:
  *     operationId: Stop run
- *     description: Stop a site run
+ *     description: Stop a run
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/runId'
  *     responses:
  *       204:
  *         description: The run was stopped successfully
  *       404:
- *         description: Site ID does not exist
+ *         description: Run ID does not exist
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/sites/:siteId/stop", (req, res) => {
-  const { siteId } = req.params;
+router.post("/runs/:runId/stop", (req, res) => {
+  const { runId } = req.params;
 
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   api
-    .stopRun(siteId)
+    .stopRun(runId)
     .then((data) => {
       if (data) {
         return res.sendStatus(204);
       } else {
         return res.status(404).json({
-          error: `Site ID '${siteId}' does not exist`
+          error: `Run ID '${runId}' does not exist`
         });
       }
     })
@@ -698,14 +783,14 @@ router.post("/sites/:siteId/stop", (req, res) => {
 
 /**
  * @openapi
- * /sites/{siteId}/download:
+ * /runs/{runId}/download:
  *   get:
- *     operationId: Download site
- *     description: Download site by redirecting to the S3 tarball url
+ *     operationId: Download run
+ *     description: Download run by redirecting to the S3 tarball url
  *     tags:
- *       - Site
+ *       - Run
  *     parameters:
- *       - $ref: '#/components/parameters/SiteID'
+ *       - $ref: '#/components/parameters/runId'
  *     responses:
  *       302:
  *         description: Download response
@@ -720,19 +805,19 @@ router.post("/sites/:siteId/stop", (req, res) => {
  *               type: string
  *               format: binary
  */
-router.get("/sites/:siteId/download", (req, res) => {
-  const { siteId } = req.params;
+router.get("/runs/:runId/download", (req, res) => {
+  const { runId } = req.params;
 
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   api
-    .getSiteDownloadPath(siteId)
+    .getSiteDownloadPath(runId)
     .then((url) => {
       res.redirect(url);
     })
@@ -775,7 +860,7 @@ router.get("/aliases", (req, res) => {
  * /aliases/{alias}:
  *   get:
  *     operationId: Get alias
- *     description: Lookup the site id of an alias
+ *     description: Lookup the run id of an alias
  *     tags:
  *       - Alias
  *     parameters:
@@ -818,7 +903,7 @@ router.get("/aliases/:alias", (req, res) => {
  * /aliases/{alias}:
  *   put:
  *     operationId: Set alias
- *     description: Create or update an alias to point to a site id
+ *     description: Create or update an alias to point to a run id
  *     tags:
  *       - Alias
  *     parameters:
@@ -827,7 +912,7 @@ router.get("/aliases/:alias", (req, res) => {
  *       204:
  *         description: The alias was set successfully
  *       404:
- *         description: Site ID does not exist
+ *         description: Run ID does not exist
  *         content:
  *           application/json:
  *             schema:
@@ -835,24 +920,24 @@ router.get("/aliases/:alias", (req, res) => {
  */
 router.put("/aliases/:alias", async (req, res) => {
   const { alias } = req.params;
-  const { siteId } = req.body;
+  const { runId } = req.body;
 
   const error = validate(
-    { siteId },
+    { runId },
     {
-      siteId: "required|uuid"
+      runId: "required|uuid"
     }
   );
   if (error) return res.status(400).json({ error });
 
   await api
-    .setAlias(alias, siteId)
+    .setAlias(alias, runId)
     .then((data) => {
       if (data) {
         return res.sendStatus(204);
       } else {
         return res.status(404).json({
-          error: `Site ID '${siteId}' does not exist`
+          error: `Run ID '${runId}' does not exist`
         });
       }
     })

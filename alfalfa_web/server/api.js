@@ -113,14 +113,15 @@ class AlfalfaAPI {
     }
   };
 
-  listPoints = async (siteRef, pointType, getValue = false) => {
+  listPoints = async (siteRef, pointQuery, getValue = false) => {
     try {
       const points = [];
       const run = await this.runs.findOne({ ref_id: siteRef });
       if (run) {
         const query = { run: run._id };
-        if (pointType) query.point_type = pointType;
-        // const myPoints = await this.points.find(query).toArray()
+        if (pointQuery) {
+          Object.assign(query, pointQuery);
+        }
 
         for await (const point of this.points.find(query)) {
           const pointDict = {
