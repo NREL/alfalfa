@@ -22,7 +22,7 @@ export const Sites = () => {
   };
 
   const fetchSites = async () => {
-    const { data: sites } = await ky("/api/v2/sites").json();
+    const { data: sites } = await ky("/api/v2/runs").json();
     setSites(sites);
     setLoading(false);
   };
@@ -109,7 +109,7 @@ export const Sites = () => {
       .map(({ id }) => id);
 
     for (const id of ids) {
-      location.href = `/api/v2/sites/${id}/download`;
+      location.href = `/api/v2/runs/${id}/download`;
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
   };

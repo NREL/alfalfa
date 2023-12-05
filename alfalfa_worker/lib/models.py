@@ -514,6 +514,7 @@ class Run(TimestampedDocument):
 
     # external ID used to track this object
     ref_id = StringField(default=uuid4_str, unique=True)
+    name = StringField(max_length=255)
 
     # The site is required but it only shows up after the haystack points
     # are extracted.

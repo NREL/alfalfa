@@ -61,11 +61,10 @@ class AlfalfaAPI {
       const run = await this.runs.findOne({ ref_id: siteRef });
       if (run) {
         const model = await this.models.findOne({ _id: run.model });
-        let site = await this.sites.findOne({ ref_id: siteRef });
 
         const site_dict = {
           id: siteRef,
-          name: model.model_name,
+          name: run.name,
           status: run.status.toLowerCase(),
           datetime: "",
           simType: run.sim_type,
@@ -73,14 +72,6 @@ class AlfalfaAPI {
           uploadPath: `uploads/${model.ref_id}/${model.model_name}`,
           errorLog: run.error_log
         };
-
-        if (site) {
-          const siteHash = await getHash(this.redis, siteRef);
-          site = mapHaystack(site);
-
-          site_dict.name = site?.dis ?? site_dict.name;
-          site_dict.datetime = siteHash?.sim_time ?? "";
-        }
         return site_dict;
       }
     } catch (e) {
