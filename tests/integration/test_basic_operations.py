@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 
 import pytest
-from alfalfa_client.alfalfa_client import AlfalfaClient, SiteID
+from alfalfa_client.alfalfa_client import AlfalfaClient, RunID
 
 
 @pytest.mark.integration
-def test_simple_internal_clock(alfalfa: AlfalfaClient, ref_id: SiteID):
+def test_simple_internal_clock(alfalfa: AlfalfaClient, ref_id: RunID):
     alfalfa.wait(ref_id, "ready")
 
     end_datetime = datetime(2019, 1, 2, 0, 2, 0)
@@ -24,7 +24,7 @@ def test_simple_internal_clock(alfalfa: AlfalfaClient, ref_id: SiteID):
 
 
 @pytest.mark.integration
-def test_simple_external_clock(alfalfa: AlfalfaClient, ref_id: SiteID):
+def test_simple_external_clock(alfalfa: AlfalfaClient, ref_id: RunID):
     alfalfa.wait(ref_id, "ready")
     start_dt = datetime(2019, 1, 2, 23, 55, 0)
     alfalfa.start(
@@ -55,6 +55,6 @@ def test_simple_external_clock(alfalfa: AlfalfaClient, ref_id: SiteID):
 
 
 @pytest.mark.integration
-def test_alias(alfalfa: AlfalfaClient, ref_id: SiteID):
+def test_alias(alfalfa: AlfalfaClient, ref_id: RunID):
     alfalfa.set_alias("test", ref_id)
     assert alfalfa.get_alias("test") == ref_id
