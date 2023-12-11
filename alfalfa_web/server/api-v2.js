@@ -28,6 +28,17 @@ const validate = (data, rules) => {
   }
 };
 
+const errorHandler = (err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  console.error(err);
+
+  res.status(500);
+  res.json({ error: JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err))) });
+};
+
 router.get("/", (req, res) => {
   res.redirect(301, "/docs");
 });
@@ -76,11 +87,104 @@ router.get(/\/$/, (req, res) => {
  *                   uploadPath: uploads/82ae8d50-f837-11ec-bda1-355419177ef9/refrig_case_osw_2.zip
  *                   errorLog: ''
  */
-router.get("/runs", async (req, res) => {
+router.get("/runs", async (req, res, next) => {
   api
-    .listSites()
-    .then((data) => res.json({ data }))
-    .catch(() => res.sendStatus(500));
+    .listRuns()
+    .then((payload) => res.json({ payload }))
+    .catch((err) => {
+      next(err);
+    });
+});
+
+router.param("runId", (req, res, next, id) => {
+  const error = validate(
+    { id },
+    {
+      id: "required|uuid"
+    }
+  );
+  if (error) {
+    api
+      .getAliasByName(id)
+      .then((alias) => {
+        if (alias != null) {
+          api
+            .getRun(alias.run)
+            .then((run) => {
+              if (run != null) {
+                req.run = run;
+                next();
+              } else {
+                res.status(500).json({ error: `Alias for '${id}' exists but points to a non-existent Run` });
+              }
+            })
+            .catch(next);
+        } else {
+          return res.status(400).json({ error });
+        }
+      })
+      .catch(next);
+  } else {
+    api
+      .getRunById(id)
+      .then((run) => {
+        if (run) {
+          req.run = run;
+          next();
+        } else if (run == null) {
+          res.status(404).json({ error: `Run with id '${id}' does not exist` });
+        } else {
+          res.sendStatus(500);
+        }
+      })
+      .catch(next);
+  }
+});
+
+router.param("pointId", (req, res, next, id) => {
+  const error = validate(
+    { id },
+    {
+      id: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+  api
+    .getPointById(req.run, id)
+    .then((point) => {
+      if (point) {
+        req.point = point;
+        next();
+      } else if (point == null) {
+        res.status(404).json({ error: `Point with id '${id}' does not exist` });
+      } else {
+        res.sendStatus(500);
+      }
+    })
+    .catch(next);
+});
+
+router.param("modelId", (req, res, next, id) => {
+  const error = validate(
+    { id },
+    {
+      id: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+  api
+    .getModelById(id)
+    .then((model) => {
+      if (model) {
+        req.model = model;
+        next();
+      } else if (model == null) {
+        res.status(404).json({ error: `Model with id '${id}' does not exist` });
+      } else {
+        res.sendStatus(500);
+      }
+    })
+    .catch(next);
 });
 
 /**
@@ -116,29 +220,13 @@ router.get("/runs", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/runs/:runId", async (req, res) => {
-  const { runId } = req.params;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.get("/runs/:runId", async (req, res, next) => {
   api
-    .findSite(runId)
-    .then((data) => {
-      if (data) {
-        return res.json(data);
-      } else {
-        return res.status(404).json({
-          error: `Site ID '${runId}' does not exist`
-        });
-      }
+    .formatRun(req.run)
+    .then((payload) => {
+      res.status(200).json({ payload });
     })
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -164,21 +252,11 @@ router.get("/runs/:runId", async (req, res) => {
  *             example:
  *               time: 2022-06-15 00:00:00
  */
-router.get("/runs/:runId/time", async (req, res) => {
-  const { runId } = req.params;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.get("/runs/:runId/time", async (req, res, next) => {
   api
-    .getSiteTime(runId)
-    .then((time) => res.json({ time }))
-    .catch(() => res.sendStatus(500));
+    .getRunTime(req.run)
+    .then((time) => res.json({ payload: { time } }))
+    .catch(next);
 });
 
 /**
@@ -200,29 +278,16 @@ router.get("/runs/:runId/time", async (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/pointMetadata'
  */
-router.get("/runs/:runId/points", (req, res) => {
-  const { runId } = req.params;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.get("/runs/:runId/points", (req, res, next) => {
   api
-    .listPoints(runId, undefined, false)
-    .then((data) => {
-      if (data) {
-        return res.json(data);
-      } else {
-        return res.status(404).json({
-          error: `Run ID '${runId}' does not exist`
-        });
-      }
+    .getPointsByRun(req.run)
+    .then((points) => {
+      return points.map(api.formatPoint);
     })
-    .catch(() => res.sendStatus(500));
+    .then((payload) => {
+      return res.json({ payload });
+    })
+    .catch(next);
 });
 
 /**
@@ -271,28 +336,24 @@ router.get("/runs/:runId/points", (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/pointMetadata'
  */
-router.post("/runs/:runId/points", (req, res) => {
-  const { runId } = req.params;
+router.post("/runs/:runId/points", async (req, res, next) => {
   const { points, pointTypes } = req.body;
 
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
-  const query = {};
+  var pointsArr;
   if (points) {
-    query.ref_id = new RegExp(`^${points.join("|")}$`);
+    pointsArr = api.getPointsById(req.run, points);
   } else if (pointTypes) {
-    query.point_type = new RegExp(`^${pointTypes.join("|")}$`);
+    pointsArr = api.getPointsByType(req.run, pointTypes);
   }
-  api
-    .listPoints(runId, query)
-    .then((data) => res.json(data))
-    .catch(() => res.sendStatus(500));
+
+  pointsArr
+    .then((points) => {
+      return points.map(api.formatPoint);
+    })
+    .then((payload) => {
+      res.status(200).json({ payload });
+    })
+    .catch(next);
 });
 
 /**
@@ -314,29 +375,22 @@ router.post("/runs/:runId/points", (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/pointValue'
  */
-router.get("/runs/:runId/points/values", (req, res) => {
-  const { runId } = req.params;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.get("/runs/:runId/points/values", (req, res, next) => {
   api
-    .listPoints(runId, undefined, true)
-    .then((data) => {
-      if (data) {
-        return res.json({ data });
-      } else {
-        return res.status(404).json({
-          error: `Run ID '${siteId}' does not exist`
-        });
-      }
+    .getPointsByRun(req.run)
+    .then(async (points) => {
+      const payload = {};
+      await Promise.all(
+        points.map(async (point) => {
+          return api.readOutputPoint(req.run, point).then((value) => {
+            payload[point.ref_id] = value;
+          });
+        })
+      ).catch(next);
+
+      res.status(200).json({ payload });
     })
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -385,28 +439,26 @@ router.get("/runs/:runId/points/values", (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/pointValue'
  */
-router.post("/runs/:runId/points/values", (req, res) => {
-  const { runId } = req.params;
+router.post("/runs/:runId/points/values", async (req, res, next) => {
   const { points, pointTypes } = req.body;
 
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
-  const query = {};
+  var pointsArr;
   if (points) {
-    query.ref_id = new RegExp(`^${points.join("|")}$`);
+    pointsArr = await api.getPointsById(req.run, points);
   } else if (pointTypes) {
-    query.point_type = new RegExp(`^${pointTypes.join("|")}$`);
+    pointsArr = await api.getPointsByType(req.run, pointTypes);
   }
-  api
-    .listPoints(runId, query, true)
-    .then((data) => res.json(data))
-    .catch(() => res.sendStatus(500));
+
+  const payload = {};
+  await Promise.all(
+    pointsArr.map(async (point) => {
+      return api.readOutputPoint(req.run, point).then((value) => {
+        payload[point.ref_id] = value;
+      });
+    })
+  ).catch(next);
+
+  res.status(200).json({ payload });
 });
 
 /**
@@ -448,28 +500,43 @@ router.post("/runs/:runId/points/values", (req, res) => {
  *                   items:
  *                     type: string
  */
-router.put("/runs/:runId/points/values", async (req, res) => {
-  const { runId } = req.params;
+router.put("/runs/:runId/points/values", async (req, res, next) => {
   const { points } = req.body;
 
-  console.log(points);
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
+  const errors = [];
+
+  const pointWrites = [];
+
+  await Promise.all(
+    Object.entries(points).map(async ([pointId, value]) => {
+      return await api
+        .getPointById(req.run, pointId)
+        .then((point) => {
+          if (point) {
+            pointWrites.push([point, value]);
+          } else {
+            errors.push({ message: `Point with id '${pointId}' does not exist` });
+          }
+          return api.validatePointWrite(point, value).catch((err) => {
+            errors.push(JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err))));
+          });
+        })
+        .catch((err) => {
+          errors.push(JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err))));
+        });
+    })
   );
-  if (error) return res.status(400).json({ error });
+
+  if (errors.length > 0) return res.status(400).json({ error: errors });
 
   try {
-    const promises = points.map((point) => {
-      return api.writeInputPoint(runId, point.id, point.value);
+    const promises = pointWrites.map(([point, value]) => {
+      return api.writeInputPoint(req.run, point, value);
     });
     await Promise.all(promises);
     res.sendStatus(204);
   } catch (e) {
-    console.error(e);
-    res.sendStatus(500);
+    next(e);
   }
 });
 
@@ -491,23 +558,19 @@ router.put("/runs/:runId/points/values", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/pointData'
  */
-router.get("/runs/:runId/points/:pointId", (req, res) => {
-  const { runId, pointId } = req.params;
-
-  const error = validate(
-    { runId, pointId },
-    {
-      runId: "required|uuid",
-      pointId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
-  const query = { ref_id: new RegExp(`^${pointId}$`) };
-  api
-    .listPoints(runId, query, true)
-    .then((data) => res.json(data[0]))
-    .catch(() => res.sendStatus(500));
+router.get("/runs/:runId/points/:pointId", (req, res, next) => {
+  if (req.point.point_type != "INPUT") {
+    api
+      .readOutputPoint(req.run, req.point)
+      .then((value) => {
+        const formattedPoint = api.formatPoint(req.point);
+        formattedPoint.value = value;
+        res.status(200).json({ payload: formattedPoint });
+      })
+      .catch(next);
+  } else {
+    res.status(200).json({ payload: api.formatPoint(req.point) });
+  }
 });
 
 /**
@@ -529,26 +592,22 @@ router.get("/runs/:runId/points/:pointId", (req, res) => {
  *       204:
  *         description: The point was successfully updated
  */
-router.put("/runs/:runId/points/:pointId", (req, res) => {
-  const { runId, pointId } = req.params;
-  const { value } = req.body;
-
-  // TODO validate point for existence
+router.put("/runs/:runId/points/:pointId", (req, res, next) => {
   // TODO Confirm that point isn't an OUTPUT type
-  const error = validate(
-    { runId, pointId, value },
-    {
-      siteId: "required|uuid",
-      pointId: "required|uuid",
-      value: "required|strict|numeric"
-    }
-  );
-  if (error) return res.status(400).json({ error });
+  if (value !== null) {
+    const error = validate(
+      { value },
+      {
+        value: "required|strict|numeric"
+      }
+    );
+    if (error) return res.status(400).json({ error });
+  }
 
   api
-    .writeInputPoint(runId, pointId, value)
+    .writeInputPoint(req.run, req.point, value)
     .then(() => res.sendStatus(204))
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -570,29 +629,13 @@ router.put("/runs/:runId/points/:pointId", (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete("/runs/:runId", (req, res) => {
-  const { runId } = req.params;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.delete("/runs/:runId", (req, res, next) => {
   api
-    .removeSite(runId)
-    .then((data) => {
-      if (data) {
-        return res.sendStatus(204);
-      } else {
-        return res.status(404).json({
-          error: `Run ID '${runId}' does not exist`
-        });
-      }
+    .removeRun(req.run)
+    .then(() => {
+      res.sendStatus(204);
     })
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -644,15 +687,13 @@ router.delete("/runs/:runId", (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/runs/:runId/start", async (req, res) => {
-  const { runId } = req.params;
+router.post("/runs/:runId/start", async (req, res, next) => {
   const { body } = req;
 
   const timeValidator = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
   const error = validate(
-    { ...body, runId },
+    { ...body },
     {
-      runId: "required|uuid",
       startDatetime: ["required", regex(timeValidator)],
       endDatetime: ["required", regex(timeValidator)],
       timescale: "strict|numeric|min:1",
@@ -676,19 +717,13 @@ router.post("/runs/:runId/start", async (req, res) => {
     });
   }
 
-  if (!(await api.findSite(runId))) {
-    return res.status(404).json({
-      error: `Run ID '${runId}' does not exist`
-    });
-  }
-
   api
-    .startRun(runId, body)
+    .startRun(req.run, body)
     .then((data) => {
       if (data?.error) return res.status(400).json(data);
       return res.sendStatus(204);
     })
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -711,29 +746,13 @@ router.post("/runs/:runId/start", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/runs/:runId/advance", (req, res) => {
-  const { runId } = req.params;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.post("/runs/:runId/advance", (req, res, next) => {
   api
-    .advanceRun(runId)
-    .then((data) => {
-      if (data) {
-        return res.sendStatus(204);
-      } else {
-        return res.status(404).json({
-          error: `Run ID '${runId}' does not exist`
-        });
-      }
+    .advanceRun(req.run)
+    .then(() => {
+      res.sendStatus(204);
     })
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -756,29 +775,13 @@ router.post("/runs/:runId/advance", (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/runs/:runId/stop", (req, res) => {
-  const { runId } = req.params;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.post("/runs/:runId/stop", (req, res, next) => {
   api
-    .stopRun(runId)
-    .then((data) => {
-      if (data) {
-        return res.sendStatus(204);
-      } else {
-        return res.status(404).json({
-          error: `Run ID '${runId}' does not exist`
-        });
-      }
+    .stopRun(req.run)
+    .then(() => {
+      res.sendStatus(204);
     })
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -805,25 +808,13 @@ router.post("/runs/:runId/stop", (req, res) => {
  *               type: string
  *               format: binary
  */
-router.get("/runs/:runId/download", (req, res) => {
-  const { runId } = req.params;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.get("/runs/:runId/download", (req, res, next) => {
   api
-    .getSiteDownloadPath(runId)
+    .getRunDownloadPath(req.run)
     .then((url) => {
       res.redirect(url);
     })
-    .catch(() => {
-      res.sendStatus(500);
-    });
+    .catch(next);
 });
 
 /**
@@ -848,11 +839,85 @@ router.get("/runs/:runId/download", (req, res) => {
  *               foo: d4e2c041-0389-4933-8aa4-016d80283779
  *               bar: 9e2acb8e-974e-406b-a990-48e9743b01de
  */
-router.get("/aliases", (req, res) => {
+router.get("/aliases", (req, res, next) => {
   api
     .listAliases()
-    .then((data) => res.json(data))
-    .catch(() => res.sendStatus(500));
+    .then((payload) => res.json({ payload }))
+    .catch(next);
+});
+
+/**
+ * @openapi
+ * /aliases/{alias}:
+ *   put:
+ *     operationId: Set alias
+ *     description: Create or update an alias to point to a run id
+ *     tags:
+ *       - Alias
+ *     parameters:
+ *       - $ref: '#/components/parameters/Alias'
+ *     responses:
+ *       204:
+ *         description: The alias was set successfully
+ *       404:
+ *         description: Run ID does not exist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.put("/aliases/:alias", async (req, res, next) => {
+  const { alias } = req.params;
+  const { runId } = req.body;
+
+  const error = validate(
+    { runId },
+    {
+      runId: "required|uuid"
+    }
+  );
+  if (error) return res.status(400).json({ error });
+
+  await api
+    .getRunById(runId)
+    .then((run) => {
+      if (run == null) {
+        return res.status(400).json({
+          error: `Run with ID '${runId}' does not exist`
+        });
+      }
+      api
+        .setAlias(alias, run)
+        .then(() => {
+          return res.sendStatus(204);
+        })
+        .catch(next);
+    })
+    .catch(next);
+});
+
+router.all("/aliases/:alias", (req, res, next) => {
+  const { alias: aliasName } = req.params;
+  api
+    .getAliasByName(aliasName)
+    .then((alias) => {
+      if (alias) {
+        req.alias = alias;
+        api.getRun(alias.run).then((run) => {
+          if (run) {
+            req.run = run;
+            next();
+          } else {
+            next(Error(`Alias with name '${aliasName}' contains a reference to a Run which does not exist`));
+          }
+        });
+      } else if (alias == null) {
+        res.status(404).json({ error: `Alias with name '${aliasName}' does not exist` });
+      } else {
+        res.sendStatus(500);
+      }
+    })
+    .catch(next);
 });
 
 /**
@@ -882,66 +947,7 @@ router.get("/aliases", (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.get("/aliases/:alias", (req, res) => {
-  const { alias } = req.params;
-
-  api
-    .findAlias(alias)
-    .then((data) => {
-      if (data) {
-        return res.json(data);
-      } else {
-        return res.status(404).json({
-          error: `Alias '${alias}' does not exist`
-        });
-      }
-    })
-    .catch(() => res.sendStatus(500));
-});
-
-/**
- * @openapi
- * /aliases/{alias}:
- *   put:
- *     operationId: Set alias
- *     description: Create or update an alias to point to a run id
- *     tags:
- *       - Alias
- *     parameters:
- *       - $ref: '#/components/parameters/Alias'
- *     responses:
- *       204:
- *         description: The alias was set successfully
- *       404:
- *         description: Run ID does not exist
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.put("/aliases/:alias", async (req, res) => {
-  const { alias } = req.params;
-  const { runId } = req.body;
-
-  const error = validate(
-    { runId },
-    {
-      runId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
-  await api
-    .setAlias(alias, runId)
-    .then((data) => {
-      if (data) {
-        return res.sendStatus(204);
-      } else {
-        return res.status(404).json({
-          error: `Run ID '${runId}' does not exist`
-        });
-      }
-    })
-    .catch(() => res.sendStatus(500));
+  res.json({ payload: req.run.ref_id });
 });
 
 /**
@@ -963,18 +969,13 @@ router.put("/aliases/:alias", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete("/aliases/:alias", (req, res) => {
-  const { alias } = req.params;
-
+router.delete("/aliases/:alias", (req, res, next) => {
   api
-    .removeAlias(alias)
-    .then((deletedCount) => {
-      if (deletedCount) return res.sendStatus(204);
-      return res.status(404).json({
-        error: `Alias '${alias}' does not exist`
-      });
+    .removeAlias(req.alias)
+    .then(() => {
+      return res.sendStatus(204);
     })
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -1039,7 +1040,7 @@ router.get("/version", (req, res) => {
 router.get("/models", async (req, res) => {
   api
     .listModels()
-    .then((data) => res.json({ data }))
+    .then((payload) => res.json({ payload }))
     .catch(() => res.sendStatus(500));
 });
 
@@ -1105,7 +1106,7 @@ router.get("/models", async (req, res) => {
  *                 X-Amz-Signature: 7d09a673e65112ee06c7666c34eb9c4ca13cc43f285efc9c1c497befd3a64343
  *               modelID: 5c1a0300-beb5-11ed-8531-d9fb035ab2f0
  */
-router.post("/models/upload", async (req, res) => {
+router.post("/models/upload", async (req, res, next) => {
   const { modelName } = req.body;
 
   const error = validate(
@@ -1118,8 +1119,12 @@ router.post("/models/upload", async (req, res) => {
 
   api
     .createUploadPost(modelName)
-    .then((data) => res.json(data))
-    .catch(() => res.sendStatus(500));
+    .then((payload) => res.json({ payload }))
+    .catch(next);
+});
+
+router.get("/models/:modelId", (req, res) => {
+  res.status(200).json({ payload: api.formatModel(req.model) });
 });
 
 /**
@@ -1151,29 +1156,22 @@ router.post("/models/upload", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/models/:modelId/createRun", (req, res) => {
-  const { modelId } = req.params;
-
-  const error = validate(
-    { modelId },
-    {
-      modelId: "required|uuid"
-    }
-  );
-  if (error) return res.status(400).json({ error });
-
+router.post("/models/:modelId/createRun", (req, res, next) => {
   api
-    .createRunFromModel(modelId)
-    .then((data) => {
-      if (data) {
-        return res.json(data);
-      } else {
-        return res.status(404).json({
-          error: `Model ID '${modelId}' does not exist`
-        });
-      }
+    .createRunFromModel(req.model)
+    .then((payload) => {
+      return res.json({ payload });
     })
-    .catch(() => res.sendStatus(500));
+    .catch(next);
+});
+
+router.get("/models/:modelId/download", (req, res, next) => {
+  api
+    .getModelDownloadPath(req.model)
+    .then((url) => {
+      res.redirect(url);
+    })
+    .catch(next);
 });
 
 /**
@@ -1214,10 +1212,12 @@ router.post("/models/:modelId/createRun", (req, res) => {
 router.get("/simulations", async (req, res) => {
   api
     .listSimulations()
-    .then((data) => res.json({ data }))
+    .then((payload) => res.json({ payload }))
     .catch(() => res.sendStatus(500));
 });
 
 router.get("*", (req, res) => res.sendStatus(404));
+
+router.use(errorHandler);
 
 export default apiv2;

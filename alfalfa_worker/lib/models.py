@@ -455,7 +455,7 @@ class Point(TimestampedDocument):
 
     @property
     def redis_key(self):
-        return f"site:{self.run.ref_id}:point:{self.ref_id}"
+        return f"run:{self.run.ref_id}:point:{self.ref_id}"
 
     # External reference ID
     ref_id = StringField(default=uuid4_str, unique_with=['run'])
