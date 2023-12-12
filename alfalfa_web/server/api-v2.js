@@ -776,6 +776,10 @@ router.post("/runs/:runId/advance", (req, res, next) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.post("/runs/:runId/stop", (req, res, next) => {
+  // If the run is already stopping or stopped there is no need to send message
+  if (["STOPPING", "STOPPED", "COMPLETE"].includes(req.run.status)) {
+    res.sendStatus(204);
+  }
   api
     .stopRun(req.run)
     .then(() => {
