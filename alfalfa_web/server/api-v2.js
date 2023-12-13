@@ -377,7 +377,7 @@ router.post("/runs/:runId/points", async (req, res, next) => {
  */
 router.get("/runs/:runId/points/values", (req, res, next) => {
   api
-    .getPointsByRun(req.run)
+    .getPointsByType(req.run, ["OUTPUT", "BIDIRECTIONAL"])
     .then(async (points) => {
       const payload = {};
       await Promise.all(

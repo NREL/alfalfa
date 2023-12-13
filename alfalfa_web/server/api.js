@@ -173,9 +173,9 @@ class AlfalfaAPI {
 
   removeRun = async (run) => {
     // Delete run
-    await this.run.deleteOne({ _id: run._id });
+    const { deletedCount } = await this.run.deleteOne({ _id: run._id });
 
-    if (run) {
+    if (deletedCount == 1) {
       // Delete points
       await this.points.deleteMany({ run: run._id });
 
@@ -188,7 +188,9 @@ class AlfalfaAPI {
       const key = await scan(this.redis, run.ref_id);
       if (key.length) await del(this.redis, key);
 
-      return true;
+      return Promise.resolve();
+    } else {
+      return Promise.reject("Could not remove Run");
     }
   };
 
@@ -346,7 +348,7 @@ class AlfalfaAPI {
     if (deletedCount == 1) {
       return Promise.resolve();
     } else {
-      return Promise.reject();
+      return Promise.reject("Could not remove Alias");
     }
   };
 
