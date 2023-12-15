@@ -171,7 +171,7 @@ router.param("modelId", (req, res, next, id) => {
       id: "required|uuid"
     }
   );
-  if (error) return res.status(400).json({ error });
+  if (error) return res.status(400).json({ message: error });
   api
     .getModelById(id)
     .then((model) => {

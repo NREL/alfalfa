@@ -17,7 +17,7 @@ requests-toolbelt = "~1.0"
 type = "git"
 url = "https://github.com/nrel/alfalfa-client.git"
 reference = "boptest_alignment"
-resolved_reference = "8a865037ff8f1578e825efb32a99643ce1e9638b"
+resolved_reference = "1cfc6e11f77b4c497f22ba2ce49f3ea2a42aa86a"
 
 [[package]]
 name = "anyio"
