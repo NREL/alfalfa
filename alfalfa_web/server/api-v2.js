@@ -36,7 +36,7 @@ const errorHandler = (err, req, res, next) => {
   console.error(err);
 
   res.status(500);
-  res.json({ error: JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err))) });
+  res.json({ message: err.message, payload: err.stack });
 };
 
 router.get("/", (req, res) => {
@@ -115,12 +115,12 @@ router.param("runId", (req, res, next, id) => {
                 req.run = run;
                 next();
               } else {
-                res.status(500).json({ error: `Alias for '${id}' exists but points to a non-existent Run` });
+                res.status(500).json({ message: `Alias for '${id}' exists but points to a non-existent Run` });
               }
             })
             .catch(next);
         } else {
-          return res.status(400).json({ error });
+          return res.status(400).json({ message: error });
         }
       })
       .catch(next);
@@ -132,9 +132,9 @@ router.param("runId", (req, res, next, id) => {
           req.run = run;
           next();
         } else if (run == null) {
-          res.status(404).json({ error: `Run with id '${id}' does not exist` });
+          res.status(404).json({ message: `Run with id '${id}' does not exist` });
         } else {
-          res.sendStatus(500);
+          res.status(500).json({ message: "Unknown error occurred" });
         }
       })
       .catch(next);
@@ -148,7 +148,7 @@ router.param("pointId", (req, res, next, id) => {
       id: "required|uuid"
     }
   );
-  if (error) return res.status(400).json({ error });
+  if (error) return res.status(400).json({ message: error });
   api
     .getPointById(req.run, id)
     .then((point) => {
@@ -156,9 +156,9 @@ router.param("pointId", (req, res, next, id) => {
         req.point = point;
         next();
       } else if (point == null) {
-        res.status(404).json({ error: `Point with id '${id}' does not exist` });
+        res.status(404).json({ message: `Point with id '${id}' does not exist` });
       } else {
-        res.sendStatus(500);
+        res.status(500).json({ message: "Unknown error occurred" });
       }
     })
     .catch(next);
@@ -179,9 +179,9 @@ router.param("modelId", (req, res, next, id) => {
         req.model = model;
         next();
       } else if (model == null) {
-        res.status(404).json({ error: `Model with id '${id}' does not exist` });
+        res.status(404).json({ message: `Model with id '${id}' does not exist` });
       } else {
-        res.sendStatus(500);
+        res.status(500).json({ message: "Unknown error occurred" });
       }
     })
     .catch(next);
@@ -515,19 +515,19 @@ router.put("/runs/:runId/points/values", async (req, res, next) => {
           if (point) {
             pointWrites.push([point, value]);
           } else {
-            errors.push({ message: `Point with id '${pointId}' does not exist` });
+            errors.push(`Point with id '${pointId}' does not exist`);
           }
           return api.validatePointWrite(point, value).catch((err) => {
             errors.push(JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err))));
           });
         })
         .catch((err) => {
-          errors.push(JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err))));
+          errors.push(err.message);
         });
     })
   );
 
-  if (errors.length > 0) return res.status(400).json({ error: errors });
+  if (errors.length > 0) return res.status(400).json({ message: "Some points writes are not valid", payload: errors });
 
   try {
     const promises = pointWrites.map(([point, value]) => {
@@ -601,7 +601,7 @@ router.put("/runs/:runId/points/:pointId", (req, res, next) => {
         value: "required|strict|numeric"
       }
     );
-    if (error) return res.status(400).json({ error });
+    if (error) return res.status(400).json({ message: error });
   }
 
   api
@@ -701,26 +701,26 @@ router.post("/runs/:runId/start", async (req, res, next) => {
       externalClock: "strict|boolean"
     }
   );
-  if (error) return res.status(400).json({ error });
+  if (error) return res.status(400).json({ message: error });
 
   const { timescale, realtime, externalClock } = body;
 
   if (!(timescale || realtime || externalClock)) {
     return res.status(400).json({
-      error: "At least one of timescale, realtime, or externalClock must be specified."
+      message: "At least one of timescale, realtime, or externalClock must be specified."
     });
   }
 
   if (realtime && externalClock) {
     return res.status(400).json({
-      error: "Realtime and externalClock cannot both be enabled."
+      message: "Realtime and externalClock cannot both be enabled."
     });
   }
 
   api
     .startRun(req.run, body)
     .then((data) => {
-      if (data?.error) return res.status(400).json(data);
+      if (data?.error) return res.status(400).json({ message: "Error occurred starting run", payload: data });
       return res.sendStatus(204);
     })
     .catch(next);
@@ -880,14 +880,14 @@ router.put("/aliases/:alias", async (req, res, next) => {
       runId: "required|uuid"
     }
   );
-  if (error) return res.status(400).json({ error });
+  if (error) return res.status(400).json({ message: error });
 
   await api
     .getRunById(runId)
     .then((run) => {
       if (run == null) {
         return res.status(400).json({
-          error: `Run with ID '${runId}' does not exist`
+          message: `Run with ID '${runId}' does not exist`
         });
       }
       api
@@ -916,9 +916,9 @@ router.all("/aliases/:alias", (req, res, next) => {
           }
         });
       } else if (alias == null) {
-        res.status(404).json({ error: `Alias with name '${aliasName}' does not exist` });
+        res.status(404).json({ message: `Alias with name '${aliasName}' does not exist` });
       } else {
-        res.sendStatus(500);
+        res.status(500).json({ message: "Unknown error occurred" });
       }
     })
     .catch(next);
@@ -1007,7 +1007,7 @@ router.get("/version", (req, res) => {
   if (existsSync(shaPath)) {
     sha = JSON.parse(readFileSync(shaPath, "utf-8"));
   }
-  res.json({ version, ...sha });
+  res.json({ payload: { version, ...sha } });
 });
 
 /**
@@ -1041,11 +1041,11 @@ router.get("/version", (req, res) => {
  *                   created: 2023-03-09T17:49:36.004Z
  *                   modified: 2023-03-09T17:49:36.004Z
  */
-router.get("/models", async (req, res) => {
+router.get("/models", async (req, res, next) => {
   api
     .listModels()
     .then((payload) => res.json({ payload }))
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
 /**
@@ -1119,7 +1119,7 @@ router.post("/models/upload", async (req, res, next) => {
       modelName: ["required", regex(/^.+\.(fmu|zip)$/i)]
     }
   );
-  if (error) return res.status(400).json({ error });
+  if (error) return res.status(400).json({ message: error });
 
   api
     .createUploadPost(modelName)
@@ -1213,14 +1213,14 @@ router.get("/models/:modelId/download", (req, res, next) => {
  *                   url: http://alfalfa.lan:9000/alfalfa/run/9bac1450-c396-11ed-92b6-db6f8d94933d.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=user%2F20230316%2Fus-west-1%2Fs3%2Faws4_request&X-Amz-Date=20220316T120000Z&X-Amz-Expires=86400&X-Amz-Signature=b46f963fcce33a29bbd2a8f93ea2b5368570acd20033bc5ce1372eeb59e08bfa&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22Building%202.tar.gz%22&x-id=GetObject
  *                   results: {}
  */
-router.get("/simulations", async (req, res) => {
+router.get("/simulations", async (req, res, next) => {
   api
     .listSimulations()
     .then((payload) => res.json({ payload }))
-    .catch(() => res.sendStatus(500));
+    .catch(next);
 });
 
-router.get("*", (req, res) => res.sendStatus(404));
+router.get("*", (req, res) => res.status(404).json({ message: "Page not found" }));
 
 router.use(errorHandler);
 
