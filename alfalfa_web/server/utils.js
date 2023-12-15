@@ -15,7 +15,7 @@ function getHash(client, key) {
 
 // Given a siteRef and pointId return the redis key
 function getPointKey(siteRef, pointId) {
-  return `site:${siteRef}:point:${pointId}`;
+  return `run:${siteRef}:point:${pointId}`;
 }
 
 // Convert redis empty strings to nulls, otherwise numbers

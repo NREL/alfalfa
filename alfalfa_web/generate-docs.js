@@ -8,7 +8,7 @@ const { version } = require("./package.json");
 const serverType = process.env.NODE_ENV === "production" ? "Production" : "Development";
 
 const openapiSpecification = swaggerJsdoc({
-  apis: ["./server/api-v2.js", "./server/api-haystack.js"],
+  apis: ["./server/api-v2.js", "./server/api-haystack.js", "./components.yml"],
   definition: {
     openapi: "3.1.0",
     info: {
@@ -48,6 +48,10 @@ const openapiSpecification = swaggerJsdoc({
         description: "Manage sites"
       },
       {
+        name: "Run",
+        description: "Manage Runs"
+      },
+      {
         name: "Haystack",
         description:
           "Operations using Project Haystack API endpoints\n\n[Haystack API Documentation](https://project-haystack.org/doc/docHaystack/Ops)"
@@ -56,7 +60,7 @@ const openapiSpecification = swaggerJsdoc({
     "x-tagGroups": [
       {
         name: "Alfalfa API",
-        tags: ["About", "Alias", "Model", "Simulation", "Site"]
+        tags: ["About", "Alias", "Model", "Simulation", "Site", "Run"]
       },
       {
         name: "Project Haystack API",

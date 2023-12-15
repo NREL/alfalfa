@@ -46,6 +46,13 @@ class CreateRun(Job):
         # run workflow
         check_output(['openstudio', '--gem_path', '/var/lib/gems/2.7.0', 'run', '-m', '-w', str(submitted_osw_path)])
 
+        self.logger.info('Loading Building Metadata')
+        metadata_json_path = submitted_workflow_path / 'reports' / 'alfalfa_metadata_report_metadata.json'
+        if metadata_json_path.exists():
+            self.load_metadata(metadata_json_path)
+        else:
+            self.logger.info('Could not find Alfalfa Metadata Report')
+
         self.logger.info('Generating variables from measure reports')
         self.variables = Variables(self.run)
         self.variables.load_reports()
@@ -109,6 +116,13 @@ class CreateRun(Job):
         super().cleanup()
         self.set_run_status(RunStatus.READY)
 
+    def load_metadata(self, metadata_json: Path):
+        with open(metadata_json) as fp:
+            metadata_dict = json.load(fp)
+            if 'building_name' in metadata_dict:
+                self.run.name = metadata_dict['building_name']
+                self.run.save()
+
     def insert_os_tags(self, points_json_path, mapping_json_path):
         """
         Make unique ids and replace site_id.  Upload to mongo and filestore.
@@ -140,4 +154,4 @@ class CreateRun(Job):
             json.dump(mapping_json, fp)
 
         # add points to database
-        self.run_manager.add_site_to_mongo(points_json, self.run)
+        # self.run_manager.add_site_to_mongo(points_json, self.run)
