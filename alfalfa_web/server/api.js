@@ -104,7 +104,7 @@ class AlfalfaAPI {
   getPointsById = async (run, pointIds) => {
     return Promise.all(
       pointIds.map((pointId) => {
-        this.getPointById(run, pointId);
+        return this.getPointById(run, pointId);
       })
     );
   };
@@ -173,7 +173,7 @@ class AlfalfaAPI {
 
   removeRun = async (run) => {
     // Delete run
-    const { deletedCount } = await this.run.deleteOne({ _id: run._id });
+    const { deletedCount } = await this.runs.deleteOne({ _id: run._id });
 
     if (deletedCount == 1) {
       // Delete points
@@ -258,7 +258,8 @@ class AlfalfaAPI {
   };
 
   listModels = async () => {
-    return this.getModels().map(this.formatModel);
+    const models = await this.getModels();
+    return models.map(this.formatModel);
   };
 
   getModels = async () => {
@@ -285,7 +286,7 @@ class AlfalfaAPI {
       new GetObjectCommand({
         Bucket: process.env.S3_BUCKET,
         Key: `uploads/${model.ref_id}/${model.model_name}`,
-        ResponseContentDisposition: `attachment; filename="${run.ref_id}.tar.gz"`
+        ResponseContentDisposition: `attachment; filename="${model.ref_id}.tar.gz"`
       }),
       {
         expiresIn: 86400
