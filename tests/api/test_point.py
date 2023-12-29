@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 import pytest
 import requests
@@ -204,3 +205,67 @@ def test_point_writes(base_url, run_id):
     assert "payload" in response_body
     payload = response_body["payload"]
     assert len(payload) == len(outputs), "Error cardinality mismatch"
+
+
+@pytest.mark.api
+def test_point_not_found(base_url, run_id):
+    # request point which does not exist
+    response = requests.get(f"{base_url}/runs/{run_id}/points/{uuid4()}")
+
+    assert response.status_code == 404
+    response_body = response.json()
+    assert "message" in response_body
+
+    # write point which does not exist
+    request_body = {
+        'value': 5
+    }
+    response = requests.put(f"{base_url}/runs/{run_id}/points/{uuid4()}", json=request_body)
+
+    assert response.status_code == 404
+    response_body = response.json()
+    assert "message" in response_body
+
+    # request points for run which does not exist
+    response = requests.get(f"{base_url}/runs/{uuid4()}/points")
+
+    assert response.status_code == 404
+    response_body = response.json()
+    assert "message" in response_body
+
+    # request certain points for run which does not exist
+    request_body = {
+        'pointTypes': ["OUTPUT"]
+    }
+    response = requests.post(f"{base_url}/runs/{uuid4()}/points", json=request_body)
+
+    assert response.status_code == 404
+    response_body = response.json()
+    assert "message" in response_body
+
+    # request point values for run which does not exist
+    response = requests.get(f"{base_url}/runs/{uuid4()}/points/values")
+
+    assert response.status_code == 404
+    response_body = response.json()
+    assert "message" in response_body
+
+    # request certain point values for run which does not exist
+    request_body = {
+        'pointTypes': ["INPUT"]
+    }
+    response = requests.post(f"{base_url}/runs/{uuid4()}/points/values", json=request_body)
+
+    assert response.status_code == 404
+    response_body = response.json()
+    assert "message" in response_body
+
+    # write point values for run which does not exist
+    request_body = {
+        'point_name': 10
+    }
+    response = requests.put(f"{base_url}/runs/{uuid4()}/points/values", json=request_body)
+
+    assert response.status_code == 404
+    response_body = response.json()
+    assert "message" in response_body
