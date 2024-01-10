@@ -593,7 +593,14 @@ router.get("/runs/:runId/points/:pointId", (req, res, next) => {
  *         description: The point was successfully updated
  */
 router.put("/runs/:runId/points/:pointId", (req, res, next) => {
-  // TODO Confirm that point isn't an OUTPUT type
+  const { value } = req.body;
+
+  if (req.point.point_type == "OUTPUT") {
+    return res
+      .status(400)
+      .json({ message: `Point '${req.point.ref_id}' is of type '${req.point.point_type}' and cannot be written to` });
+  }
+
   if (value !== null) {
     const error = validate(
       { value },
@@ -687,7 +694,7 @@ router.delete("/runs/:runId", (req, res, next) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/runs/:runId/start", async (req, res, next) => {
+router.post("/runs/:runId/start", (req, res, next) => {
   const { body } = req;
 
   const timeValidator = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
@@ -777,7 +784,7 @@ router.post("/runs/:runId/advance", (req, res, next) => {
  */
 router.post("/runs/:runId/stop", (req, res, next) => {
   // If the run is already stopping or stopped there is no need to send message
-  if (["STOPPING", "STOPPED", "COMPLETE"].includes(req.run.status)) {
+  if (["STOPPING", "COMPLETE", "ERROR", "READY"].includes(req.run.status)) {
     res.sendStatus(204);
   }
   api
@@ -1220,7 +1227,7 @@ router.get("/simulations", async (req, res, next) => {
     .catch(next);
 });
 
-router.get("*", (req, res) => res.status(404).json({ message: "Page not found" }));
+router.all("*", (req, res) => res.status(404).json({ message: "Page not found" }));
 
 router.use(errorHandler);
 

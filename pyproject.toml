@@ -38,7 +38,7 @@ influxdb = "^5.3.1"
 # required for tests to pass right now. There are often issues when pinning to a branch
 # and calling poetry update. I have had to completely remove my venv and reinstall in order
 # to get the latest updates.
-alfalfa-client = { git = "https://github.com/nrel/alfalfa-client.git", branch = "boptest_alignment" }
+alfalfa-client = { git = "https://github.com/nrel/alfalfa-client.git", branch = "upload_model_check" }
 # alfalfa-client = "~0.5.0"
 autopep8 = "~2.0"
 pre-commit = "~2.21"
