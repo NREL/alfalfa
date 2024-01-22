@@ -12,13 +12,13 @@ class Models:
 
     """Class to download models from defined inputs"""
 
-    def download_models(id, obj):
+    def download_models(obj):
 
         folder_path = obj.folder
+        id = obj.id
         os.makedirs(folder_path, exist_ok=True)  # Create folder if it doesn't exist
 
         for i in id:
-            # TO DO: check if this url is different for other years/resstock
             url1 = f'https://oedi-data-lake.s3.amazonaws.com/nrel-pds-building-stock/end-use-load-profiles-for-us-building-stock/{obj.year}/{obj.dataset_name}/building_energy_models/upgrade={obj.upgrade}/{i}-up{obj.upgrade}.osm.gz'
             url2 = f'https://oedi-data-lake.s3.amazonaws.com/nrel-pds-building-stock/end-use-load-profiles-for-us-building-stock/{obj.year}/{obj.dataset_name}/building_energy_models/{i}-up{obj.upgrade}.osm.gz'
 
