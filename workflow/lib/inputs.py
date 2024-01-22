@@ -4,7 +4,8 @@ import pandas as pd
 class Inputs:
     """Class to assign inputs for running buildstock models in Alfalfa."""
 
-    def __init__(self, year, dataset_name, upgrade):
+    def __init__(self, year, dataset_name, upgrade, folder):
         self.year = year
         self.dataset_name = dataset_name
         self.upgrade = upgrade
+        self.folder = folder
