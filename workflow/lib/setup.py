@@ -10,33 +10,6 @@ class Setup:
 
     """Class to create folder to upload to Alfalfa"""
 
-    # def create_osw(filename, weather):
-
-    #     osw_content = {
-    #                     "seed_file": f"{filename}.osm",
-    #                     "weather_file": f"{weather}",
-    #                     "measure_paths": ["./measures"],
-    #                     "run_directory": "./run/",
-    #                     "file_paths": [
-    #                         "./weather/",
-    #                         "./models/"
-    #                     ],
-    #                     "steps" : [
-    #                         {
-    #                             "measure_dir_name": "alfalfa_vars",
-    #                             "name": "Alfalfa Variables",
-    #                             "description": "Add custom variables for Alfalfa",
-    #                             "modeler_description": "Add EMS global variables required by Alfalfa",
-    #                             "arguments": {
-    #                                 "model": f"{filename}.osm"
-    #                             }
-    #                         }
-    #                     ]
-    #                 }
-
-    #     return osw_content
-
-
     def create_folder(obj, alfalfa_folder):
 
         # folder where models are downloaded
@@ -51,11 +24,8 @@ class Setup:
         # Remove the destination folder if it exists
         if os.path.exists(files):
             shutil.rmtree(files)
-        #files.mkdir(parents=True, exist_ok=True)
 
         current_directory = Path(__file__).resolve().parent
-
-
 
         base_files = os.path.join(current_directory.parent,'base_files')
         # copy base files to folder
