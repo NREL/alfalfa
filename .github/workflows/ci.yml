@@ -161,9 +161,15 @@ jobs:
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
 
-      - name: Run tests with pytest
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run API tests with pytest
         run: |
-          poetry install
+          poetry run pytest --timeout=120 -m api
+
+      - name: Run integration tests with pytest
+        run: |
           poetry run pytest --timeout=600 -m "integration"
 
       - name: Run worker scale tests with pytest
@@ -230,9 +236,15 @@ jobs:
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v1
 
-      - name: Run tests with pytest
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run API tests with pytest
         run: |
-          poetry install
+          poetry run pytest --timeout=120 -m api
+
+      - name: Run integration tests with pytest
+        run: |
           poetry run pytest --timeout=600 -m "integration"
 
       - name: Run worker scale tests with pytest

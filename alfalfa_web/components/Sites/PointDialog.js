@@ -19,13 +19,23 @@ import {
 } from "@mui/material";
 import ky from "ky";
 
-export const PointDialog = ({ onClose, site }) => {
+export const PointDialog = ({ onClose, run }) => {
   const [expanded, setExpanded] = useState(false);
   const [points, setPoints] = useState();
 
   useEffect(async () => {
-    const { data: points } = await ky(`/api/v2/sites/${site.id}/points`).json();
-    setPoints(points);
+    const { payload: points } = await ky(`/api/v2/runs/${run.id}/points`).json();
+    await ky(`/api/v2/runs/${run.id}/points/values`)
+      .json()
+      .then(({ payload: values }) => {
+        for (const i in points) {
+          const point = points[i];
+          if (point.id in values) {
+            point.value = values[point.id];
+          }
+        }
+        setPoints(points);
+      });
   }, []);
 
   const handleChange = (pointId) => (event, expanded) => {
@@ -48,7 +58,7 @@ export const PointDialog = ({ onClose, site }) => {
       return (
         <div style={{ paddingTop: "2px" }}>
           {!points.length ? (
-            <Typography align="center">— No points associated with site —</Typography>
+            <Typography align="center">— No points associated with run —</Typography>
           ) : (
             points.sort(sortPoints).map((point, i) => {
               return (
@@ -90,7 +100,7 @@ export const PointDialog = ({ onClose, site }) => {
       <Dialog fullWidth={true} maxWidth="lg" open={true} onClose={onClose}>
         <DialogTitle>
           <Grid container justifyContent="space-between" alignItems="center">
-            <span>{`${site.name} Points`}</span>
+            <span>{`${run.name} Points`}</span>
             <IconButton onClick={onClose}>
               <Close />
             </IconButton>

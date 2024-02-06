@@ -84,7 +84,7 @@ class RunManager(LoggerMixinBase):
             file_path.unlink()
         else:
             shutil.copy(file_path, run_path)
-        run = Run(dir=run_path, model=model, ref_id=run_id, sim_type=sim_type)
+        run = Run(dir=run_path, model=model, ref_id=run_id, sim_type=sim_type, name=model_name)
         run.save()
         # self.register_run(run)
         return run

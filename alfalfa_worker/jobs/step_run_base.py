@@ -1,7 +1,6 @@
 import datetime
 import os
 
-import pytz
 from influxdb import InfluxDBClient
 
 from alfalfa_worker.lib.enums import RunStatus
@@ -11,7 +10,6 @@ from alfalfa_worker.lib.job import (
     JobExceptionSimulation,
     message
 )
-from alfalfa_worker.lib.models import Rec, Simulation, Site
 
 
 class StepRunBase(Job):
@@ -49,13 +47,6 @@ class StepRunBase(Job):
         self.set_run_status(RunStatus.STARTED)
 
         self.setup_connections()
-        if not kwargs.get('skip_site_init', False):
-            # grab the new site from the new database model. This assumes that the site is the same as the old site
-            try:
-                # TODO: after passing around run ORM objects, convert to self.run.site
-                self.site = Site.objects.get(ref_id=run_id)
-            except Site.DoesNotExist:
-                raise Exception(f"Could not find a site to step the run with run_id {run_id}")
 
         self.skip_stop_db_writes = kwargs.get('skip_stop_db_writes', False)
 
@@ -206,43 +197,6 @@ class StepRunBase(Job):
     def stop(self) -> None:
         super().stop()
         self.set_run_status(RunStatus.STOPPING)
-
-        # Clear current values from the database when the simulation is no longer running
-        if not self.skip_stop_db_writes:
-            # grab the first rec object to unset some vars (this is the old site object).
-            # I don't think that this is desired anymore.
-            rec = Rec.objects.get(ref_id=self.run.ref_id)
-            rec.update(rec__simStatus="s:Stopped", unset__rec__datetime=1, unset__rec__step=1)
-
-            # get all the recs to disable the points (maybe this really needs to be on the Point objects?)
-            for key in self.redis.scan_iter(f'site:{self.run.ref_id}:rec:*'):
-                key = key.decode('UTF-8')
-                self.redis.hset(key, mapping={'curStatus': 's:disabled'})
-                self.redis.hdel(key, 'curVal', 'curErr')
-
-            recs = self.site.recs(rec__writable="m:")
-            recs.update(rec__writeStatus='s:disabled', unset__rec__writeLevel=1, unset__rec__writeVal=1, multi=True)
-
-            # create the simulation database object. It appears that this is the only place
-            # where this is created. Maybe we can remove this?
-            time = str(datetime.datetime.now(tz=pytz.UTC))
-
-            # If Modelica, then the testcase (tc) has some results. OpenStudio and
-            # other inherited models do not expect this data.
-            if hasattr(self, 'tc'):
-                kpis = self.tc.get_kpis()
-            else:
-                kpis = None
-
-            Simulation(
-                name=self.site.dis.replace('s:', ''),
-                site=self.site,
-                ref_id=self.site.ref_id,
-                time_completed=time,
-                sim_status="Complete",
-                s3_key=f"run/{self.run.ref_id}.tar.gz",
-                results=kpis
-            ).save()
 
     def cleanup(self) -> None:
         super().cleanup()

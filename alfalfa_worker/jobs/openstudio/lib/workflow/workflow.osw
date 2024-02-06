@@ -52,6 +52,13 @@
          "name" : "Python",
          "description" : "Add python to IDF",
          "modeler_description" : "Add python script path to IDF"
+      },
+      {
+         "arguments" : {},
+         "measure_dir_name" : "alfalfa_metadata",
+         "name" : "Metadata",
+         "description" : "Generate metadata report for Alfalfa",
+         "modeler_description" : "Generate metadata report for Alfalfa"
       }
    ],
    "updated_at" : "20170606T230145Z",
