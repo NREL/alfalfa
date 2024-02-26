@@ -229,7 +229,7 @@ class AlfalfaAPI {
     return await this.sendRunMessage(run, "stop");
   };
 
-  sendRunMessage = (run, method, data = null, timeout = 6000, pollingInterval = 100) => {
+  sendRunMessage = (run, method, data = null, timeout = 60000, pollingInterval = 100) => {
     return new Promise(async (resolve, reject) => {
       const message_id = uuidv1();
       await this.pub.publish(run.ref_id, JSON.stringify({ message_id, method, data }));
