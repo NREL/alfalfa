@@ -14,12 +14,11 @@ def test_model_downloads_comstock():
     # folder to download models
     folder_name = Path(os.path.join(current_directory, 'comsstock'))
     # folder to configure and upload to alfalfa
-    alfalfa_folder = Path(os.path.join(current_directory, 'alfalfa_folder'))
 
     id = ['bldg0000001','bldg0000002']
 
     objA = Inputs
-    objA.__init__(Inputs, '2023','comstock_amy2018_release_2','18', id,  folder_name)
+    objA.__init__(Inputs, '2021','comstock_tmy3_release_1','00', id,  folder_name)
 
     # remove if folder exists
     shutil.rmtree(folder_name, ignore_errors=True)
@@ -27,31 +26,22 @@ def test_model_downloads_comstock():
     objB = Models
     objB.download_models(objA)
 
-
-    save_folder_1 = os.path.join(folder_name, id[0])
-    save_folder_2 = os.path.join(folder_name, id[1])
+    save_folder_1 = os.path.join(folder_name, id[0], 'models', id[0] + '.osm')
+    workflow_1 = os.path.join(folder_name, id[0], 'workflow.osw')
+    save_folder_2 = os.path.join(folder_name, id[1], 'models', id[1] + '.osm')
+    workflow_2 = os.path.join(folder_name, id[1], 'workflow.osw')
 
     # check if models are downloaded
-    assert os.path.exists(folder_name)
     assert os.path.exists(save_folder_1)
     assert os.path.exists(save_folder_2)
-
-    shutil.rmtree(alfalfa_folder, ignore_errors=True)
-
-    # Test Model Setup
-    objC = Setup
-    objC.create_folder(objA, alfalfa_folder)
-
-    assert os.path.exists(os.path.join(alfalfa_folder, 'files'))
-    assert os.path.exists(os.path.join(alfalfa_folder, 'alfalfa_upload', id[0], 'models', f'{id[0]}.osm'))
-
+    assert os.path.exists(workflow_1)
+    assert os.path.exists(workflow_2)
 
 def test_model_downloads_resstock():
 
     current_directory = Path(__file__).resolve().parent
 
     folder_name = Path(os.path.join(current_directory, 'resstock'))
-    alfalfa_folder = Path(os.path.join(current_directory, 'alfalfa_folder_res'))
     id = ['bldg0000003','bldg0000004']
 
     objA = Inputs
@@ -62,19 +52,13 @@ def test_model_downloads_resstock():
     objB = Models
     objB.download_models(objA)
 
-    save_folder_1 = os.path.join(folder_name, id[0])
-    save_folder_2 = os.path.join(folder_name, id[1])
 
-    assert os.path.exists(folder_name)
+    save_folder_1 = os.path.join(folder_name, id[0], 'models', id[0] + '.osm')
+    workflow_1 = os.path.join(folder_name, id[0], 'workflow.osw')
+    save_folder_2 = os.path.join(folder_name, id[1], 'models', id[1] + '.osm')
+    workflow_2 = os.path.join(folder_name, id[1], 'workflow.osw')
+
     assert os.path.exists(save_folder_1)
+    assert os.path.exists(workflow_1)
     assert os.path.exists(save_folder_2)
-
-    shutil.rmtree(alfalfa_folder, ignore_errors=True)
-
-    # Test Model Setup
-    objC = Setup
-    objC.create_folder(objA, alfalfa_folder)
-
-    assert os.path.exists(os.path.join(alfalfa_folder, 'files'))
-    assert os.path.exists(os.path.join(alfalfa_folder, 'alfalfa_upload',id[0], 'models', f'{id[0]}.osm'))
-
+    assert os.path.exists(workflow_2)
