@@ -1,6 +1,5 @@
 from workflow.lib.inputs import Inputs
 from workflow.lib.models import Models
-from workflow.lib.setup import Setup
 from pathlib import Path
 import pytest
 import os
