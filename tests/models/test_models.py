@@ -12,7 +12,6 @@ def test_model_downloads_comstock():
 
     # folder to download models
     folder_name = Path(os.path.join(current_directory, 'comsstock'))
-    # folder to configure and upload to alfalfa
 
     id = ['bldg0000001','bldg0000002']
 

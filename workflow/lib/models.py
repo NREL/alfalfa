@@ -151,11 +151,9 @@ class Models:
 
                 with open(new_osw_path, 'r') as osw:
                     data = json.load(osw)
-                    data['seed_file'] =  f"{i}.osm"
+                    data['seed_file'] =  f"./models/{i}.osm"
                     data['weather_file'] = f"{zip_filename}"
 
-                    # TO DO add better way to do this
-                    data['steps'][0]['arguments']['model'] = f"{i}.osm"
 
                 with open(new_osw_path, 'w') as osw:
                     json.dump(data, osw, indent=2)

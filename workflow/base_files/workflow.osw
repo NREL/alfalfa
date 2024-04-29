@@ -14,10 +14,7 @@
       "measure_dir_name": "alfalfa_vars",
       "name": "Alfalfa Variables",
       "description": "Add custom variables for Alfalfa",
-      "modeler_description": "Add EMS global variables required by Alfalfa",
-      "arguments": {
-        "model": ""
-      }
+      "modeler_description": "Add EMS global variables required by Alfalfa"
     }
   ]
 }
