@@ -1,11 +1,10 @@
 <?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
-  <error>uninitialized constant Python</error>
+  <schema_version>3.1</schema_version>
   <name>alfalfa_python_environment</name>
   <uid>16125428-fcf9-4986-9d9b-3644225a2b6d</uid>
-  <version_id>310e60b6-6215-4d58-b10b-e21eddaaf129</version_id>
-  <version_modified>20221031T173904Z</version_modified>
+  <version_id>39ffcfe8-5902-44dd-9d1a-5aae2502d8c7</version_id>
+  <version_modified>2024-05-03T20:06:06Z</version_modified>
   <xml_checksum>9D2F1A23</xml_checksum>
   <class_name>AlfalfaPythonEnvironment</class_name>
   <display_name>Alfalfa Python Environment</display_name>
@@ -14,7 +13,9 @@
   <arguments />
   <outputs />
   <provenances />
-  <tags />
+  <tags>
+    <tag>Tool.Alfalfa</tag>
+  </tags>
   <attributes>
     <attribute>
       <name>Measure Type</name>
@@ -37,7 +38,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4A5B6A8D</checksum>
+      <checksum>91260911</checksum>
     </file>
   </files>
 </measure>

@@ -44,7 +44,7 @@ class CreateRun(Job):
         check_output(['openstudio', str(lib_dir / 'merge_osws.rb'), str(default_workflow_path), str(submitted_osw_path)])
 
         # run workflow
-        check_output(['openstudio', '--gem_path', '/var/lib/gems/2.7.0', 'run', '-m', '-w', str(submitted_osw_path)])
+        check_output(['openstudio', '-I', '/alfalfa/alfalfa_worker/jobs/openstudio/lib/alfalfa-lib-gem/lib', 'run', '-m', '-w', str(submitted_osw_path)])
 
         self.logger.info('Loading Building Metadata')
         metadata_json_path = submitted_workflow_path / 'reports' / 'alfalfa_metadata_report_metadata.json'

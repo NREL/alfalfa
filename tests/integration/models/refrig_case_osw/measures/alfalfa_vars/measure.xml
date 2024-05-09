@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
+  <schema_version>3.1</schema_version>
   <name>alfalfa_variables</name>
   <uid>86d51823-68a5-478a-b60b-60891c3c9b5f</uid>
-  <version_id>5c94ef46-d8e9-4ae9-864e-d884aba51509</version_id>
-  <version_modified>20201216T214230Z</version_modified>
+  <version_id>8752f0cc-7f4d-4d58-af81-511e93aef0cd</version_id>
+  <version_modified>2024-05-03T20:14:25Z</version_modified>
   <xml_checksum>356BE47F</xml_checksum>
   <class_name>AlfalfaVariables</class_name>
   <display_name>AlfalfaVariables</display_name>
@@ -48,7 +48,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A9E1EEF2</checksum>
+      <checksum>2A97F3D3</checksum>
     </file>
   </files>
 </measure>

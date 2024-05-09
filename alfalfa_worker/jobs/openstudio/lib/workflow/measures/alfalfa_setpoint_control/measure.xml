@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
+  <schema_version>3.1</schema_version>
+  <error>Failed to infer measure name from '/Users/tshapins/Documents/Projects/alfalfa/alfalfa_worker/jobs/openstudio/lib/workflow/measures/./alfalfa_setpoint_control/measure.rb'</error>
   <name>alfalfa_setpoint_control</name>
   <uid>870213d3-36a2-4da2-9a04-c377a37fd4fe</uid>
-  <version_id>bf35c981-cffe-41a8-ac34-606ebbc44c7d</version_id>
-  <version_modified>20230125T214417Z</version_modified>
+  <version_id>035cbac7-2f31-4ba1-a9ea-daf5250333ac</version_id>
+  <version_modified>2024-05-03T20:06:07Z</version_modified>
   <xml_checksum>70995EFB</xml_checksum>
   <class_name>AlfalfaSetpointControl</class_name>
   <display_name>Alfalfa Setpoint Control</display_name>
@@ -33,19 +34,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>6F11EE21</checksum>
-    </file>
-    <file>
-      <filename>output.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>4553AB66</checksum>
-    </file>
-    <file>
-      <filename>input.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>9C7F46CA</checksum>
+      <checksum>2453D3C6</checksum>
     </file>
   </files>
 </measure>
