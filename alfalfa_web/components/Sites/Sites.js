@@ -149,7 +149,7 @@ export const Sites = () => {
                   <TableCell padding="none">{run.name}</TableCell>
                   <TableCell>{run.id}</TableCell>
                   <TableCell>
-                    {run.status === "error" && run.errorLog ? (
+                    {run.status === "ERROR" && run.errorLog ? (
                       <Button
                         variant="text"
                         style={{ marginLeft: -9 }}
