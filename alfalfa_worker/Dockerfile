@@ -1,4 +1,4 @@
-FROM ghcr.io/nrel/alfalfa-dependencies:3.1.0 AS base
+FROM ghcr.io/nrel/alfalfa-dependencies:openstudio_3.8 AS base
 
 ENV HOME=/alfalfa
 
@@ -25,6 +25,8 @@ RUN pip3.8 install virtualenv \
   && pip3.8 install \
   scipy \
   symfit
+
+COPY ./alfalfa_worker /alfalfa/alfalfa_worker
 
 COPY ./deploy /alfalfa/deploy
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
