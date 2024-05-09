@@ -87,6 +87,7 @@ class AlfalfaPythonEnvironment < OpenStudio::Ruleset::WorkspaceUserScript
         i += 1
       end
     end
+    return true
   end
 
 end

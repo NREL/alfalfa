@@ -22,7 +22,9 @@
   </arguments>
   <outputs />
   <provenances />
-  <tags />
+  <tags>
+    <tag>Tool.Alfalfa</tag>
+  </tags>
   <attributes>
     <attribute>
       <name>Measure Type</name>

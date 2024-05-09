@@ -1,9 +1,10 @@
+<?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
+  <schema_version>3.1</schema_version>
   <name>expose_time_variable_240</name>
   <uid>f31b5fc3-a70a-45de-ae01-b953f7a9b694</uid>
-  <version_id>78d80dfc-a425-4c95-9483-095cbc75588a</version_id>
-  <version_modified>20181017T220232Z</version_modified>
+  <version_id>31f3866c-d4b3-4be0-8042-60108cf4646f</version_id>
+  <version_modified>2024-05-03T20:06:07Z</version_modified>
   <xml_checksum>FC9586A7</xml_checksum>
   <class_name>ExposeTimeVariable240</class_name>
   <display_name>ExposeTimeVariable240</display_name>
@@ -20,8 +21,8 @@
       <default_value>Yes</default_value>
     </argument>
   </arguments>
-  <outputs/>
-  <provenances/>
+  <outputs />
+  <provenances />
   <tags>
     <tag>Whole Building.Whole Building Schedules</tag>
   </tags>
@@ -49,18 +50,6 @@
   </attributes>
   <files>
     <file>
-      <filename>expose_time_variable_240_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D9408794</checksum>
-    </file>
-    <file>
-      <filename>example_model.osm</filename>
-      <filetype>osm</filetype>
-      <usage_type>test</usage_type>
-      <checksum>53D14E69</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.4.0</identifier>
@@ -69,7 +58,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8EE297EF</checksum>
+      <checksum>21A50C12</checksum>
     </file>
   </files>
 </measure>

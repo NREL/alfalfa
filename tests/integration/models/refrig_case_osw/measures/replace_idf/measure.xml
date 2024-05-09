@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
+  <schema_version>3.1</schema_version>
   <name>replace_idf</name>
   <uid>256ee271-1946-4ee6-9ec2-26cd94fe5dfc</uid>
-  <version_id>b6c2f463-75e8-4934-a802-ceee30b74be5</version_id>
-  <version_modified>20201216T214230Z</version_modified>
-  <xml_checksum>9D2F1A23</xml_checksum>
+  <version_id>cb60e4b5-42ac-4d98-b9ff-e87f3b36a170</version_id>
+  <version_modified>2024-05-03T20:41:47Z</version_modified>
+  <xml_checksum>7A4781A5</xml_checksum>
   <class_name>ReplaceIDF</class_name>
   <display_name>Replace IDF</display_name>
   <description>Replace OpenStudio generated IDF file with user specified IDF.</description>
@@ -22,7 +22,9 @@
   </arguments>
   <outputs />
   <provenances />
-  <tags />
+  <tags>
+    <tag>Tool.Alfalfa</tag>
+  </tags>
   <attributes>
     <attribute>
       <name>Measure Type</name>
@@ -45,7 +47,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>E1C73E0E</checksum>
+      <checksum>DCCC3510</checksum>
     </file>
   </files>
 </measure>

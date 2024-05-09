@@ -113,6 +113,7 @@ class ReplaceIDF < OpenStudio::Ruleset::WorkspaceUserScript
     workspace.addObjects(ext_workspace.toIdfFile.objects)
     # report final condition of model
     runner.registerFinalCondition("The final IDF file had #{workspace.objects.size} objects.")
+    return true
   end
 end
 

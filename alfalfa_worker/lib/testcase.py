@@ -60,7 +60,7 @@ class TestCase(object):
         # Define simulation model
         self.fmupath = init_options['fmupath']
         # Load fmu
-        self.fmu = load_fmu(self.fmupath, enable_logging=True)
+        self.fmu = load_fmu(self.fmupath, log_level=1)
         # Get version and check is 2.0
         self.fmu_version = self.fmu.get_version()
         if self.fmu_version != '2.0':
