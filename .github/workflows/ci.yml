@@ -58,7 +58,7 @@ jobs:
       - name: Start dependencies
         run: |
           printenv
-          docker compose up -d mongo redis minio mc goaws
+          docker compose up -d mongo redis minio mc
 
       - name: Run tests with pytest
         run: |

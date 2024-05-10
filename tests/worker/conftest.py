@@ -12,7 +12,7 @@ def env_setup(monkeypatch):
     monkeypatch.setenv('S3_URL', 'http://localhost:9000')
     monkeypatch.setenv('REDIS_HOST', 'localhost')
     monkeypatch.setenv('S3_BUCKET', 'alfalfa')
-    monkeypatch.setenv('JOB_QUEUE_URL', 'http://localhost:4100/queue/local-queue1')
+    monkeypatch.setenv('JOB_QUEUE', 'Alfalfa Job Queue')
     monkeypatch.setenv('MONGO_URL', 'mongodb://localhost:27017')
     monkeypatch.setenv('MONGO_DB_NAME', 'alfalfa_test')
     monkeypatch.setenv('REGION', 'us-west-1')
