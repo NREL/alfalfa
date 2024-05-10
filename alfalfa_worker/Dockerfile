@@ -10,7 +10,7 @@ ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install poetry
-RUN pip3 install poetry==1.3.1
+RUN pip3 install poetry==1.8.3
 
 # Copy and install poetry-based dependencies
 COPY pyproject.toml /alfalfa
