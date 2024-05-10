@@ -23,7 +23,7 @@ mlep = "0.1.1.dev3"
 mongoengine = "~0.25"
 pandas = "~1.5"
 redis = "~4.5"
-scipy = "1.9.3"
+scipy = "1.10.0"
 symfit = "^0.5.5"
 
 # These libraries are used for the data generator/testcase.
