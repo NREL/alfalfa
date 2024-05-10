@@ -30,9 +30,10 @@ class Dispatcher(DispatcherLoggerMixin):
     def __init__(self, workdir: Path):
         super().__init__()
         connections_manager = AlafalfaConnectionsManager()
-        self.sqs_queue = connections_manager.sqs_queue
+        self.redis = connections_manager.redis
+        self.job_queue = os.environ['JOB_QUEUE']
 
-        self.logger.info(f"Job queue url is {self.sqs_queue}")
+        self.logger.info(f"Job queue key is {self.job_queue}")
 
         self.workdir = workdir
         if not Path.exists(self.workdir):
@@ -51,9 +52,8 @@ class Dispatcher(DispatcherLoggerMixin):
         }
         """
         try:
-            message_body = json.loads(message.body)
+            message_body = json.loads(message)
             self.logger.info(f"Processing message of {message_body}")
-            message.delete()
             job = message_body.get('job')
             if job:
                 params = message_body.get('params', {})
@@ -68,15 +68,14 @@ class Dispatcher(DispatcherLoggerMixin):
         """
         self.logger.info("Entering dispatcher run")
         while True:
-            # WaitTimeSeconds triggers long polling that will wait for events to enter queue
+            # BRPOP Blocks until there is a message in the queue
             # Receive Message
             try:
-                messages = self.sqs_queue.receive_messages(MaxNumberOfMessages=1, WaitTimeSeconds=20)
-                if len(messages) > 0:
-                    message = messages[0]
-                    self.logger.info('Message Received with payload: %s' % message.body)
-                    # Process Message
-                    self.process_message(message)
+                [key, message] = self.redis.brpop(self.job_queue)
+                message = message.decode()
+                self.logger.info('Message Received with payload: %s' % message)
+                # Process Message
+                self.process_message(message)
             except BaseException as e:
                 tb = traceback.format_exc()
                 self.logger.info("Exception caught in dispatcher.run: {} with {}".format(e, tb))

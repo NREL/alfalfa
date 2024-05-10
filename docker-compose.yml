@@ -21,7 +21,7 @@ services:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - GIT_COMMIT
-      - JOB_QUEUE_URL
+      - JOB_QUEUE
       - MONGO_DB_NAME
       - MONGO_URL
       - NODE_ENV
@@ -86,7 +86,7 @@ services:
       - INFLUXDB_ADMIN_USER
       - INFLUXDB_DB
       - INFLUXDB_HOST
-      - JOB_QUEUE_URL
+      - JOB_QUEUE
       - LOGLEVEL=INFO
       - MONGO_DB_NAME
       - MONGO_URL
