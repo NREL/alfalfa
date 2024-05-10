@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Install poetry
 RUN pip3 install poetry==1.8.3
+RUN poetry config virtualenvs.options.system-site-packages true
 
 # Copy and install poetry-based dependencies
 COPY pyproject.toml /alfalfa

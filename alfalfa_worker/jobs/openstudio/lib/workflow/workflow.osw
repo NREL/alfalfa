@@ -59,6 +59,13 @@
          "name" : "Metadata",
          "description" : "Generate metadata report for Alfalfa",
          "modeler_description" : "Generate metadata report for Alfalfa"
+      },
+      {
+         "arguments" : {},
+         "measure_dir_name" : "alfalfa_prepare_idf",
+         "name": "Alfalfa Prepare IDF",
+         "description" : "Remove RunPeriod and Timestep IDF Objects in preparation for Alfalfa execution",
+         "modeler_description" : "Remove RunPeriod and Timestep IDF Objects in preparation for Alfalfa execution"
       }
    ],
    "updated_at" : "20170606T230145Z",
