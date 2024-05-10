@@ -93,6 +93,7 @@ class PrepareIDF < OpenStudio::Ruleset::WorkspaceUserScript
       end
       runner.workflow.absoluteFilePaths.each {|p| o.setString(6,p.to_s) if p.to_s.include?('python')}
     end
+    return true
   end
 
 end
