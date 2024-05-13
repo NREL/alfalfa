@@ -24,7 +24,7 @@ jobs:
           python-version: "3.8"
 
       - name: Run pre-commit
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3
         with:
           extra_args: --all-files
 
@@ -42,7 +42,7 @@ jobs:
           python-version: "3.8"
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2.0.0
+        uses: abatilo/actions-poetry@v3
         with:
           poetry-version: 1.8.3
 
@@ -120,7 +120,7 @@ jobs:
           python-version: "3.8"
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2.0.0
+        uses: abatilo/actions-poetry@v3
         with:
           poetry-version: 1.8.3
 
@@ -188,7 +188,7 @@ jobs:
           python-version: "3.8"
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2.0.0
+        uses: abatilo/actions-poetry@v3
         with:
           poetry-version: 1.8.3
 
