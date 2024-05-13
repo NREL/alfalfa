@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.8"
 
@@ -34,10 +34,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.8"
 
@@ -70,13 +70,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Build
-        uses: docker/bake-action@v2
+        uses: docker/bake-action@v4
         with:
           files: docker-compose.yml, docker-compose.dev.yml
           set: |
@@ -95,7 +95,7 @@ jobs:
           docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d worker mongo redis minio mc goaws
 
       - name: Dump docker logs before tests
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2
 
       - name: Run job tests in Docker worker container
         run: |
@@ -104,7 +104,7 @@ jobs:
 
       - name: Dump docker logs on failure
         if: failure()
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2
 
   integration-tests:
     name: Run integration tests
@@ -112,10 +112,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.8"
 
@@ -125,10 +125,10 @@ jobs:
           poetry-version: 1.8.3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Build
-        uses: docker/bake-action@v2
+        uses: docker/bake-action@v4
         with:
           files: docker-compose.yml
           set: |
@@ -153,7 +153,7 @@ jobs:
           interval: 500
 
       - name: Dump docker logs before tests
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2
 
       - name: Install dependencies
         run: poetry install
@@ -172,7 +172,7 @@ jobs:
 
       - name: Dump docker logs on failure
         if: failure()
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2
 
   integration-tests-historian:
     name: Run integration tests with historian
@@ -180,10 +180,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.8"
 
@@ -193,10 +193,10 @@ jobs:
           poetry-version: 1.8.3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Build
-        uses: docker/bake-action@v2
+        uses: docker/bake-action@v4
         with:
           load: true
           files: docker-compose.yml, docker-compose.dev.yml, docker-compose.historian.yml
@@ -225,7 +225,7 @@ jobs:
           interval: 500
 
       - name: Dump docker logs before tests
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2
 
       - name: Install dependencies
         run: poetry install
@@ -244,14 +244,14 @@ jobs:
 
       - name: Dump docker logs on failure
         if: failure()
-        uses: jwalton/gh-docker-logs@v1
+        uses: jwalton/gh-docker-logs@v2
 
   publish:
     needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Log into container registry
         uses: docker/login-action@v2
@@ -261,7 +261,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Docker meta
         uses: docker/metadata-action@v4
@@ -278,7 +278,7 @@ jobs:
             type=semver,pattern={{major}},enable=${{ github.event_name == 'release' }}
 
       - name: Build
-        uses: docker/bake-action@v2
+        uses: docker/bake-action@v4
         with:
           files: |
             docker-compose.yml
