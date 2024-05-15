@@ -13,7 +13,7 @@ from tests.worker.helpers.mock_mongo_data import rec_data, run_data, site_data
 
 
 class TestModelsObjects:
-    def setup(self):
+    def setup_method(self):
         """Create the connection to the mongodatabase since we are not loading the entire framework.
         Note that the config params are monkeypatched in the conftest file"""
         connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
@@ -39,7 +39,7 @@ class TestModelsObjects:
 
 class TestModelObjectsWithFixtures():
 
-    def setup(self):
+    def setup_method(self):
         """Create the connection to the mongodatabase since we are not loading the entire framework.
         Note that the config params are monkeypatched in the conftest file"""
         connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
@@ -67,7 +67,7 @@ class TestModelObjectsWithFixtures():
 
             # TODO: grab the model object from the database and attach
 
-    def teardown(self):
+    def teardown_method(self):
         """Remove all the data that was generated during this test"""
         for datum in site_data:
             site = Site.objects(ref_id=datum['ref_id']).first()

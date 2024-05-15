@@ -16,7 +16,7 @@ requests-toolbelt = "~1.0"
 type = "git"
 url = "https://github.com/nrel/alfalfa-client.git"
 reference = "develop"
-resolved_reference = "0deb9ecc4b66961f17861d2731c39be94ef70d36"
+resolved_reference = "b0b4e09cd2445e9a2832ccdc36e6091bc7611dd2"
 
 [[package]]
 name = "anyio"
