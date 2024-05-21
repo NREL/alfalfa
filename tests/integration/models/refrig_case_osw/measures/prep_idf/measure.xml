@@ -3,9 +3,9 @@
   <schema_version>3.1</schema_version>
   <name>prepare_idf</name>
   <uid>28ad6cb2-e1e3-4f7c-82ab-8ef22aca2c39</uid>
-  <version_id>7c27abba-ecad-48c8-b67f-ee1e269447da</version_id>
-  <version_modified>2024-05-03T20:14:25Z</version_modified>
-  <xml_checksum>9D2F1A23</xml_checksum>
+  <version_id>87601461-7071-44bf-a202-d3d784d767d7</version_id>
+  <version_modified>2024-05-17T17:01:05Z</version_modified>
+  <xml_checksum>7A4781A5</xml_checksum>
   <class_name>PrepareIDF</class_name>
   <display_name>Prepare IDF</display_name>
   <description>Add python script path to IDF</description>
@@ -48,7 +48,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>3F126612</checksum>
+      <checksum>DDBE2A88</checksum>
     </file>
   </files>
 </measure>

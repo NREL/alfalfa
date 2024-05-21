@@ -1,12 +1,11 @@
 import os
-import socket
+import traceback
 from datetime import datetime, timedelta
-from time import sleep, time
 
-import mlep
+from pyenergyplus.api import EnergyPlusAPI
 
 from alfalfa_worker.jobs.openstudio.lib.variables import Variables
-from alfalfa_worker.jobs.step_run_base import StepRunBase
+from alfalfa_worker.jobs.step_run_base import Role, StepRunBase
 from alfalfa_worker.lib.job import (
     JobException,
     JobExceptionExternalProcess,
@@ -33,43 +32,23 @@ class StepRun(StepRunBase):
         self.weather_file = os.path.realpath(self.dir / 'simulation' / 'sim.epw')
         self.str_format = "%Y-%m-%d %H:%M:%S"
 
-        # EnergyPlus MLEP initializations
-        self.ep = mlep.MlepProcess()
-        self.ep.bcvtbDir = '/alfalfa/bcvtb/'
-        self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
-        self.ep.accept_timeout = 5000  # The number of milliseconds to wait every time we attempt to connect to e+
-        self.ep.mapping = os.path.realpath(self.dir / 'simulation' / 'haystack_report_mapping.json')
-        self.ep.workDir = os.path.split(self.idf_file)[0]
-        self.ep.arguments = (self.idf_file, self.weather_file)
-        self.ep.kStep = 1  # simulation step indexed at 1
-        self.ep.deltaT = 60  # the simulation step size represented in seconds - on 'step', the model will advance 1min
-
-        # Parse variables after Haystack measure
-        self.variables_file = os.path.realpath(self.dir / 'simulation' / 'variables.cfg')
-        self.haystack_json_file = os.path.realpath(self.dir / 'simulation' / 'haystack_report_haystack.json')
         self.variables = Variables(self.run)
 
-        # Define MLEP inputs
-        self.ep.inputs = [0] * (self.variables.get_num_inputs())
+        self.ep_api = EnergyPlusAPI()
+        self.ep_state = self.ep_api.state_manager.new_state()
+        self.ep_advance_flag = False
+        self.ep_io_objects = {}
 
         # The idf RunPeriod is manipulated in order to get close to the desired start time,
         # but we can only get within 24 hours. We use "bypass" steps to quickly get to the
         # exact right start time. This flag indicates we are iterating in bypass mode
         # it will be set to False once the desired start time is reach
-        self.master_enable_bypass = True
         self.first_timestep = True
         # Job will wait this number of seconds for an energyplus model to start before throwing an error
         self.model_start_timeout = 300
 
     def time_per_step(self):
         return timedelta(seconds=3600.0 / self.time_steps_per_hour)
-
-    def check_simulation_stop_conditions(self) -> bool:
-        if self.ep.status != 0:
-            return True
-        if not self.ep.is_running:
-            return True
-        return False
 
     def init_sim(self):
         """
@@ -78,117 +57,162 @@ class StepRun(StepRunBase):
         :return:
         """
         self.osm_idf_files_prep()
-        (self.ep.status, self.ep.msg) = self.ep.start()
-        if self.ep.status != 0:
-            raise JobExceptionExternalProcess('Could not start EnergyPlus: {}'.format(self.ep.msg))
+        self.ep_register_callbacks()
+        self.ep_request_variables()
 
-        start_time = time()
+    def ep_request_variables(self):
+        for point in self.variables.points.values():
+            if "output" in point:
+                if point["output"]["type"] == "OutputVariable":
+                    self.ep_api.exchange.request_variable(self.ep_state, **point["output"]["parameters"])
 
-        while time() < start_time + self.model_start_timeout and not self.ep.is_running:
-            self.check_error_log()
+    def ep_register_callbacks(self):
+        self.ep_api.runtime.callback_begin_new_environment(self.ep_state,
+                                                           self.ep_init_handles)
+        self.ep_api.runtime.callback_end_zone_timestep_after_zone_reporting(self.ep_state,
+                                                                            self.ep_begin_timestep)
+        # self.ep_api.runtime.callback_begin_zone_timestep_after_init_heat_balance(self.ep_state, self.ep_write_inputs)
 
-            try:
-                [self.ep.status, self.ep.msg] = self.ep.accept_socket()
-            except socket.timeout:
-                pass
+    def ep_init_handles(self, state):
+        try:
+            self.logger.info("Generating handles")
 
-        if not self.ep.is_running:
-            raise JobExceptionExternalProcess('Timedout waiting for EnergyPlus')
+            def get_handle(type, parameters):
+                self.logger.info(f"Getting handle for component of type: {type} with params: {parameters}")
+                handle = None
+                if type == "GlobalVariable":
+                    handle = self.ep_api.exchange.get_global_handle(state, **parameters)
+                elif type == "InternalVariable":
+                    handle = self.ep_api.exchange.get_internal_variable_handle(state, **parameters)
+                elif type == "OutputVariable":
+                    handle = self.ep_api.exchange.get_variable_handle(state, **parameters)
+                    self.logger.info(f"Got handle: {handle} for {parameters}")
+                elif type == "Meter":
+                    handle = self.ep_api.exchange.get_meter_handle(state, **parameters)
+                elif type == "Actuator":
+                    handle = self.ep_api.exchange.get_actuator_handle(state, **parameters)
+                else:
+                    self.logger.error(f"Unknown point type: {type}")
+                    raise JobException(f"Unknown point type: {type}")
+                if handle == -1:
+                    self.logger.error(f"Handle not found for point of type: {type} and parameters: {parameters}")
+                    raise JobException(f"Handle not found for point of type: {type} and parameters: {parameters}")
+                return handle
+            self.logger.info("Iterating through points")
+            self.logger.info(f"{len(self.variables.points)} point found")
+            for id, point in self.variables.points.items():
+                self.logger.info(f"getting handle for id: {id}")
+                if "input" in point:
+                    self.variables.points[id]["input"]["handle"] = get_handle(**point["input"])
+                if "output" in point:
+                    self.variables.points[id]["output"]["handle"] = get_handle(**point["output"])
+        except Exception as e:
+            self.ep_api.runtime.stop_simulation(state)
+            self.ep_api.runtime.issue_severe(state, str(e))
+            self.ep_api.runtime.issue_severe(state, str(traceback.format_exc()))
+            raise e
 
-        self.set_run_time(self.start_datetime)
+    def ep_begin_timestep(self, state):
+        try:
+            warmup = self.ep_api.exchange.warmup_flag(state)
+            kind_of_sim = self.ep_api.exchange.kind_of_sim(state)
+            if warmup or kind_of_sim == 1:
+                return
+            self.ep_read_outputs(state)
+            self.set_run_time(self.get_sim_time(state))
+            self.wait_for_advance()
+            self.ep_write_inputs(state)
+            if not self.is_running:
+                self.ep_api.runtime.stop_simulation(state)
+        except Exception as e:
+            self.ep_api.runtime.stop_simulation(state)
+            self.ep_api.runtime.issue_severe(state, str(e))
+            self.ep_api.runtime.issue_severe(state, str(traceback.format_exc()))
+            raise e
 
-    def advance_to_start_time(self):
-        """ We get near the requested start time by manipulating the idf file,
-        however the idf start time is limited to the resolution of 1 day.
-        The purpose of this function is to move the simulation to the requested
-        start minute.
-        This is accomplished by advancing the simulation as quickly as possible. Data is not
-        published to database during this process
-        """
-        self.update_outputs_from_ep()
-
-        current_ep_time = self.get_sim_time()
-        self.logger.info(
-            'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
-        while True:
-            current_ep_time = self.get_sim_time()
-            if current_ep_time < self.start_datetime:
-                self.logger.info(
-                    'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
-                self.step()
+    def ep_read_outputs(self, state):
+        """Reads outputs from E+ state"""
+        influx_points = []
+        for point in self.run.output_points:
+            handle = self.variables.points[point.ref_id]["output"]["handle"]
+            type = self.variables.points[point.ref_id]["output"]["type"]
+            value = None
+            if type == "GlobalVariable":
+                value = self.ep_api.exchange.get_variable_value(state, handle)
+            elif type == "InternalVariable":
+                value = self.ep_api.exchange.get_internal_variable_value(state, handle)
+            elif type == "OutputVariable":
+                value = self.ep_api.exchange.get_global_value(state, handle)
+            elif type == "Meter":
+                value = self.ep_api.exchange.get_meter_value(state, handle)
+            elif type == "Actuator":
+                value = self.ep_api.exchange.get_actuator_value(state, handle)
             else:
-                self.logger.info(f"current_ep_time: {current_ep_time} reached desired start_datetime: {self.start_datetime}")
-                break
-        self.master_enable_bypass = False
-        self.update_db()
-
-    def update_outputs_from_ep(self):
-        """Reads outputs from E+ step"""
-        self.check_error_log()
-        packet = self.ep.read()
-
-        _flag, _, outputs = mlep.mlep_decode_packet(packet)
-        if _flag == -1:
-            self.check_error_log()
-            raise JobExceptionExternalProcess("EnergyPlus experienced unknown error")
-        elif _flag == -10:
-            self.check_error_log()
-            raise JobExceptionExternalProcess("EnergyPlus experienced initialization error")
-        elif _flag == -20:
-            self.check_error_log()
-            raise JobExceptionExternalProcess("EnergyPlus experienced time integration error")
-
-        self.ep.outputs = outputs
-
-    def step(self):
-        """
-        Write inputs to simulation and get updated outputs.
-        This will advance the simulation one timestep.
-        """
-
-        # This doesn't really do anything. Energyplus does not check the timestep value coming from the external interface
-        self.ep.kStep += 1
-        # Begin Step
-        inputs = self.read_write_arrays_and_prep_inputs()
-        # Send packet to E+ via ExternalInterface Socket.
-        # Any writes to this socket trigger a model advance.
-        # First Arg: "2" - The version of the communication protocol
-        # Second Arg: "0" - The communication flag, 0 means normal communication
-        # Third Arg: "(self.ep.kStep - 1) * self.ep.deltaT" - The simulation time, this isn't actually checked or used on the E+ side
-        packet = mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs)
-        self.ep.write(packet)
-        self.first_timestep = False
-
-        # After Step
-        self.update_outputs_from_ep()
-
-    def update_db(self):
-        """
-        Update database with current ep outputs and simulation time
-        """
-        self.write_outputs_to_redis()
-
+                raise JobException(f"Unknown point type: {type}")
+            point.value = value
+            if self.historian_enabled:
+                influx_points.append({
+                    "measurement": self.run.ref_id,
+                    "time": self.run.sim_time,
+                    "value": value,
+                    "id": point.ref_id,
+                    "point": True,
+                    "source": "alfalfa"
+                })
         if self.historian_enabled:
-            self.write_outputs_to_influx()
-        self.update_sim_time_in_mongo()
+            try:
+                response = self.influx_client.write_points(points=influx_points,
+                                                           time_precision='s',
+                                                           database=self.influx_db_name)
+            except ConnectionError as e:
+                self.logger.error(f"Influx ConnectionError on curVal write: {e}")
+            if not response:
+                self.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
+                self.logger.info(f"Attempted to write: {influx_points}")
+            else:
+                self.logger.info(
+                    f"Successful write to influx.  Length of JSON: {len(influx_points)}")
 
-    def get_sim_time(self):
+    def ep_write_inputs(self):
+        """Writes inputs to E+ state"""
+        for point in self.run.input_points:
+            handle = self.variables.points[point.ref_id]["input"]["handle"]
+            type = self.variables.points[point.ref_id]["input"]["type"]
+            if type == "GlobalVariable":
+                self.ep_api.exchange.set_global_value(self.ep_state, handle, point.value)
+            if type == "Actuator":
+                if point.value is not None:
+                    self.ep_api.exchange.set_actuator_value(self.ep_state, handle, point.value)
+                else:
+                    # TODO Don't reset the actuator if we already reset it.
+                    self.ep_api.exchange.reset_actuator(self.ep_api, handle)
+
+    def start_sim_executive(self):
+        return_code = self.ep_api.runtime.run_energyplus(state=self.ep_state, command_line_args=['-w', str(self.weather_file), '-d', str(self.dir / 'simulation'), '-r', str(self.idf_file)])
+        if return_code != 0:
+            self.check_error_log()
+
+    def setup_points(self):
+        self.logger.info("Generating Points")
+        self.variables.generate_points()
+
+    @property
+    def role(self):
+        return Role.FOLLOWER
+
+    def get_sim_time(self, state):
         """
         Return the current time in EnergyPlus
 
         :return:
         :rtype datetime()
         """
-        month_index = self.variables.month_index
-        day_index = self.variables.day_index
-        hour_index = self.variables.hour_index
-        minute_index = self.variables.minute_index
 
-        day = int(round(self.ep.outputs[day_index]))
-        hour = int(round(self.ep.outputs[hour_index]))
-        minute = int(round(self.ep.outputs[minute_index]))
-        month = int(round(self.ep.outputs[month_index]))
-        year = self.start_datetime.year
+        day = self.ep_api.exchange.day_of_month(state)
+        hour = self.ep_api.exchange.hour(state)
+        minute = self.ep_api.exchange.minutes(state)
+        month = self.ep_api.exchange.month(state)
+        year = self.ep_api.exchange.year(state)
 
         sim_time = datetime(year, month, day, 0, 0)
 
@@ -244,127 +268,21 @@ Timestep,
         """
         self.replace_timestep_and_run_period_idf_settings()
 
-    def read_write_arrays_and_prep_inputs(self):
-        """Read the write arrays from redis and format them correctly to pass
-        to the EnergyPlus simulation.
-
-        Returns:
-            tuple: list of inputs to set
-        """
-        # master_index = self.variables.input_index_from_variable_name("MasterEnable")
-        # if self.master_enable_bypass:
-        #     self.ep.inputs[master_index] = 0
-        # else:
-        self.ep.inputs = [0] * (self.variables.get_num_inputs())
-        # self.ep.inputs[master_index] = 1
-
-        for point in self.run.input_points:
-            value = point.value
-            index = self.variables.get_input_index(point.ref_id)
-            if index == -1:
-                self.logger.error('bad input index for: %s' % point.ref_id)
-            elif value is None:
-                if self.variables.has_enable(point.ref_id):
-                    self.ep.inputs[self.variables.get_input_enable_index(point.ref_id)] = 0
-            else:
-                self.ep.inputs[index] = value
-                if self.variables.has_enable(point.ref_id):
-                    self.ep.inputs[self.variables.get_input_enable_index(point.ref_id)] = 1
-
-        # Convert to tuple
-        inputs = tuple(self.ep.inputs)
-        return inputs
-
-    def write_outputs_to_redis(self):
-        """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
-        for point in self.run.output_points:
-            output_index = self.variables.get_output_index(point.ref_id)
-            if output_index == -1:
-                self.logger.error('bad output index for: %s' % (point.ref_id))
-            else:
-                output_value = self.ep.outputs[output_index]
-
-                point.value = output_value
-
     def update_sim_time_in_mongo(self):
         """Placeholder for updating the datetime in Mongo to current simulation time"""
-        output_time_string = "s:" + str(self.get_sim_time())
-        self.logger.info(f"updating db time to: {output_time_string}")
-        self.set_run_time(self.get_sim_time())
-
-    def write_outputs_to_influx(self):
-        """
-        Write output data to influx
-        :return:
-        """
-        json_body = []
-        base = {
-            "measurement": self.run.ref_id,
-            "time": f"{self.get_sim_time()}",
-        }
-        response = False
-        for output_point in self.run.output_points:
-            output_id = output_point.ref_id
-            output_index = self.variables.get_output_index(output_id)
-            if output_index == -1:
-                self.logger.error('bad output index for: %s' % output_id)
-            else:
-                output_value = self.ep.outputs[output_index]
-                dis = output_point.name
-                base["fields"] = {
-                    "value": output_value
-                }
-                base["tags"] = {
-                    "id": output_id,
-                    "dis": dis,
-                    "siteRef": self.run.ref_id,
-                    "point": True,
-                    "source": 'alfalfa'
-                }
-                json_body.append(base.copy())
-        try:
-            response = self.influx_client.write_points(points=json_body,
-                                                       time_precision='s',
-                                                       database=self.influx_db_name)
-
-        except ConnectionError as e:
-            self.logger.error(f"Influx ConnectionError on curVal write: {e}")
-        if not response:
-            self.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
-            self.logger.info(f"Attempted to write: {json_body}")
-        else:
-            self.logger.info(
-                f"Successful write to influx.  Length of JSON: {len(json_body)}")
+        sim_time = self.get_sim_time()
+        self.logger.info(f"updating db time to: {sim_time}")
+        self.set_run_time(sim_time)
 
     def check_error_log(self):
-        mlep_logs = self.dir.glob('**/mlep.log')
-        eplus_err = False
-        for mlep_log in mlep_logs:
-            if "===== EnergyPlus terminated with error =====" in mlep_log.read_text():
-                eplus_err = True
-                break
-        if eplus_err:
-            error_concat = ""
-            error_logs = self.dir.glob('**/*.err')
-            for error_log in error_logs:
-                error_concat += f"{error_log}:\n"
-                error_concat += error_log.read_text() + "\n"
-            raise JobExceptionExternalProcess(f"Energy plus terminated with error:\n {error_concat}")
+        error_concat = ""
+        error_logs = self.dir.glob('**/*.err')
+        for error_log in error_logs:
+            error_concat += f"{error_log}:\n"
+            error_concat += error_log.read_text() + "\n"
+        raise JobExceptionExternalProcess(f"Energy plus terminated with error:\n {error_concat}")
 
     @message
     def advance(self):
         self.logger.info(f"advance called at time {self.get_sim_time()}")
         self.step()
-        self.update_db()
-
-    @message
-    def stop(self):
-        super().stop()
-
-        # Call some OpenStudio specific stop methods
-        self.ep.stop(True)
-        self.ep.is_running = 0
-
-        # If E+ doesn't exit properly it can spin and delete/create files during tarring.
-        # This causes an error when files that were added to the archive disappear.
-        sleep(5)

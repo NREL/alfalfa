@@ -26,28 +26,6 @@ class AlfalfaSiteSensors < OpenStudio::Measure::EnergyPlusMeasure
     return args
   end
 
-  def create_output_meter(name)
-    sensor_name = "#{create_ems_str(name)}_sensor"
-    output_name = "#{create_ems_str(name)}_output"
-    new_meter_string = "
-    Output:Meter,
-      #{name};
-    "
-    new_meter_object = OpenStudio::IdfObject.load(new_meter_string).get
-    @workspace.addObject(new_meter_object)
-
-    new_sensor_string = "
-    EnergyManagementSystem:Sensor,
-      #{sensor_name},
-      ,
-      #{name};
-    "
-    new_sensor_object = OpenStudio::IdfObject.load(new_sensor_string).get
-    @workspace.addObject(new_sensor_object)
-
-    create_ems_output_variable(output_name, sensor_name)
-  end
-
   # define what happens when the measure is run
   def run(workspace, runner, user_arguments)
     super(workspace, runner, user_arguments)
@@ -62,10 +40,10 @@ class AlfalfaSiteSensors < OpenStudio::Measure::EnergyPlusMeasure
     ]
 
     fuels.each do |fuel|
-      register_output(create_output_meter("#{fuel}:Facility")).display_name = "Whole Building #{fuel}"
+      alfalfa_add_meter("#{fuel}:Facility").display_name = "Whole Building #{fuel}"
     end
 
-    report_inputs_outputs
+    alfalfa_generate_reports
 
     runner.registerFinalCondition("Done")
 

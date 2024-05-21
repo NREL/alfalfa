@@ -1,9 +1,8 @@
 require 'alfalfa_mixin'
 require 'energy_plus_mixin'
-require 'input'
 require 'openstudio_mixin'
-require 'output'
 require 'point'
+require 'alfalfa_component'
 
 # Module which contains all OpenStudio code
 module OpenStudio

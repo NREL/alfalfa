@@ -99,31 +99,6 @@ class StepRun(StepRunBase):
     def get_sim_time(self) -> datetime:
         return datetime(self.start_datetime.year, 1, 1, 0, 0, 0) + timedelta(seconds=float(self.tc.final_time))
 
-    def step(self):
-        # u represents simulation input values
-        u = self.default_input.copy()
-        # look in redis for current writearrays which has an array of controller
-        # input values, the first element in the array with a value
-        # is what should be applied to the simulation according to Project Haystack
-        # convention. If there is no value in the array, then it will not be passed to the
-        # simulation.
-        for point in self.run.input_points:
-            value = point.value
-            if value is not None:
-                u[point.name] = value
-                u[point.name.replace('_u', '_activate')] = 1
-
-        y_output = self.tc.advance(u)
-        self.logger.debug(f"FMU output is {y_output}")
-        self.update_sim_status()
-
-        # get each of the simulation output values and feed to the database
-        for point in self.run.output_points:
-            point.value = y_output[point.name]
-
-        if self.historian_enabled:
-            self.write_outputs_to_influx(y_output)
-
     def write_outputs_to_influx(self, outputs):
         """
         Write output data to influx
@@ -174,8 +149,26 @@ class StepRun(StepRunBase):
     @message
     def advance(self):
         self.logger.info("advance called")
-        self.step()
+        # u represents simulation input values
+        u = self.default_input.copy()
+        # look in redis for current writearrays which has an array of controller
+        # input values, the first element in the array with a value
+        # is what should be applied to the simulation according to Project Haystack
+        # convention. If there is no value in the array, then it will not be passed to the
+        # simulation.
+        for point in self.run.input_points:
+            value = point.value
+            if value is not None:
+                u[point.name] = value
+                u[point.name.replace('_u', '_activate')] = 1
 
-    @message
-    def stop(self):
-        super().stop()
+        y_output = self.tc.advance(u)
+        self.logger.debug(f"FMU output is {y_output}")
+        self.update_sim_status()
+
+        # get each of the simulation output values and feed to the database
+        for point in self.run.output_points:
+            point.value = y_output[point.name]
+
+        if self.historian_enabled:
+            self.write_outputs_to_influx(y_output)
