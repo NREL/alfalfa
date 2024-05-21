@@ -32,6 +32,10 @@ module OpenStudio
         id = "_#{id}" if (id =~ /[0-9].*/) == 0
         id
       end
+
+      def str_to_id(str)
+        str.gsub(/[\s:-]/, '_')
+      end
     end
   end
 end

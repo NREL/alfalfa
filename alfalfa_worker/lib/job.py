@@ -103,6 +103,8 @@ class Job(metaclass=JobMetaclass):
         try:
             self.set_job_status(JobStatus.RUNNING)
             self.exec()
+            if self.status == JobStatus.ERROR:
+                return
             if self.is_running:
                 self.set_job_status(JobStatus.STOPPING)
                 self.stop()
@@ -138,6 +140,29 @@ class Job(metaclass=JobMetaclass):
         called by start()
         If not overridden it will by default start the message loop."""
         self.start_message_loop()
+
+    def error_wrapper(self, func):
+        def wrapped_func(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except CalledProcessError as e:
+                if e.output:
+                    self.logger.error(e, exc_info=True)
+                    self.logger.error(e.output.decode('utf-8'))
+                    self.record_run_error(e.output.decode('utf-8'))
+                else:
+                    self.logger.error(e, exc_info=True)
+                    self.logger.error(str(traceback.format_exc()))
+                    self.record_run_error(traceback.format_exc())
+                self.set_job_status(JobStatus.ERROR)
+                self.checkin_run()
+            except Exception as e:
+                self.logger.error(e, exc_info=True)
+                self.logger.error(str(traceback.format_exc()))
+                self.record_run_error(traceback.format_exc())
+                self.set_job_status(JobStatus.ERROR)
+                self.checkin_run()
+        return wrapped_func
 
     @message
     def stop(self) -> None:

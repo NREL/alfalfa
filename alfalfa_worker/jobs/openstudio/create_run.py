@@ -44,7 +44,7 @@ class CreateRun(Job):
         check_output(['openstudio', str(lib_dir / 'merge_osws.rb'), str(default_workflow_path), str(submitted_osw_path)])
 
         # run workflow
-        check_output(['openstudio', '-I', '/alfalfa/alfalfa_worker/jobs/openstudio/lib/alfalfa-lib-gem/lib', 'run', '-m', '-w', str(submitted_osw_path)])
+        check_output(['openstudio', '-I', '/alfalfa/alfalfa_worker/jobs/openstudio/lib/alfalfa-lib-gem/lib', '--verbose', 'run', '-m', '-w', str(submitted_osw_path)])
 
         self.logger.info('Loading Building Metadata')
         metadata_json_path = submitted_workflow_path / 'reports' / 'alfalfa_metadata_report_metadata.json'
@@ -56,36 +56,12 @@ class CreateRun(Job):
         self.logger.info('Generating variables from measure reports')
         self.variables = Variables(self.run)
         self.variables.load_reports()
-        self.variables.generate_points()
-
-        points_json_path = submitted_workflow_path / 'reports/haystack_report_haystack.json'
-        mapping_json_path = submitted_workflow_path / 'reports/haystack_report_mapping.json'
-
-        self.logger.info("Inserting OpenStudio tags")
-        self.insert_os_tags(points_json_path, mapping_json_path)
+        self.variables.write_files(simulation_dir)
 
         self.logger.info("Setting up symlinks")
         idf_src_path = submitted_workflow_path / 'run' / 'in.idf'
         idf_dest_path = simulation_dir / 'sim.idf'
         rel_symlink(idf_src_path, idf_dest_path)
-
-        haystack_src_path = submitted_workflow_path / 'reports' / 'haystack_report_mapping.json'
-        haystack_dest_path = simulation_dir / 'haystack_report_mapping.json'
-        rel_symlink(haystack_src_path, haystack_dest_path)
-
-        haystack_src_path = submitted_workflow_path / 'reports' / 'haystack_report_haystack.json'
-        haystack_dest_path = simulation_dir / 'haystack_report_haystack.json'
-        rel_symlink(haystack_src_path, haystack_dest_path)
-
-        variables_src_path = submitted_workflow_path / 'reports/export_bcvtb_report_variables.cfg'
-        variables_dest_path = simulation_dir / 'variables.cfg'
-        rel_symlink(variables_src_path, variables_dest_path)
-
-        # variables.cfg also needs to be located next to the idf to satisfy EnergyPlus conventions
-        idf_src_dir = idf_src_path.parents[0]
-        variables_ep_path = idf_src_dir / 'variables.cfg'
-        rel_symlink(variables_src_path, variables_ep_path)
-        self.variables.write_files(simulation_dir)
 
         # hack. need to find a more general approach to preserve osw resources that might be needed at simulation time
         for file in self.run.glob(submitted_workflow_path / 'python' / '*'):
@@ -108,9 +84,6 @@ class CreateRun(Job):
     def validate(self) -> None:
         assert (self.dir / 'simulation' / 'sim.idf').exists(), "Idf was not created"
         assert (self.dir / 'simulation' / 'sim.epw').exists(), "Weather file was not created"
-        assert (self.dir / 'simulation' / 'haystack_report_mapping.json').exists(), "haystack report json was not created"
-        assert (self.dir / 'simulation' / 'variables.cfg').exists(), "variables file was not created"
-        assert (self.dir / 'simulation' / 'haystack_report_haystack.json').exists(), "haystack mapping json was not created"
 
     def cleanup(self) -> None:
         super().cleanup()

@@ -28,10 +28,10 @@ class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
 
   def create_schedule_actuator(target_schedule)
     schedule_name = target_schedule.name.get
-    actuator_input = create_actuator(create_ems_str("#{schedule_name}_setpoint"), schedule_name, target_schedule.idfObject.iddObject.type.valueDescription, "Schedule Value", true)
-    schedule_value_output = create_output_variable(schedule_name, "Schedule Value")
-    actuator_input.echo = schedule_value_output
-    return actuator_input, schedule_value_output
+    actuator_point = alfalfa_create_actuator(target_schedule.idfObject.iddObject.type.valueDescription, "Schedule Value", schedule_name)
+    schedule_value_output = OpenStudio::Alfalfa::OutputVariable.new("Schedule Value", schedule_name)
+    actuator_point.output = schedule_value_output
+    return actuator_point
   end
 
   def control_thermostats
@@ -76,14 +76,12 @@ class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
     end
 
     schedules_to_zones.each do |schedule, zone_list|
-      schedule_input, schedule_echo = create_schedule_actuator(schedule)
+      schedule_point = create_schedule_actuator(schedule)
       zone_list.each do |zone|
-        schedule_input.add_zone(zone)
-        schedule_echo.add_zone(zone)
+        schedule_point.add_zone(zone)
       end
-      schedule_input.display_name = schedule.name.get
-      register_input(schedule_input)
-      register_output(schedule_echo)
+      schedule_point.display_name = schedule.name.get
+      alfalfa_add_point(schedule_point)
     end
   end
 
@@ -98,7 +96,7 @@ class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
 
     control_thermostats
 
-    report_inputs_outputs
+    alfalfa_generate_reports
 
     runner.registerFinalCondition("Done")
 

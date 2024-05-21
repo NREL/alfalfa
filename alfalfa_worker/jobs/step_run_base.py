@@ -1,15 +1,21 @@
 import datetime
 import os
+from enum import auto
 
 from influxdb import InfluxDBClient
 
-from alfalfa_worker.lib.enums import RunStatus
+from alfalfa_worker.lib.enums import AutoName, RunStatus
 from alfalfa_worker.lib.job import (
     Job,
     JobException,
     JobExceptionSimulation,
     message
 )
+
+
+class Role(AutoName):
+    LEADER = auto()
+    FOLLOWER = auto()
 
 
 class StepRunBase(Job):
@@ -49,6 +55,13 @@ class StepRunBase(Job):
         self.setup_connections()
 
         self.skip_stop_db_writes = kwargs.get('skip_stop_db_writes', False)
+
+        # Follower Role Variables
+        self.advance_flag = False
+
+        # Timescale Variables
+        self.first_timestep_time = None
+        self.next_step_time = None
 
     def process_inputs(self, realtime, timescale, external_clock, start_datetime, end_datetime):
         # TODO change server side message: startDatetime to start_datetime
@@ -95,31 +108,27 @@ class StepRunBase(Job):
     def exec(self) -> None:
         self.init_sim()
         self.setup_points()
-        self.advance_to_start_time()
-        self.set_run_status(RunStatus.RUNNING)
-        if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
-            self.logger.info("Running timescale / realtime")
-            self.run_timescale()
-        elif self.step_sim_type == 'external_clock':
-            self.logger.info("Running external_clock")
-            self.start_message_loop()
+        if self.role == Role.LEADER:
+            self.advance_to_start_time()
+            self.set_run_status(RunStatus.RUNNING)
+            if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
+                self.logger.info("Running timescale / realtime")
+                self.run_timescale()
+            elif self.step_sim_type == 'external_clock':
+                self.logger.info("Running external_clock")
+                self.start_message_loop()
+        elif self.role == Role.FOLLOWER:
+            self.start_sim_executive()
 
     def init_sim(self):
         """Placeholder for all things necessary to initialize simulation"""
 
-    def step(self):
-        """Placeholder for making a step through simulation time
+    def start_sim_executive(self):
+        """Placeholder for starting simulation executive in case where role is FOLLOWER"""
 
-        Step should consist of the following:
-            - Reading write arrays from mongo
-            - check_sim_status_stop
-            - if not self.stop
-                - Update model inputs
-                - Advancing the simulation
-                - Check that advancing the simulation results in the correct expected timestep
-                - Read output vals from simulation
-                - Update Mongo with values
-        """
+    @property
+    def role(self):
+        return Role.LEADER
 
     def advance_to_start_time(self):
         """Placeholder to advance sim to start time for job"""
@@ -146,17 +155,30 @@ class StepRunBase(Job):
         if self.first_step_warmup:
             # Do first step outside of loop so warmup time is not counted against steps_behind
             self.advance()
-        next_step_time = datetime.datetime.now() + self.timescale_step_interval()
         while self.is_running:
-            if datetime.datetime.now() >= next_step_time:
-                steps_behind = (datetime.datetime.now() - next_step_time) / self.timescale_step_interval()
-                if steps_behind > 2.0:
-                    raise JobExceptionSimulation("Timescale too high. Simulation more than 2 timesteps behind")
-                next_step_time = next_step_time + self.timescale_step_interval()
-                self.advance()
+            self.wait_for_advance()
 
-            if self.check_simulation_stop_conditions() or self.get_sim_time() >= self.end_datetime:
-                self.stop()
+    def wait_for_advance(self):
+        if self.first_timestep_time is None:
+            self.first_timestep_time = datetime.datetime.now()
+            self.next_step_time = datetime.datetime.now() + self.timescale_step_interval()
+        while self.is_running:
+            if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
+                if datetime.datetime.now() >= self.next_step_time:
+                    steps_behind = (datetime.datetime.now() - self.next_step_time) / self.timescale_step_interval()
+                    if steps_behind > 2.0:
+                        raise JobExceptionSimulation("Timescale too high. Simulation more than 2 timesteps behind")
+                    self.next_step_time = self.next_step_time + self.timescale_step_interval()
+                    self.advance()
+                    break
+
+                if self.check_simulation_stop_conditions() or self.get_sim_time() >= self.end_datetime:
+                    self.stop()
+                    break
+
+            if self.advance_flag:
+                self.advance_flag = False
+                break
 
             self._check_messages()
 
@@ -191,7 +213,7 @@ class StepRunBase(Job):
 
     @message
     def advance(self) -> None:
-        self.step()
+        self.advance_flag = True
 
     @message
     def stop(self) -> None:

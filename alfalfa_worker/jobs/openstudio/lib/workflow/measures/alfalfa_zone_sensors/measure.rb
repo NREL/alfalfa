@@ -36,28 +36,28 @@ class AlfalfaZoneSensors < OpenStudio::Measure::EnergyPlusMeasure
     zones = workspace.getObjectsByType('Zone'.to_IddObjectType)
     zones.each do |zone|
       zone_name = zone.name.get
-      mean_air_temperature_output = create_output_variable(zone_name, 'Zone Mean Air Temperature')
+      mean_air_temperature_output = alfalfa_create_output_variable('Zone Mean Air Temperature', zone_name)
       mean_air_temperature_output.display_name = "#{zone_name} Air Temperature"
       mean_air_temperature_output.add_zone(zone_name)
-      register_output(mean_air_temperature_output)
+      alfalfa_add_point(mean_air_temperature_output)
 
-      air_relative_humidity_output = create_output_variable(zone_name, 'Zone Air Relative Humidity')
+      air_relative_humidity_output = alfalfa_create_output_variable('Zone Air Relative Humidity', zone_name)
       air_relative_humidity_output.display_name = "#{zone_name} Humidity"
       air_relative_humidity_output.add_zone(zone_name)
-      register_output(air_relative_humidity_output)
+      alfalfa_add_point(air_relative_humidity_output)
 
       zone_equip_connections = zone.getSources('ZoneHVAC:EquipmentConnections'.to_IddObjectType)
 
       zone_equip_connections.each do |zone_equip_connection|
         zone_air_node = zone_equip_connection.getString(4)
-        setpoint_output = create_output_variable(zone_air_node, 'System Node Setpoint Temperature')
+        setpoint_output = alfalfa_create_output_variable('System Node Setpoint Temperature', zone_air_node)
         setpoint_output.display_name = "#{zone_name} Temperature Setpoint"
         setpoint_output.add_zone(zone_name)
-        register_output(setpoint_output)
+        alfalfa_add_point(setpoint_output)
       end
     end
 
-    report_inputs_outputs
+    alfalfa_generate_reports
 
     runner.registerFinalCondition('Done')
 

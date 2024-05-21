@@ -3,8 +3,8 @@
   <schema_version>3.1</schema_version>
   <name>replace_idf</name>
   <uid>256ee271-1946-4ee6-9ec2-26cd94fe5dfc</uid>
-  <version_id>cb60e4b5-42ac-4d98-b9ff-e87f3b36a170</version_id>
-  <version_modified>2024-05-03T20:41:47Z</version_modified>
+  <version_id>31a13172-516a-4969-bc89-6688a3ffd5fb</version_id>
+  <version_modified>2024-05-17T17:01:04Z</version_modified>
   <xml_checksum>7A4781A5</xml_checksum>
   <class_name>ReplaceIDF</class_name>
   <display_name>Replace IDF</display_name>
@@ -47,7 +47,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>DCCC3510</checksum>
+      <checksum>71952F5E</checksum>
     </file>
   </files>
 </measure>

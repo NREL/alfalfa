@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <measure>
   <schema_version>3.1</schema_version>
+  <error>Failed to infer measure name from '/Users/tshapins/Documents/Projects/alfalfa/tests/integration/models/refrig_case_osw/measures/./alfalfa_vars/measure.rb'</error>
   <name>alfalfa_variables</name>
   <uid>86d51823-68a5-478a-b60b-60891c3c9b5f</uid>
-  <version_id>8752f0cc-7f4d-4d58-af81-511e93aef0cd</version_id>
-  <version_modified>2024-05-03T20:14:25Z</version_modified>
+  <version_id>ff45ce09-a4b3-4000-b13d-b5e381a8990e</version_id>
+  <version_modified>2024-05-17T17:01:05Z</version_modified>
   <xml_checksum>356BE47F</xml_checksum>
   <class_name>AlfalfaVariables</class_name>
   <display_name>AlfalfaVariables</display_name>
@@ -19,7 +20,7 @@
   <attributes>
     <attribute>
       <name>Measure Type</name>
-      <value>ModelMeasure</value>
+      <value>EnergyPlusMeasure</value>
       <datatype>string</datatype>
     </attribute>
     <attribute>
@@ -48,7 +49,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>2A97F3D3</checksum>
+      <checksum>38E589BE</checksum>
     </file>
   </files>
 </measure>

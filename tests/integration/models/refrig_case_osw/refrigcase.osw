@@ -11,12 +11,6 @@
   "run_directory": "./run/",
   "steps" : [
     {
-      "measure_dir_name" : "alfalfa_vars",
-      "name" : "AlfalfaVariables",
-      "description" : "Add custom variables for Alfalfa",
-      "modeler_description" : "Add EMS global variables required by Alfalfa"
-    },
-    {
       "measure_dir_name" : "replace_idf",
       "name" : "Replace IDF",
       "description" : "Replace OpenStudio generated IDF file with user specified IDF file.",
@@ -33,6 +27,12 @@
       "arguments" : {
         "py_name" : "case_models"
       }
+    },
+    {
+      "measure_dir_name" : "alfalfa_vars",
+      "name" : "AlfalfaVariables",
+      "description" : "Add custom variables for Alfalfa",
+      "modeler_description" : "Add EMS global variables required by Alfalfa"
     }
   ]
 }

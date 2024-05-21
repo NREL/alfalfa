@@ -9,91 +9,105 @@ module OpenStudio
       include OpenStudio::Alfalfa::Utils
       # Create reports of input and outputs for alfalfa
       # Must be executed at the end of the measure to expose points in alfalfa
-      def report_inputs_outputs
-        @inputs.each do |input|
-          next if input.echo.nil?
-          next if @outputs.include? input.echo
-
-          @outputs.append(input.echo)
+      def alfalfa_generate_reports
+        points_dict = {}
+        @points.each do |point|
+          hash = point.to_dict
+          points_dict[hash['id']] = hash
+          components = [point.input, point.output]
+          components.each do |component|
+            if component.class == OpenStudio::Alfalfa::Meter
+              STDERR.puts component.parameters
+              _add_meter_to_model(component.parameters[:meter_name])
+            elsif component.class == OpenStudio::Alfalfa::GlobalVariable
+              _add_variable_to_plugin(component.parameters[:var_name])
+            end
+          end
         end
 
-        inputs_dict = {}
-        outputs_dict = {}
-        @inputs.each do |input|
-          hash = input.to_dict
-          inputs_dict[hash['id']] = hash
-        end
-        @outputs.each do |output|
-          hash = output.to_dict
-          outputs_dict[hash['id']] = hash
-        end
-
-        File.open('./report_inputs.json', 'w') do |f|
-          JSON.dump(inputs_dict, f)
-        end
-        File.open('./report_outputs.json', 'w') do |f|
-          JSON.dump(outputs_dict, f)
+        File.open('./report_points.json', 'w') do |f|
+          JSON.dump(points_dict, f)
         end
       end
 
-      # Register an input for inclusion in alfalfa
+      # Add a point for inclusion in alfalfa
       #
-      # @param [IdfObject, ModelObject, Input] input to register
-      # May be:
-      # - ExternalInterface:Actuator
-      # - ExternalInterface:Variable
-      # - ExternalInterface:Schedule
-      # - OS:ExternalInterface:Variable
-      # - OS:ExternalInterface:Schedule
-      # - OS:ExternalInterface:Actuator
-      # or:
-      # - OpenStudio::Alfalfa::Input
+      # @param [Point] point to add
       #
-      # @return [Input]
-      def register_input(input)
-        if input.is_a? OpenStudio::Alfalfa::Input
-          @inputs.append(input)
-        else
-          input = OpenStudio::Alfalfa::Input.new(input)
-          register_input(input)
-        end
-        input
+      # @return [Point]
+      def alfalfa_add_point(point)
+        @points.append(point)
+        point
       end
 
-      # Find an input by it's associated object name
-      #
-      # @param [String] name Name of input to find
-      #
-      # @return [Input]
-      def get_input_by_name(name)
-        @inputs.each do |input|
-          next unless input.object.name.get == name
-
-          return input
-        end
-        nil
+      def alfalfa_create_global_variable(var_name)
+        global_variable = OpenStudio::Alfalfa::GlobalVariable.new(var_name)
+        point = OpenStudio::Alfalfa::Point.new(global_variable, global_variable)
+        point.display_name = var_name
+        point.id = str_to_id(point.display_name)
+        return point
       end
 
-      # Register an output for inclusion in alfalfa
-      #
-      # @param output [IdfObject, ModelObject, Output] output to register
-      # May be:
-      # - Output:Variable
-      # - EnergyManagementSystem:OutputVariable
-      # - OS:Output:Variable
-      # - OS:EnergyManagementSystem:OutputVariable
-      # or:
-      # - OpenStudio::Alfalfa::Output
-      #
-      # @return [Output]
-      def register_output(output)
-        if output.is_a? OpenStudio::Alfalfa::Output
-          @outputs.append(output)
-        else
-          output = OpenStudio::Alfalfa::Output.new(output)
-          register_output(output)
-        end
-        output
+      def alfalfa_add_global_variable(var_name)
+        point = alfalfa_create_global_variable(var_name)
+        alfalfa_add_point(point)
+        return point
+      end
+
+      def alfalfa_create_internal_variable(variable_type, variable_key)
+        internal_variable = OpenStudio::Alfalfa::InternalVariable.new(variable_type, variable_key)
+        point = OpenStudio::Alfalfa::Point.new(nil, internal_variable)
+        point.display_name = "#{variable_key} #{variable_type}"
+        point.id = str_to_id(output.display_name)
+        return point
+      end
+
+      def alfalfa_add_internal_variable(variable_type, variable_key)
+        point = alfalfa_create_internal_variable(variable_type, variable_key)
+        alfalfa_add_point(point)
+        return point
+      end
+
+      def alfalfa_create_output_variable(variable_name, variable_key)
+        output_variable = OpenStudio::Alfalfa::OutputVariable.new(variable_name, variable_key)
+        point = OpenStudio::Alfalfa::Point.new(nil,  output_variable)
+        point.display_name = "#{variable_name} #{variable_key}"
+        point.id = str_to_id(point.display_name)
+        return point
+      end
+
+      def alfalfa_add_output_variable(variable_name, variable_key)
+        point = alfalfa_create_output_variable(variable_name, variable_key)
+        alfalfa_add_point(point)
+        return point
+      end
+
+      def alfalfa_create_meter(meter_name)
+        meter = OpenStudio::Alfalfa::Meter.new(meter_name)
+        point = OpenStudio::Alfalfa::Point.new(nil, meter)
+        point.display_name = meter_name
+        point.id = str_to_id(meter_name)
+        return point
+      end
+
+      def alfalfa_add_meter(meter_name)
+        point = alfalfa_create_meter(meter_name)
+        alfalfa_add_point(point)
+        return point
+      end
+
+      def alfalfa_create_actuator(component_type, control_type, actuator_key)
+        actuator = OpenStudio::Alfalfa::Actuator.new(component_type, control_type, actuator_key)
+        point = OpenStudio::Alfalfa::Point.new(actuator, actuator)
+        point.display_name = "#{actuator_key} #{component_type} #{control_type}"
+        point.id = str_to_id(point.display_name)
+        return point
+      end
+
+      def alfalfa_add_actuator(component_type, control_type, actuator_key)
+        point = alfalfa_create_actuator(component_type, control_type, actuator_key)
+        alfalfa_add_point(point)
+        return point
       end
     end
   end
