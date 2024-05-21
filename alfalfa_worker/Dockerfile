@@ -1,4 +1,4 @@
-FROM ghcr.io/nrel/alfalfa-dependencies:openstudio_3.8 AS base
+FROM ghcr.io/nrel/alfalfa-dependencies:main AS base
 
 USER root
 
