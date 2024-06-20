@@ -249,6 +249,7 @@ jobs:
   publish:
     needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
