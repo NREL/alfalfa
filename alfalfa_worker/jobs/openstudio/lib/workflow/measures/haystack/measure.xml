@@ -1,9 +1,10 @@
+<?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
+  <schema_version>3.1</schema_version>
   <name>haystack</name>
   <uid>a3201f8c-bc3d-4fe1-a945-4a4f22471c06</uid>
-  <version_id>967b2a78-232e-479d-bf84-f21e146f6737</version_id>
-  <version_modified>20180109T180541Z</version_modified>
+  <version_id>267bef8f-bfdf-4784-872d-8bde1ca3d509</version_id>
+  <version_modified>2024-05-03T20:06:06Z</version_modified>
   <xml_checksum>A9D5932A</xml_checksum>
   <class_name>Haystack</class_name>
   <display_name>Haystack</display_name>
@@ -30,8 +31,8 @@
       </choices>
     </argument>
   </arguments>
-  <outputs/>
-  <provenances/>
+  <outputs />
+  <provenances />
   <tags>
     <tag>HVAC.Whole System</tag>
   </tags>
@@ -77,7 +78,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>5D641FEE</checksum>
+      <checksum>931D5261</checksum>
     </file>
   </files>
 </measure>

@@ -205,71 +205,33 @@ class StepRun(StepRunBase):
         return sim_time + timedelta(hours=hour, minutes=minute % 60)
 
     def replace_timestep_and_run_period_idf_settings(self):
+
         try:
-            # Generate Lines
-            begin_month_line = '  {},                                      !- Begin Month\n'.format(
-                self.start_datetime.month)
-            begin_day_line = '  {},                                      !- Begin Day of Month\n'.format(
-                self.start_datetime.day)
-            end_month_line = '  {},                                      !- End Month\n'.format(self.end_datetime.month)
-            end_day_line = '  {},                                      !- End Day of Month\n'.format(
-                self.end_datetime.day)
-            time_step_line = '  {};                                      !- Number of Timesteps per Hour\n'.format(
-                self.time_steps_per_hour)
-            begin_year_line = '  {},                                   !- Begin Year\n'.format(self.start_datetime.year)
-            end_year_line = '  {},                                   !- End Year\n'.format(self.end_datetime.year)
-            dayOfweek_line = '  {},                                   !- Day of Week for Start Day\n'.format(
-                self.start_datetime.strftime("%A"))
-            line_timestep = None  # Sanity check to make sure object exists
-            line_runperiod = None  # Sanity check to make sure object exists
+            runperiod_str = f"""
+RunPeriod,
+  Alfalfa Run Period,
+  {self.start_datetime.month},            !- Begin Month
+  {self.start_datetime.day},              !- Begin Day of Month
+  {self.start_datetime.year},             !- Begin Year
+  {self.end_datetime.month},              !- End Month
+  {self.end_datetime.day},                !- End Day of Month
+  {self.end_datetime.year},               !- End Year
+  {self.start_datetime.strftime("%A")},    !- Day of Week for Start Day
+  ,                                       !- Use Weather File Holidays and Special Days
+  ,                                       !- Use Weather File Daylight Saving Period
+  ,                                       !- Apply Weekend Holiday Rule
+  ,                                       !- Use Weather File Rain Indicators
+  ,                                       !- Use Weather File Snow Indicators
+  ,                                       !- Treat Weather as Actual
+  ;                                       !- First Hour Interpolation Starting Values"""
 
-            # Overwrite File
-            # the basic idea is to locate the pattern first (e.g. Timestep, RunPeriod)
-            # then find the relevant lines by counting how many lines away from the patten.
-            count = -1
-            with open(self.idf_file, 'r+') as f:
-                lines = f.readlines()
-                f.seek(0)
-                f.truncate()
-                for line in lines:
-                    count = count + 1
-                    if line.strip() == 'RunPeriod,':  # Equivalency statement necessary
-                        line_runperiod = count
-                    if line.strip() == 'Timestep,':  # Equivalency statement necessary
-                        line_timestep = count + 1
+            timestep_str = f"""
+Timestep,
+  {self.time_steps_per_hour}; !- Number of Timesteps per Hour"""
 
-                if not line_timestep:
-                    raise TypeError(
-                        "line_timestep cannot be None.  'Timestep,' should be present in IDF file, but is not.")
-
-                if not line_runperiod:
-                    raise TypeError(
-                        "line_runperiod cannot be None.  'RunPeriod,' should be present in IDF file, but is not.")
-
-                for i, line in enumerate(lines):
-                    if (i < line_runperiod or i > line_runperiod + 12) and (i != line_timestep):
-                        f.write(line)
-                    elif i == line_timestep:
-                        line = time_step_line
-                        f.write(line)
-                    else:
-                        if i == line_runperiod + 2:
-                            line = begin_month_line
-                        elif i == line_runperiod + 3:
-                            line = begin_day_line
-                        elif i == line_runperiod + 4:
-                            line = begin_year_line
-                        elif i == line_runperiod + 5:
-                            line = end_month_line
-                        elif i == line_runperiod + 6:
-                            line = end_day_line
-                        elif i == line_runperiod + 7:
-                            line = end_year_line
-                        elif i == line_runperiod + 8:
-                            line = dayOfweek_line
-                        else:
-                            line = lines[i]
-                        f.write(line)
+            with self.idf_file.open("a") as idf_file:
+                idf_file.write(runperiod_str)
+                idf_file.write(timestep_str)
         except BaseException as e:
             self.logger.error('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
             raise JobException('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))

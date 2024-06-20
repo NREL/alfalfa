@@ -1,5 +1,5 @@
 # *******************************************************************************
-# OpenStudio(R), Copyright (c) 2008-2022, Alliance for Sustainable Energy, LLC.
+# OpenStudio(R), Copyright (c) 2008-2020, Alliance for Sustainable Energy, LLC.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -33,20 +33,57 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # *******************************************************************************
 
-require_relative '../spec_helper'
+# start the measure
+class AlfalfaPrepareIDF < OpenStudio::Ruleset::WorkspaceUserScript
 
-RSpec.describe OpenStudio::Alfalfa do
-  it 'has a version number' do
-    expect(OpenStudio::Alfalfa::VERSION).not_to be nil
+  # human readable name
+  def name
+    return 'Alfalfa Prepare IDF'
   end
 
-  it 'has a measures directory' do
-    instance = OpenStudio::Alfalfa::Alfalfa.new
-    expect(File.exist?(instance.measures_dir)).to be true
+  # human readable description
+  def description
+    return 'Remove RunPeriod and Timestep IDF Objects in preparation for Alfalfa execution'
   end
 
-  it 'exists' do
-    x = OpenStudio::Alfalfa::Tagger.new
-    expect(x.class.to_s == 'OpenStudio::Alfalfa::Tagger').to be true
+  # human readable description of modeling approach
+  def modeler_description
+    return 'Remove RunPeriod and Timestep IDF Objects in preparation for Alfalfa execution'
   end
+
+  # define the arguments that the user will input
+  def arguments(workspace)
+    args = OpenStudio::Ruleset::OSArgumentVector.new
+    return args
+  end
+
+  # define what happens when the measure is run
+  def run(ws, runner, user_args)
+
+    # call the parent class method
+    super(ws, runner, user_args)
+
+    # use the built-in error checking
+    return false unless runner.validateUserArguments(
+      arguments(ws),
+      user_args
+    )
+
+    timestep_objs = ws.getObjectsByType('Timestep'.to_IddObjectType)
+    runperiod_objs = ws.getObjectsByType('RunPeriod'.to_IddObjectType)
+
+    timestep_objs.each do |timestep|
+      timestep.remove()
+    end
+
+    runperiod_objs.each do |runperiod|
+      runperiod.remove()
+    end
+
+    return true
+  end
+
 end
+
+# register the measure to be used by the application
+AlfalfaPrepareIDF.new.registerWithApplication

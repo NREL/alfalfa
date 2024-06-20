@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <measure>
   <schema_version>3.1</schema_version>
-  <name>alfalfa_python_environment</name>
+  <name>alfalfa_prepare_idf</name>
   <uid>16125428-fcf9-4986-9d9b-3644225a2b6d</uid>
-  <version_id>39ffcfe8-5902-44dd-9d1a-5aae2502d8c7</version_id>
-  <version_modified>2024-05-03T20:06:06Z</version_modified>
-  <xml_checksum>9D2F1A23</xml_checksum>
-  <class_name>AlfalfaPythonEnvironment</class_name>
-  <display_name>Alfalfa Python Environment</display_name>
-  <description>Add alfalfa python environment to IDF</description>
-  <modeler_description>Add python script path to IDF</modeler_description>
+  <version_id>ed0d5b56-97c3-4dde-bf4a-937d382043fe</version_id>
+  <version_modified>2024-05-10T15:00:59Z</version_modified>
+  <xml_checksum>7A4781A5</xml_checksum>
+  <class_name>AlfalfaPrepareIDF</class_name>
+  <display_name>Alfalfa Prepare IDF</display_name>
+  <description>Remove RunPeriod and Timestep IDF Objects in preparation for Alfalfa execution</description>
+  <modeler_description>Remove RunPeriod and Timestep IDF Objects in preparation for Alfalfa execution</modeler_description>
   <arguments />
   <outputs />
   <provenances />
@@ -38,7 +38,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>91260911</checksum>
+      <checksum>0267B29F</checksum>
     </file>
   </files>
 </measure>

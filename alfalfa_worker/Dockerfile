@@ -1,4 +1,4 @@
-FROM ghcr.io/nrel/alfalfa-dependencies:2.0.0 AS base
+FROM ghcr.io/nrel/alfalfa-dependencies:3.0.0 AS base
 
 USER root
 
@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Install poetry
 RUN pip3 install poetry==1.8.3
+RUN poetry config virtualenvs.options.system-site-packages true
 
 # Copy and install poetry-based dependencies
 COPY pyproject.toml /alfalfa
@@ -23,9 +24,7 @@ RUN poetry install --only main
 ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
 
 COPY ./alfalfa_worker /alfalfa/alfalfa_worker
-RUN cd alfalfa_worker/jobs/openstudio/lib/alfalfa-lib-gem \
-    && gem build alfalfa-lib-gem.gemspec \
-    && gem install ./alfalfa-lib-0.0.0.gem
+
 COPY ./deploy /alfalfa/deploy
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 

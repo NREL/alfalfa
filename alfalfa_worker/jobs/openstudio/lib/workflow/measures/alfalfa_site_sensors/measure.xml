@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <measure>
-  <schema_version>3.0</schema_version>
-  <error>cannot load such file -- alfalfa</error>
+  <schema_version>3.1</schema_version>
+  <error>Failed to infer measure name from '/Users/tshapins/Documents/Projects/alfalfa/alfalfa_worker/jobs/openstudio/lib/workflow/measures/./alfalfa_site_sensors/measure.rb'</error>
   <name>alfalfa_site_sensors</name>
   <uid>870213d3-36a2-4da2-9a04-c377a37fd4fe</uid>
-  <version_id>f0fb23f6-6d8d-41a7-be6d-8d8f27416c33</version_id>
-  <version_modified>20230127T210421Z</version_modified>
+  <version_id>40c05e7b-834f-41f7-857a-baf8e251ebf9</version_id>
+  <version_modified>2024-05-03T20:06:06Z</version_modified>
   <xml_checksum>70995EFB</xml_checksum>
   <class_name>AlfalfaSiteSensors</class_name>
   <display_name>Alfalfa Site Sensors</display_name>
@@ -34,7 +34,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>4FCE96E6</checksum>
+      <checksum>FC5DA746</checksum>
     </file>
   </files>
 </measure>
