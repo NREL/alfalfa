@@ -19,8 +19,6 @@ class AlfalfaConnectionsBase(object):
         boto3 is the AWS SDK for Python for different types of services (S3, EC2, etc.)
         """
         # boto3
-        self.sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
-        self.sqs_queue = self.sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
         self.s3 = boto3.resource('s3', region_name=os.environ['REGION'], endpoint_url=os.environ['S3_URL'])
         self.s3_bucket = self.s3.Bucket(os.environ['S3_BUCKET'])
 

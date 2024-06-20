@@ -1,5 +1,4 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 import { fromEnv } from "@aws-sdk/credential-providers";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -22,13 +21,10 @@ class AlfalfaAPI {
     this.pub = redis.duplicate();
     this.pub.connect();
 
+    this.redisJobQueue = process.env.JOB_QUEUE || "Alfalfa Job Queue";
+
     const credentials = fromEnv();
     const region = process.env.REGION || "us-east-1";
-    this.sqs = new SQSClient({
-      credentials,
-      endpoint: new URL(process.env.JOB_QUEUE_URL).origin,
-      region
-    });
     this.s3 = new S3Client({
       credentials,
       endpoint: process.env.S3_URL_EXTERNAL || process.env.S3_URL,
@@ -201,24 +197,17 @@ class AlfalfaAPI {
 
     const { startDatetime, endDatetime, timescale, realtime, externalClock } = data;
 
-    const messageBody = {
-      job: `alfalfa_worker.jobs.${sim_type === "MODELICA" ? "modelica" : "openstudio"}.StepRun`,
-      params: {
-        run_id: run.ref_id,
-        start_datetime: startDatetime,
-        end_datetime: endDatetime,
-        timescale: `${timescale || 5}`,
-        realtime: `${!!realtime}`,
-        external_clock: `${!!externalClock}`
-      }
+    const job = `alfalfa_worker.jobs.${sim_type === "MODELICA" ? "modelica" : "openstudio"}.StepRun`;
+    const params = {
+      run_id: run.ref_id,
+      start_datetime: startDatetime,
+      end_datetime: endDatetime,
+      timescale: `${timescale || 5}`,
+      realtime: `${!!realtime}`,
+      external_clock: `${!!externalClock}`
     };
-    await this.sqs.send(
-      new SendMessageCommand({
-        MessageBody: JSON.stringify(messageBody),
-        QueueUrl: process.env.JOB_QUEUE_URL,
-        MessageGroupId: "Alfalfa"
-      })
-    );
+
+    await this.sendJobToQueue(job, params);
   };
 
   advanceRun = async (run) => {
@@ -309,24 +298,23 @@ class AlfalfaAPI {
   createRunFromModel = async (model) => {
     const runId = uuidv1();
     const job = `alfalfa_worker.jobs.${model.model_name.endsWith(".fmu") ? "modelica" : "openstudio"}.CreateRun`;
-
-    const messageBody = {
-      job,
-      params: {
-        model_id: model.ref_id,
-        run_id: runId
-      }
+    const params = {
+      model_id: model.ref_id,
+      run_id: runId
     };
 
-    await this.sqs.send(
-      new SendMessageCommand({
-        MessageBody: JSON.stringify(messageBody),
-        QueueUrl: process.env.JOB_QUEUE_URL,
-        MessageGroupId: "Alfalfa"
-      })
-    );
+    await this.sendJobToQueue(job, params);
 
     return { runId };
+  };
+
+  sendJobToQueue = async (job, params) => {
+    const messageBody = {
+      job,
+      params
+    };
+
+    await this.redis.lPush(this.redisJobQueue, JSON.stringify(messageBody));
   };
 
   setAlias = async (alias, run) => {

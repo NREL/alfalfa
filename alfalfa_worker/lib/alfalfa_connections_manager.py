@@ -19,7 +19,3 @@ class AlafalfaConnectionsManager(metaclass=Singleton):
 
         # Redis
         self.redis = Redis(host=os.environ['REDIS_HOST'])
-
-        # Setup SQS
-        self.sqs = boto3.resource('sqs', region_name=os.environ['REGION'], endpoint_url=os.environ['JOB_QUEUE_URL'])
-        self.sqs_queue = self.sqs.Queue(url=os.environ['JOB_QUEUE_URL'])
