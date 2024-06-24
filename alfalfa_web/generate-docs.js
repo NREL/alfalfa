@@ -8,7 +8,7 @@ const { version } = require("./package.json");
 const serverType = process.env.NODE_ENV === "production" ? "Production" : "Development";
 
 const openapiSpecification = swaggerJsdoc({
-  apis: ["./server/api-v2.js", "./server/api-haystack.js", "./components.yml"],
+  apis: ["./server/api-v2.js", "./server/api-haystack.js", "./api.yml"],
   definition: {
     openapi: "3.1.0",
     info: {
@@ -33,23 +33,19 @@ const openapiSpecification = swaggerJsdoc({
       },
       {
         name: "Alias",
-        description: "Manage site id aliases"
+        description: "Creating and Accessing Aliases for Runs"
       },
       {
         name: "Model",
-        description: "Manage models"
-      },
-      {
-        name: "Simulation",
-        description: "Manage completed simulations, including any that may have stopped with errors"
-      },
-      {
-        name: "Site",
-        description: "Manage sites"
+        description: "Creating, and Downloading Models"
       },
       {
         name: "Run",
-        description: "Manage Runs"
+        description: "Creating, Interacting, and Destroying Runs"
+      },
+      {
+        name: "Point",
+        description: "Reading, Writing, and Listing Points"
       },
       {
         name: "Haystack",
@@ -60,191 +56,13 @@ const openapiSpecification = swaggerJsdoc({
     "x-tagGroups": [
       {
         name: "Alfalfa API",
-        tags: ["About", "Alias", "Model", "Simulation", "Site", "Run"]
+        tags: ["About", "Model", "Run", "Point", "Alias"]
       },
       {
         name: "Project Haystack API",
         tags: ["Haystack"]
       }
-    ],
-    components: {
-      parameters: {
-        Alias: {
-          name: "alias",
-          in: "path",
-          description: "Alias name",
-          required: true,
-          schema: {
-            type: "string"
-          }
-        },
-        ModelID: {
-          name: "modelId",
-          in: "path",
-          description: "Model ID",
-          required: true,
-          schema: {
-            type: "string",
-            format: "uuid"
-          }
-        },
-        PointID: {
-          name: "pointId",
-          in: "path",
-          description: "Point ID",
-          required: true,
-          schema: {
-            type: "string",
-            format: "uuid"
-          }
-        },
-        SiteID: {
-          name: "siteId",
-          in: "path",
-          description: "Site ID",
-          required: true,
-          schema: {
-            type: "string",
-            format: "uuid"
-          }
-        }
-      },
-      schemas: {
-        Error: {
-          type: "object",
-          properties: {
-            error: {
-              type: "string",
-              description: "Error message",
-              example: "Something went wrong"
-            }
-          }
-        },
-        Model: {
-          type: "object",
-          properties: {
-            id: {
-              type: "string",
-              format: "uuid"
-            },
-            modelName: {
-              type: "string"
-            },
-            created: {
-              type: "string",
-              format: "date-time"
-            },
-            modified: {
-              type: "string",
-              format: "date-time"
-            }
-          }
-        },
-        Point: {
-          type: "object",
-          properties: {
-            id: {
-              type: "string",
-              format: "uuid"
-            },
-            name: {
-              type: "string"
-            },
-            type: {
-              type: "string",
-              enum: ["INPUT", "OUTPUT", "BIDIRECTIONAL"]
-            },
-            value: {
-              type: "float",
-              description:
-                "Value is only returned for `OUTPUT` and `BIDIRECTIONAL` points if available. Values are not returned when using the `/points/inputs` endpoint"
-            }
-          },
-          required: ["id", "name", "type"]
-        },
-        Simulation: {
-          type: "object",
-          properties: {
-            id: {
-              type: "string",
-              format: "uuid"
-            },
-            name: {
-              type: "string"
-            },
-            timeCompleted: {
-              type: "string",
-              format: "date-time"
-            },
-            status: {
-              type: "string",
-              enum: ["complete", "error"]
-            },
-            url: {
-              type: "string"
-            },
-            results: {
-              type: "object"
-            }
-          }
-        },
-        Site: {
-          type: "object",
-          properties: {
-            id: {
-              type: "string",
-              format: "uuid"
-            },
-            name: {
-              type: "string"
-            },
-            status: {
-              type: "string",
-              enum: [
-                "created",
-                "preprocessing",
-                "ready",
-                "starting",
-                "started",
-                "running",
-                "stopping",
-                "complete",
-                "error"
-              ]
-            },
-            simType: {
-              type: "string"
-            },
-            datetime: {
-              type: "string"
-            },
-            uploadTimestamp: {
-              type: "string",
-              format: "date-time"
-            },
-            uploadPath: {
-              type: "string"
-            },
-            errorLog: {
-              type: "string"
-            }
-          }
-        },
-        Version: {
-          type: "object",
-          properties: {
-            version: {
-              type: "string",
-              description: "The current Alfalfa release version"
-            },
-            sha: {
-              type: "string",
-              description: "The git SHA of Alfalfa that is deployed"
-            }
-          }
-        }
-      }
-    }
+    ]
   }
 });
 
