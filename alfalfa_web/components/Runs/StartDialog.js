@@ -15,7 +15,7 @@ import {
 import { DateTimePicker } from "@mui/x-date-pickers";
 import { DateTime } from "luxon";
 
-export const StartDialog = ({ onClose, onStartSimulation }) => {
+export const StartDialog = ({ onClose, onStartRun }) => {
   const timeFormat = "y-LL-dd HH:mm:ss";
 
   const currentTime = DateTime.now();
@@ -30,7 +30,7 @@ export const StartDialog = ({ onClose, onStartSimulation }) => {
   };
 
   const handleRequestStart = () => {
-    onStartSimulation(
+    onStartRun(
       selectedStartTime.toFormat(timeFormat),
       selectedEndTime.toFormat(timeFormat),
       timescale,

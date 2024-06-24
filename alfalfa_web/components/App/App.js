@@ -5,8 +5,7 @@ import { AppBar, Grid, Toolbar, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { Docs } from "../Docs/Docs";
-import { Sims } from "../Sims/Sims";
-import { Sites } from "../Sites/Sites";
+import { Runs } from "../Runs/Runs";
 import { Upload } from "../Upload/Upload";
 import styles from "./App.scss";
 
@@ -26,16 +25,9 @@ export const App = () => {
               </Link>
               <Grid container justifyContent="flex-end" spacing={2} style={{ marginLeft: 0 }}>
                 <Grid item>
-                  <Link to={"/sites"} style={{ textDecoration: "none", color: "unset" }}>
+                  <Link to={"/runs"} style={{ textDecoration: "none", color: "unset" }}>
                     <Typography variant="button" color="inherit" sx={{ m: 1 }}>
-                      Sites
-                    </Typography>
-                  </Link>
-                </Grid>
-                <Grid item>
-                  <Link to={"/sims"} style={{ textDecoration: "none", color: "unset" }}>
-                    <Typography variant="button" color="inherit" sx={{ m: 1 }}>
-                      Completed Simulations
+                      Runs
                     </Typography>
                   </Link>
                 </Grid>
@@ -51,8 +43,7 @@ export const App = () => {
           </AppBar>
           <Routes>
             <Route path="/" element={<Upload />} />
-            <Route path="/sites" element={<Sites />} />
-            <Route path="/sims" element={<Sims />} />
+            <Route path="/runs" element={<Runs />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

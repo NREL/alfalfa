@@ -6,7 +6,7 @@ import { ErrorDialog } from "./ErrorDialog";
 import { PointDialog } from "./PointDialog";
 import { StartDialog } from "./StartDialog";
 
-export const Sites = () => {
+export const Runs = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
   const [runs, setRuns] = useState([]);
@@ -69,7 +69,7 @@ export const Sites = () => {
     setShowPointDialog(run);
   };
 
-  const handleStartSimulation = (startDatetime, endDatetime, timescale, realtime, externalClock) => {
+  const handleStartRun = (startDatetime, endDatetime, timescale, realtime, externalClock) => {
     selectedRuns()
       .filter(({ status }) => validStates.start.includes(status))
       .map(async ({ id }) => {
@@ -87,7 +87,7 @@ export const Sites = () => {
       });
   };
 
-  const handleStopSimulation = () => {
+  const handleStopRun = () => {
     selectedRuns()
       .filter(({ status }) => validStates.stop.includes(status))
       .map(async ({ id }) => {
@@ -120,9 +120,7 @@ export const Sites = () => {
     <Grid container direction="column">
       {showErrorDialog && <ErrorDialog run={showErrorDialog} onClose={() => setShowErrorDialog(null)} />}
       {showPointDialog && <PointDialog run={showPointDialog} onClose={() => setShowPointDialog(null)} />}
-      {showStartDialog && (
-        <StartDialog onStartSimulation={handleStartSimulation} onClose={() => setShowStartDialog(null)} />
-      )}
+      {showStartDialog && <StartDialog onStartRun={handleStartRun} onClose={() => setShowStartDialog(null)} />}
       <Grid item>
         <Table>
           <TableHead>
@@ -184,7 +182,7 @@ export const Sites = () => {
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="contained" disabled={isStopButtonDisabled()} onClick={handleStopSimulation} sx={{ m: 1 }}>
+            <Button variant="contained" disabled={isStopButtonDisabled()} onClick={handleStopRun} sx={{ m: 1 }}>
               Stop Test
             </Button>
           </Grid>
