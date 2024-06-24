@@ -8,7 +8,6 @@ from alfalfa_worker.jobs.openstudio.lib.variables import Variables
 from alfalfa_worker.lib.enums import RunStatus, SimType
 from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
 from alfalfa_worker.lib.tagutils import make_ids_unique, replace_site_id
-from alfalfa_worker.lib.utils import rel_symlink
 
 
 class CreateRun(Job):
@@ -67,24 +66,24 @@ class CreateRun(Job):
         self.logger.info("Setting up symlinks")
         idf_src_path = submitted_workflow_path / 'run' / 'in.idf'
         idf_dest_path = simulation_dir / 'sim.idf'
-        rel_symlink(idf_src_path, idf_dest_path)
+        os.symlink(idf_src_path, idf_dest_path)
 
         haystack_src_path = submitted_workflow_path / 'reports' / 'haystack_report_mapping.json'
         haystack_dest_path = simulation_dir / 'haystack_report_mapping.json'
-        rel_symlink(haystack_src_path, haystack_dest_path)
+        os.symlink(haystack_src_path, haystack_dest_path)
 
         haystack_src_path = submitted_workflow_path / 'reports' / 'haystack_report_haystack.json'
         haystack_dest_path = simulation_dir / 'haystack_report_haystack.json'
-        rel_symlink(haystack_src_path, haystack_dest_path)
+        os.symlink(haystack_src_path, haystack_dest_path)
 
         variables_src_path = submitted_workflow_path / 'reports/export_bcvtb_report_variables.cfg'
         variables_dest_path = simulation_dir / 'variables.cfg'
-        rel_symlink(variables_src_path, variables_dest_path)
+        os.symlink(variables_src_path, variables_dest_path)
 
         # variables.cfg also needs to be located next to the idf to satisfy EnergyPlus conventions
         idf_src_dir = idf_src_path.parents[0]
         variables_ep_path = idf_src_dir / 'variables.cfg'
-        rel_symlink(variables_src_path, variables_ep_path)
+        os.symlink(variables_src_path, variables_ep_path)
         self.variables.write_files(simulation_dir)
 
         # hack. need to find a more general approach to preserve osw resources that might be needed at simulation time
@@ -92,7 +91,7 @@ class CreateRun(Job):
             idfdir = idf_src_path.parents[0]
             filename = os.path.basename(file)
             dst = idfdir / filename
-            rel_symlink(file, dst)
+            os.symlink(file, dst)
 
         # find weather file (if) defined by osw and copy into simulation directory
         with open(submitted_osw_path, 'r') as osw:
@@ -103,7 +102,7 @@ class CreateRun(Job):
         if epw_name:
             epw_src_path = self.run.glob(submitted_workflow_path / '**' / epw_name)[0]
             epw_dst_path = simulation_dir / 'sim.epw'
-            rel_symlink(epw_src_path, epw_dst_path)
+            os.symlink(epw_src_path, epw_dst_path)
 
     def validate(self) -> None:
         assert (self.dir / 'simulation' / 'sim.idf').exists(), "Idf was not created"

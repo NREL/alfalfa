@@ -8,7 +8,7 @@ Documentation resides in the [GitHub wiki](https://github.com/NREL/alfalfa/wiki)
 
 ## Developer Documentation
 
-We are currently working on increasing our developer documentation. See how to run the tests on the [GitHub wiki](https://github.com/NREL/alfalfa/wiki/Running-Tests). For releasing, see the wiki's [release instructions](https://github.com/NREL/alfalfa/wiki/Release-Instructions).
+Learn how to set up a local development environment on the [Github wiki](https://github.com/NREL/alfalfa/wiki/Development#how-to-set-up-a-development-environment). See how to run the tests on the [wiki](https://github.com/NREL/alfalfa/wiki/Running-Tests). For releasing, see the wiki's [release instructions](https://github.com/NREL/alfalfa/wiki/Development#how-to-run-local-tests).
 
 # Related Repositories
 
@@ -16,9 +16,9 @@ We are currently working on increasing our developer documentation. See how to r
 
 There are several docker images that are provided for easy deployment using [Alfalfa through Helm](https://github.com/NREL/alfalfa-helm) or other docker services. The images include:
 
-- [Alfalfa Web](https://hub.docker.com/repository/docker/nrel/alfalfa-web)
-- [Alfalfa Worker](https://hub.docker.com/repository/docker/nrel/alfalfa-worker)
-- [Alfalfa Grafana](https://hub.docker.com/repository/docker/nrel/alfalfa-grafana)
+- [Alfalfa Web](https://github.com/NREL/alfalfa/pkgs/container/alfalfa%2Fweb)
+- [Alfalfa Worker](https://github.com/NREL/alfalfa/pkgs/container/alfalfa%2Fworker)
+- [Alfalfa Grafana](https://github.com/NREL/alfalfa/pkgs/container/alfalfa%2Fgrafana)
 
 ## Python Notebooks
 
