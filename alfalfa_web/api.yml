@@ -1,0 +1,765 @@
+openapi: "3.0.2"
+info:
+  title: Alfalfa-BOPTEST Unified Virtual Building Control API (ABUVBCAPI)
+  version: "1.0"
+  description: >
+    A REST API for controlling virtual buildings.
+    A collaboration between the [Alfalfa](https://github.com/nrel/alfalfa)
+    and [BOPTEST](https://github.com/ibpsa/project1-boptest) projects.
+tags:
+  - name: Point
+    description: Reading, Writing, and Listing Points
+  - name: Run
+    description: Creating, Interacting, and Destroying Runs
+  - name: Model
+    description: Creating, and Downloading Models
+servers:
+  - url: https://api.server.test/v1
+paths:
+  /runs:
+    get:
+      summary: List Runs
+      tags:
+        - "Run"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/runMetadata"
+  /runs/{runId}:
+    get:
+      summary: Get run metadata
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      tags:
+        - "Run"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    $ref: "#/components/schemas/runMetadata"
+    delete:
+      summary: Delete run
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      tags:
+        - "Run"
+      responses:
+        204:
+          description: The run was deleted
+  /runs/{runId}/time:
+    get:
+      summary: Get simulation time
+      tags:
+        - Run
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: string
+                    format: "date-time"
+  /runs/{runId}/start:
+    post:
+      summary: Start a Run
+      tags:
+        - Run
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDatetime:
+                  type: string
+                  format: "date-time"
+                  description: "Start Time"
+                endDatetime:
+                  type: string
+                  format: "date-time"
+                  description: "End Time"
+                timescale:
+                  type: number
+                  example: 1
+                  description: "Time multiplier determining simulation speed"
+                externalClock:
+                  type: boolean
+                  example: true
+                  description: "When true the Run will only advance when triggered via the API"
+                realtime:
+                  type: boolean
+                  example: false
+                  description: "Simulate the model in realtime"
+              required:
+                - startDatetime
+                - endDatetime
+      responses:
+        204:
+          description: The run was started
+  /runs/{runId}/advance:
+    post:
+      summary: Advance run by one timestep
+      tags:
+        - Run
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        204:
+          description: Run was advanced
+  /runs/{runId}/stop:
+    post:
+      summary: Stop a Run
+      tags:
+        - Run
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        204:
+          description: The run was stopped
+  /runs/{runId}/download:
+    get:
+      description: Download run by redirecting to the S3 tarball url
+      tags:
+        - Run
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        302:
+          description: Download response
+          headers:
+            Location:
+              schema:
+                type: string
+                format: url
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /runs/{runId}/points:
+    get:
+      summary: Get metadata for all points
+      tags:
+        - Point
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/pointMetadata"
+                  message:
+                    $ref: "#/components/schemas/responseMessage"
+                required:
+                  - payload
+    post:
+      summary: Get metadata for multiple points
+      tags:
+        - Point
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  properties:
+                    points:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/pointId"
+                - type: object
+                  properties:
+                    pointTypes:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/pointType"
+            examples:
+              Points:
+                value:
+                  points:
+                    - AHU1_Mixed_Air_Temperature_Sensor
+                    - Outdoor_Air_Temperature_Sensor
+              Point Types:
+                value:
+                  pointTypes:
+                    - "output"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/pointMetadata"
+                  message:
+                    $ref: "#/components/schemas/responseMessage"
+                required:
+                  - payload
+        400:
+          description: Cannot retrieve points due to invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+              example:
+                message: "Could not retrieve points due to invalid request"
+                payload:
+                  - "Point 'AHU7_Mixed_Air_Temperature' does not exist"
+  /runs/{runId}/points/{pointId}:
+    get:
+      summary: Get metadata and value for single point
+      tags:
+        - Point
+      parameters:
+        - $ref: "#/components/parameters/runId"
+        - $ref: "#/components/parameters/pointId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    $ref: "#/components/schemas/pointData"
+                  message:
+                    $ref: "#/components/schemas/responseMessage"
+                required:
+                  - payload
+    put:
+      summary: Set value for single point
+      tags:
+        - Point
+      parameters:
+        - $ref: "#/components/parameters/runId"
+        - $ref: "#/components/parameters/pointId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/pointValue"
+      responses:
+        204:
+          description: The point was successfully updated
+        400:
+          description: The point could not be written to due to an invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+              example:
+                message: "Point is of type 'OUTPUT' and cannot be written to"
+  /runs/{runId}/points/values:
+    get:
+      summary: Get values for all points
+      tags:
+        - Point
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: object
+                    additionalProperties: true
+                  message:
+                    $ref: "#/components/schemas/responseMessage"
+                required:
+                  - payload
+              example:
+                payload:
+                  Supply_Air_Temperature_Sensor: 25.3
+                  Outdoor_Air_Temperature_Sensor: 30.5
+    post:
+      summary: Get values for multiple points
+      tags:
+        - Point
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  properties:
+                    points:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/pointId"
+                - type: object
+                  properties:
+                    pointTypes:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/pointType"
+            examples:
+              Points:
+                value:
+                  points:
+                    - Supply_Air_Temperature_Setpoint
+                    - Outdoor_Air_Temperature_Sensor
+              Point Types:
+                value:
+                  pointTypes:
+                    - "output"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: object
+                    additionalProperties: true
+                  message:
+                    $ref: "#/components/schemas/responseMessage"
+              example:
+                payload:
+                  Supply_Air_Temperature_Sensor: 25.3
+                  Outdoor_Air_Temperature_Sensor: 30.5
+        400:
+          description: "Points could not be read due to improper request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+              example:
+                message: "Request contained invalid read requests"
+                payload:
+                  - "Point 'Supply_Air_Temperature_Setpoint' does not exist"
+                  - "Point 'AHU1_Outdoor_Air_Damper_Position' is of type 'INPUT' and cannot be read"
+    put:
+      summary: Set new values for multiple points
+      tags:
+        - Point
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+            example:
+              Supply_Air_Temperature_Setpoint: 23.1
+              AHU1_Outdoor_Air_Damper_Position: 0.6
+              AHU1_Economizing_Mode: 2
+      responses:
+        204:
+          description: "Points successfully updated"
+        400:
+          description: "Points could not be updated due to improper request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+              example:
+                message: "Request contained invalid write requests"
+                payload:
+                  - "Point 'Supply_Air_Temperature_Setpoint' does not exist"
+                  - "Point 'Outdoor_Air_Temperature_Sensor' is of type 'OUTPUT' and cannot be written to"
+  /aliases:
+    get:
+      description: List aliases
+      tags:
+        - Alias
+      responses:
+        200:
+          description: Aliases response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: "#/components/schemas/runId"
+              example:
+                foo: d4e2c041-0389-4933-8aa4-016d80283779
+                bar: 9e2acb8e-974e-406b-a990-48e9743b01de
+  /aliases/{alias}:
+    put:
+      description: Create or update an alias to point to a Run
+      tags:
+        - Alias
+      parameters:
+        - $ref: "#/components/parameters/aliasName"
+      responses:
+        204:
+          description: The alias was set successfully
+    get:
+      description: Get alias
+      tags:
+        - Alias
+      parameters:
+        - $ref: "#/components/parameters/aliasName"
+      responses:
+        "200":
+          description: Alias response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    $ref: "#/components/schemas/runId"
+              example:
+                payload: 4b8c6b40-f818-11ec-a8bd-75570e3e3a28
+    delete:
+      description: Delete alias
+      tags:
+        - Alias
+      parameters:
+        - $ref: "#/components/parameters/aliasName"
+      responses:
+        204:
+          description: The alias was deleted
+  /models:
+    get:
+      description: List models
+      tags:
+        - Model
+      responses:
+        200:
+          description: Models response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/modelMetadata"
+              example:
+                payload:
+                  - id: 4b8c6b40-f818-11ec-a8bd-75570e3e3a28
+                    modelName: refrig_case_osw.zip
+                    created: 2023-03-09T17:49:13.742Z
+                    modified: 2023-03-09T17:49:13.742Z
+                  - id: 82ae8d50-f837-11ec-bda1-355419177ef9
+                    modelName: refrig_case_osw_2.zip
+                    created: 2023-03-09T17:49:13.742Z
+                    modified: 2023-03-09T17:49:13.742Z
+  /models/upload:
+    post:
+      description: Create a POST url to upload a model
+      tags:
+        - Model
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                modelName:
+                  type: string
+                  description: Upload filename
+                  example: my_model.zip
+              required:
+                - modelName
+      responses:
+        200:
+          description: Upload response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: url
+                  fields:
+                    type: object
+                    properties:
+                      bucket:
+                        type: string
+                      X-Amz-Algorithm:
+                        type: string
+                      X-Amz-Credential:
+                        type: string
+                      X-Amz-Date:
+                        type: string
+                      key:
+                        type: string
+                      Policy:
+                        type: string
+                      X-Amz-Signature:
+                        type: string
+                  modelId:
+                    $ref: "#/components/schemas/modelId"
+              example:
+                url: http://alfalfa.lan:9000/alfalfa
+                fields:
+                  bucket: alfalfa
+                  X-Amz-Algorithm: AWS4-HMAC-SHA256
+                  X-Amz-Credential: AKIA4MRT6LFGGPHNCKOO/20230309/us-west-1/s3/aws4_request
+                  X-Amz-Date: 20230309T200246Z
+                  key: uploads/5c1a0300-beb5-11ed-8531-d9fb035ab2f0/my_model.zip
+                  Policy: eyJleHBpcmF0aW9uIjoiMjAyMy0wMy0wOVQyMTowMjo0NloiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJhbGZhbGZhIn0seyJYLUFtei1BbGdvcml0aG0iOiJBV1M0LUhNQUMtU0hBMjU2In0seyJYLUFtei1DcmVkZW50aWFsIjoiQUtJQTRNUlQ2TEZHR1BITkNLT08vMjAyMzAzMDkvdXMtd2VzdC0xL3MzL2F3czRfcmVxdWVzdCJ9LHsiWC1BbXotRGF0ZSI6IjIwMjMwMzA5VDIwMDI0NloifSx7ImtleSI6InVwbG9hZHMvNWMxYTAzMDAtYmViNS0xMWVkLTg1MzEtZDlmYjAzNWFiMmYwL215X21vZGVsLnppcCJ9XX0=
+                  X-Amz-Signature: 7d09a673e65112ee06c7666c34eb9c4ca13cc43f285efc9c1c497befd3a64343
+                modelId: 5c1a0300-beb5-11ed-8531-d9fb035ab2f0
+  /models/{modelId}/createRun:
+    post:
+      description: Create a Run from a model
+      tags:
+        - Model
+      parameters:
+        - $ref: "#/components/parameters/modelId"
+      responses:
+        200:
+          description: Create run response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: object
+                    properties:
+                      runId:
+                        $ref: "#/components/schemas/runId"
+              example:
+                payload:
+                  runId: 28f76e90-bef6-11ed-822a-e3558db4daaf
+  /models/{modelId}/download:
+    get:
+      description: Download a model by redirecting to the S3 tarball url
+      tags:
+        - Model
+      parameters:
+        - $ref: "#/components/schemas/modelId"
+      responses:
+        302:
+          description: Download response
+          headers:
+            Location:
+              schema:
+                type: string
+                format: url
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /version:
+    get:
+      description: Return the Alfalfa version and git SHA
+      tags:
+        - About
+      responses:
+        200:
+          description: Version response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payload:
+                    type: object
+                    properties:
+                      version:
+                        type: string
+                        example: "0.7.0"
+                      sha:
+                        type: string
+                        example: "c90d0641cb"
+components:
+  schemas:
+    runId:
+      type: string
+      example: 7cf4afb6-9c15-431f-9f50-11bca0870f77
+    pointId:
+      type: string
+      example: Outdoor_Air_Temperature_Sensor
+    pointName:
+      type: string
+      example: Outdoor Air Temperature Sensor
+    pointType:
+      type: string
+      enum:
+        - "INPUT"
+        - "OUTPUT"
+        - "BIDIRECTIONAL"
+    runStatus:
+      type: string
+      enum:
+        - "CREATED"
+        - "PREPROCESSING"
+        - "READY"
+        - "STARTING"
+        - "STARTED"
+        - "RUNNING"
+        - "STOPPING"
+        - "COMPLETE"
+        - "ERROR"
+    simType:
+      type: string
+      enum:
+        - "OPENSTUDIO"
+        - "MODELICA"
+        - "OTHER"
+    runMetadata:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/runId"
+        name:
+          type: string
+          example: "Run Name"
+        status:
+          $ref: "#/components/schemas/runStatus"
+        datetime:
+          type: string
+          format: "date-time"
+        simType:
+          $ref: "#/components/schemas/simType"
+        uploadTimestamp:
+          type: string
+          format: "date-time"
+        errorLog:
+          type: "string"
+          example: "An unknown error occurred. Good luck!"
+    pointDataType:
+      type: string
+      enum:
+        - "float"
+        - "int"
+        - "bool"
+      default: "float"
+    pointMetadata:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/pointId"
+        name:
+          $ref: "#/components/schemas/pointName"
+        description:
+          type: string
+          example: An outdoor air temperature sensor for an air handling unit
+          readOnly: true
+        unit:
+          type: string
+          example: °F
+          readOnly: true
+        min:
+          type: number
+          readOnly: true
+        max:
+          type: number
+          readOnly: true
+        type:
+          $ref: "#/components/schemas/pointType"
+        dataType:
+          $ref: "#/components/schemas/pointDataType"
+      required:
+        - id
+        - type
+    pointValue:
+      type: object
+      properties:
+        value:
+          type: number
+          example: 24.3
+    pointData:
+      allOf:
+        - $ref: "#/components/schemas/pointMetadata"
+        - $ref: "#/components/schemas/pointValue"
+    errorResponse:
+      type: object
+      properties:
+        message:
+          $ref: "#/components/schemas/responseMessage"
+        payload: {}
+      required:
+        - message
+    responseMessage:
+      type: string
+      example: Placeholder human readable message about what happened.
+    aliasName:
+      type: string
+    modelId:
+      type: string
+      format: uuid
+    modelMetadata:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/modelId"
+        model_name:
+          type: string
+        created:
+          type: string
+          format: "date-time"
+        modified:
+          type: string
+          format: "date-time"
+  parameters:
+    runId:
+      in: path
+      name: runId
+      schema:
+        $ref: "#/components/schemas/runId"
+      required: true
+      description: ID of run
+    pointId:
+      in: path
+      name: pointId
+      schema:
+        $ref: "#/components/schemas/pointId"
+      required: true
+      description: ID of point
+    aliasName:
+      in: path
+      name: alias
+      schema:
+        $ref: "#/components/schemas/aliasName"
+      required: true
+      description: Name of an alias
+    modelId:
+      in: path
+      name: modelId
+      schema:
+        $ref: "#/components/schemas/modelId"
+      required: true
+      description: ID of model
