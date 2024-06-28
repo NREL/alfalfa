@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 from alfalfa_client import AlfalfaClient
-from requests import HTTPError
+from alfalfa_client.alfalfa_client import AlfalfaAPIException
 
 
 @pytest.fixture
@@ -33,5 +33,5 @@ def run_id(alfalfa_client: AlfalfaClient, model_path):
     try:
         if alfalfa_client.status(run_id) not in ["COMPLETE", "ERROR", "STOPPING", "READY"]:
             alfalfa_client.stop(run_id)
-    except HTTPError:
+    except AlfalfaAPIException:
         pass
