@@ -1,11 +1,11 @@
 import json
 from datetime import datetime, timedelta
 
+from alfalfa_worker.jobs.modelica.lib.testcase import TestCase
 from alfalfa_worker.jobs.step_run_base import StepRunBase
 from alfalfa_worker.lib.enums import PointType
 from alfalfa_worker.lib.job import message
 from alfalfa_worker.lib.models import Point
-from alfalfa_worker.lib.testcase import TestCase
 
 
 class StepRun(StepRunBase):

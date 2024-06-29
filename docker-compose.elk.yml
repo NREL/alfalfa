@@ -3,7 +3,6 @@
 # Usage:
 #   docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.elk.yml  up
 
-version: "3.4"
 services:
   elasticsearch-master:
     container_name: elasticsearch

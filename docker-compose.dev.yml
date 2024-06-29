@@ -5,7 +5,6 @@
 # Usage:
 #   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
-version: "3.4"
 services:
   web: # main haystack application
     container_name: alfalfa_web

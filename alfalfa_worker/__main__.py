@@ -1,9 +1,10 @@
-print("Starting Alfalfa Dispatcher")
-
+import logging
 import os
 import sys
 import traceback
 from pathlib import Path
+
+logging.info("Starting Alfalfa Dispatcher")
 
 # Determine which worker to load based on the QUEUE.
 # This may be temporary for now, not sure on how else
