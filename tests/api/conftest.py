@@ -8,13 +8,13 @@ from alfalfa_client.alfalfa_client import AlfalfaAPIException
 
 
 @pytest.fixture
-def base_url():
-    return 'http://localhost/api/v2'
+def base_url(alfalfa_host: str):
+    return f'{alfalfa_host}/api/v2'
 
 
 @pytest.fixture
-def alfalfa_client():
-    return AlfalfaClient()
+def alfalfa_client(alfalfa_host: str):
+    return AlfalfaClient(host=alfalfa_host)
 
 
 @pytest.fixture

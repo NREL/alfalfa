@@ -6,8 +6,7 @@ from alfalfa_client.lib import AlfalfaException, create_zip
 
 
 @pytest.mark.integration
-def test_broken_models(broken_model_path):
-    alfalfa = AlfalfaClient(host='http://localhost')
+def test_broken_models(broken_model_path, alfalfa: AlfalfaClient):
     with pytest.raises(AlfalfaException):
         run_id = alfalfa.submit(str(broken_model_path))
         alfalfa.start(
