@@ -30,7 +30,6 @@ def test_python_environment(alfalfa: AlfalfaClient):
 
 
 @pytest.mark.integration
-
 def test_io_enable_disable(alfalfa: AlfalfaClient):
     zip_file_path = prepare_model('small_office')
     site_id = alfalfa.submit(zip_file_path)
