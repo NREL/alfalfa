@@ -34,3 +34,15 @@ def mock_dispatcher(tmp_path: Path):
     work_dir.mkdir()
     dispatcher = MockDispatcher(work_dir)
     yield dispatcher
+
+
+def pytest_addoption(parser):
+    parser.addoption("--host", action="store", default="http://localhost")
+
+
+@pytest.fixture
+def alfalfa_host(pytestconfig: pytest.Config):
+    alfalfa_host = pytestconfig.getoption("host")
+    if isinstance(alfalfa_host, str):
+        alfalfa_host.rstrip('/')
+    return alfalfa_host
