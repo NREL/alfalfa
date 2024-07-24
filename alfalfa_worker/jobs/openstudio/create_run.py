@@ -33,7 +33,7 @@ class CreateRun(Job):
         # If there are requirements.txt files in the model create a python virtual environment and install packaged there
         requirements = self.run.glob("**/requirements.txt")
         if len(requirements) > 0:
-            check_output(["python", "-m", "venv", "--system-site-packages", "--symlinks", str(self.dir / '.venv')])
+            check_output(["python3.8", "-m", "venv", "--system-site-packages", "--symlinks", str(self.dir / '.venv')])
             for requirements_file in requirements:
                 check_output([str(self.dir / '.venv' / 'bin' / 'pip'), "install", "-r", str(requirements_file)])
 
