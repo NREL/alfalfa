@@ -312,9 +312,9 @@ jobs:
           --set web.cache-to=type=gha,mode=max,scope=web:${{ github.ref_name }} \
           --set worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }} \
           --set grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }} \
-          --set worker.tags=${{ env.REGISTRY_BASE_URI }}/worker/${{ join(fromJson(steps.meta.outputs.json)['tags'],' --set *.tags=') }} \
-          --set web.tags=${{ env.REGISTRY_BASE_URI }}/web/${{ join(fromJson(steps.meta.outputs.json)['tags'],' --set *.tags=') }} \
-          --set grafana.tags=${{ env.REGISTRY_BASE_URI }}/grafana/${{ join(fromJson(steps.meta.outputs.json)['tags'],' --set *.tags=') }} \
+          --set worker.tags=${{ env.REGISTRY_BASE_URI }}/worker/${{ join(fromJson(steps.meta.outputs.json)['tags'],format(' --set worker.tags=%s/worker/', env.REGISTRY_BASE_URI)) }} \
+          --set web.tags=${{ env.REGISTRY_BASE_URI }}/web/${{ join(fromJson(steps.meta.outputs.json)['tags'],format(' --set web.tags=%s/web/', env.REGISTRY_BASE_URI)) }} \
+          --set grafana.tags=${{ env.REGISTRY_BASE_URI }}/grafana/${{ join(fromJson(steps.meta.outputs.json)['tags'],format(' --set grafana.tags=%s/grafana/', env.REGISTRY_BASE_URI)) }} \
           --push
       # - name: Tag and push images
       #   run: ./.github/workflows/tag_push_docker.sh
