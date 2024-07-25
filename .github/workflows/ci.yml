@@ -271,10 +271,10 @@ jobs:
         uses: docker/metadata-action@v5
         id: meta
         with:
-          images: |
-            ${{ env.REGISTRY_BASE_URI }}/worker
-            ${{ env.REGISTRY_BASE_URI }}/web
-            ${{ env.REGISTRY_BASE_URI }}/grafana
+          # images: |
+          #   ${{ env.REGISTRY_BASE_URI }}/worker
+          #   ${{ env.REGISTRY_BASE_URI }}/web
+          #   ${{ env.REGISTRY_BASE_URI }}/grafana
           tags: |
             type=ref,event=branch
             type=sha
@@ -289,7 +289,6 @@ jobs:
           files: |
             docker-compose.yml
             docker-compose.historian.yml
-            ${{ steps.meta.outputs.bake-file-tags }}
           set: |
             web.cache-from=type=gha,scope=web:${{ github.ref_name }}
             worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
@@ -298,6 +297,7 @@ jobs:
             worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }}
             grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }}
             worker.platform=linux/amd64,linux/arm64
+            *.tags=${{ steps.meta.outputs.tags }}
           push: true
 
       # - name: Tag and push images
