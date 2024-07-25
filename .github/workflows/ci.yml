@@ -299,7 +299,8 @@ jobs:
       #       worker.platform=linux/amd64,linux/arm64
       #       worker.tags=${{ env.REGISTRY_BASE_URI }}/worker:{${{ join(fromJson(steps.meta.outputs.json)['tags'],',') }}}
       #     push: true
-
+      - name: Expose GitHub Runtime
+        uses: crazy-max/ghaction-github-runtime@v3
       - name: Build Push
         run: |
           /usr/bin/docker buildx bake \
