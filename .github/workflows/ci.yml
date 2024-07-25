@@ -283,22 +283,36 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
             type=edge
 
-      - name: Build
-        uses: docker/bake-action@v4
-        with:
-          files: |
-            docker-compose.yml
-            docker-compose.historian.yml
-          set: |
-            web.cache-from=type=gha,scope=web:${{ github.ref_name }}
-            worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
-            grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }}
-            web.cache-to=type=gha,mode=max,scope=web:${{ github.ref_name }}
-            worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }}
-            grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }}
-            worker.platform=linux/amd64,linux/arm64
-            worker.tags=${{ env.REGISTRY_BASE_URI }}/worker:{${{ join(fromJson(steps.meta.outputs.json)['tags'],',') }}}
-          push: true
+      # - name: Build
+      #   uses: docker/bake-action@v4
+      #   with:
+      #     files: |
+      #       docker-compose.yml
+      #       docker-compose.historian.yml
+      #     set: |
+      #       web.cache-from=type=gha,scope=web:${{ github.ref_name }}
+      #       worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
+      #       grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }}
+      #       web.cache-to=type=gha,mode=max,scope=web:${{ github.ref_name }}
+      #       worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }}
+      #       grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }}
+      #       worker.platform=linux/amd64,linux/arm64
+      #       worker.tags=${{ env.REGISTRY_BASE_URI }}/worker:{${{ join(fromJson(steps.meta.outputs.json)['tags'],',') }}}
+      #     push: true
 
+      - name: Build Push
+        run: |
+          /usr/bin/docker buildx bake \
+          --file docker-compose.yml \
+          --file docker-compose.historian.yml \
+          --set worker.platform=linux/arm64,linux/amd64 \
+          --set web.cache-from=type=gha,scope=web:${{ github.ref_name }} \
+          --set worker.cache-from=type=gha,scope=worker:${{ github.ref_name }} \
+          --set grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }} \
+          --set web.cache-to=type=gha,mode=max,scope=web:${{ github.ref_name }} \
+          --set worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }} \
+          --set grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }} \
+          --set *.tags={${{ join(fromJson(steps.meta.outputs.json)['tags'],',') }}} \
+          --push
       # - name: Tag and push images
       #   run: ./.github/workflows/tag_push_docker.sh
