@@ -297,7 +297,7 @@ jobs:
             worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }}
             grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }}
             worker.platform=linux/amd64,linux/arm64
-            *.tags=${{ join(fromJson(steps.meta.outputs.json)['tags'],"\n *.tags=") }}
+            *.tags={${{ join(fromJson(steps.meta.outputs.json)['tags'],',') }}}
           push: true
 
       # - name: Tag and push images
