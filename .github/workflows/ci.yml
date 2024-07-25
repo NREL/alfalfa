@@ -10,244 +10,244 @@ env:
   REGISTRY_BASE_URI: ghcr.io/nrel/alfalfa
 
 jobs:
-  # pre-commit:
-  #   name: Pre-commit checks
-  #   runs-on: ubuntu-latest
+  pre-commit:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Install Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.8"
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
 
-  #     - name: Run pre-commit
-  #       uses: pre-commit/action@v3.0.1
-  #       with:
-  #         extra_args: --all-files
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
 
-  # unit-tests:
-  #   name: Run unit tests
-  #   runs-on: ubuntu-latest
+  unit-tests:
+    name: Run unit tests
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Install Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.8"
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
 
-  #     - name: Install poetry
-  #       uses: abatilo/actions-poetry@v3
-  #       with:
-  #         poetry-version: 1.8.3
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 1.8.3
 
-  #     - name: Install poetry dependencies
-  #       run: |
-  #         poetry install
+      - name: Install poetry dependencies
+        run: |
+          poetry install
 
-  #     - name: Runner Details
-  #       run: |
-  #         cat /etc/issue
-  #         python --version
+      - name: Runner Details
+        run: |
+          cat /etc/issue
+          python --version
 
-  #     - name: Start dependencies
-  #       run: |
-  #         printenv
-  #         docker compose up -d mongo redis minio mc
+      - name: Start dependencies
+        run: |
+          printenv
+          docker compose up -d mongo redis minio mc
 
-  #     - name: Run tests with pytest
-  #       run: |
-  #         poetry run pytest
+      - name: Run tests with pytest
+        run: |
+          poetry run pytest
 
-  # simulation-tests:
-  #   name: Run simulation tests in worker
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 30
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  simulation-tests:
+    name: Run simulation tests in worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Build
-  #       uses: docker/bake-action@v4
-  #       with:
-  #         files: docker-compose.yml, docker-compose.dev.yml
-  #         set: |
-  #           web.cache-from=type=gha,scope=web:${{ github.ref_name }}
-  #           worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
-  #           worker.output=type=docker
+      - name: Build
+        uses: docker/bake-action@v4
+        with:
+          files: docker-compose.yml, docker-compose.dev.yml
+          set: |
+            web.cache-from=type=gha,scope=web:${{ github.ref_name }}
+            worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
+            worker.output=type=docker
 
-  #     # only need to start the worker which saves time here because
-  #     # the webpack calling on the web container for .dev.yml can take some
-  #     # time.
-  #     - name: Build and run stack
-  #       env:
-  #         GIT_COMMIT: ${{ github.sha }}
-  #       run: |
-  #         printenv
-  #         docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d worker mongo redis minio mc goaws
+      # only need to start the worker which saves time here because
+      # the webpack calling on the web container for .dev.yml can take some
+      # time.
+      - name: Build and run stack
+        env:
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          printenv
+          docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d worker mongo redis minio mc goaws
 
-  #     - name: Dump docker logs before tests
-  #       uses: jwalton/gh-docker-logs@v2
+      - name: Dump docker logs before tests
+        uses: jwalton/gh-docker-logs@v2
 
-  #     - name: Run job tests in Docker worker container
-  #       run: |
-  #         sleep 30
-  #         docker exec alfalfa-worker-1 bash -c "cd /alfalfa && poetry run pytest -m docker tests/jobs -o log_cli=true -o log_level=info"
+      - name: Run job tests in Docker worker container
+        run: |
+          sleep 30
+          docker exec alfalfa-worker-1 bash -c "cd /alfalfa && poetry run pytest -m docker tests/jobs -o log_cli=true -o log_level=info"
 
-  #     - name: Dump docker logs on failure
-  #       if: failure()
-  #       uses: jwalton/gh-docker-logs@v2
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2
 
-  # integration-tests:
-  #   name: Run integration tests
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 30
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  integration-tests:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Install Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.8"
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
 
-  #     - name: Install poetry
-  #       uses: abatilo/actions-poetry@v3
-  #       with:
-  #         poetry-version: 1.8.3
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 1.8.3
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Build
-  #       uses: docker/bake-action@v4
-  #       with:
-  #         files: docker-compose.yml
-  #         set: |
-  #           web.cache-from=type=gha,scope=web:${{ github.ref_name }}
-  #           web.output=type=docker
-  #           worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
-  #           worker.output=type=docker
+      - name: Build
+        uses: docker/bake-action@v4
+        with:
+          files: docker-compose.yml
+          set: |
+            web.cache-from=type=gha,scope=web:${{ github.ref_name }}
+            web.output=type=docker
+            worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
+            worker.output=type=docker
 
-  #     - name: Run stack
-  #       env:
-  #         GIT_COMMIT: ${{ github.sha }}
-  #       run: |
-  #         printenv
-  #         docker compose up -d --scale worker=2
+      - name: Run stack
+        env:
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          printenv
+          docker compose up -d --scale worker=2
 
-  #     - name: Wait for web server
-  #       uses: nev7n/wait_for_response@v1
-  #       with:
-  #         url: "http://localhost/"
-  #         responseCode: 200
-  #         timeout: 120000
-  #         interval: 500
+      - name: Wait for web server
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: "http://localhost/"
+          responseCode: 200
+          timeout: 120000
+          interval: 500
 
-  #     - name: Dump docker logs before tests
-  #       uses: jwalton/gh-docker-logs@v2
+      - name: Dump docker logs before tests
+        uses: jwalton/gh-docker-logs@v2
 
-  #     - name: Install dependencies
-  #       run: poetry install
+      - name: Install dependencies
+        run: poetry install
 
-  #     - name: Run API tests with pytest
-  #       run: |
-  #         poetry run pytest --timeout=120 -m api
+      - name: Run API tests with pytest
+        run: |
+          poetry run pytest --timeout=120 -m api
 
-  #     - name: Run integration tests with pytest
-  #       run: |
-  #         poetry run pytest --timeout=600 -m "integration"
+      - name: Run integration tests with pytest
+        run: |
+          poetry run pytest --timeout=600 -m "integration"
 
-  #     - name: Run worker scale tests with pytest
-  #       run: |
-  #         poetry run pytest -m "scale"
+      - name: Run worker scale tests with pytest
+        run: |
+          poetry run pytest -m "scale"
 
-  #     - name: Dump docker logs on failure
-  #       if: failure()
-  #       uses: jwalton/gh-docker-logs@v2
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2
 
-  # integration-tests-historian:
-  #   name: Run integration tests with historian
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 30
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  integration-tests-historian:
+    name: Run integration tests with historian
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Install Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.8"
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
 
-  #     - name: Install poetry
-  #       uses: abatilo/actions-poetry@v3
-  #       with:
-  #         poetry-version: 1.8.3
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 1.8.3
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Build
-  #       uses: docker/bake-action@v4
-  #       with:
-  #         load: true
-  #         files: docker-compose.yml, docker-compose.dev.yml, docker-compose.historian.yml
-  #         set: |
-  #           web.cache-from=type=gha,scope=web:${{ github.ref_name }}
-  #           web.output=type=docker
-  #           worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
-  #           worker.output=type=docker
-  #           grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }}
-  #           grafana.output=type=docker
+      - name: Build
+        uses: docker/bake-action@v4
+        with:
+          load: true
+          files: docker-compose.yml, docker-compose.dev.yml, docker-compose.historian.yml
+          set: |
+            web.cache-from=type=gha,scope=web:${{ github.ref_name }}
+            web.output=type=docker
+            worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
+            worker.output=type=docker
+            grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }}
+            grafana.output=type=docker
 
-  #     - name: Build and run stack
-  #       env:
-  #         GIT_COMMIT: ${{ github.sha }}
-  #       run: |
-  #         export HISTORIAN_ENABLE=true
-  #         printenv
-  #         docker compose -f docker-compose.yml -f docker-compose.historian.yml up -d --scale worker=2
+      - name: Build and run stack
+        env:
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          export HISTORIAN_ENABLE=true
+          printenv
+          docker compose -f docker-compose.yml -f docker-compose.historian.yml up -d --scale worker=2
 
-  #     - name: Wait for web server
-  #       uses: nev7n/wait_for_response@v1
-  #       with:
-  #         url: "http://localhost/"
-  #         responseCode: 200
-  #         timeout: 120000
-  #         interval: 500
+      - name: Wait for web server
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: "http://localhost/"
+          responseCode: 200
+          timeout: 120000
+          interval: 500
 
-  #     - name: Dump docker logs before tests
-  #       uses: jwalton/gh-docker-logs@v2
+      - name: Dump docker logs before tests
+        uses: jwalton/gh-docker-logs@v2
 
-  #     - name: Install dependencies
-  #       run: poetry install
+      - name: Install dependencies
+        run: poetry install
 
-  #     - name: Run API tests with pytest
-  #       run: |
-  #         poetry run pytest --timeout=120 -m api
+      - name: Run API tests with pytest
+        run: |
+          poetry run pytest --timeout=120 -m api
 
-  #     - name: Run integration tests with pytest
-  #       run: |
-  #         poetry run pytest --timeout=600 -m "integration"
+      - name: Run integration tests with pytest
+        run: |
+          poetry run pytest --timeout=600 -m "integration"
 
-  #     - name: Run worker scale tests with pytest
-  #       run: |
-  #         poetry run pytest -m "scale"
+      - name: Run worker scale tests with pytest
+        run: |
+          poetry run pytest -m "scale"
 
-  #     - name: Dump docker logs on failure
-  #       if: failure()
-  #       uses: jwalton/gh-docker-logs@v2
+      - name: Dump docker logs on failure
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2
 
   publish:
-    # needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
+    needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     steps:
@@ -271,10 +271,6 @@ jobs:
         uses: docker/metadata-action@v5
         id: meta
         with:
-          # images: |
-          #   ${{ env.REGISTRY_BASE_URI }}/worker
-          #   ${{ env.REGISTRY_BASE_URI }}/web
-          #   ${{ env.REGISTRY_BASE_URI }}/grafana
           tags: |
             type=ref,event=branch
             type=sha
@@ -283,24 +279,9 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
             type=edge
 
-      # - name: Build
-      #   uses: docker/bake-action@v4
-      #   with:
-      #     files: |
-      #       docker-compose.yml
-      #       docker-compose.historian.yml
-      #     set: |
-      #       web.cache-from=type=gha,scope=web:${{ github.ref_name }}
-      #       worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
-      #       grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }}
-      #       web.cache-to=type=gha,mode=max,scope=web:${{ github.ref_name }}
-      #       worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }}
-      #       grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }}
-      #       worker.platform=linux/amd64,linux/arm64
-      #       worker.tags=${{ env.REGISTRY_BASE_URI }}/worker:{${{ join(fromJson(steps.meta.outputs.json)['tags'],',') }}}
-      #     push: true
       - name: Expose GitHub Runtime
         uses: crazy-max/ghaction-github-runtime@v3
+
       - name: Build Push
         run: |
           /usr/bin/docker buildx bake \
@@ -317,5 +298,3 @@ jobs:
           --set web.tags=${{ env.REGISTRY_BASE_URI }}/web:${{ join(fromJson(steps.meta.outputs.json)['tags'],format(' --set web.tags={0}/web:', env.REGISTRY_BASE_URI)) }} \
           --set grafana.tags=${{ env.REGISTRY_BASE_URI }}/grafana:${{ join(fromJson(steps.meta.outputs.json)['tags'],format(' --set grafana.tags={0}/grafana:', env.REGISTRY_BASE_URI)) }} \
           --push
-      # - name: Tag and push images
-      #   run: ./.github/workflows/tag_push_docker.sh
