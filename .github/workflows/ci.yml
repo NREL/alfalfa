@@ -305,7 +305,7 @@ jobs:
           /usr/bin/docker buildx bake \
           --file docker-compose.yml \
           --file docker-compose.historian.yml \
-          --set worker.platform=linux/arm64,linux/amd64 \
+          --set *.platform=linux/arm64,linux/amd64 \
           --set web.cache-from=type=gha,scope=web:${{ github.ref_name }} \
           --set worker.cache-from=type=gha,scope=worker:${{ github.ref_name }} \
           --set grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }} \
