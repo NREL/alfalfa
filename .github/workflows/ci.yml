@@ -289,7 +289,7 @@ jobs:
           files: |
             docker-compose.yml
             docker-compose.historian.yml
-            ${{ steps.meta.outputs.bake-file }}
+            ${{ steps.meta.outputs.bake-file-tags }}
           set: |
             web.cache-from=type=gha,scope=web:${{ github.ref_name }}
             worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
