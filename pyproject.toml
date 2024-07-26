@@ -22,7 +22,8 @@ mlep = "0.1.1.dev3"
 mongoengine = "~0.25"
 pandas = "~1.5"
 redis = "~4.5"
-scipy = "1.9.3"
+# Commenting out scipy as it is installed when installing modelica dependencies
+# scipy = "1.9.3"
 
 # The influxdb dependency will be removed once filebeat is configured
 influxdb = "^5.3.1"

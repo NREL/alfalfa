@@ -1,8 +1,6 @@
 FROM ghcr.io/nrel/alfalfa-dependencies:multiplatform AS base
 
-USER root
-
-ENV HOME /alfalfa
+ENV HOME=/alfalfa
 
 WORKDIR $HOME
 
@@ -19,7 +17,7 @@ COPY poetry.lock /alfalfa
 RUN poetry install --only main
 
 # Include the path to where alfalfa_worker is so that system calls can find it.
-ENV  PYTHONPATH="${HOME}:${PYTHONPATH}"
+ENV PYTHONPATH="${HOME}:${PYTHONPATH}"
 
 COPY ./alfalfa_worker ${HOME}/alfalfa_worker
 
