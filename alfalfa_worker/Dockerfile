@@ -5,13 +5,10 @@ USER root
 ENV HOME /alfalfa
 
 WORKDIR $HOME
-# Need to set the lang to use Python 3.8 with Poetry
-ENV LANG C.UTF-8
-ENV DEBIAN_FRONTEND noninteractive
 
 # Install poetry
-RUN pip3 install poetry==1.8.3
-RUN poetry config virtualenvs.options.system-site-packages true \
+RUN pip3 install poetry==1.8.3 \
+  && poetry config virtualenvs.options.system-site-packages true \
   && poetry config virtualenvs.create false
 
 # Copy and install poetry-based dependencies
@@ -22,9 +19,9 @@ COPY poetry.lock /alfalfa
 RUN poetry install --only main
 
 # Include the path to where alfalfa_worker is so that system calls can find it.
-ENV  PYTHONPATH="/alfalfa:${PYTHONPATH}"
+ENV  PYTHONPATH="${HOME}:${PYTHONPATH}"
 
-COPY ./alfalfa_worker /alfalfa/alfalfa_worker
+COPY ./alfalfa_worker ${HOME}/alfalfa_worker
 
 RUN pip3.8 install virtualenv \
   && pip3.8 install -r /alfalfa/alfalfa_worker/energyplus_requirements.txt
