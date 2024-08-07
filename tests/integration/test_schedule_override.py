@@ -7,8 +7,7 @@ from tests.integration.conftest import prepare_model
 
 
 @pytest.mark.integration
-def test_schedule_point_generation():
-    alfalfa = AlfalfaClient('http://localhost')
+def test_schedule_point_generation(alfalfa: AlfalfaClient):
     site_id = alfalfa.submit(prepare_model('schedule_model'))
 
     inputs = alfalfa.get_inputs(site_id)
@@ -27,8 +26,7 @@ def test_schedule_point_generation():
 
 
 @pytest.mark.integration
-def test_schedule_override():
-    alfalfa = AlfalfaClient('http://localhost')
+def test_schedule_override(alfalfa: AlfalfaClient):
     site_id = alfalfa.submit(prepare_model('schedule_model'))
 
     alfalfa.start(
