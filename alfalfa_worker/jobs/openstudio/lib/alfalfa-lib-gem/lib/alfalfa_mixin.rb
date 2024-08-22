@@ -1,4 +1,5 @@
 require_relative 'utils'
+require 'json'
 module OpenStudio
   module Alfalfa
     ##

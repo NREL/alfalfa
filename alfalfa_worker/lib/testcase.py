@@ -28,7 +28,7 @@ import copy
 
 import numpy as np
 from pyfmi import load_fmu
-from scipy.integrate import trapz
+from scipy.integrate import trapezoid
 
 from alfalfa_worker.lib.data.data_manager import Data_Manager
 
@@ -289,7 +289,7 @@ class TestCase(object):
                     data = np.array(self.y_store[signal])
                     dT_heating = heat_setpoint - data
                     dT_heating[dT_heating < 0] = 0
-                    tot_dis = tot_dis + trapz(dT_heating, self.y_store['time']) / 3600
+                    tot_dis = tot_dis + trapezoid(dT_heating, self.y_store['time']) / 3600
                 # Store result in dictionary
                 kpis['comfort'] = tot_dis
             else:

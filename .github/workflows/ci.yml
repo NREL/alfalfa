@@ -255,43 +255,46 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Log into container registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Docker meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         id: meta
         with:
-          images: |
-            ${{ env.REGISTRY_BASE_URI }}/worker
-            ${{ env.REGISTRY_BASE_URI }}/web
-            ${{ env.REGISTRY_BASE_URI }}/grafana
           tags: |
             type=ref,event=branch
             type=sha
             type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{major}},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
+            type=edge
 
-      - name: Build
-        uses: docker/bake-action@v4
-        with:
-          files: |
-            docker-compose.yml
-            docker-compose.historian.yml
-          set: |
-            web.cache-from=type=gha,scope=web:${{ github.ref_name }}
-            worker.cache-from=type=gha,scope=worker:${{ github.ref_name }}
-            grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }}
-            web.cache-to=type=gha,mode=max,scope=web:${{ github.ref_name }}
-            worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }}
-            grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }}
-          load: true
+      - name: Expose GitHub Runtime
+        uses: crazy-max/ghaction-github-runtime@v3
 
-      - name: Tag and push images
-        run: ./.github/workflows/tag_push_docker.sh
+      - name: Build Push
+        run: |
+          /usr/bin/docker buildx bake \
+          --file docker-compose.yml \
+          --file docker-compose.historian.yml \
+          --set *.platform=linux/arm64,linux/amd64 \
+          --set web.cache-from=type=gha,scope=web:${{ github.ref_name }} \
+          --set worker.cache-from=type=gha,scope=worker:${{ github.ref_name }} \
+          --set grafana.cache-from=type=gha,scope=grafana:${{ github.ref_name }} \
+          --set web.cache-to=type=gha,mode=max,scope=web:${{ github.ref_name }} \
+          --set worker.cache-to=type=gha,mode=max,scope=worker:${{ github.ref_name }} \
+          --set grafana.cache-to=type=gha,mode=max,scope=grafana:${{ github.ref_name }} \
+          --set worker.tags=${{ env.REGISTRY_BASE_URI }}/worker:${{ join(fromJson(steps.meta.outputs.json)['tags'],format(' --set worker.tags={0}/worker:', env.REGISTRY_BASE_URI)) }} \
+          --set web.tags=${{ env.REGISTRY_BASE_URI }}/web:${{ join(fromJson(steps.meta.outputs.json)['tags'],format(' --set web.tags={0}/web:', env.REGISTRY_BASE_URI)) }} \
+          --set grafana.tags=${{ env.REGISTRY_BASE_URI }}/grafana:${{ join(fromJson(steps.meta.outputs.json)['tags'],format(' --set grafana.tags={0}/grafana:', env.REGISTRY_BASE_URI)) }} \
+          --push
