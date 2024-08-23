@@ -600,7 +600,7 @@ paths:
                     properties:
                       version:
                         type: string
-                        example: "0.7.0"
+                        example: "0.7.1"
                       sha:
                         type: string
                         example: "c90d0641cb"
