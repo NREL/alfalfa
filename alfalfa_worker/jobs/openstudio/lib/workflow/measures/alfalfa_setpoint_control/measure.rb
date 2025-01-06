@@ -1,8 +1,6 @@
-require 'alfalfa'
 # start the measure
 class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
 
-  include OpenStudio::Alfalfa::EnergyPlusMixin
   # human readable name
   def name
     # Measure name should be the title case of the class name.
@@ -26,16 +24,18 @@ class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
     return args
   end
 
-  def create_schedule_actuator(target_schedule)
-    schedule_name = target_schedule.name.get
-    actuator_point = alfalfa_create_actuator(target_schedule.idfObject.iddObject.type.valueDescription, "Schedule Value", schedule_name)
-    schedule_value_output = OpenStudio::Alfalfa::OutputVariable.new("Schedule Value", schedule_name)
-    actuator_point.output = schedule_value_output
-    return actuator_point
-  end
+  # define what happens when the measure is run
+  def run(workspace, runner, user_arguments)
+    super(workspace, runner, user_arguments)
 
-  def control_thermostats
-    zone_control_thermostats = @workspace.getObjectsByType('ZoneControl:Thermostat'.to_IddObjectType)
+    alfalfa = runner.alfalfa
+
+    # use the built-in error checking
+    if !runner.validateUserArguments(arguments(workspace), user_arguments)
+      return false
+    end
+
+    zone_control_thermostats = workspace.getObjectsByType('ZoneControl:Thermostat'.to_IddObjectType)
     thermostats_to_zones = {}
 
     zone_control_thermostats.each do |zone_control_thermostat|
@@ -54,7 +54,7 @@ class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
     schedules_to_zones = {}
     thermostats_to_zones.each do |thermostat, zone_list|
       thermostat.targets.each do |target|
-        target_type = get_idd_type(target)
+        target_type = target.iddObject.type
         schedule = nil
         if target_type == 'Schedule:Compact'.to_IddObjectType
           schedule = target
@@ -76,27 +76,10 @@ class AlfalfaSetpointControl < OpenStudio::Measure::EnergyPlusMeasure
     end
 
     schedules_to_zones.each do |schedule, zone_list|
-      schedule_point = create_schedule_actuator(schedule)
-      zone_list.each do |zone|
-        schedule_point.add_zone(zone)
-      end
-      schedule_point.display_name = schedule.name.get
-      alfalfa_add_point(schedule_point)
+      schedule_actuator = alfalfa.exposeActuator(schedule.name.get, schedule.idfObject.iddObject.type.valueDescription, "Schedule Value", schedule.name.get).get
+      schedule_value_output = OpenStudio::Alfalfa::AlfalfaOutputVariable.new(schedule.name.get, "Schedule Value")
+      schedule_actuator.setOutput(schedule_value_output)
     end
-  end
-
-  # define what happens when the measure is run
-  def run(workspace, runner, user_arguments)
-    super(workspace, runner, user_arguments)
-
-    # use the built-in error checking
-    if !runner.validateUserArguments(arguments(workspace), user_arguments)
-      return false
-    end
-
-    control_thermostats
-
-    alfalfa_generate_reports
 
     runner.registerFinalCondition("Done")
 

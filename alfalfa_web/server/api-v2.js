@@ -164,6 +164,13 @@ router.get("/runs/:runId/time", async (req, res, next) => {
     .catch(next);
 });
 
+router.get("/runs/:runId/log", async (req, res, next) => {
+  api
+    .getRunLog(req.run)
+    .then((log) => res.json({ payload: { log } }))
+    .catch(next);
+});
+
 router.get("/runs/:runId/points", (req, res, next) => {
   api
     .getPointsByRun(req.run)

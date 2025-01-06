@@ -35,8 +35,8 @@
         <identifier>2.3.0</identifier>
         <min_compatible>2.3.0</min_compatible>
       </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
+      <filename>measure.py</filename>
+      <filetype>py</filetype>
       <usage_type>script</usage_type>
       <checksum>91260911</checksum>
     </file>

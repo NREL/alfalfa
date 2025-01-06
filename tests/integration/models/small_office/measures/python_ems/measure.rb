@@ -17,87 +17,55 @@ class PythonEMS < OpenStudio::Ruleset::WorkspaceUserScript
     end
 
     # define the arguments that the user will input
-    def arguments(ws)
+    def arguments(workspace)
       args = OpenStudio::Ruleset::OSArgumentVector.new
-
-      # argument for python script name
-      py_name = OpenStudio::Ruleset::OSArgument.makeStringArgument(
-        'py_name',
-        true
-      )
-      py_name.setDisplayName('Python Script Name')
-      py_name.setDescription('Name of script with extension (e.g., myPlugin.py)')
-
-      class_name = OpenStudio::Ruleset::OSArgument.makeStringArgument(
-        'class_name',
-        true
-      )
-      class_name.setDisplayName('Python Plugin Class Name')
-      class_name.setDescription('Name of class in python script (must inherit from EnergyPlusPlugin)')
-
-      args << py_name
-      args << class_name
 
       return args
     end
 
     # define what happens when the measure is run
-    def run(ws, runner, usr_args)
+    def run(workspace, runner, usr_args)
 
       # call the parent class method
-      super(ws, runner, usr_args)
+      super(workspace, runner, usr_args)
 
       # use the built-in error checking
       return false unless runner.validateUserArguments(
-        arguments(ws),
-        usr_args
-      )
-
-      # assign the user inputs to variables
-      py_name = runner.getStringArgumentValue(
-        'py_name',
-        usr_args
-      )
-
-      class_name = runner.getStringArgumentValue(
-        'class_name',
+        arguments(workspace),
         usr_args
       )
 
       # define python script dir
       py_dir = "#{__dir__}/resources"
 
-      # make sure python script exists
-      unless File.exist?("#{py_dir}/#{py_name}")
-        runner.registerError("Could not find file at #{py_dir}/#{py_name}.")
-        return false
-      end
-
       # add python plugin search paths
-      n = OpenStudio::IdfObject.new('PythonPlugin_SearchPaths'.to_IddObjectType)
-      n.setString(0, 'Python Plugin Search Paths')
-      n.setString(1, 'Yes')
-      n.setString(2, 'Yes')
-      # set site packages location depending on operating system
-      if (RUBY_PLATFORM =~ /linux/) != nil
-        n.setString(4, '/usr/local/lib/python3.7/dist-packages')
-      elsif (RUBY_PLATFORM =~ /darwin/) != nil
-        n.setString(4, '/usr/local/lib/python3.7/site-packages')
-      elsif (RUBY_PLATFORM =~ /cygwin|mswin|mingw|bccwin|wince|emx/) != nil
-        h = ENV['USERPROFILE'].gsub('\\', '/')
-        n.setString(4, "#{h}/AppData/Local/Programs/Python/Python37/Lib/site-packages")
-      end
+      plugin_paths = OpenStudio::IdfObject.new('PythonPlugin_SearchPaths'.to_IddObjectType)
+      plugin_paths.setString(0, 'Python Plugin Search Paths')
+      plugin_paths.setString(1, 'Yes')
+      plugin_paths.setString(2, 'Yes')
+      plugin_paths.setString(3, 'No')
       # add python dir
-      n.setString(5, py_dir)
-      ws.addObject(n)
+      plugin_paths.setString(4, py_dir)
+      workspace.addObject(plugin_paths)
 
       # add python plugin instance
-      n = OpenStudio::IdfObject.new('PythonPlugin_Instance'.to_IddObjectType)
-      n.setString(0, 'Python Plugin Instance Name')
-      n.setString(1, 'No')
-      n.setString(2, py_name.sub('.py', ''))
-      n.setString(3, class_name)
-      ws.addObject(n)
+      plugin_instance = OpenStudio::IdfObject.new('PythonPlugin_Instance'.to_IddObjectType)
+      plugin_instance.setString(0, 'Python Plugin Instance Name')
+      plugin_instance.setString(1, 'No')
+      plugin_instance.setString(2, 'simple_plugin')
+      plugin_instance.setString(3, 'SimplePlugin')
+      workspace.addObject(plugin_instance)
+
+      plugin_variables = OpenStudio::IdfObject.new('PythonPlugin_Variables'.to_IddObjectType)
+      plugin_variables.setString(0, 'Python Plugin Variables')
+      plugin_variables.setString(1, 'input')
+      plugin_variables.setString(2, 'output')
+      workspace.addObject(plugin_variables)
+
+      alfalfa = runner.alfalfa
+      alfalfa.exposeGlobalVariable('input', "Python Input")
+      alfalfa.exposeGlobalVariable('output', "Python Output")
+      alfalfa.exposeConstant(17.5, 'test value')
 
       return true
 

@@ -1,7 +1,5 @@
 import json
-from os import PathLike
 from pathlib import Path
-from typing import List
 
 from alfalfa_worker.lib.enums import PointType
 from alfalfa_worker.lib.models import Point, Run
@@ -10,34 +8,48 @@ from alfalfa_worker.lib.models import Point, Run
 class Variables:
     def __init__(self, run: Run) -> None:
         self.run = run
-        self.points = self._load_json('**/points.json')
+        self.points = {}
+        self.points_path = run.dir / 'simulation' / 'points.json'
+        if self.points_path.exists():
+            with open(self.points_path, 'r') as fp:
+                self.points = json.load(fp)
 
-    def _load_json(self, glob: str) -> List:
-        result = {}
-        files = self.run.glob(glob)
-        for file in files:
-            with open(str(file), 'r') as fp:
-                result.update(json.load(fp))
+    def generate_points(self, alfalfa_json: Path) -> None:
+        with open(alfalfa_json, 'r') as fp:
+            points = json.load(fp)
+            point_id_count = {}
+            for point in points:
+                id = point["id"]
 
-        return result
+                # Make IDs unique
+                if id in point_id_count.keys():
+                    point_id_count[id] = point_id_count[id] + 1
+                    id = f"{id}_{point_id_count[id]}"
 
-    def load_reports(self):
-        self.points = self._load_json('**/*_report_points.json')
+                # Set point type
+                point_type = PointType.OUTPUT
+                if "input" in point and "output" in point:
+                    point_type = PointType.BIDIRECTIONAL
+                elif "input" in point:
+                    point_type = PointType.INPUT
 
-    def write_files(self, dir_name: PathLike):
-        dir = Path(dir_name)
-        points_file = dir / 'points.json'
+                # Create point and add to Run
+                run_point = Point(ref_id=id, point_type=point_type, name=point["name"])
+                self.run.add_point(run_point)
 
-        with points_file.open('w') as fp:
+                # Set value for "Constant" type points
+                if "output" in point and point["output"]["type"] == "Constant":
+                    run_point.value = point["output"]["parameters"]["value"]
+
+                if "units" in point:
+                    run_point.units = point["units"]
+
+                self.points[id] = point
+                if point["name"] == "Whole Building Electricity":
+                    self.points[id]["output"]["multiplier"] = 1 / 60
+                del self.points[id]["id"]
+
+            self.run.save()
+
+        with open(self.points_path, 'w') as fp:
             json.dump(self.points, fp)
-
-    def generate_points(self):
-        for id, point in self.points.items():
-            point = Point(ref_id=id, point_type=PointType.OUTPUT, name=point["display_name"])
-            if "input" in point and "output" in point:
-                point.point_type = PointType.BIDIRECTIONAL
-            elif "input" in point:
-                point.point_type = PointType.INPUT
-            self.run.add_point(point)
-
-        self.run.save()

@@ -18,31 +18,10 @@
       },
       {
          "arguments" : {},
-         "measure_dir_name" : "alfalfa_site_sensors",
-         "name" : "Alfalfa Site Sensors",
-         "description" : "Add Site Sensors",
-         "modeler_description" : "Add Site Sensors"
-      },
-      {
-         "arguments" : {},
-         "measure_dir_name" : "alfalfa_python_environment",
-         "name" : "Python",
-         "description" : "Add python to IDF",
-         "modeler_description" : "Add python script path to IDF"
-      },
-      {
-         "arguments" : {},
          "measure_dir_name" : "alfalfa_metadata",
          "name" : "Metadata",
          "description" : "Generate metadata report for Alfalfa",
          "modeler_description" : "Generate metadata report for Alfalfa"
-      },
-      {
-         "arguments" : {},
-         "measure_dir_name" : "alfalfa_prepare_idf",
-         "name": "Alfalfa Prepare IDF",
-         "description" : "Remove RunPeriod and Timestep IDF Objects in preparation for Alfalfa execution",
-         "modeler_description" : "Remove RunPeriod and Timestep IDF Objects in preparation for Alfalfa execution"
       }
    ],
    "updated_at" : "20170606T230145Z",

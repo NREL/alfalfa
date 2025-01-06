@@ -92,6 +92,11 @@ class AlfalfaAPI {
     return await getHashValue(this.redis, run.ref_id, "sim_time");
   };
 
+  getRunLog = async (run) => {
+    const log_lines = await this.redis.lRange(`run:${run.ref_id}:log`, -100, -1);
+    return log_lines.join("\n");
+  };
+
   getPointsByRun = async (run) => {
     const pointsCursor = this.points.find({ run: run._id });
     return Promise.resolve(pointsCursor.toArray());
@@ -126,7 +131,8 @@ class AlfalfaAPI {
     const pointDict = {
       id: point.ref_id,
       name: point.name,
-      type: point.point_type
+      type: point.point_type,
+      units: point.units
     };
     return pointDict;
   };

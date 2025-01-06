@@ -1437,7 +1437,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {341ae3c0-1e4b-438d-a349-78c4d893609b}, !- Handle
-  OfficeLarge INFIL_SCH_PNNL SmrDsn|Wkdy Day, !- Name
+  OfficeLarge INFIL_SCH_PNNL SmrDsn Wkdy Day, !- Name
   {6cfc91bf-7372-4e39-adfc-dfbaccb008b2}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   6,                                      !- Hour 1
@@ -1487,7 +1487,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {11021c79-21b2-410d-8761-4ca0169659f2}, !- Handle
-  OfficeLarge INFIL_SCH_PNNL WntrDsn|Sat Day, !- Name
+  OfficeLarge INFIL_SCH_PNNL WntrDsn Sat Day, !- Name
   {6cfc91bf-7372-4e39-adfc-dfbaccb008b2}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   6,                                      !- Hour 1
@@ -1897,7 +1897,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {4406b98b-31bd-4dc2-a658-13bcf3846951}, !- Handle
-  OfficeSmall BLDG_LIGHT_SCH_2013 Default|Wkdy Day, !- Name
+  OfficeSmall BLDG_LIGHT_SCH_2013 Default Wkdy Day, !- Name
   {6cfc91bf-7372-4e39-adfc-dfbaccb008b2}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   5,                                      !- Hour 1
@@ -2044,7 +2044,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {337306e3-b404-4a68-bc99-79afe05dcf30}, !- Handle
-  OfficeSmall BLDG_EQUIP_SCH_2013 Default|Wkdy Day, !- Name
+  OfficeSmall BLDG_EQUIP_SCH_2013 Default Wkdy Day, !- Name
   {6cfc91bf-7372-4e39-adfc-dfbaccb008b2}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   6,                                      !- Hour 1
@@ -2173,7 +2173,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {fc01d6fc-d969-44d1-a67c-a9ff3e5b6cd6}, !- Handle
-  OfficeSmall INFIL_QUARTER_ON_SCH SmrDsn|Wkdy Day, !- Name
+  OfficeSmall INFIL_QUARTER_ON_SCH SmrDsn Wkdy Day, !- Name
   {6cfc91bf-7372-4e39-adfc-dfbaccb008b2}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   7,                                      !- Hour 1
@@ -2223,7 +2223,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {3a15d0a5-3713-4a26-b0e9-1769737d7390}, !- Handle
-  OfficeSmall INFIL_QUARTER_ON_SCH WntrDsn|Sat Day, !- Name
+  OfficeSmall INFIL_QUARTER_ON_SCH WntrDsn Sat Day, !- Name
   {6cfc91bf-7372-4e39-adfc-dfbaccb008b2}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   7,                                      !- Hour 1
@@ -3907,7 +3907,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {7cb9a909-a4bc-487a-9039-9c89d6e46446}, !- Handle
-  OfficeSmall HVACOperationSchd SmrDsn|Wkdy Day, !- Name
+  OfficeSmall HVACOperationSchd SmrDsn Wkdy Day, !- Name
   {48baeb6c-4b7b-4ed4-b6e9-8aec399e0994}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   6,                                      !- Hour 1
@@ -3983,7 +3983,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {49e896a1-9932-44e7-9f71-7804973dceef}, !- Handle
-  OfficeSmall MinOA_MotorizedDamper_Sched SmrDsn|Wkdy Day, !- Name
+  OfficeSmall MinOA_MotorizedDamper_Sched SmrDsn Wkdy Day, !- Name
   {6cfc91bf-7372-4e39-adfc-dfbaccb008b2}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   7,                                      !- Hour 1
@@ -7468,7 +7468,7 @@ OS:Schedule:Rule,
 
 OS:Schedule:Day,
   {369091e4-572f-4aca-a17a-07f2be0d237c}, !- Handle
-  OfficeSmall BLDG_SWH_SCH WntrDsn|SmrDsn|Wkdy Day, !- Name
+  OfficeSmall BLDG_SWH_SCH WntrDsn SmrDsn Wkdy Day, !- Name
   {6cfc91bf-7372-4e39-adfc-dfbaccb008b2}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   7,                                      !- Hour 1

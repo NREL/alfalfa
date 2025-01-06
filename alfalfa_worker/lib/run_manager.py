@@ -7,14 +7,13 @@ from pathlib import Path
 from uuid import uuid4
 
 import boto3
-from mongoengine import connect
 
 from alfalfa_worker.lib.alfalfa_connections_manager import (
     AlafalfaConnectionsManager
 )
 from alfalfa_worker.lib.enums import SimType
 from alfalfa_worker.lib.logger_mixins import LoggerMixinBase
-from alfalfa_worker.lib.models import Model, Rec, RecInstance, Run, Site
+from alfalfa_worker.lib.models import Model, Run, Site
 
 
 class RunManager(LoggerMixinBase):
@@ -24,7 +23,6 @@ class RunManager(LoggerMixinBase):
         super().__init__("RunManager")
 
         connections_manager = AlafalfaConnectionsManager()
-        connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
 
         # Setup S3
         self.s3 = connections_manager.s3
@@ -98,7 +96,7 @@ class RunManager(LoggerMixinBase):
         run.save()
         return run
 
-    def checkin_run(self, run: Run):
+    def checkin_run(self, run: Run) -> tuple[bool, str]:
         """Upload Run to s3 and delete local files"""
 
         run.save()
@@ -149,74 +147,6 @@ class RunManager(LoggerMixinBase):
         run = Run.objects.get(ref_id=run_id)
         run.dir = run_path
         return run
-
-    def add_site_to_mongo(self, haystack_json: dict, run: Run):
-        """Upload JSON documents to mongo.  The documents look as follows:
-        {
-            '_id': '...', # this maps to the 'id' below, the unique id of the entity record.
-            'rec': {
-                'id': '...',
-                'siteRef': '...'
-                ...other Haystack tags for rec
-            }
-        }
-        :param haystack_json: json Haystack document
-        :param run: id of the run
-        :return: None
-        """
-        # Create a site obj here to keep the variable active, but it is
-        # really set as index 0 of the haystack_json
-        site = None
-
-        # create all of the recs for this site
-        for index, entity in enumerate(haystack_json):
-            id = entity['id'].replace('r:', '')
-
-            # Create default writearray objects for the site. Create this on the backend
-            # to ensure that the links are created correctly and accessible from the frontend.
-            #   Only check for records tagged with writable.
-            #   This may need to be expanded to other types in the future.
-            cur_status = entity.pop('curStatus', None)
-            cur_val = entity.pop('curVal', None)
-            if entity.get('writable') == 'm:':
-                mapping = {}
-                if cur_status is not None:
-                    mapping['curStatus'] = cur_status
-                if cur_val is not None:
-                    mapping['curVal'] = cur_val
-                if mapping:
-                    # Note that run.ref_id is currently the same as site.ref_id, but
-                    # this won't be the case in the future.
-                    self.redis.hset(f'site:{run.ref_id}:rec:{id}', mapping=mapping)
-
-            if index == 0:
-                # this is the site record, store it on the site object of the
-                # database (as well as in the recs collection, for now).
-                # TODO: convert to actual data types (which requires updating the mongo schema too)
-                # TODO: FMU's might not have this data?
-                name = f"{entity.get('dis', 'Test Case').replace('s:','')} in {entity.get('geoCity', 'Unknown City').replace('s:','')}"
-                # there might be the case where the ref_id was added to the record during
-                # a "checkin" but the rest of that is not know. So get or create the Site.
-                site = Site(ref_id=run.ref_id)
-                site.name = name
-                site.haystack_raw = haystack_json
-                site.dis = entity.get('dis')
-                site.site = entity.get('site')
-                site.area = entity.get('area')
-                site.weather_ref = entity.get('weatherRef')
-                site.tz = entity.get('tz')
-                site.geo_city = entity.get('geoCity')
-                site.geo_state = entity.get('geoState')
-                site.geo_country = entity.get('geoCountry')
-                site.geo_coord = entity.get('geoCoord')
-                site.sim_status = entity.get('simStatus')
-                site.sim_type = entity.get('simType')
-                site.save()
-
-            rec = Rec(ref_id=id, site=site).save()
-            rec_instance = RecInstance(**entity)
-            rec.rec = rec_instance
-            rec.save()
 
     def add_model(self, model_path: os.PathLike):
         upload_id = str(uuid4())

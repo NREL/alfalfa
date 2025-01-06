@@ -1,11 +1,10 @@
-require 'alfalfa'
+
 # start the measure
 class AlfalfaSiteSensors < OpenStudio::Measure::EnergyPlusMeasure
 
 
   FuelMeter = Struct.new(:fuel, :adjustment_factor)
 
-  include OpenStudio::Alfalfa::EnergyPlusMixin
   # human readable name
   def name
     # Measure name should be the title case of the class name.
@@ -33,6 +32,8 @@ class AlfalfaSiteSensors < OpenStudio::Measure::EnergyPlusMeasure
   def run(workspace, runner, user_arguments)
     super(workspace, runner, user_arguments)
 
+    alfalfa = runner.alfalfa
+
     # use the built-in error checking
     if !runner.validateUserArguments(arguments(workspace), user_arguments)
       return false
@@ -43,10 +44,8 @@ class AlfalfaSiteSensors < OpenStudio::Measure::EnergyPlusMeasure
     ]
 
     fuels.each do |fuel|
-      alfalfa_add_meter("#{fuel}:Facility").display_name = "Whole Building #{fuel}"
+      alfalfa.exposeMeter("#{fuel.fuel}:Building", "Whole Building #{fuel.fuel}")
     end
-
-    alfalfa_generate_reports
 
     runner.registerFinalCondition("Done")
 

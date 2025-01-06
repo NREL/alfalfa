@@ -53,7 +53,7 @@ class Dispatcher(DispatcherLoggerMixin):
         """
         try:
             message_body = json.loads(message)
-            self.logger.info(f"Processing message of {message_body}")
+            self.logger.debug(f"Processing message of {message_body}")
             job = message_body.get('job')
             if job:
                 params = message_body.get('params', {})

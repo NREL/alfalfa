@@ -1,23 +1,6 @@
 import os
 import sys
-from datetime import datetime
-
-
-def process_datetime_string(dt, logger=None):
-    """
-    Check that datetime string has been correctly passed.
-    Should be passed as: "%Y-%m-%d %H:%M:%S"
-
-    :param str dt: datetime string
-    :return: formatted time string
-    """
-    try:
-        dt = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
-        return (dt.strftime("%Y-%m-%d %H:%M:%S"))
-    except ValueError:
-        if logger:
-            logger.info("Invalid datetime string passed: {}".format(dt))
-        sys.exit(1)
+import traceback
 
 
 def rel_symlink(src, dst):
@@ -28,3 +11,22 @@ def rel_symlink(src, dst):
     """
     src = os.path.relpath(src, os.path.dirname(dst))
     os.symlink(src, dst)
+
+
+def exc_to_str():
+    tb = traceback.format_exception(*sys.exc_info())
+
+    return ''.join(tb)
+
+
+def to_bool(value: str):
+    false_strings = ["false", "no", "0"]
+    true_strings = ["true", "yes", "1"]
+    if isinstance(value, bool):
+        return value
+    elif value.lower() in false_strings:
+        return False
+    elif value.lower() in true_strings:
+        return True
+    else:
+        raise ValueError(f"Invalid string \"{value}\" provided for boolean conversion")

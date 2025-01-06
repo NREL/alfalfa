@@ -5,7 +5,6 @@
 # Usage:
 #   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
-version: "3.4"
 services:
   web: # main haystack application
     container_name: alfalfa_web
@@ -16,32 +15,8 @@ services:
       context: .
       # The dev instance still needs works, so default to base for now
       target: dev
-    image: ${REGISTRY_BASE_URI}/web:${VERSION_TAG}
-    ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-        mode: host
-      - "29043:29043"
     environment:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - GIT_COMMIT
-      - JOB_QUEUE_URL
-      - MONGO_DB_NAME
-      - MONGO_URL
       - NODE_ENV=development
-      - REDIS_HOST
-      - REGION
-      - S3_BUCKET
-      - S3_URL
-      - S3_URL_EXTERNAL
-    depends_on:
-      - goaws
-      - mc
-      - mongo
-      - redis
-      - worker
     volumes:
       - ./alfalfa_web:/srv/alfalfa
       # create volumes for the build and node_modules so that
@@ -56,29 +31,6 @@ services:
       dockerfile: alfalfa_worker/Dockerfile
       context: .
       target: dev
-    image: ${REGISTRY_BASE_URI}/worker:${VERSION_TAG}
-    environment:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - HISTORIAN_ENABLE
-      - INFLUXDB_ADMIN_PASSWORD
-      - INFLUXDB_ADMIN_USER
-      - INFLUXDB_DB
-      - INFLUXDB_HOST
-      - JOB_QUEUE_URL
-      - LOGLEVEL=INFO
-      - MONGO_DB_NAME
-      - MONGO_URL
-      - NODE_ENV
-      - REDIS_HOST
-      - REGION
-      - S3_BUCKET
-      - S3_URL
-    depends_on:
-      - goaws
-      - mc
-      - mongo
-      - redis
     volumes:
       - ./alfalfa_worker:/alfalfa/alfalfa_worker
       - ./tests:/alfalfa/tests

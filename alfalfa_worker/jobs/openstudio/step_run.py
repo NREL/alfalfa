@@ -1,24 +1,37 @@
 import os
-import traceback
 from datetime import datetime, timedelta
+from typing import Callable
 
+import openstudio
 from pyenergyplus.api import EnergyPlusAPI
 
+from alfalfa_worker.jobs.openstudio.lib.alfalfa_point import AlfalfaPoint
 from alfalfa_worker.jobs.openstudio.lib.variables import Variables
-from alfalfa_worker.jobs.step_run_base import Role, StepRunBase
+from alfalfa_worker.jobs.step_run_process import StepRunProcess
+from alfalfa_worker.lib.enums import PointType
 from alfalfa_worker.lib.job import (
     JobException,
     JobExceptionExternalProcess,
-    message
+    JobExceptionSimulation
 )
+from alfalfa_worker.lib.models import Point
 
 
-class StepRun(StepRunBase):
+def callback_wrapper(func):
+    def wrapped_func(self: "StepRun", state):
+        try:
+            return func(self, state)
+        except Exception:
+            self.catch_exception()
+    return wrapped_func
+
+
+class StepRun(StepRunProcess):
+
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
         self.checkout_run(run_id)
         super().__init__(run_id, realtime, timescale, external_clock, start_datetime, end_datetime)
-        self.logger.info(f"{start_datetime}, {end_datetime}")
-        self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
+        self.options.timestep_duration = timedelta(minutes=1)
 
         # If idf_file is named "in.idf" we need to change the name because in.idf is not accepted by mlep
         # (likely mlep is using that name internally)
@@ -30,132 +43,189 @@ class StepRun(StepRunBase):
         dst_idf_file.rename(self.idf_file)
 
         self.weather_file = os.path.realpath(self.dir / 'simulation' / 'sim.epw')
-        self.str_format = "%Y-%m-%d %H:%M:%S"
 
         self.variables = Variables(self.run)
 
-        self.ep_api = EnergyPlusAPI()
-        self.ep_state = self.ep_api.state_manager.new_state()
-        self.ep_advance_flag = False
-        self.ep_io_objects = {}
+        self.logger.info('Generating variables from Openstudio output')
+        for alfalfa_json in self.run.dir.glob('**/run/alfalfa.json'):
+            self.variables.generate_points(alfalfa_json)
 
-        # The idf RunPeriod is manipulated in order to get close to the desired start time,
-        # but we can only get within 24 hours. We use "bypass" steps to quickly get to the
-        # exact right start time. This flag indicates we are iterating in bypass mode
-        # it will be set to False once the desired start time is reach
-        self.first_timestep = True
-        # Job will wait this number of seconds for an energyplus model to start before throwing an error
-        self.model_start_timeout = 300
+        self.ep_api: EnergyPlusAPI = None
+        self.ep_state = None
 
-    def time_per_step(self):
-        return timedelta(seconds=3600.0 / self.time_steps_per_hour)
+        self.additional_points: list[AlfalfaPoint] = []
 
-    def init_sim(self):
+    def start_simulation_process(self):
         """
-        Initialize EnergyPlus co-simulation.
+        Initialize and start EnergyPlus co-simulation.
 
         :return:
         """
-        self.osm_idf_files_prep()
-        self.ep_register_callbacks()
-        self.ep_request_variables()
+        self.prepare_idf()
 
-    def ep_request_variables(self):
+        self.ep_api = EnergyPlusAPI()
+        self.ep_state = self.ep_api.state_manager.new_state()
+        self.ep_api.runtime.callback_begin_new_environment(self.ep_state,
+                                                           self.initialize_handles)
+        self.ep_api.runtime.callback_end_zone_timestep_after_zone_reporting(self.ep_state,
+                                                                            self.ep_begin_timestep)
+        self.ep_api.runtime.callback_message(self.ep_state, self.callback_message)
+        self.ep_api.functional.callback_error(self.ep_state, self.callback_error)
+
+        # Request output variables
         for point in self.variables.points.values():
             if "output" in point:
                 if point["output"]["type"] == "OutputVariable":
                     self.ep_api.exchange.request_variable(self.ep_state, **point["output"]["parameters"])
 
-    def ep_register_callbacks(self):
-        self.ep_api.runtime.callback_begin_new_environment(self.ep_state,
-                                                           self.ep_init_handles)
-        self.ep_api.runtime.callback_end_zone_timestep_after_zone_reporting(self.ep_state,
-                                                                            self.ep_begin_timestep)
-        # self.ep_api.runtime.callback_begin_zone_timestep_after_init_heat_balance(self.ep_state, self.ep_write_inputs)
+        return_code = self.ep_api.runtime.run_energyplus(state=self.ep_state, command_line_args=['-w', str(self.weather_file), '-d', str(self.dir / 'simulation'), '-r', str(self.idf_file)])
+        self.logger.info(f"Exited simulation with code: {return_code}")
+        if return_code != 0:
+            self.check_for_errors()
+            raise JobExceptionExternalProcess(f"EnergyPlus Exited with a non-zero exit code: {return_code}")
 
-    def ep_init_handles(self, state):
+    def callback_message(self, message: bytes) -> None:
         try:
-            self.logger.info("Generating handles")
+            self.logger.info(message.decode())
+        except Exception:
+            self.catch_exception()
 
-            def get_handle(type, parameters):
-                self.logger.info(f"Getting handle for component of type: {type} with params: {parameters}")
-                handle = None
-                if type == "GlobalVariable":
-                    handle = self.ep_api.exchange.get_global_handle(state, **parameters)
-                elif type == "InternalVariable":
-                    handle = self.ep_api.exchange.get_internal_variable_handle(state, **parameters)
-                elif type == "OutputVariable":
-                    handle = self.ep_api.exchange.get_variable_handle(state, **parameters)
-                    self.logger.info(f"Got handle: {handle} for {parameters}")
-                elif type == "Meter":
-                    handle = self.ep_api.exchange.get_meter_handle(state, **parameters)
-                elif type == "Actuator":
-                    handle = self.ep_api.exchange.get_actuator_handle(state, **parameters)
-                else:
-                    self.logger.error(f"Unknown point type: {type}")
-                    raise JobException(f"Unknown point type: {type}")
-                if handle == -1:
-                    self.logger.error(f"Handle not found for point of type: {type} and parameters: {parameters}")
-                    raise JobException(f"Handle not found for point of type: {type} and parameters: {parameters}")
-                return handle
-            self.logger.info("Iterating through points")
-            self.logger.info(f"{len(self.variables.points)} point found")
-            for id, point in self.variables.points.items():
-                self.logger.info(f"getting handle for id: {id}")
+    def callback_error(self, state, message: bytes) -> None:
+        try:
+            self.logger.error(message.decode())
+        except Exception:
+            self.catch_exception()
+
+    @callback_wrapper
+    def initialize_handles(self, state):
+        exceptions = []
+
+        def get_handle(type, parameters):
+            handle = None
+            if type == "GlobalVariable":
+                handle = self.ep_api.exchange.get_ems_global_handle(state, var_name=parameters["variable_name"])
+            elif type == "OutputVariable":
+                handle = self.ep_api.exchange.get_variable_handle(state, **parameters)
+                self.logger.info(f"Got handle: {handle} for {parameters}")
+            elif type == "Meter":
+                handle = self.ep_api.exchange.get_meter_handle(state, **parameters)
+            elif type == "Actuator":
+                handle = self.ep_api.exchange.get_actuator_handle(state,
+                                                                  component_type=parameters["component_type"],
+                                                                  control_type=parameters["control_type"],
+                                                                  actuator_key=parameters["component_name"])
+            else:
+                raise JobException(f"Unknown point type: {type}")
+            if handle == -1:
+                raise JobException(f"Handle not found for point of type: {type} and parameters: {parameters}")
+            return handle
+
+        def add_additional_meter(fuel: str, units: str, converter: Callable[[float], float]):
+            try:
+                handle = get_handle("Meter", {"meter_name": f"{fuel}:Building"})
+                point = Point(ref_id=f"whole_building_{fuel.lower()}", name=f"Whole Building {fuel}", units=units, point_type=PointType.OUTPUT)
+                self.run.add_point(point)
+                alfalfa_point = AlfalfaPoint(point, handle, converter)
+                self.additional_points.append(alfalfa_point)
+            except JobException:
+                return None
+
+        add_additional_meter("Electricity", "W", lambda x: x / self.options.timesteps_per_hour)
+        add_additional_meter("NaturalGas", "W", lambda x: x / self.options.timesteps_per_hour)
+
+        for id, point in self.variables.points.items():
+            try:
                 if "input" in point:
-                    self.variables.points[id]["input"]["handle"] = get_handle(**point["input"])
+                    handle = get_handle(point["input"]["type"], point["input"]["parameters"])
+                    self.variables.points[id]["input"]["handle"] = handle
                 if "output" in point:
-                    self.variables.points[id]["output"]["handle"] = get_handle(**point["output"])
-        except Exception as e:
-            self.ep_api.runtime.stop_simulation(state)
-            self.ep_api.runtime.issue_severe(state, str(e))
-            self.ep_api.runtime.issue_severe(state, str(traceback.format_exc()))
-            raise e
+                    if point["output"]["type"] == "Constant":
+                        continue
+                    self.variables.points[id]["output"]["handle"] = get_handle(point["output"]["type"], point["output"]["parameters"])
+            except JobException as e:
+                if point["optional"]:
+                    self.logger.warn(f"Ignoring optional point '{point["name"]}'")
+                    self.run.get_point_by_id(id).delete()
+                else:
+                    exceptions.append(e)
+        if len(exceptions) > 0:
+            ExceptionGroup("Exceptions generated while initializing EP handles", exceptions)
+        self.run.save()
 
+    @callback_wrapper
     def ep_begin_timestep(self, state):
-        try:
+        if not self.running_event.is_set():
             warmup = self.ep_api.exchange.warmup_flag(state)
             kind_of_sim = self.ep_api.exchange.kind_of_sim(state)
             if warmup or kind_of_sim == 1:
                 return
-            self.ep_read_outputs(state)
-            self.set_run_time(self.get_sim_time(state))
-            self.wait_for_advance()
-            self.ep_write_inputs(state)
-            if not self.is_running:
-                self.ep_api.runtime.stop_simulation(state)
-        except Exception as e:
-            self.ep_api.runtime.stop_simulation(state)
-            self.ep_api.runtime.issue_severe(state, str(e))
-            self.ep_api.runtime.issue_severe(state, str(traceback.format_exc()))
-            raise e
+            self.update_run_time()
+            self.running_event.set()
 
-    def ep_read_outputs(self, state):
+        self.ep_read_outputs()
+        self.update_run_time()
+
+        self.advance_event.clear()
+        while not self.advance_event.is_set() and not self.stop_event.is_set():
+            self.advance_event.wait(1)
+
+        if self.stop_event.is_set():
+            self.logger.info("Stop Event Set, stopping simulation")
+            self.ep_api.runtime.stop_simulation(state)
+        self.ep_write_inputs()
+
+    def get_sim_time(self) -> datetime:
+        sim_time = self.options.start_datetime.replace(hour=0, minute=0) + timedelta(hours=self.ep_api.exchange.current_sim_time(self.ep_state))
+        sim_time -= timedelta(minutes=1)  # Energyplus gives time at the end of current timestep, we want the beginning
+        return sim_time
+
+    def ep_read_outputs(self):
         """Reads outputs from E+ state"""
         influx_points = []
         for point in self.run.output_points:
-            handle = self.variables.points[point.ref_id]["output"]["handle"]
-            type = self.variables.points[point.ref_id]["output"]["type"]
+            if point.ref_id not in self.variables.points:
+                continue
+            component = self.variables.points[point.ref_id]["output"]
+            if "handle" not in component:
+                continue
+            handle = component["handle"]
+            type = component["type"]
             value = None
-            if type == "GlobalVariable":
-                value = self.ep_api.exchange.get_variable_value(state, handle)
-            elif type == "InternalVariable":
-                value = self.ep_api.exchange.get_internal_variable_value(state, handle)
-            elif type == "OutputVariable":
-                value = self.ep_api.exchange.get_global_value(state, handle)
+            if type == "OutputVariable":
+                value = self.ep_api.exchange.get_variable_value(self.ep_state, handle)
+            elif type == "GlobalVariable":
+                value = self.ep_api.exchange.get_ems_global_value(self.ep_state, handle)
             elif type == "Meter":
-                value = self.ep_api.exchange.get_meter_value(state, handle)
+                value = self.ep_api.exchange.get_meter_value(self.ep_state, handle)
             elif type == "Actuator":
-                value = self.ep_api.exchange.get_actuator_value(state, handle)
+                value = self.ep_api.exchange.get_actuator_value(self.ep_state, handle)
             else:
-                raise JobException(f"Unknown point type: {type}")
+                raise JobException(f"Invalid point type: {type}")
+            if "multiplier" in component:
+                self.logger.info(f"Applying a multiplier of '{component["multiplier"]}' to point '{point["name"]}'")
+                value *= component["multiplier"]
+            if self.ep_api.exchange.api_error_flag(self.ep_state):
+                raise JobExceptionSimulation(f"EP returned an api error while reading from point: {point.name}")
             point.value = value
-            if self.historian_enabled:
+            if self.options.historian_enabled:
                 influx_points.append({
                     "measurement": self.run.ref_id,
                     "time": self.run.sim_time,
                     "value": value,
                     "id": point.ref_id,
+                    "point": True,
+                    "source": "alfalfa"
+                })
+        for additional_point in self.additional_points:
+            value = self.ep_api.exchange.get_meter_value(self.ep_state, additional_point.handle)
+            value = additional_point.converter(value)
+            additional_point.point.value = value
+            if self.options.historian_enabled:
+                influx_points.append({
+                    "measurement": self.run.ref_id,
+                    "time": self.run.sim_time,
+                    "value": value,
+                    "id": additional_point.point.ref_id,
                     "point": True,
                     "source": "alfalfa"
                 })
@@ -176,113 +246,93 @@ class StepRun(StepRunBase):
     def ep_write_inputs(self):
         """Writes inputs to E+ state"""
         for point in self.run.input_points:
-            handle = self.variables.points[point.ref_id]["input"]["handle"]
-            type = self.variables.points[point.ref_id]["input"]["type"]
-            if type == "GlobalVariable":
-                self.ep_api.exchange.set_global_value(self.ep_state, handle, point.value)
+            component = self.variables.points[point.ref_id]["input"]
+            handle = component["handle"]
+            type = component["type"]
+            if type == "GlobalVariable" and point.value is not None:
+                self.ep_api.exchange.set_ems_global_value(self.ep_state, handle, point.value)
             if type == "Actuator":
                 if point.value is not None:
                     self.ep_api.exchange.set_actuator_value(self.ep_state, handle, point.value)
-                else:
-                    # TODO Don't reset the actuator if we already reset it.
-                    self.ep_api.exchange.reset_actuator(self.ep_api, handle)
+                    component["reset"] = False
+                elif "reset" not in component or component["reset"] is False:
+                    self.ep_api.exchange.reset_actuator(self.ep_state, handle)
+                    component["reset"] = True
 
-    def start_sim_executive(self):
-        return_code = self.ep_api.runtime.run_energyplus(state=self.ep_state, command_line_args=['-w', str(self.weather_file), '-d', str(self.dir / 'simulation'), '-r', str(self.idf_file)])
-        if return_code != 0:
-            self.check_error_log()
-
-    def setup_points(self):
-        self.logger.info("Generating Points")
-        self.variables.generate_points()
-
-    @property
-    def role(self):
-        return Role.FOLLOWER
-
-    def get_sim_time(self, state):
-        """
-        Return the current time in EnergyPlus
-
-        :return:
-        :rtype datetime()
-        """
-
-        day = self.ep_api.exchange.day_of_month(state)
-        hour = self.ep_api.exchange.hour(state)
-        minute = self.ep_api.exchange.minutes(state)
-        month = self.ep_api.exchange.month(state)
-        year = self.ep_api.exchange.year(state)
-
-        sim_time = datetime(year, month, day, 0, 0)
-
-        if minute == 60 and hour == 23:
-            # The first timestep of simulation will have the incorrect day
-            if self.first_timestep:
-                hour = 0
-            else:
-                hour += 1
-
-        elif minute == 60 and hour != 23:
-            hour += 1
-
-        return sim_time + timedelta(hours=hour, minutes=minute % 60)
-
-    def replace_timestep_and_run_period_idf_settings(self):
-
-        try:
-            runperiod_str = f"""
-RunPeriod,
-  Alfalfa Run Period,
-  {self.start_datetime.month},            !- Begin Month
-  {self.start_datetime.day},              !- Begin Day of Month
-  {self.start_datetime.year},             !- Begin Year
-  {self.end_datetime.month},              !- End Month
-  {self.end_datetime.day},                !- End Day of Month
-  {self.end_datetime.year},               !- End Year
-  {self.start_datetime.strftime("%A")},    !- Day of Week for Start Day
-  ,                                       !- Use Weather File Holidays and Special Days
-  ,                                       !- Use Weather File Daylight Saving Period
-  ,                                       !- Apply Weekend Holiday Rule
-  ,                                       !- Use Weather File Rain Indicators
-  ,                                       !- Use Weather File Snow Indicators
-  ,                                       !- Treat Weather as Actual
-  ;                                       !- First Hour Interpolation Starting Values"""
-
-            timestep_str = f"""
-Timestep,
-  {self.time_steps_per_hour}; !- Number of Timesteps per Hour"""
-
-            with self.idf_file.open("a") as idf_file:
-                idf_file.write(runperiod_str)
-                idf_file.write(timestep_str)
-        except BaseException as e:
-            self.logger.error('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
-            raise JobException('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
-
-    def osm_idf_files_prep(self):
+    def prepare_idf(self):
         """
         Replace the timestep and starting and ending year, month, day, day of week in the idf file.
 
         :return:
         """
-        self.replace_timestep_and_run_period_idf_settings()
+        idf_path = openstudio.path(str(self.idf_file))
+        workspace = openstudio.Workspace.load(idf_path)
+        if not workspace.is_initialized():
+            raise JobException("Cannot load idf file into workspace")
+        workspace = workspace.get()
 
-    def update_sim_time_in_mongo(self):
-        """Placeholder for updating the datetime in Mongo to current simulation time"""
-        sim_time = self.get_sim_time()
-        self.logger.info(f"updating db time to: {sim_time}")
-        self.set_run_time(sim_time)
+        delete_objects = [*workspace.getObjectsByType(openstudio.IddObjectType("RunPeriod")),
+                          *workspace.getObjectsByType(openstudio.IddObjectType("Timestep"))]
+        for object in delete_objects:
+            workspace.removeObject(object.handle())
 
-    def check_error_log(self):
-        error_concat = ""
-        error_logs = self.dir.glob('**/*.err')
+        runperiod_object = openstudio.IdfObject(openstudio.IddObjectType("RunPeriod"))
+        runperiod_object.setString(0, "Alfalfa Run Period")
+        runperiod_object.setInt(1, self.options.start_datetime.month)
+        runperiod_object.setInt(2, self.options.start_datetime.day)
+        runperiod_object.setInt(3, self.options.start_datetime.year)
+        runperiod_object.setInt(4, self.options.end_datetime.month)
+        runperiod_object.setInt(5, self.options.end_datetime.day)
+        runperiod_object.setInt(6, self.options.end_datetime.year)
+        runperiod_object.setString(7, str(self.options.start_datetime.strftime("%A")))
+
+        timestep_object = openstudio.IdfObject(openstudio.IddObjectType("Timestep"))
+        timestep_object.setInt(0, self.options.timesteps_per_hour)
+
+        workspace.addObject(runperiod_object)
+        workspace.addObject(timestep_object)
+
+        paths_objects = workspace.getObjectsByType(openstudio.IddObjectType("PythonPlugin:SearchPaths"))
+        python_paths = openstudio.IdfObject(openstudio.IddObjectType("PythonPlugin:SearchPaths"))
+        python_paths.setString(0, "Alfalfa Virtual Environment Path")
+        python_paths.setString(1, 'No')
+        python_paths.setString(2, 'No')
+        python_paths.setString(3, 'No')
+        n = 4
+
+        if (self.run.dir / '.venv').exists():
+            python_paths.setString(n, str(self.run.dir / '.venv' / 'lib' / 'python3.12' / 'site-packages'))
+            n += 1
+
+        for path in paths_objects:
+            for field_idx in range(4, path.numFields()):
+                python_paths.setString(n, path.getString(field_idx).get())
+                n += 1
+            workspace.removeObject(path.handle())
+
+        workspace.addObject(python_paths)
+
+        workspace.save(idf_path, True)
+
+    def catch_exception(self) -> None:
+        super().catch_exception(self.read_error_logs())
+        if self.ep_state is not None:
+            self.ep_api.runtime.stop_simulation(self.ep_state)
+
+    def read_error_logs(self) -> list[str]:
+        error_logs = []
+        for error_file in self.dir.glob('**/*.err'):
+            error_log = f"{error_file}:\n"
+            error_log += error_file.read_text()
+            error_logs.append(error_log)
+        return error_logs
+
+    def check_for_errors(self):
+        error_logs = self.read_error_logs()
+        exception = JobExceptionExternalProcess("Energy plus terminated with error")
         for error_log in error_logs:
-            error_concat += f"{error_log}:\n"
-            error_concat += error_log.read_text() + "\n"
-        raise JobExceptionExternalProcess(f"Energy plus terminated with error:\n {error_concat}")
+            exception.add_note(error_log)
 
-    @message
-    def advance(self):
-        self.logger.info(f"advance called at time {self.get_sim_time()}")
-        self.step()
+        if "EnergyPlus Terminated" in '\n'.join(error_logs):
+            raise exception
+        super().check_for_errors()

@@ -1,4 +1,4 @@
-FROM ghcr.io/nrel/alfalfa-dependencies:openstudio_3.8 AS base
+FROM ghcr.io/nrel/alfalfa-dependencies:prepare_080 AS base
 
 ENV HOME=/alfalfa
 
@@ -20,11 +20,6 @@ RUN poetry install --only main
 ENV PYTHONPATH="${HOME}:${PYTHONPATH}"
 
 COPY ./alfalfa_worker ${HOME}/alfalfa_worker
-
-RUN pip3.8 install virtualenv \
-  && pip3.8 install \
-  scipy \
-  symfit
 
 COPY ./alfalfa_worker /alfalfa/alfalfa_worker
 
