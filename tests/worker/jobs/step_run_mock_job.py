@@ -33,4 +33,4 @@ class StepRunMockJob(MockJob, StepRunBase):
 
     @message
     def advance(self):
-        self.run.sim_time = self.run.sim_time + 1
+        self.run.sim_time = self.run.sim_time + self.options.timestep_duration
