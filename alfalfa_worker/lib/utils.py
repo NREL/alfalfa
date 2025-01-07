@@ -24,9 +24,11 @@ def to_bool(value: str):
     true_strings = ["true", "yes", "1"]
     if isinstance(value, bool):
         return value
-    elif value.lower() in false_strings:
+    if value is None:
         return False
-    elif value.lower() in true_strings:
-        return True
-    else:
-        raise ValueError(f"Invalid string \"{value}\" provided for boolean conversion")
+    if isinstance(value, str):
+        if value.lower() in false_strings:
+            return False
+        elif value.lower() in true_strings:
+            return True
+    raise ValueError(f"Invalid string \"{value}\" provided for boolean conversion")

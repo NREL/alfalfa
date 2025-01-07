@@ -26,7 +26,7 @@ def step_run_mock_job(dispatcher: Dispatcher):
         "start_datetime": str(datetime(2019, 1, 2, 0, 0, 0)),
         "end_datetime": str(datetime(2019, 1, 3, 0, 0, 0)),
         "timescale": "20",
-        "realtime": None
+        "realtime": False
     }
 
     yield dispatcher.create_job(StepRunMockJob.job_path(), params)
