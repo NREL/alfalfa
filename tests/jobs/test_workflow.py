@@ -18,9 +18,9 @@ def test_simple_internal_clock(mock_dispatcher: MockDispatcher, model_path: Path
     model = mock_dispatcher.run_manager.create_model(model_path)
 
     if model_path.is_dir():
-        create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.CreateRun", {'model_id': model.ref_id})
+        create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.create_run.CreateRun", {'model_id': model.ref_id})
     else:
-        create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.CreateRun", {'model_id': model.ref_id})
+        create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.create_run.CreateRun", {'model_id': model.ref_id})
 
     run = create_run_job.run
 
@@ -37,9 +37,9 @@ def test_simple_internal_clock(mock_dispatcher: MockDispatcher, model_path: Path
     }
 
     if run.sim_type == SimType.OPENSTUDIO:
-        step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.StepRun", params)
+        step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.step_run.StepRun", params)
     else:
-        step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.StepRun", params)
+        step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.step_run.StepRun", params)
     assert step_run_job.step_sim_type == "timescale"
     run = step_run_job.run
     wait_for_job_status(step_run_job, JobStatus.RUNNING)
@@ -55,9 +55,9 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
     model = mock_dispatcher.run_manager.create_model(model_path)
 
     if model_path.is_dir():
-        create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.CreateRun", {'model_id': model.ref_id})
+        create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.create_run.CreateRun", {'model_id': model.ref_id})
     else:
-        create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.CreateRun", {'model_id': model.ref_id})
+        create_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.create_run.CreateRun", {'model_id': model.ref_id})
     run = create_run_job.run
 
     wait_for_run_status(run, RunStatus.READY)
@@ -72,9 +72,9 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
     }
 
     if run.sim_type == SimType.OPENSTUDIO:
-        step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.StepRun", params)
+        step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.step_run.StepRun", params)
     else:
-        step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.StepRun", params)
+        step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.step_run.StepRun", params)
     run = step_run_job.run
 
     wait_for_run_status(run, RunStatus.RUNNING, timeout=30)
