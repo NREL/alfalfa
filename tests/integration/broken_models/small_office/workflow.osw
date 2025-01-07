@@ -1,0 +1,19 @@
+{
+  "seed_file" : "small_office.osm",
+  "weather_file": "USA_OH_Dayton-Wright.Patterson.AFB.745700_TMY3.epw",
+  "measure_paths": [
+    "./measures/"
+  ],
+  "file_paths": [
+    "./weather/"
+  ],
+  "run_directory": "./run/",
+  "steps" : [
+    {
+      "measure_dir_name" : "python_ems",
+      "name" : "PythonEMS",
+      "description" : "Add python EMS to IDF",
+      "modeler_description" : "Add python EMS to IDF",
+    }
+  ]
+}
