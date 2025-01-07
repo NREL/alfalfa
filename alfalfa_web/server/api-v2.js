@@ -106,7 +106,7 @@ router.param("pointId", (req, res, next, id) => {
   const error = validate(
     { id },
     {
-      id: "required|uuid"
+      id: "required|string"
     }
   );
   if (error) return res.status(400).json({ message: error });

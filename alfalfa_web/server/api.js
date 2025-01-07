@@ -203,7 +203,7 @@ class AlfalfaAPI {
 
     const { startDatetime, endDatetime, timescale, realtime, externalClock } = data;
 
-    const job = `alfalfa_worker.jobs.${sim_type === "MODELICA" ? "modelica" : "openstudio"}.StepRun`;
+    const job = `alfalfa_worker.jobs.${sim_type === "MODELICA" ? "modelica" : "openstudio"}.step_run.StepRun`;
     const params = {
       run_id: run.ref_id,
       start_datetime: startDatetime,
@@ -303,7 +303,9 @@ class AlfalfaAPI {
 
   createRunFromModel = async (model) => {
     const runId = uuidv1();
-    const job = `alfalfa_worker.jobs.${model.model_name.endsWith(".fmu") ? "modelica" : "openstudio"}.CreateRun`;
+    const job = `alfalfa_worker.jobs.${
+      model.model_name.endsWith(".fmu") ? "modelica" : "openstudio"
+    }.create_run.CreateRun`;
     const params = {
       model_id: model.ref_id,
       run_id: runId

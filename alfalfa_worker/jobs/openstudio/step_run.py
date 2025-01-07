@@ -9,7 +9,7 @@ from alfalfa_worker.jobs.openstudio.lib.alfalfa_point import AlfalfaPoint
 from alfalfa_worker.jobs.openstudio.lib.variables import Variables
 from alfalfa_worker.jobs.step_run_process import StepRunProcess
 from alfalfa_worker.lib.enums import PointType
-from alfalfa_worker.lib.job import (
+from alfalfa_worker.lib.job_exception import (
     JobException,
     JobExceptionExternalProcess,
     JobExceptionSimulation

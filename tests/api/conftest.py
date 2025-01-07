@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -35,3 +36,9 @@ def run_id(alfalfa_client: AlfalfaClient, model_path):
             alfalfa_client.stop(run_id)
     except AlfalfaAPIException:
         pass
+
+
+@pytest.fixture
+def started_run_id(alfalfa_client: AlfalfaClient, run_id):
+    alfalfa_client.start(run_id, datetime(2020, 1, 1, 0, 0), datetime(2020, 1, 2, 0, 0), external_clock=True)
+    yield run_id
