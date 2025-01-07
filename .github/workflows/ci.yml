@@ -92,7 +92,7 @@ jobs:
           GIT_COMMIT: ${{ github.sha }}
         run: |
           printenv
-          docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d worker mongo redis minio mc goaws
+          docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d worker mongo redis minio mc
 
       - name: Dump docker logs before tests
         uses: jwalton/gh-docker-logs@v2
