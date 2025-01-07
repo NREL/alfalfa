@@ -144,7 +144,7 @@ class StepRun(StepRunProcess):
                     self.variables.points[id]["output"]["handle"] = get_handle(point["output"]["type"], point["output"]["parameters"])
             except JobException as e:
                 if point["optional"]:
-                    self.logger.warn(f"Ignoring optional point '{point["name"]}'")
+                    self.logger.warn(f"Ignoring optional point '{point['name']}'")
                     self.run.get_point_by_id(id).delete()
                 else:
                     exceptions.append(e)
@@ -202,7 +202,7 @@ class StepRun(StepRunProcess):
             else:
                 raise JobException(f"Invalid point type: {type}")
             if "multiplier" in component:
-                self.logger.info(f"Applying a multiplier of '{component["multiplier"]}' to point '{point["name"]}'")
+                self.logger.info(f"Applying a multiplier of '{component['multiplier']}' to point '{point['name']}'")
                 value *= component["multiplier"]
             if self.ep_api.exchange.api_error_flag(self.ep_state):
                 raise JobExceptionSimulation(f"EP returned an api error while reading from point: {point.name}")
