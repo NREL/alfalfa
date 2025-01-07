@@ -4,7 +4,8 @@ from pathlib import Path
 
 from alfalfa_worker.jobs.openstudio import lib_dir
 from alfalfa_worker.lib.enums import RunStatus, SimType
-from alfalfa_worker.lib.job import Job, JobExceptionInvalidModel
+from alfalfa_worker.lib.job import Job
+from alfalfa_worker.lib.job_exception import JobExceptionInvalidModel
 from alfalfa_worker.lib.utils import rel_symlink
 
 

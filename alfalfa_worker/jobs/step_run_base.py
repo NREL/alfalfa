@@ -7,11 +7,10 @@ from influxdb import InfluxDBClient
 
 from alfalfa_worker.lib.constants import DATETIME_FORMAT
 from alfalfa_worker.lib.enums import AutoName, RunStatus
-from alfalfa_worker.lib.job import (
-    Job,
+from alfalfa_worker.lib.job import Job, message
+from alfalfa_worker.lib.job_exception import (
     JobException,
-    JobExceptionSimulation,
-    message
+    JobExceptionSimulation
 )
 from alfalfa_worker.lib.utils import to_bool
 
