@@ -17,10 +17,6 @@ class StepRunMockJob(MockJob, StepRunBase):
         self.options.timestep_duration = timedelta(minutes=1)
         self.run.sim_time = self.options.start_datetime
 
-    def step(self):
-        sleep(self.simulation_step_duration)
-        self.set_run_time(self.run.sim_time + self.time_per_step())
-
     def get_sim_time(self) -> datetime.datetime:
         return self.run.sim_time
 
@@ -33,4 +29,5 @@ class StepRunMockJob(MockJob, StepRunBase):
 
     @message
     def advance(self):
+        sleep(self.options.timestep_duration)
         self.run.sim_time = self.run.sim_time + self.options.timestep_duration
