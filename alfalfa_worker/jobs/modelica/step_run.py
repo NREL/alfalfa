@@ -110,14 +110,18 @@ class StepRun(StepRunBase):
             point.value = y_output
 
             if self.options.historian_enabled:
-                influx_points.append({
-                    "measurement": self.run.ref_id,
-                    "time": self.run.sim_time,
-                    "value": value,
-                    "id": point.ref_id,
-                    "point": True,
-                    "source": "alfalfa"
-                })
+                influx_points.append({"fields":
+                                      {
+                                          "value": value,
+                                      }, "tags":
+                                      {
+                                          "id": point.ref_id,
+                                          "point": True,
+                                          "source": "alfalfa"
+                                      },
+                                      "measurement": self.run.ref_id,
+                                      "time": self.run.sim_time,
+                                      })
 
         if self.historian_enabled:
             try:

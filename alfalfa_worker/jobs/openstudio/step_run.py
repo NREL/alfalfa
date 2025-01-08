@@ -208,27 +208,35 @@ class StepRun(StepRunProcess):
                 raise JobExceptionSimulation(f"EP returned an api error while reading from point: {point.name}")
             point.value = value
             if self.options.historian_enabled:
-                influx_points.append({
-                    "measurement": self.run.ref_id,
-                    "time": self.run.sim_time,
-                    "value": value,
-                    "id": point.ref_id,
-                    "point": True,
-                    "source": "alfalfa"
-                })
+                influx_points.append({"fields":
+                                      {
+                                          "value": value
+                                      }, "tags":
+                                      {
+                                          "id": point.ref_id,
+                                          "point": True,
+                                          "source": "alfalfa"
+                                      },
+                                      "measurement": self.run.ref_id,
+                                      "time": self.run.sim_time,
+                                      })
         for additional_point in self.additional_points:
             value = self.ep_api.exchange.get_meter_value(self.ep_state, additional_point.handle)
             value = additional_point.converter(value)
             additional_point.point.value = value
             if self.options.historian_enabled:
-                influx_points.append({
-                    "measurement": self.run.ref_id,
-                    "time": self.run.sim_time,
-                    "value": value,
-                    "id": additional_point.point.ref_id,
-                    "point": True,
-                    "source": "alfalfa"
-                })
+                influx_points.append({"fields":
+                                      {
+                                          "value": value
+                                      }, "tags":
+                                      {
+                                          "id": additional_point.point.ref_id,
+                                          "point": True,
+                                          "source": "alfalfa"
+                                      },
+                                      "measurement": self.run.ref_id,
+                                      "time": self.run.sim_time
+                                      })
         if self.historian_enabled:
             try:
                 response = self.influx_client.write_points(points=influx_points,
