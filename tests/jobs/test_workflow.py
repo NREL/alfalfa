@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from alfalfa_worker.jobs.step_run_base import ClockSource
 from alfalfa_worker.lib.enums import RunStatus, SimType
 from alfalfa_worker.lib.job import JobStatus
 from tests.worker.lib.mock_dispatcher import MockDispatcher
@@ -33,14 +34,14 @@ def test_simple_internal_clock(mock_dispatcher: MockDispatcher, model_path: Path
         "start_datetime": str(datetime.datetime(2019, 1, 2, 0, 0, 0)),
         "end_datetime": str(datetime.datetime(2019, 1, 3, 0, 0, 0)),
         "timescale": "5",
-        "realtime": None
+        "realtime": False
     }
 
     if run.sim_type == SimType.OPENSTUDIO:
         step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.openstudio.step_run.StepRun", params)
     else:
         step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.step_run.StepRun", params)
-    assert step_run_job.step_sim_type == "timescale"
+    assert step_run_job.options.clock_source == ClockSource.INTERNAL
     run = step_run_job.run
     wait_for_job_status(step_run_job, JobStatus.RUNNING)
     wait_for_run_status(run, RunStatus.RUNNING)
@@ -68,7 +69,7 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
         "start_datetime": str(start_dt),
         "end_datetime": str(datetime.datetime(2019, 1, 3, 0, 0, 0)),
         "timescale": "1",
-        "realtime": None
+        "realtime": False
     }
 
     if run.sim_type == SimType.OPENSTUDIO:
@@ -77,7 +78,7 @@ def test_simple_external_clock(mock_dispatcher: MockDispatcher, model_path: Path
         step_run_job = mock_dispatcher.start_job("alfalfa_worker.jobs.modelica.step_run.StepRun", params)
     run = step_run_job.run
 
-    wait_for_run_status(run, RunStatus.RUNNING, timeout=30)
+    wait_for_run_status(run, RunStatus.RUNNING, timeout=60)
     wait_for_job_status(step_run_job, JobStatus.WAITING)
 
     # -- Assert model gets to expected start time

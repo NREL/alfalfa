@@ -106,7 +106,7 @@ class StepRunBase(Job):
         self.logger.info("Done initializing simulation")
         self.set_run_status(RunStatus.STARTED)
         self.advance_to_start_time()
-        if self.options.warmup_is_first_step:
+        if self.options.warmup_is_first_step and self.options.clock_source == ClockSource.INTERNAL:
             self.advance()
         self.set_run_status(RunStatus.RUNNING)
         self.logger.info(f"Clock source: {self.options.clock_source}")
