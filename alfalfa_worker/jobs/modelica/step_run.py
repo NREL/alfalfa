@@ -11,9 +11,6 @@ class StepRun(StepRunBase):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime: datetime, end_datetime) -> None:
         self.checkout_run(run_id)
         super().__init__(run_id, realtime, timescale, external_clock, start_datetime, end_datetime)
-        sim_year = self.options.start_datetime.year
-        self.sim_start_time = (self.options.start_datetime - datetime(sim_year, 1, 1)) / timedelta(seconds=1)
-        self.sim_end_time = (self.options.end_datetime - datetime(sim_year, 1, 1)) / timedelta(seconds=1)
 
         self.logger.info(f"current datetime at start of simulation: {self.options.start_datetime}")
 
@@ -22,7 +19,6 @@ class StepRun(StepRunBase):
         self.options.timestep_duration = timedelta(minutes=1)
 
         # run the FMU simulation
-        self.simtime = self.sim_start_time
         self.set_run_time(self.options.start_datetime)
 
         # Allow model to warm up in first timestep without failing due to falling behind timescale
@@ -33,7 +29,7 @@ class StepRun(StepRunBase):
         # Load fmu
         config = {
             'fmupath': fmupath,
-            'start_time': self.sim_start_time,
+            'start_time': (self.options.start_datetime - datetime(self.options.start_datetime.year, 1, 1)) / timedelta(seconds=1),
             'step': self.options.timestep_duration / timedelta(seconds=1),
             'kpipath': self.dir / 'resources' / 'kpis.json'
         }
@@ -44,9 +40,6 @@ class StepRun(StepRunBase):
 
     def check_simulation_stop_conditions(self) -> bool:
         return False
-
-    def time_per_step(self):
-        return timedelta(seconds=self.step_size)
 
     def get_sim_time(self) -> datetime:
         sim_time = datetime(self.options.start_datetime.year, 1, 1, 0, 0, 0) + timedelta(seconds=float(self.tc.final_time))
