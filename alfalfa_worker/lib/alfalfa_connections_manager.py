@@ -1,6 +1,7 @@
 import os
 
 import boto3
+from influxdb import InfluxDBClient
 from mongoengine import connect
 from redis import Redis
 
@@ -19,3 +20,14 @@ class AlafalfaConnectionsManager(metaclass=Singleton):
 
         # Redis
         self.redis = Redis(host=os.environ['REDIS_HOST'])
+
+        # InfluxDB
+        self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
+        if self.historian_enabled:
+            self.influx_db_name = os.environ['INFLUXDB_DB']
+            self.influx_client = InfluxDBClient(host=os.environ['INFLUXDB_HOST'],
+                                                username=os.environ['INFLUXDB_ADMIN_USER'],
+                                                password=os.environ['INFLUXDB_ADMIN_PASSWORD'])
+        else:
+            self.influx_db_name = None
+            self.influx_client = None

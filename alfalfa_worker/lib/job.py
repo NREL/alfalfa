@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 from datetime import datetime
 from enum import Enum
 from json.decoder import JSONDecodeError
@@ -76,7 +75,6 @@ class JobMetaclass(type):
             # Redis
             self.redis = connections_manager.redis
             self.redis_pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
-            logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
             self.logger = logging.getLogger(self.__class__.__name__)
 
             # Message Handlers
@@ -169,6 +167,7 @@ class Job(metaclass=JobMetaclass):
 
     @property
     def is_running(self) -> bool:
+        """Easily check if the state of the job is running or not"""
         return self._status.value < JobStatus.STOPPING.value
 
     @property
