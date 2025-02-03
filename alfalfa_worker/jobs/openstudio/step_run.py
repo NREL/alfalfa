@@ -22,7 +22,7 @@ def callback_wrapper(func):
         try:
             return func(self, state)
         except Exception:
-            self.catch_exception()
+            self.report_exception()
     return wrapped_func
 
 
@@ -55,7 +55,7 @@ class StepRun(StepRunProcess):
 
         self.additional_points: list[AlfalfaPoint] = []
 
-    def start_simulation_process(self):
+    def simulation_process_entrypoint(self):
         """
         Initialize and start EnergyPlus co-simulation.
 
@@ -85,19 +85,24 @@ class StepRun(StepRunProcess):
             raise JobExceptionExternalProcess(f"EnergyPlus Exited with a non-zero exit code: {return_code}")
 
     def callback_message(self, message: bytes) -> None:
+        """Callback for when energyplus records a messaage to the log"""
         try:
             self.logger.info(message.decode())
         except Exception:
-            self.catch_exception()
+            self.report_exception()
 
     def callback_error(self, state, message: bytes) -> None:
+        """Callback for when energyplus records an error to the log.
+        These 'Errors' include warnings and non-critical errors."""
         try:
             self.logger.error(message.decode())
         except Exception:
-            self.catch_exception()
+            self.report_exception()
 
     @callback_wrapper
     def initialize_handles(self, state):
+        """Callback called at begin_new_environment. Enumerates Alfalfa points to connect
+        them with handles that can be used to transact data with energyplus."""
         exceptions = []
 
         def get_handle(type, parameters):
@@ -154,24 +159,35 @@ class StepRun(StepRunProcess):
 
     @callback_wrapper
     def ep_begin_timestep(self, state):
+        """Callback called at end_zone_timestep_after_zone_reporting. This is responsible for
+        controlling simulation advancement, as well as """
+
+        # If simulation is not 'Running' yet and energyplus is still warming up, short circuit method and return
         if not self.running_event.is_set():
             warmup = self.ep_api.exchange.warmup_flag(state)
             kind_of_sim = self.ep_api.exchange.kind_of_sim(state)
             if warmup or kind_of_sim == 1:
                 return
+
+            # If execution makes it here it means the simulation has left warmup and needs to be readied for regular running
             self.update_run_time()
             self.running_event.set()
 
+        # Update outputs from simulation
         self.ep_read_outputs()
         self.update_run_time()
 
+        # Wait for event from main process
         self.advance_event.clear()
         while not self.advance_event.is_set() and not self.stop_event.is_set():
             self.advance_event.wait(1)
 
+        # Handle stop event
         if self.stop_event.is_set():
             self.logger.info("Stop Event Set, stopping simulation")
             self.ep_api.runtime.stop_simulation(state)
+
+        # Write inputs to energyplus
         self.ep_write_inputs()
 
     def get_sim_time(self) -> datetime:
@@ -322,8 +338,8 @@ class StepRun(StepRunProcess):
 
         workspace.save(idf_path, True)
 
-    def catch_exception(self) -> None:
-        super().catch_exception(self.read_error_logs())
+    def report_exception(self) -> None:
+        super().report_exception(self.read_error_logs())
         if self.ep_state is not None:
             self.ep_api.runtime.stop_simulation(self.ep_state)
 
