@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime, timedelta
 from typing import Callable
@@ -5,16 +6,15 @@ from typing import Callable
 import openstudio
 from pyenergyplus.api import EnergyPlusAPI
 
-from alfalfa_worker.jobs.openstudio.lib.alfalfa_point import AlfalfaPoint
-from alfalfa_worker.jobs.openstudio.lib.variables import Variables
+from alfalfa_worker.jobs.openstudio.lib.openstudio_component import (
+    OpenStudioComponent
+)
+from alfalfa_worker.jobs.openstudio.lib.openstudio_point import OpenStudioPoint
 from alfalfa_worker.jobs.step_run_process import StepRunProcess
-from alfalfa_worker.lib.enums import PointType
 from alfalfa_worker.lib.job_exception import (
     JobException,
-    JobExceptionExternalProcess,
-    JobExceptionSimulation
+    JobExceptionExternalProcess
 )
-from alfalfa_worker.lib.models import Point
 
 
 def callback_wrapper(func):
@@ -44,16 +44,24 @@ class StepRun(StepRunProcess):
 
         self.weather_file = os.path.realpath(self.dir / 'simulation' / 'sim.epw')
 
-        self.variables = Variables(self.run)
-
         self.logger.info('Generating variables from Openstudio output')
+        self.ep_points: list[OpenStudioPoint] = []
         for alfalfa_json in self.run.dir.glob('**/run/alfalfa.json'):
-            self.variables.generate_points(alfalfa_json)
+            self.ep_points += [OpenStudioPoint(**point) for point in json.load(alfalfa_json.open())]
+
+        def add_additional_meter(fuel: str, units: str, converter: Callable[[float], float]):
+            meter_component = OpenStudioComponent("Meter", {"meter_name": f"{fuel}:Building"}, converter)
+            meter_point = OpenStudioPoint(id=f"whole_building_{fuel.lower()}", name=f"Whole Building {fuel}", units=units)
+            meter_point.output = meter_component
+            self.ep_points.append(meter_point)
+
+        add_additional_meter("Electricity", "W", lambda x: x / self.options.timesteps_per_hour)
+        add_additional_meter("NaturalGas", "W", lambda x: x / self.options.timesteps_per_hour)
+
+        [point.attach_run(self.run) for point in self.ep_points]
 
         self.ep_api: EnergyPlusAPI = None
         self.ep_state = None
-
-        self.additional_points: list[AlfalfaPoint] = []
 
     def simulation_process_entrypoint(self):
         """
@@ -72,11 +80,8 @@ class StepRun(StepRunProcess):
         self.ep_api.runtime.callback_message(self.ep_state, self.callback_message)
         self.ep_api.functional.callback_error(self.ep_state, self.callback_error)
 
-        # Request output variables
-        for point in self.variables.points.values():
-            if "output" in point:
-                if point["output"]["type"] == "OutputVariable":
-                    self.ep_api.exchange.request_variable(self.ep_state, **point["output"]["parameters"])
+        for point in self.ep_points:
+            point.pre_initialize(self.ep_api, self.ep_state)
 
         return_code = self.ep_api.runtime.run_energyplus(state=self.ep_state, command_line_args=['-w', str(self.weather_file), '-d', str(self.dir / 'simulation'), '-r', str(self.idf_file)])
         self.logger.info(f"Exited simulation with code: {return_code}")
@@ -105,54 +110,12 @@ class StepRun(StepRunProcess):
         them with handles that can be used to transact data with energyplus."""
         exceptions = []
 
-        def get_handle(type, parameters):
-            handle = None
-            if type == "GlobalVariable":
-                handle = self.ep_api.exchange.get_ems_global_handle(state, var_name=parameters["variable_name"])
-            elif type == "OutputVariable":
-                handle = self.ep_api.exchange.get_variable_handle(state, **parameters)
-                self.logger.info(f"Got handle: {handle} for {parameters}")
-            elif type == "Meter":
-                handle = self.ep_api.exchange.get_meter_handle(state, **parameters)
-            elif type == "Actuator":
-                handle = self.ep_api.exchange.get_actuator_handle(state,
-                                                                  component_type=parameters["component_type"],
-                                                                  control_type=parameters["control_type"],
-                                                                  actuator_key=parameters["component_name"])
-            else:
-                raise JobException(f"Unknown point type: {type}")
-            if handle == -1:
-                raise JobException(f"Handle not found for point of type: {type} and parameters: {parameters}")
-            return handle
-
-        def add_additional_meter(fuel: str, units: str, converter: Callable[[float], float]):
+        for point in self.ep_points:
             try:
-                handle = get_handle("Meter", {"meter_name": f"{fuel}:Building"})
-                point = Point(ref_id=f"whole_building_{fuel.lower()}", name=f"Whole Building {fuel}", units=units, point_type=PointType.OUTPUT)
-                self.run.add_point(point)
-                alfalfa_point = AlfalfaPoint(point, handle, converter)
-                self.additional_points.append(alfalfa_point)
-            except JobException:
-                return None
-
-        add_additional_meter("Electricity", "W", lambda x: x / self.options.timesteps_per_hour)
-        add_additional_meter("NaturalGas", "W", lambda x: x / self.options.timesteps_per_hour)
-
-        for id, point in self.variables.points.items():
-            try:
-                if "input" in point:
-                    handle = get_handle(point["input"]["type"], point["input"]["parameters"])
-                    self.variables.points[id]["input"]["handle"] = handle
-                if "output" in point:
-                    if point["output"]["type"] == "Constant":
-                        continue
-                    self.variables.points[id]["output"]["handle"] = get_handle(point["output"]["type"], point["output"]["parameters"])
+                point.initialize(self.ep_api, state)
             except JobException as e:
-                if point["optional"]:
-                    self.logger.warn(f"Ignoring optional point '{point['name']}'")
-                    self.run.get_point_by_id(id).delete()
-                else:
-                    exceptions.append(e)
+                exceptions.append(e)
+
         if len(exceptions) > 0:
             ExceptionGroup("Exceptions generated while initializing EP handles", exceptions)
         self.run.save()
@@ -198,60 +161,20 @@ class StepRun(StepRunProcess):
     def ep_read_outputs(self):
         """Reads outputs from E+ state"""
         influx_points = []
-        for point in self.run.output_points:
-            if point.ref_id not in self.variables.points:
-                continue
-            component = self.variables.points[point.ref_id]["output"]
-            if "handle" not in component:
-                continue
-            handle = component["handle"]
-            type = component["type"]
-            value = None
-            if type == "OutputVariable":
-                value = self.ep_api.exchange.get_variable_value(self.ep_state, handle)
-            elif type == "GlobalVariable":
-                value = self.ep_api.exchange.get_ems_global_value(self.ep_state, handle)
-            elif type == "Meter":
-                value = self.ep_api.exchange.get_meter_value(self.ep_state, handle)
-            elif type == "Actuator":
-                value = self.ep_api.exchange.get_actuator_value(self.ep_state, handle)
-            else:
-                raise JobException(f"Invalid point type: {type}")
-            if "multiplier" in component:
-                self.logger.info(f"Applying a multiplier of '{component['multiplier']}' to point '{point['name']}'")
-                value *= component["multiplier"]
-            if self.ep_api.exchange.api_error_flag(self.ep_state):
-                raise JobExceptionSimulation(f"EP returned an api error while reading from point: {point.name}")
-            point.value = value
-            if self.options.historian_enabled:
+        for point in self.ep_points:
+            value = point.update_output(self.ep_api, self.ep_state)
+            if self.options.historian_enabled and value is not None:
                 influx_points.append({"fields":
                                       {
                                           "value": value
                                       }, "tags":
                                       {
-                                          "id": point.ref_id,
+                                          "id": point.point.ref_id,
                                           "point": True,
                                           "source": "alfalfa"
                                       },
                                       "measurement": self.run.ref_id,
                                       "time": self.run.sim_time,
-                                      })
-        for additional_point in self.additional_points:
-            value = self.ep_api.exchange.get_meter_value(self.ep_state, additional_point.handle)
-            value = additional_point.converter(value)
-            additional_point.point.value = value
-            if self.options.historian_enabled:
-                influx_points.append({"fields":
-                                      {
-                                          "value": value
-                                      }, "tags":
-                                      {
-                                          "id": additional_point.point.ref_id,
-                                          "point": True,
-                                          "source": "alfalfa"
-                                      },
-                                      "measurement": self.run.ref_id,
-                                      "time": self.run.sim_time
                                       })
         if self.historian_enabled:
             try:
@@ -269,19 +192,8 @@ class StepRun(StepRunProcess):
 
     def ep_write_inputs(self):
         """Writes inputs to E+ state"""
-        for point in self.run.input_points:
-            component = self.variables.points[point.ref_id]["input"]
-            handle = component["handle"]
-            type = component["type"]
-            if type == "GlobalVariable" and point.value is not None:
-                self.ep_api.exchange.set_ems_global_value(self.ep_state, handle, point.value)
-            if type == "Actuator":
-                if point.value is not None:
-                    self.ep_api.exchange.set_actuator_value(self.ep_state, handle, point.value)
-                    component["reset"] = False
-                elif "reset" not in component or component["reset"] is False:
-                    self.ep_api.exchange.reset_actuator(self.ep_state, handle)
-                    component["reset"] = True
+        for point in self.ep_points:
+            point.update_input(self.ep_api, self.ep_state)
 
     def prepare_idf(self):
         """
