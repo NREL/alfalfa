@@ -12,7 +12,7 @@ class StepRunMockJob(MockJob, StepRunBase):
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime):
         super().__init__()
         self.checkout_run(run_id)
-        StepRunBase.__init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime, skip_site_init=True, skip_stop_db_writes=True)
+        StepRunBase.__init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime)
         self.options.warmup_is_first_step = True
         self.options.timestep_duration = timedelta(minutes=1)
         self.simulation_step_duration = 1
