@@ -17,11 +17,21 @@ def pytest_generate_tests(metafunc):
 
         metafunc.parametrize("broken_model_path", model_paths)
 
+    if "broken_workflow_name" in metafunc.fixturenames:
+        workflow_names = [
+            "bad_callback.osw",
+            "bad_constructor.osw",
+            "bad_module_class.osw",
+            "bad_module_name.osw",
+            "missing_import.osw"
+        ]
+        metafunc.parametrize("broken_workflow_name", workflow_names)
+
     model_dir = Path(os.path.dirname(__file__)) / 'models'
     if "model_path" in metafunc.fixturenames:
         model_paths = [
-            model_dir / 'refrig_case_osw',
-            model_dir / 'simple_thermostat.fmu'
+            model_dir / 'small_office',
+            model_dir / 'wrapped.fmu'
         ]
 
         metafunc.parametrize("model_path", model_paths)

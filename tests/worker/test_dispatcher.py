@@ -1,6 +1,6 @@
 from alfalfa_worker.dispatcher import Dispatcher
 from alfalfa_worker.jobs.openstudio.create_run import CreateRun
-from alfalfa_worker.jobs.openstudio.step_run import StepRun
+# from alfalfa_worker.jobs.openstudio.step_run import StepRun
 from alfalfa_worker.lib.job import JobStatus
 from tests.worker.jobs.basic_mock_job import BasicMockJob
 from tests.worker.utilities import wait_for_job_status
@@ -11,13 +11,13 @@ def test_valid_init(dispatcher):
 
 
 def test_get_builtin_job(dispatcher):
-    create_run_job = dispatcher.find_class('alfalfa_worker.jobs.openstudio.CreateRun')
+    create_run_job = dispatcher.find_class('alfalfa_worker.jobs.openstudio.create_run.CreateRun')
     assert create_run_job == CreateRun
 
 
 def test_get_from_job_get_path(dispatcher):
-    step_run_job = dispatcher.find_class(StepRun.job_path())
-    assert step_run_job == StepRun
+    create_run_job = dispatcher.find_class(CreateRun.job_path())
+    assert create_run_job == CreateRun
 
 
 def test_test_job_create_with_params(dispatcher):

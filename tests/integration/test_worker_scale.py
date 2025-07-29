@@ -16,9 +16,7 @@ WORKER_COUNT = 2
 def scale_models(alfalfa: AlfalfaClient):
 
     MODEL_PATHS = []
-    MODEL_PATHS.append('simple_thermostat.fmu')
-    MODEL_PATHS.append('single_zone_vav.fmu')
-    MODEL_PATHS.append('refrig_case_osw')
+    MODEL_PATHS.append('wrapped.fmu')
     MODEL_PATHS.append('small_office')
 
     model_ids = []

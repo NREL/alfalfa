@@ -461,6 +461,7 @@ class Point(TimestampedDocument):
     ref_id = StringField(default=uuid4_str, unique_with=['run'])
     run = ReferenceField('Run')
     name = StringField(default="", max_length=255)
+    units = StringField(default="", max_length=10)
     point_type = EnumField(PointType, required=True)
 
 
@@ -470,18 +471,13 @@ class Run(TimestampedDocument):
         'indexes': ['ref_id'],
     }
 
-    def __init__(self, dir: Path = None, *args, **values):
+    def __init__(self, dir: Path = None, *args, **values) -> None:
         super().__init__(*args, **values)
         self.dir = dir
         connections_manager = AlafalfaConnectionsManager()
         self.redis = connections_manager.redis
-        redis_entry = self.redis.hget(self.ref_id, "sim_time")
-        if redis_entry:
-            self._sim_time = datetime.datetime.strptime(redis_entry.decode('UTF-8'), '%Y-%m-%d %H:%M:%S')
-        else:
-            self._sim_time = None
 
-    def get_point_by_id(self, id):
+    def get_point_by_id(self, id) -> Point:
         return Point.objects.get(ref_id=id, run=self)
 
     def glob(self, search_str, recursive=True):
@@ -501,7 +497,11 @@ class Run(TimestampedDocument):
 
     @property
     def sim_time(self):
-        return self._sim_time
+        redis_entry = self.redis.hget(self.ref_id, "sim_time")
+        if redis_entry:
+            return datetime.datetime.strptime(redis_entry.decode('UTF-8'), '%Y-%m-%d %H:%M:%S')
+        else:
+            return None
 
     @sim_time.setter
     def sim_time(self, value):

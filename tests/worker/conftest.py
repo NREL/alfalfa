@@ -4,8 +4,6 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def env_setup(monkeypatch):
-    monkeypatch.setenv('WEB_REGISTRY_URI', '313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/web')
-    monkeypatch.setenv('WORKER_REGISTRY_URI', '313781303390.dkr.ecr.us-east-1.amazonaws.com/queue/worker')
     monkeypatch.setenv('AWS_ACCESS_KEY_ID', 'user')
     monkeypatch.setenv('AWS_SECRET_ACCESS_KEY', 'password')
     monkeypatch.setenv('NODE_ENV', 'production')

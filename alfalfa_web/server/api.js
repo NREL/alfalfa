@@ -92,6 +92,11 @@ class AlfalfaAPI {
     return await getHashValue(this.redis, run.ref_id, "sim_time");
   };
 
+  getRunLog = async (run) => {
+    const log_lines = await this.redis.lRange(`run:${run.ref_id}:log`, -100, -1);
+    return log_lines.join("\n");
+  };
+
   getPointsByRun = async (run) => {
     const pointsCursor = this.points.find({ run: run._id });
     return Promise.resolve(pointsCursor.toArray());
@@ -126,7 +131,8 @@ class AlfalfaAPI {
     const pointDict = {
       id: point.ref_id,
       name: point.name,
-      type: point.point_type
+      type: point.point_type,
+      units: point.units
     };
     return pointDict;
   };
@@ -197,7 +203,7 @@ class AlfalfaAPI {
 
     const { startDatetime, endDatetime, timescale, realtime, externalClock } = data;
 
-    const job = `alfalfa_worker.jobs.${sim_type === "MODELICA" ? "modelica" : "openstudio"}.StepRun`;
+    const job = `alfalfa_worker.jobs.${sim_type === "MODELICA" ? "modelica" : "openstudio"}.step_run.StepRun`;
     const params = {
       run_id: run.ref_id,
       start_datetime: startDatetime,
@@ -297,7 +303,9 @@ class AlfalfaAPI {
 
   createRunFromModel = async (model) => {
     const runId = uuidv1();
-    const job = `alfalfa_worker.jobs.${model.model_name.endsWith(".fmu") ? "modelica" : "openstudio"}.CreateRun`;
+    const job = `alfalfa_worker.jobs.${
+      model.model_name.endsWith(".fmu") ? "modelica" : "openstudio"
+    }.create_run.CreateRun`;
     const params = {
       model_id: model.ref_id,
       run_id: runId

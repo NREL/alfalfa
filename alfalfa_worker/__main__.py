@@ -3,14 +3,22 @@ print("Starting Alfalfa Dispatcher")
 import os
 import sys
 import traceback
+from logging import StreamHandler, basicConfig
 from pathlib import Path
 
 # Determine which worker to load based on the QUEUE.
 # This may be temporary for now, not sure on how else
 # to determine which worker gets launched
 from alfalfa_worker.dispatcher import Dispatcher
+from alfalfa_worker.lib.constants import DATETIME_FORMAT
 
 if __name__ == '__main__':
+
+    basicConfig(level=os.environ.get("LOGLEVEL", "INFO"),
+                handlers=[StreamHandler(sys.stdout)],
+                format='%(asctime)s - %(name)s - %(levelname)s: %(message)s',
+                datefmt=DATETIME_FORMAT)
+
     try:
         workdir = Path(os.environ.get('RUN_DIR', '/runs'))
         dispatcher = Dispatcher(workdir)

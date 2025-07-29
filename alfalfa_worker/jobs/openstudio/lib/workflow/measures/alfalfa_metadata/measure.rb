@@ -1,4 +1,5 @@
 # start the measure
+require 'json'
 class AlfalfaMetadata < OpenStudio::Measure::EnergyPlusMeasure
 
   # human readable name

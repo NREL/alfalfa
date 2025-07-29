@@ -1,19 +1,106 @@
-import datetime
+import logging
 import os
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import auto
 
-from influxdb import InfluxDBClient
-
-from alfalfa_worker.lib.enums import RunStatus
-from alfalfa_worker.lib.job import (
-    Job,
-    JobException,
-    JobExceptionSimulation,
-    message
+from alfalfa_worker.lib.alfalfa_connections_manager import (
+    AlafalfaConnectionsManager
 )
+from alfalfa_worker.lib.constants import DATETIME_FORMAT
+from alfalfa_worker.lib.enums import AutoName, RunStatus
+from alfalfa_worker.lib.job import Job, message
+from alfalfa_worker.lib.job_exception import (
+    JobException,
+    JobExceptionSimulation
+)
+from alfalfa_worker.lib.utils import to_bool
+
+
+class ClockSource(AutoName):
+    INTERNAL = auto()
+    EXTERNAL = auto()
+
+
+@dataclass
+class Options:
+    clock_source: ClockSource
+
+    start_datetime: datetime
+    end_datetime: datetime
+
+    # Ammount of time passed in the simulation during a single simulation step
+    timestep_duration: timedelta
+
+    # Timescale that an internal clock simulation will advance at
+    timescale: int
+
+    # Is the first step of the simulation responsible for running warmup
+    warmup_is_first_step: bool = False
+
+    # Should points be logged to InfluxDB
+    historian_enabled: bool = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
+
+    # Timeouts
+    # These are mostly used for the StepRunProcess class to clean up the subprocess
+    # when it hangs.
+
+    # How long can an advance call run before something bad is assumed to have happened.
+    advance_timeout: int = 45
+    # How long can it take a simulation to start before something bad is assumed to have happened.
+    start_timeout: int = 300
+    # Same as previous timeouts, but related to stopping
+    stop_timeout: int = 45
+
+    # How many timesteps can a timescale run lag behind before being stopped
+    timescale_lag_limit: int = 2
+
+    def __init__(self, realtime: bool, timescale: int, external_clock: bool, start_datetime: str, end_datetime: str):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+        if external_clock:
+            self.clock_source = ClockSource.EXTERNAL
+        else:
+            self.clock_source = ClockSource.INTERNAL
+
+        self.logger.debug(f"Clock Source: {self.clock_source}")
+
+        self.start_datetime = datetime.strptime(start_datetime, DATETIME_FORMAT)
+        self.end_datetime = datetime.strptime(end_datetime, DATETIME_FORMAT)
+        self.logger.debug(f"Start Datetime: {self.start_datetime}")
+        self.logger.debug(f"End Datetime: {self.end_datetime}")
+
+        if realtime:
+            self.timescale = 1
+        else:
+            self.timescale = timescale
+
+        if self.clock_source == ClockSource.INTERNAL:
+            self.logger.debug(f"Timescale: {self.timescale}")
+
+        # Check for at least one of the required parameters
+        if not realtime and not timescale and not external_clock:
+            raise JobException("At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
+
+    @property
+    def advance_interval(self) -> timedelta:
+        """Get the timedelta for how often a simulation should be advanced
+        based on the timescale and timestep_duration
+        """
+        if self.timestep_duration and self.timescale:
+            return self.timestep_duration / self.timescale
+        return None
+
+    @property
+    def timesteps_per_hour(self) -> int:
+        """Get advance step time in terms of how many steps are requried
+        to advance the model one hour
+        """
+        return int(timedelta(hours=1) / self.timestep_duration)
 
 
 class StepRunBase(Job):
-    def __init__(self, run_id: str, realtime: bool, timescale: int, external_clock: bool, start_datetime: str, end_datetime: str, **kwargs) -> None:
+    def __init__(self, run_id: str, realtime: bool, timescale: int, external_clock: bool, start_datetime: str, end_datetime: str) -> None:
         """Base class for all jobs to step a run. The init handles the basic configuration needed
         for the derived classes.
 
@@ -24,180 +111,97 @@ class StepRunBase(Job):
             external_clock (bool): Use an external clock to step the simulation.
             start_datetime (str): Start datetime. #TODO: this should be typed datetime
             end_datetime (str): End datetime. #TODO: this should be typed datetime
-            **skip_site_init (bool): Skip the initialization of the site database object. This is mainly used in testing.
-            **skip_stop_db_writes (bool): Skip the writing of the stop results to the database. This is mainly used in testing.
         """
         super().__init__()
         self.set_run_status(RunStatus.STARTING)
-        self.step_sim_type, self.step_sim_value, self.start_datetime, self.end_datetime = self.process_inputs(realtime, timescale, external_clock, start_datetime, end_datetime)
-        self.logger.info(f"sim_type is {self.step_sim_type}")
-        if self.step_sim_type == 'timescale':
-            self.step_sim_value = self.step_sim_value
-        elif self.step_sim_type == 'realtime':
-            self.step_sim_value = 1
-        else:
-            self.step_sim_value = 5
+        self.options: Options = Options(to_bool(realtime), int(timescale), to_bool(external_clock), start_datetime, end_datetime)
 
-        self.start_datetime = datetime.datetime.strptime(start_datetime, '%Y-%m-%d %H:%M:%S')
-        self.end_datetime = datetime.datetime.strptime(end_datetime, '%Y-%m-%d %H:%M:%S')
+        self.warmup_cleared = not self.options.warmup_is_first_step
 
-        self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
-
-        self.first_step_warmup = False
-        self.set_run_status(RunStatus.STARTED)
-
-        self.setup_connections()
-
-        self.skip_stop_db_writes = kwargs.get('skip_stop_db_writes', False)
-
-    def process_inputs(self, realtime, timescale, external_clock, start_datetime, end_datetime):
-        # TODO change server side message: startDatetime to start_datetime
-        timescale = False if timescale == 'undefined' else timescale
-
-        # make sure the inputs are typed correctly
-        try:
-            timescale = int(timescale)
-        except ValueError:
-            self.logger.info(f"timescale is not an integer, continuing as sim_type=timescale. Value was {timescale}")
-
-        if not isinstance(realtime, bool):
-            realtime = True if realtime and realtime.lower() == 'true' else False
-        if not isinstance(external_clock, bool):
-            external_clock = True if external_clock and external_clock.lower() == 'true' else False
-
-        self.logger.debug(f"start_datetime type: {type(start_datetime)}\tstart_datetime: {start_datetime}")
-        self.logger.debug(f"end_datetime type: {type(end_datetime)}\tend_datetime: {end_datetime}")
-        self.logger.debug(f"realtime type: {type(realtime)}\trealtime: {realtime}")
-        self.logger.debug(f"timescale type: {type(timescale)}\ttimescale: {timescale}")
-        self.logger.debug(f"external_clock type: {type(external_clock)}\texternal_clock: {external_clock}")
-
-        # Check for at least one of the required parameters
-        if not realtime and not timescale and not external_clock:
-            self.logger.error("At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
-            raise JobException("At least one of 'external_clock', 'timescale', or 'realtime' must be specified")
-
-        if external_clock:
-            step_sim_type = "external_clock"
-            step_sim_value = "true"
-        elif realtime:
-            step_sim_type = "realtime"
-            step_sim_value = 1
-        elif timescale:
-            if str(timescale).isdigit():
-                step_sim_type = "timescale"
-                step_sim_value = int(timescale)
-            else:
-                self.logger.info(f"timescale: {timescale} must be an integer value")
-                raise JobException(f"timescale: {timescale} must be an integer value")
-
-        return (step_sim_type, step_sim_value, start_datetime, end_datetime)
+        connections_manager = AlafalfaConnectionsManager()
+        self.influx_db_name = connections_manager.influx_db_name
+        self.influx_client = connections_manager.influx_client
+        self.historian_enabled = connections_manager.historian_enabled
 
     def exec(self) -> None:
-        self.init_sim()
-        self.setup_points()
+        self.logger.info("Initializing simulation...")
+        self.initialize_simulation()
+        self.logger.info("Simulation initialized.")
+        self.set_run_status(RunStatus.STARTED)
+
+        self.logger.info("Advancing to start time...")
         self.advance_to_start_time()
+        if not self.warmup_cleared and self.options.clock_source == ClockSource.INTERNAL:
+            self.advance()
+        self.logger.info("Advanced to start time.")
+
         self.set_run_status(RunStatus.RUNNING)
-        if self.step_sim_type == 'timescale' or self.step_sim_type == 'realtime':
-            self.logger.info("Running timescale / realtime")
+        if self.options.clock_source == ClockSource.INTERNAL:
+            self.logger.info("Running Simulation with Internal Clock.")
             self.run_timescale()
-        elif self.step_sim_type == 'external_clock':
-            self.logger.info("Running external_clock")
+        elif self.options.clock_source == ClockSource.EXTERNAL:
+            self.logger.info("Running Simulations with External Clock.")
             self.start_message_loop()
 
-    def init_sim(self):
+    def initialize_simulation(self) -> None:
         """Placeholder for all things necessary to initialize simulation"""
-
-    def step(self):
-        """Placeholder for making a step through simulation time
-
-        Step should consist of the following:
-            - Reading write arrays from mongo
-            - check_sim_status_stop
-            - if not self.stop
-                - Update model inputs
-                - Advancing the simulation
-                - Check that advancing the simulation results in the correct expected timestep
-                - Read output vals from simulation
-                - Update Mongo with values
-        """
+        raise NotImplementedError
 
     def advance_to_start_time(self):
-        """Placeholder to advance sim to start time for job"""
-
-    def update_model_inputs_from_write_arrays(self):
-        """Placeholder for getting write values from Mongo and writing into simulation BEFORE a simulation timestep"""
-
-    def write_outputs_to_redis(self):
-        """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
-
-    def update_sim_time_in_mongo(self):
-        """Placeholder for updating the datetime in Mongo to current simulation time"""
-
-    def create_tag_dictionaries(self):
-        """Placeholder for method necessary to create Haystack entities and records"""
-
-    def config_paths_for_model(self):
-        """Placeholder for configuring necessary files for running model"""
-
-    def run_external_clock(self):
-        """Placeholder for running using an external_clock"""
+        while self.run.sim_time < self.options.start_datetime:
+            self.advance()
+            self.warmup_cleared = True
 
     def run_timescale(self):
-        if self.first_step_warmup:
-            # Do first step outside of loop so warmup time is not counted against steps_behind
-            self.advance()
-        next_step_time = datetime.datetime.now() + self.timescale_step_interval()
+        """Run simulation at timescale"""
+        next_advance_time = datetime.now() + self.options.advance_interval
+        self.logger.debug(f"Advance interval is: {self.options.advance_interval}")
+        self.logger.debug(f"Next step time: {next_advance_time}")
+
         while self.is_running:
-            if datetime.datetime.now() >= next_step_time:
-                steps_behind = (datetime.datetime.now() - next_step_time) / self.timescale_step_interval()
-                if steps_behind > 2.0:
-                    raise JobExceptionSimulation("Timescale too high. Simulation more than 2 timesteps behind")
-                next_step_time = next_step_time + self.timescale_step_interval()
+            if datetime.now() >= next_advance_time:
+                steps_behind = (datetime.now() - next_advance_time) / self.options.advance_interval
+                if steps_behind > self.options.timescale_lag_limit:
+                    raise JobExceptionSimulation(f"Timescale too high. Simulation more than {self.options.timescale_lag_limit} timesteps behind")
+                next_advance_time = next_advance_time + self.options.advance_interval
+
+                self.logger.debug(f"Internal clock called advance at {self.run.sim_time}")
+                self.logger.debug(f"Next advance time: {next_advance_time}")
                 self.advance()
 
-            if self.check_simulation_stop_conditions() or self.get_sim_time() >= self.end_datetime:
+            if self.check_simulation_stop_conditions() or self.run.sim_time >= self.options.end_datetime:
+                self.logger.debug(f"Stopping at time: {self.run.sim_time}")
                 self.stop()
+                break
 
             self._check_messages()
+        self.logger.info("Internal clock simulation has exited.")
 
-    def timescale_step_interval(self):
-        return (self.time_per_step() / self.step_sim_value)
-
-    def time_per_step(self) -> datetime.timedelta:
+    def get_sim_time(self) -> datetime:
+        """Placeholder for method which retrieves time in the simulation"""
         raise NotImplementedError
 
-    def get_sim_time(self) -> datetime.datetime:
-        raise NotImplementedError
+    def update_run_time(self) -> None:
+        """Update the sim_time in the Run object to match the most up to date sim_time"""
+        self.set_run_time(self.get_sim_time())
 
     def check_simulation_stop_conditions(self) -> bool:
-        """Placeholder to determine whether a simulation should stop"""
+        """Placeholder to determine whether a simulation should stop.
+        This can be used to signal that the simulation has exited and the job can now continue
+        to clean up."""
         return False
-
-    def setup_points(self):
-        """Placeholder for setting up points for I/O"""
-
-    def setup_connections(self):
-        """Placeholder until all db/connections operations can be completely moved out of the job"""
-        # InfluxDB
-        self.historian_enabled = os.environ.get('HISTORIAN_ENABLE', False) == 'true'
-        if self.historian_enabled:
-            self.influx_db_name = os.environ['INFLUXDB_DB']
-            self.influx_client = InfluxDBClient(host=os.environ['INFLUXDB_HOST'],
-                                                username=os.environ['INFLUXDB_ADMIN_USER'],
-                                                password=os.environ['INFLUXDB_ADMIN_PASSWORD'])
-        else:
-            self.influx_db_name = None
-            self.influx_client = None
-
-    @message
-    def advance(self) -> None:
-        self.step()
 
     @message
     def stop(self) -> None:
+        self.logger.info("Stopping simulation.")
         super().stop()
         self.set_run_status(RunStatus.STOPPING)
 
     def cleanup(self) -> None:
         super().cleanup()
         self.set_run_status(RunStatus.COMPLETE)
+
+    @message
+    def advance(self) -> None:
+        """Placeholder for method which advances the simulation one timestep"""
+        raise NotImplementedError

@@ -40,6 +40,7 @@ def test_point_retrieval(base_url, run_id, alfalfa_client):
     }
     response = requests.post(f"{base_url}/runs/{run_id}/points", json=request_body)
 
+    response.raise_for_status()
     assert response.status_code == 200
     response_body = response.json()
     assert "payload" in response_body
@@ -72,6 +73,7 @@ def test_point_retrieval(base_url, run_id, alfalfa_client):
     for point in outputs + bidirectionals:
         response = requests.get(f"{base_url}/runs/{run_id}/points/{point['id']}")
 
+        response.raise_for_status()
         assert response.status_code == 200
         response_body = response.json()
         assert "payload" in response_body
@@ -138,7 +140,8 @@ def test_point_retrieval(base_url, run_id, alfalfa_client):
 
 
 @pytest.mark.api
-def test_point_writes(base_url, run_id):
+def test_point_writes(base_url, started_run_id):
+    run_id = started_run_id
     # get all points
     response = requests.get(f"{base_url}/runs/{run_id}/points")
 
@@ -179,7 +182,7 @@ def test_point_writes(base_url, run_id):
     request_body = {
         'value': "hello"
     }
-    response = requests.put(f"{base_url}/runs/{run_id}/points/{inputs[0]['id']}", json=request_body)
+    response = requests.put(f"{base_url}/runs/{run_id}/points/{bidirectionals[0]['id']}", json=request_body)
 
     assert response.status_code == 400
     response_body = response.json()
@@ -208,7 +211,8 @@ def test_point_writes(base_url, run_id):
 
 
 @pytest.mark.api
-def test_point_not_found(base_url, run_id):
+def test_point_not_found(base_url, started_run_id):
+    run_id = started_run_id
     # request point which does not exist
     response = requests.get(f"{base_url}/runs/{run_id}/points/{uuid4()}")
 

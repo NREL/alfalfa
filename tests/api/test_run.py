@@ -189,7 +189,7 @@ def test_run_start_stop(base_url, run_id):
         assert "status" in payload
         status = payload["status"]
 
-        if status == "STOPPING":
+        if status.lower() == "stopping" or status.lower() == "complete":
             break
         if time.time() > timeout:
             pytest.fail("Timed out waiting for run to stop")

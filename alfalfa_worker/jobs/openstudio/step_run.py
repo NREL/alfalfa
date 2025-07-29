@@ -1,25 +1,37 @@
+import json
 import os
-import socket
 from datetime import datetime, timedelta
-from time import sleep, time
+from typing import Callable
 
-import mlep
+import openstudio
+from pyenergyplus.api import EnergyPlusAPI
 
-from alfalfa_worker.jobs.openstudio.lib.variables import Variables
-from alfalfa_worker.jobs.step_run_base import StepRunBase
-from alfalfa_worker.lib.job import (
+from alfalfa_worker.jobs.openstudio.lib.openstudio_component import (
+    OpenStudioComponent
+)
+from alfalfa_worker.jobs.openstudio.lib.openstudio_point import OpenStudioPoint
+from alfalfa_worker.jobs.step_run_process import StepRunProcess
+from alfalfa_worker.lib.job_exception import (
     JobException,
-    JobExceptionExternalProcess,
-    message
+    JobExceptionExternalProcess
 )
 
 
-class StepRun(StepRunBase):
+def callback_wrapper(func):
+    def wrapped_func(self: "StepRun", state):
+        try:
+            return func(self, state)
+        except Exception:
+            self.report_exception()
+    return wrapped_func
+
+
+class StepRun(StepRunProcess):
+
     def __init__(self, run_id, realtime, timescale, external_clock, start_datetime, end_datetime) -> None:
         self.checkout_run(run_id)
         super().__init__(run_id, realtime, timescale, external_clock, start_datetime, end_datetime)
-        self.logger.info(f"{start_datetime}, {end_datetime}")
-        self.time_steps_per_hour = 60  # Default to 1-min E+ step intervals (i.e. 60/hr)
+        self.options.timestep_duration = timedelta(minutes=1)
 
         # If idf_file is named "in.idf" we need to change the name because in.idf is not accepted by mlep
         # (likely mlep is using that name internally)
@@ -31,340 +43,232 @@ class StepRun(StepRunBase):
         dst_idf_file.rename(self.idf_file)
 
         self.weather_file = os.path.realpath(self.dir / 'simulation' / 'sim.epw')
-        self.str_format = "%Y-%m-%d %H:%M:%S"
 
-        # EnergyPlus MLEP initializations
-        self.ep = mlep.MlepProcess()
-        self.ep.bcvtbDir = '/alfalfa/bcvtb/'
-        self.ep.env = {'BCVTB_HOME': '/alfalfa/bcvtb'}
-        self.ep.accept_timeout = 5000  # The number of milliseconds to wait every time we attempt to connect to e+
-        self.ep.mapping = os.path.realpath(self.dir / 'simulation' / 'haystack_report_mapping.json')
-        self.ep.workDir = os.path.split(self.idf_file)[0]
-        self.ep.arguments = (self.idf_file, self.weather_file)
-        self.ep.kStep = 1  # simulation step indexed at 1
-        self.ep.deltaT = 60  # the simulation step size represented in seconds - on 'step', the model will advance 1min
+        self.logger.info('Generating variables from Openstudio output')
+        self.ep_points: list[OpenStudioPoint] = []
+        for alfalfa_json in self.run.dir.glob('**/run/alfalfa.json'):
+            self.ep_points += [OpenStudioPoint(**point) for point in json.load(alfalfa_json.open())]
 
-        # Parse variables after Haystack measure
-        self.variables_file = os.path.realpath(self.dir / 'simulation' / 'variables.cfg')
-        self.haystack_json_file = os.path.realpath(self.dir / 'simulation' / 'haystack_report_haystack.json')
-        self.variables = Variables(self.run)
+        def add_additional_meter(fuel: str, units: str, converter: Callable[[float], float]):
+            meter_component = OpenStudioComponent("Meter", {"meter_name": f"{fuel}:Building"}, converter)
+            meter_point = OpenStudioPoint(id=f"whole_building_{fuel.lower()}", name=f"Whole Building {fuel}", units=units)
+            meter_point.output = meter_component
+            self.ep_points.append(meter_point)
 
-        # Define MLEP inputs
-        self.ep.inputs = [0] * (self.variables.get_num_inputs())
+        add_additional_meter("Electricity", "W", lambda x: x / self.options.timesteps_per_hour)
+        add_additional_meter("NaturalGas", "W", lambda x: x / self.options.timesteps_per_hour)
 
-        # The idf RunPeriod is manipulated in order to get close to the desired start time,
-        # but we can only get within 24 hours. We use "bypass" steps to quickly get to the
-        # exact right start time. This flag indicates we are iterating in bypass mode
-        # it will be set to False once the desired start time is reach
-        self.master_enable_bypass = True
-        self.first_timestep = True
-        # Job will wait this number of seconds for an energyplus model to start before throwing an error
-        self.model_start_timeout = 300
+        [point.attach_run(self.run) for point in self.ep_points]
 
-    def time_per_step(self):
-        return timedelta(seconds=3600.0 / self.time_steps_per_hour)
+        self.ep_api: EnergyPlusAPI = None
+        self.ep_state = None
 
-    def check_simulation_stop_conditions(self) -> bool:
-        if self.ep.status != 0:
-            return True
-        if not self.ep.is_running:
-            return True
-        return False
-
-    def init_sim(self):
+    def simulation_process_entrypoint(self):
         """
-        Initialize EnergyPlus co-simulation.
+        Initialize and start EnergyPlus co-simulation.
 
         :return:
         """
-        self.osm_idf_files_prep()
-        (self.ep.status, self.ep.msg) = self.ep.start()
-        if self.ep.status != 0:
-            raise JobExceptionExternalProcess('Could not start EnergyPlus: {}'.format(self.ep.msg))
+        self.prepare_idf()
 
-        start_time = time()
+        self.ep_api = EnergyPlusAPI()
+        self.ep_state = self.ep_api.state_manager.new_state()
+        self.ep_api.runtime.callback_begin_new_environment(self.ep_state,
+                                                           self.initialize_handles)
+        self.ep_api.runtime.callback_end_zone_timestep_after_zone_reporting(self.ep_state,
+                                                                            self.ep_begin_timestep)
+        self.ep_api.runtime.callback_message(self.ep_state, self.callback_message)
+        self.ep_api.functional.callback_error(self.ep_state, self.callback_error)
 
-        while time() < start_time + self.model_start_timeout and not self.ep.is_running:
-            self.check_error_log()
+        for point in self.ep_points:
+            point.pre_initialize(self.ep_api, self.ep_state)
 
-            try:
-                [self.ep.status, self.ep.msg] = self.ep.accept_socket()
-            except socket.timeout:
-                pass
+        return_code = self.ep_api.runtime.run_energyplus(state=self.ep_state, command_line_args=['-w', str(self.weather_file), '-d', str(self.dir / 'simulation'), '-r', str(self.idf_file)])
+        self.logger.info(f"Exited simulation with code: {return_code}")
+        if return_code != 0:
+            self.check_for_errors()
+            raise JobExceptionExternalProcess(f"EnergyPlus Exited with a non-zero exit code: {return_code}")
 
-        if not self.ep.is_running:
-            raise JobExceptionExternalProcess('Timedout waiting for EnergyPlus')
-
-        self.set_run_time(self.start_datetime)
-
-    def advance_to_start_time(self):
-        """ We get near the requested start time by manipulating the idf file,
-        however the idf start time is limited to the resolution of 1 day.
-        The purpose of this function is to move the simulation to the requested
-        start minute.
-        This is accomplished by advancing the simulation as quickly as possible. Data is not
-        published to database during this process
-        """
-        self.update_outputs_from_ep()
-
-        current_ep_time = self.get_sim_time()
-        self.logger.info(
-            'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
-        while True:
-            current_ep_time = self.get_sim_time()
-            if current_ep_time < self.start_datetime:
-                self.logger.info(
-                    'current_ep_time: {}, start_datetime: {}'.format(current_ep_time, self.start_datetime))
-                self.step()
-            else:
-                self.logger.info(f"current_ep_time: {current_ep_time} reached desired start_datetime: {self.start_datetime}")
-                break
-        self.master_enable_bypass = False
-        self.update_db()
-
-    def update_outputs_from_ep(self):
-        """Reads outputs from E+ step"""
-        self.check_error_log()
-        packet = self.ep.read()
-
-        _flag, _, outputs = mlep.mlep_decode_packet(packet)
-        if _flag == -1:
-            self.check_error_log()
-            raise JobExceptionExternalProcess("EnergyPlus experienced unknown error")
-        elif _flag == -10:
-            self.check_error_log()
-            raise JobExceptionExternalProcess("EnergyPlus experienced initialization error")
-        elif _flag == -20:
-            self.check_error_log()
-            raise JobExceptionExternalProcess("EnergyPlus experienced time integration error")
-
-        self.ep.outputs = outputs
-
-    def step(self):
-        """
-        Write inputs to simulation and get updated outputs.
-        This will advance the simulation one timestep.
-        """
-
-        # This doesn't really do anything. Energyplus does not check the timestep value coming from the external interface
-        self.ep.kStep += 1
-        # Begin Step
-        inputs = self.read_write_arrays_and_prep_inputs()
-        # Send packet to E+ via ExternalInterface Socket.
-        # Any writes to this socket trigger a model advance.
-        # First Arg: "2" - The version of the communication protocol
-        # Second Arg: "0" - The communication flag, 0 means normal communication
-        # Third Arg: "(self.ep.kStep - 1) * self.ep.deltaT" - The simulation time, this isn't actually checked or used on the E+ side
-        packet = mlep.mlep_encode_real_data(2, 0, (self.ep.kStep - 1) * self.ep.deltaT, inputs)
-        self.ep.write(packet)
-        self.first_timestep = False
-
-        # After Step
-        self.update_outputs_from_ep()
-
-    def update_db(self):
-        """
-        Update database with current ep outputs and simulation time
-        """
-        self.write_outputs_to_redis()
-
-        if self.historian_enabled:
-            self.write_outputs_to_influx()
-        self.update_sim_time_in_mongo()
-
-    def get_sim_time(self):
-        """
-        Return the current time in EnergyPlus
-
-        :return:
-        :rtype datetime()
-        """
-        month_index = self.variables.month_index
-        day_index = self.variables.day_index
-        hour_index = self.variables.hour_index
-        minute_index = self.variables.minute_index
-
-        day = int(round(self.ep.outputs[day_index]))
-        hour = int(round(self.ep.outputs[hour_index]))
-        minute = int(round(self.ep.outputs[minute_index]))
-        month = int(round(self.ep.outputs[month_index]))
-        year = self.start_datetime.year
-
-        sim_time = datetime(year, month, day, 0, 0)
-
-        if minute == 60 and hour == 23:
-            # The first timestep of simulation will have the incorrect day
-            if self.first_timestep:
-                hour = 0
-            else:
-                hour += 1
-
-        elif minute == 60 and hour != 23:
-            hour += 1
-
-        return sim_time + timedelta(hours=hour, minutes=minute % 60)
-
-    def replace_timestep_and_run_period_idf_settings(self):
-
+    def callback_message(self, message: bytes) -> None:
+        """Callback for when energyplus records a messaage to the log"""
         try:
-            runperiod_str = f"""
-RunPeriod,
-  Alfalfa Run Period,
-  {self.start_datetime.month},            !- Begin Month
-  {self.start_datetime.day},              !- Begin Day of Month
-  {self.start_datetime.year},             !- Begin Year
-  {self.end_datetime.month},              !- End Month
-  {self.end_datetime.day},                !- End Day of Month
-  {self.end_datetime.year},               !- End Year
-  {self.start_datetime.strftime("%A")},    !- Day of Week for Start Day
-  ,                                       !- Use Weather File Holidays and Special Days
-  ,                                       !- Use Weather File Daylight Saving Period
-  ,                                       !- Apply Weekend Holiday Rule
-  ,                                       !- Use Weather File Rain Indicators
-  ,                                       !- Use Weather File Snow Indicators
-  ,                                       !- Treat Weather as Actual
-  ;                                       !- First Hour Interpolation Starting Values"""
+            self.logger.info(message.decode())
+        except Exception:
+            self.report_exception()
 
-            timestep_str = f"""
-Timestep,
-  {self.time_steps_per_hour}; !- Number of Timesteps per Hour"""
+    def callback_error(self, state, message: bytes) -> None:
+        """Callback for when energyplus records an error to the log.
+        These 'Errors' include warnings and non-critical errors."""
+        try:
+            self.logger.error(message.decode())
+        except Exception:
+            self.report_exception()
 
-            with self.idf_file.open("a") as idf_file:
-                idf_file.write(runperiod_str)
-                idf_file.write(timestep_str)
-        except BaseException as e:
-            self.logger.error('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
-            raise JobException('Unsuccessful in replacing values in idf file.  Exception: {}'.format(e))
+    @callback_wrapper
+    def initialize_handles(self, state):
+        """Callback called at begin_new_environment. Enumerates Alfalfa points to connect
+        them with handles that can be used to transact data with energyplus."""
+        exceptions = []
 
-    def osm_idf_files_prep(self):
+        for point in self.ep_points:
+            try:
+                point.initialize(self.ep_api, state)
+            except JobException as e:
+                exceptions.append(e)
+
+        if len(exceptions) > 0:
+            ExceptionGroup("Exceptions generated while initializing EP handles", exceptions)
+        self.run.save()
+
+    @callback_wrapper
+    def ep_begin_timestep(self, state):
+        """Callback called at end_zone_timestep_after_zone_reporting. This is responsible for
+        controlling simulation advancement, as well as """
+
+        # If simulation is not 'Running' yet and energyplus is still warming up, short circuit method and return
+        if not self.running_event.is_set():
+            warmup = self.ep_api.exchange.warmup_flag(state)
+            kind_of_sim = self.ep_api.exchange.kind_of_sim(state)
+            if warmup or kind_of_sim == 1:
+                return
+
+            # If execution makes it here it means the simulation has left warmup and needs to be readied for regular running
+            self.update_run_time()
+            self.running_event.set()
+
+        # Update outputs from simulation
+        self.ep_read_outputs()
+        self.update_run_time()
+
+        # Wait for event from main process
+        self.advance_event.clear()
+        while not self.advance_event.is_set() and not self.stop_event.is_set():
+            self.advance_event.wait(1)
+
+        # Handle stop event
+        if self.stop_event.is_set():
+            self.logger.info("Stop Event Set, stopping simulation")
+            self.ep_api.runtime.stop_simulation(state)
+
+        # Write inputs to energyplus
+        self.ep_write_inputs()
+
+    def get_sim_time(self) -> datetime:
+        sim_time = self.options.start_datetime.replace(hour=0, minute=0) + timedelta(hours=self.ep_api.exchange.current_sim_time(self.ep_state))
+        sim_time -= timedelta(minutes=1)  # Energyplus gives time at the end of current timestep, we want the beginning
+        return sim_time
+
+    def ep_read_outputs(self):
+        """Reads outputs from E+ state"""
+        influx_points = []
+        for point in self.ep_points:
+            value = point.update_output(self.ep_api, self.ep_state)
+            if self.options.historian_enabled and value is not None:
+                influx_points.append({"fields":
+                                      {
+                                          "value": value
+                                      }, "tags":
+                                      {
+                                          "id": point.point.ref_id,
+                                          "point": True,
+                                          "source": "alfalfa"
+                                      },
+                                      "measurement": self.run.ref_id,
+                                      "time": self.run.sim_time,
+                                      })
+        if self.historian_enabled:
+            try:
+                response = self.influx_client.write_points(points=influx_points,
+                                                           time_precision='s',
+                                                           database=self.influx_db_name)
+            except ConnectionError as e:
+                self.logger.error(f"Influx ConnectionError on curVal write: {e}")
+            if not response:
+                self.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
+                self.logger.info(f"Attempted to write: {influx_points}")
+            else:
+                self.logger.info(
+                    f"Successful write to influx.  Length of JSON: {len(influx_points)}")
+
+    def ep_write_inputs(self):
+        """Writes inputs to E+ state"""
+        for point in self.ep_points:
+            point.update_input(self.ep_api, self.ep_state)
+
+    def prepare_idf(self):
         """
         Replace the timestep and starting and ending year, month, day, day of week in the idf file.
 
         :return:
         """
-        self.replace_timestep_and_run_period_idf_settings()
+        idf_path = openstudio.path(str(self.idf_file))
+        workspace = openstudio.Workspace.load(idf_path)
+        if not workspace.is_initialized():
+            raise JobException("Cannot load idf file into workspace")
+        workspace = workspace.get()
 
-    def read_write_arrays_and_prep_inputs(self):
-        """Read the write arrays from redis and format them correctly to pass
-        to the EnergyPlus simulation.
+        delete_objects = [*workspace.getObjectsByType(openstudio.IddObjectType("RunPeriod")),
+                          *workspace.getObjectsByType(openstudio.IddObjectType("Timestep"))]
+        for object in delete_objects:
+            workspace.removeObject(object.handle())
 
-        Returns:
-            tuple: list of inputs to set
-        """
-        # master_index = self.variables.input_index_from_variable_name("MasterEnable")
-        # if self.master_enable_bypass:
-        #     self.ep.inputs[master_index] = 0
-        # else:
-        self.ep.inputs = [0] * (self.variables.get_num_inputs())
-        # self.ep.inputs[master_index] = 1
+        runperiod_object = openstudio.IdfObject(openstudio.IddObjectType("RunPeriod"))
+        runperiod_object.setString(0, "Alfalfa Run Period")
+        runperiod_object.setInt(1, self.options.start_datetime.month)
+        runperiod_object.setInt(2, self.options.start_datetime.day)
+        runperiod_object.setInt(3, self.options.start_datetime.year)
+        runperiod_object.setInt(4, self.options.end_datetime.month)
+        runperiod_object.setInt(5, self.options.end_datetime.day)
+        runperiod_object.setInt(6, self.options.end_datetime.year)
+        runperiod_object.setString(7, str(self.options.start_datetime.strftime("%A")))
 
-        for point in self.run.input_points:
-            value = point.value
-            index = self.variables.get_input_index(point.ref_id)
-            if index == -1:
-                self.logger.error('bad input index for: %s' % point.ref_id)
-            elif value is None:
-                if self.variables.has_enable(point.ref_id):
-                    self.ep.inputs[self.variables.get_input_enable_index(point.ref_id)] = 0
-            else:
-                self.ep.inputs[index] = value
-                if self.variables.has_enable(point.ref_id):
-                    self.ep.inputs[self.variables.get_input_enable_index(point.ref_id)] = 1
+        timestep_object = openstudio.IdfObject(openstudio.IddObjectType("Timestep"))
+        timestep_object.setInt(0, self.options.timesteps_per_hour)
 
-        # Convert to tuple
-        inputs = tuple(self.ep.inputs)
-        return inputs
+        workspace.addObject(runperiod_object)
+        workspace.addObject(timestep_object)
 
-    def write_outputs_to_redis(self):
-        """Placeholder for updating the current values exposed through Redis AFTER a simulation timestep"""
-        for point in self.run.output_points:
-            output_index = self.variables.get_output_index(point.ref_id)
-            if output_index == -1:
-                self.logger.error('bad output index for: %s' % (point.ref_id))
-            else:
-                output_value = self.ep.outputs[output_index]
+        paths_objects = workspace.getObjectsByType(openstudio.IddObjectType("PythonPlugin:SearchPaths"))
+        python_paths = openstudio.IdfObject(openstudio.IddObjectType("PythonPlugin:SearchPaths"))
+        python_paths.setString(0, "Alfalfa Virtual Environment Path")
+        python_paths.setString(1, 'No')
+        python_paths.setString(2, 'No')
+        python_paths.setString(3, 'No')
+        n = 4
 
-                point.value = output_value
+        if (self.run.dir / '.venv').exists():
+            python_paths.setString(n, str(self.run.dir / '.venv' / 'lib' / 'python3.12' / 'site-packages'))
+            n += 1
 
-    def update_sim_time_in_mongo(self):
-        """Placeholder for updating the datetime in Mongo to current simulation time"""
-        output_time_string = "s:" + str(self.get_sim_time())
-        self.logger.info(f"updating db time to: {output_time_string}")
-        self.set_run_time(self.get_sim_time())
+        for path in paths_objects:
+            for field_idx in range(4, path.numFields()):
+                python_paths.setString(n, path.getString(field_idx).get())
+                n += 1
+            workspace.removeObject(path.handle())
 
-    def write_outputs_to_influx(self):
-        """
-        Write output data to influx
-        :return:
-        """
-        json_body = []
-        base = {
-            "measurement": self.run.ref_id,
-            "time": f"{self.get_sim_time()}",
-        }
-        response = False
-        for output_point in self.run.output_points:
-            output_id = output_point.ref_id
-            output_index = self.variables.get_output_index(output_id)
-            if output_index == -1:
-                self.logger.error('bad output index for: %s' % output_id)
-            else:
-                output_value = self.ep.outputs[output_index]
-                dis = output_point.name
-                base["fields"] = {
-                    "value": output_value
-                }
-                base["tags"] = {
-                    "id": output_id,
-                    "dis": dis,
-                    "siteRef": self.run.ref_id,
-                    "point": True,
-                    "source": 'alfalfa'
-                }
-                json_body.append(base.copy())
-        try:
-            response = self.influx_client.write_points(points=json_body,
-                                                       time_precision='s',
-                                                       database=self.influx_db_name)
+        workspace.addObject(python_paths)
 
-        except ConnectionError as e:
-            self.logger.error(f"Influx ConnectionError on curVal write: {e}")
-        if not response:
-            self.logger.warning(f"Unsuccessful write to influx.  Response: {response}")
-            self.logger.info(f"Attempted to write: {json_body}")
-        else:
-            self.logger.info(
-                f"Successful write to influx.  Length of JSON: {len(json_body)}")
+        workspace.save(idf_path, True)
 
-    def check_error_log(self):
-        mlep_logs = self.dir.glob('**/mlep.log')
-        eplus_err = False
-        for mlep_log in mlep_logs:
-            if "===== EnergyPlus terminated with error =====" in mlep_log.read_text():
-                eplus_err = True
-                break
-        if eplus_err:
-            error_concat = ""
-            error_logs = self.dir.glob('**/*.err')
-            for error_log in error_logs:
-                error_concat += f"{error_log}:\n"
-                error_concat += error_log.read_text() + "\n"
-            raise JobExceptionExternalProcess(f"Energy plus terminated with error:\n {error_concat}")
+    def report_exception(self) -> None:
+        super().report_exception(self.read_error_logs())
+        if self.ep_state is not None:
+            self.ep_api.runtime.stop_simulation(self.ep_state)
 
-    @message
-    def advance(self):
-        self.logger.info(f"advance called at time {self.get_sim_time()}")
-        self.step()
-        self.update_db()
+    def read_error_logs(self) -> list[str]:
+        error_logs = []
+        for error_file in self.dir.glob('**/*.err'):
+            error_log = f"{error_file}:\n"
+            error_log += error_file.read_text()
+            error_logs.append(error_log)
+        return error_logs
 
-    @message
-    def stop(self):
-        super().stop()
+    def check_for_errors(self):
+        error_logs = self.read_error_logs()
+        exception = JobExceptionExternalProcess("Energy plus terminated with error")
+        for error_log in error_logs:
+            exception.add_note(error_log)
 
-        # Call some OpenStudio specific stop methods
-        self.ep.stop(True)
-        self.ep.is_running = 0
-
-        # If E+ doesn't exit properly it can spin and delete/create files during tarring.
-        # This causes an error when files that were added to the archive disappear.
-        sleep(5)
+        if "EnergyPlus Terminated" in '\n'.join(error_logs):
+            raise exception
+        super().check_for_errors()
