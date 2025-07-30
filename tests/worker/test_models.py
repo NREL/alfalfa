@@ -5,7 +5,7 @@ import os
 import random
 import time
 
-from mongoengine import connect
+from mongoengine import connect, disconnect_all
 
 # use the mongo test config file
 from alfalfa_worker.lib.models import Rec, Run, Site
@@ -16,7 +16,8 @@ class TestModelsObjects:
     def setup_method(self):
         """Create the connection to the mongodatabase since we are not loading the entire framework.
         Note that the config params are monkeypatched in the conftest file"""
-        connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
+        disconnect_all()
+        connect(host=f"{os.environ['MONGO_URL']}", uuidrepresentation='standard')
 
     def test_create_and_destroy_site(self):
         id_value = str(random.randint(0, 1024))
@@ -42,7 +43,8 @@ class TestModelObjectsWithFixtures():
     def setup_method(self):
         """Create the connection to the mongodatabase since we are not loading the entire framework.
         Note that the config params are monkeypatched in the conftest file"""
-        connect(host=f"{os.environ['MONGO_URL']}/{os.environ['MONGO_DB_NAME']}", uuidrepresentation='standard')
+        disconnect_all()
+        connect(host=f"{os.environ['MONGO_URL']}", uuidrepresentation='standard')
 
         for datum in site_data:
             site = Site(**datum)
