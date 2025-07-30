@@ -12,7 +12,7 @@ services:
     image: ${REGISTRY_BASE_URI}/web:${VERSION_TAG}
     ports:
       - target: 80
-        published: 80
+        published: 8080
         protocol: tcp
         mode: host
     environment:
@@ -20,11 +20,10 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - GIT_COMMIT
       - JOB_QUEUE
-      - MONGO_DB_NAME
       - MONGO_URL
       - NODE_ENV
-      - REDIS_HOST
-      - REGION
+      - REDIS_URL
+      - S3_REGION
       - S3_BUCKET
       - S3_URL
       - S3_URL_EXTERNAL
@@ -73,17 +72,16 @@ services:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - HISTORIAN_ENABLE
-      - INFLUXDB_ADMIN_PASSWORD
-      - INFLUXDB_ADMIN_USER
+      - INFLUXDB_PASSWORD
+      - INFLUXDB_USERNAME
       - INFLUXDB_DB
       - INFLUXDB_HOST
       - JOB_QUEUE
       - LOGLEVEL=INFO
-      - MONGO_DB_NAME
       - MONGO_URL
       - NODE_ENV
-      - REDIS_HOST
-      - REGION
+      - REDIS_URL
+      - S3_REGION
       - S3_BUCKET
       - S3_URL
     depends_on:
@@ -92,9 +90,14 @@ services:
       - redis
   mongo:
     container_name: alfalfa_mongo
-    image: mongo:6.0.6
+    image: mongo:7-jammy
     ports:
       - "27017:27017"
+    environment:
+      # MongoDB container needs these for initialization
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+      - MONGO_INITDB_DATABASE
   redis:
     container_name: alfalfa_redis
     image: redis:7.0.7
