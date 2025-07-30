@@ -23,10 +23,10 @@ async function waitForService(serviceName, checkFunction, maxRetries = 30, retry
       return result;
     } catch (error) {
       console.warn(`Failed to connect to ${serviceName}: ${error.message}`);
-      
+
       if (attempt < maxRetries) {
         console.log(`Waiting ${retryDelay}ms before retrying ${serviceName}`);
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
       }
     }
   }
@@ -38,7 +38,7 @@ async function setupRedisConnection() {
     const redis = createClient({ url: process.env.REDIS_URL });
     redis.on("error", (err) => console.error("Redis Client Error", err));
     await redis.connect();
-    
+
     // Test the connection
     await redis.ping();
     console.log(`Redis URL: ${process.env.REDIS_URL}`);
@@ -50,21 +50,20 @@ async function setupMongoConnection() {
   return waitForService("MongoDB", async () => {
     const mongoUrl = process.env.MONGO_URL;
     console.log(`MongoDB URL: ${mongoUrl}`);
-    
-    const mongoClient = await MongoClient.connect(mongoUrl, { 
+
+    const mongoClient = await MongoClient.connect(mongoUrl, {
       serverSelectionTimeoutMS: 5000,
       connectTimeoutMS: 5000
     });
-    
+
     // Test the connection
     await mongoClient.db().admin().ping();
-    
+
     return { client: mongoClient, db: mongoClient.db() };
   });
 }
 
 (async () => {
-
   // Setup connections incrementally
   const redis = await setupRedisConnection();
   const { client: mongoClient, db } = await setupMongoConnection();

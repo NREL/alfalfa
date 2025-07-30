@@ -1,6 +1,6 @@
+import logging
 import os
 import time
-import logging
 
 import boto3
 from influxdb import InfluxDBClient
@@ -15,7 +15,7 @@ class AlafalfaConnectionsManager(metaclass=Singleton):
     def __init__(self) -> None:
         # Setup logging
         self.logger = logging.getLogger(__name__)
-        
+
         # Initialize connections incrementally
         self._setup_s3_connection()
         self._setup_mongo_connection()
@@ -34,11 +34,11 @@ class AlafalfaConnectionsManager(metaclass=Singleton):
                     return True
             except Exception as e:
                 self.logger.warning(f"Failed to connect to {service_name}: {e}")
-            
+
             if attempt < max_retries - 1:
                 self.logger.info(f"Waiting {retry_delay} seconds before retrying {service_name}")
                 time.sleep(retry_delay)
-        
+
         raise ConnectionError(f"Failed to connect to {service_name} after {max_retries} attempts")
 
     def _setup_s3_connection(self):
@@ -49,7 +49,7 @@ class AlafalfaConnectionsManager(metaclass=Singleton):
             # Test the connection by listing buckets
             list(self.s3.buckets.all())
             return True
-        
+
         self._wait_for_service("S3/MinIO", check_s3)
 
     def _setup_mongo_connection(self):
@@ -58,16 +58,16 @@ class AlafalfaConnectionsManager(metaclass=Singleton):
             # Get the MongoDB connection string from environment
             mongo_url = os.environ['MONGO_URL']
             self.logger.info(f"Using MONGO_URL: {mongo_url}")
-            
+
             # Connect using the connection string
             connect(host=mongo_url, uuidrepresentation='standard', serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)
-            
+
             # Test the connection
             from mongoengine import connection
             db = connection.get_db()
             db.command('ping')
             return True
-        
+
         self._wait_for_service("MongoDB", check_mongo)
 
     def _setup_redis_connection(self):
@@ -76,13 +76,13 @@ class AlafalfaConnectionsManager(metaclass=Singleton):
             # Get the Redis connection string from environment
             redis_url = os.environ['REDIS_URL']
             self.logger.info(f"Using REDIS_URL: {redis_url}")
-            
+
             # Connect using the connection string
             self.redis = Redis.from_url(redis_url)
             # Test the connection
             self.redis.ping()
             return True
-        
+
         self._wait_for_service("Redis", check_redis)
 
     def _setup_influx_connection(self):
@@ -98,7 +98,7 @@ class AlafalfaConnectionsManager(metaclass=Singleton):
                 # Test the connection
                 self.influx_client.ping()
                 return True
-            
+
             self._wait_for_service("InfluxDB", check_influx)
         else:
             self.influx_db_name = None
