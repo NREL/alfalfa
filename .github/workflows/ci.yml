@@ -199,7 +199,7 @@ jobs:
         uses: docker/bake-action@v5
         with:
           load: true
-          files: docker-compose.yml, docker-compose.dev.yml, docker-compose.historian.yml
+          files: docker-compose.yml, docker-compose.historian.yml
           set: |
             web.cache-from=type=gha,scope=web:${{ github.ref_name }}
             web.output=type=docker
