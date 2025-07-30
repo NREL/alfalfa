@@ -12,7 +12,7 @@ services:
     image: ${REGISTRY_BASE_URI}/web:${VERSION_TAG}
     ports:
       - target: 80
-        published: 8080
+        published: 80
         protocol: tcp
         mode: host
     environment:
