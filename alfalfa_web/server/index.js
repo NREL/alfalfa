@@ -52,7 +52,6 @@ async function setupMongoConnection() {
     console.log(`MongoDB URL: ${mongoUrl}`);
     
     const mongoClient = await MongoClient.connect(mongoUrl, { 
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
       connectTimeoutMS: 5000
     });
