@@ -1,6 +1,9 @@
 version: "3.4"
 
 services:
+  worker:
+    environment:
+      - HISTORIAN_ENABLE=true
   influxdb:
     container_name: alfalfa_influxdb
     image: influxdb:1.8

@@ -169,6 +169,8 @@ class StepRun(StepRunProcess):
                                           "value": value
                                       }, "tags":
                                       {
+                                          "name": point.name,
+                                          "units": point.units,
                                           "id": point.point.ref_id,
                                           "point": True,
                                           "source": "alfalfa"
