@@ -247,6 +247,10 @@ jobs:
         uses: jwalton/gh-docker-logs@v2
 
   publish:
+    permissions:
+      contents: read
+      packages: write
+    name: Build and publish Docker images
     # needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
@@ -279,9 +283,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
             type=edge
-
-      - name: Expose GitHub Runtime
-        uses: crazy-max/ghaction-github-runtime@v3
 
       - name: Build Push
         run: |
