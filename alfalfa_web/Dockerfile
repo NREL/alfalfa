@@ -27,3 +27,9 @@ WORKDIR /srv/alfalfa
 
 # Run in watch mode so it will automatically restart
 CMD [ "npm", "run", "watch" ]
+
+FROM gcr.io/distroless/nodejs22-debian12:latest as production
+COPY --from=base /srv/alfalfa /srv/alfalfa
+WORKDIR /srv/alfalfa
+
+CMD [ "build/index.js" ]
