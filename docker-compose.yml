@@ -6,7 +6,7 @@ services:
       # is to utilize shared code, specifically in db
       dockerfile: alfalfa_web/Dockerfile
       context: .
-      target: production
+      target: base
       args:
         - NODE_ENV
     image: ${REGISTRY_BASE_URI}/web:${VERSION_TAG}

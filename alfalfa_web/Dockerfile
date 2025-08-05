@@ -1,4 +1,4 @@
-FROM node:22 AS base
+FROM node:22-slim AS base
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
 
@@ -15,7 +15,7 @@ COPY alfalfa_web /srv/alfalfa
 
 ARG NODE_ENV
 RUN npm run build
-CMD [ "npm", "start" ]
+CMD [ "node", "build/index.js" ]
 
 # **** Staged build for running in development mode ****
 FROM base AS dev
@@ -27,9 +27,3 @@ WORKDIR /srv/alfalfa
 
 # Run in watch mode so it will automatically restart
 CMD [ "npm", "run", "watch" ]
-
-FROM gcr.io/distroless/nodejs22-debian12:latest as production
-COPY --from=base /srv/alfalfa /srv/alfalfa
-WORKDIR /srv/alfalfa
-
-CMD [ "build/index.js" ]
