@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>alfalfa_variables</name>
+  <uid>86d51823-68a5-478a-b60b-60891c3c9b5f</uid>
+  <version_id>5c94ef46-d8e9-4ae9-864e-d884aba51509</version_id>
+  <version_modified>20201216T214230Z</version_modified>
+  <xml_checksum>356BE47F</xml_checksum>
+  <class_name>AlfalfaVariables</class_name>
+  <display_name>AlfalfaVariables</display_name>
+  <description>Add custom variables for Alfalfa</description>
+  <modeler_description>Add EMS global variables required by Alfalfa</modeler_description>
+  <arguments />
+  <outputs />
+  <provenances />
+  <tags>
+    <tag>HVAC.HVAC Controls</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>3.1.0</identifier>
+        <min_compatible>3.1.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>A9E1EEF2</checksum>
+    </file>
+  </files>
+</measure>
