@@ -1,4 +1,4 @@
-FROM node:16 AS base
+FROM node:22-slim AS base
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
 
@@ -15,7 +15,7 @@ COPY alfalfa_web /srv/alfalfa
 
 ARG NODE_ENV
 RUN npm run build
-CMD [ "npm", "start" ]
+CMD [ "node", "build/index.js" ]
 
 # **** Staged build for running in development mode ****
 FROM base AS dev

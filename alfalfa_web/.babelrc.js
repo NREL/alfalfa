@@ -14,7 +14,8 @@ const presets = [
   ]
 ];
 
-if (isProd) presets.push(["minify", { builtIns: false }]);
+// Use Webpack's built-in Terser for minification instead of babel-preset-minify
+// which has compatibility issues with newer Babel versions
 
 module.exports = {
   assumptions: {
@@ -22,7 +23,7 @@ module.exports = {
     noClassCalls: true
   },
   comments: false,
-  plugins: ["@babel/plugin-proposal-class-properties"],
+  plugins: ["@babel/plugin-transform-class-properties"],
   presets,
   sourceMaps: isProd ? false : "inline"
 };

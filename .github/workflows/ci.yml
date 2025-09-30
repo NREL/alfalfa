@@ -185,7 +185,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.8"
+          python-version: "3.11"
 
       - name: Install poetry
         uses: abatilo/actions-poetry@v3
@@ -199,7 +199,7 @@ jobs:
         uses: docker/bake-action@v5
         with:
           load: true
-          files: docker-compose.yml, docker-compose.dev.yml, docker-compose.historian.yml
+          files: docker-compose.yml, docker-compose.historian.yml
           set: |
             web.cache-from=type=gha,scope=web:${{ github.ref_name }}
             web.output=type=docker
@@ -247,6 +247,10 @@ jobs:
         uses: jwalton/gh-docker-logs@v2
 
   publish:
+    permissions:
+      contents: read
+      packages: write
+    name: Build and publish Docker images
     needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
@@ -279,9 +283,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
             type=edge
-
-      - name: Expose GitHub Runtime
-        uses: crazy-max/ghaction-github-runtime@v3
 
       - name: Build Push
         run: |

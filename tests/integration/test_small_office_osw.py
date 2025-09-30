@@ -7,9 +7,8 @@ from tests.integration.conftest import prepare_model
 
 
 @pytest.mark.integration
-def test_python_environment():
+def test_python_environment(alfalfa: AlfalfaClient):
     zip_file_path = prepare_model('small_office')
-    alfalfa = AlfalfaClient(host='http://localhost')
     model_id = alfalfa.submit(zip_file_path)
 
     alfalfa.wait(model_id, "ready")
@@ -31,7 +30,7 @@ def test_python_environment():
 
 
 @pytest.mark.integration
-def test_io(alfalfa: AlfalfaClient):
+def test_io_enable_disable(alfalfa: AlfalfaClient):
     zip_file_path = prepare_model('small_office')
     site_id = alfalfa.submit(zip_file_path)
 

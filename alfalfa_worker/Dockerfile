@@ -29,7 +29,7 @@ COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 WORKDIR $HOME/alfalfa_worker
 
 
-CMD ["/alfalfa/deploy/start_worker.sh"]
+CMD ["python3", "-m", "alfalfa_worker"]
 
 # **** Staged build for running in development mode ****
 FROM base AS dev
@@ -48,4 +48,4 @@ COPY . /alfalfa
 
 # Enable the ability to restart the service when
 # the files change
-CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
+CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "python3", "-m", "alfalfa_worker"]
