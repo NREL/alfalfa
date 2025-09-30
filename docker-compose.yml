@@ -35,11 +35,15 @@ services:
   # Local implementation of s3
   minio:
     container_name: alfalfa_minio
-    image: minio/minio:RELEASE.2021-01-16T02-19-44Z
+    image: minio/minio:RELEASE.2024-04-18T19-09-19Z
     entrypoint:
       - minio
       - server
       - /data
+      - --address
+      - ':9000'
+      - --console-address
+      - ':9001'
     ports:
       - "9000:9000"
     environment:
