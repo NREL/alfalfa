@@ -13,13 +13,60 @@ import apiv2 from "./api-v2";
 
 const isProd = process.env.NODE_ENV === "production";
 
-(async () => {
-  const redis = createClient({ url: `redis://${process.env.REDIS_HOST}` });
-  redis.on("error", (err) => console.error("Redis Client Error", err));
-  await redis.connect();
+// Utility function to wait for services with retry logic
+async function waitForService(serviceName, checkFunction, maxRetries = 30, retryDelay = 2000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Attempting to connect to ${serviceName} (attempt ${attempt}/${maxRetries})`);
+      const result = await checkFunction();
+      console.log(`Successfully connected to ${serviceName}`);
+      return result;
+    } catch (error) {
+      console.warn(`Failed to connect to ${serviceName}: ${error.message}`);
 
-  const mongoClient = await MongoClient.connect(process.env.MONGO_URL, { useUnifiedTopology: true });
-  const db = mongoClient.db(process.env.MONGO_DB_NAME);
+      if (attempt < maxRetries) {
+        console.log(`Waiting ${retryDelay}ms before retrying ${serviceName}`);
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      }
+    }
+  }
+  throw new Error(`Failed to connect to ${serviceName} after ${maxRetries} attempts`);
+}
+
+async function setupRedisConnection() {
+  return waitForService("Redis", async () => {
+    const redis = createClient({ url: process.env.REDIS_URL });
+    redis.on("error", (err) => console.error("Redis Client Error", err));
+    await redis.connect();
+
+    // Test the connection
+    await redis.ping();
+    console.log(`Redis URL: ${process.env.REDIS_URL}`);
+    return redis;
+  });
+}
+
+async function setupMongoConnection() {
+  return waitForService("MongoDB", async () => {
+    const mongoUrl = process.env.MONGO_URL;
+    console.log(`MongoDB URL: ${mongoUrl}`);
+
+    const mongoClient = await MongoClient.connect(mongoUrl, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000
+    });
+
+    // Test the connection
+    await mongoClient.db().admin().ping();
+
+    return { client: mongoClient, db: mongoClient.db() };
+  });
+}
+
+(async () => {
+  // Setup connections incrementally
+  const redis = await setupRedisConnection();
+  const { client: mongoClient, db } = await setupMongoConnection();
 
   const app = express();
   app.disable("x-powered-by");

@@ -1,4 +1,4 @@
-FROM ghcr.io/nrel/alfalfa-dependencies:3.1.0 AS base
+FROM ghcr.io/nrel/alfalfa-dependencies:prepare_080 AS base
 
 ENV HOME=/alfalfa
 
@@ -21,10 +21,7 @@ ENV PYTHONPATH="${HOME}:${PYTHONPATH}"
 
 COPY ./alfalfa_worker ${HOME}/alfalfa_worker
 
-RUN pip3.8 install virtualenv \
-  && pip3.8 install \
-  scipy \
-  symfit
+COPY ./alfalfa_worker /alfalfa/alfalfa_worker
 
 COPY ./deploy /alfalfa/deploy
 COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
@@ -32,7 +29,7 @@ COPY ./deploy/wait-for-it.sh /usr/local/wait-for-it.sh
 WORKDIR $HOME/alfalfa_worker
 
 
-CMD ["/alfalfa/deploy/start_worker.sh"]
+CMD ["python3", "-m", "alfalfa_worker"]
 
 # **** Staged build for running in development mode ****
 FROM base AS dev
@@ -51,4 +48,4 @@ COPY . /alfalfa
 
 # Enable the ability to restart the service when
 # the files change
-CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "/alfalfa/deploy/start_worker.sh"]
+CMD ["watchmedo", "auto-restart", "--directory=/alfalfa", "--pattern=*.py", "--recursive", "--", "python3", "-m", "alfalfa_worker"]

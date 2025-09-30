@@ -1,19 +1,26 @@
 import json
 import logging
-import os
-import time
-import traceback
+from datetime import datetime
 from enum import Enum
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from subprocess import CalledProcessError
-from xmlrpc.client import Boolean
+from subprocess import PIPE, Popen
+from time import time
 
 from alfalfa_worker.lib.alfalfa_connections_manager import (
     AlafalfaConnectionsManager
 )
 from alfalfa_worker.lib.enums import RunStatus, SimType
+from alfalfa_worker.lib.job_exception import (
+    JobExceptionExternalProcess,
+    JobExceptionFailedValidation,
+    JobExceptionInvalidRun,
+    JobExceptionMessageHandler,
+    JobExceptionTimeout
+)
 from alfalfa_worker.lib.models import Run
+from alfalfa_worker.lib.redis_log_handler import RedisLogHandler
+from alfalfa_worker.lib.utils import exc_to_str
 
 
 def message(func):
@@ -68,7 +75,6 @@ class JobMetaclass(type):
             # Redis
             self.redis = connections_manager.redis
             self.redis_pubsub = self.redis.pubsub(ignore_subscribe_messages=True)
-            logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
             self.logger = logging.getLogger(self.__class__.__name__)
 
             # Message Handlers
@@ -95,43 +101,41 @@ class JobMetaclass(type):
         return class_
 
 
+def error_wrapper(func):
+    def wrapped_func(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except Exception:
+            exc_str = exc_to_str()
+            self.logger.error("Terminating Job with Error:")
+            self.logger.error(exc_str)
+            self.record_run_error(exc_str)
+            self.set_job_status(JobStatus.ERROR)
+            self.checkin_run()
+    return wrapped_func
+
+
 class Job(metaclass=JobMetaclass):
     """Job Base Class"""
 
+    @error_wrapper
     def start(self) -> None:
         """Job workflow"""
+        self.set_job_status(JobStatus.RUNNING)
+        self.exec()
+        if self.status == JobStatus.ERROR:
+            return
+        if self.is_running:
+            self.set_job_status(JobStatus.STOPPING)
+            self.stop()
+        self.set_job_status(JobStatus.VALIDATING)
         try:
-            self.set_job_status(JobStatus.RUNNING)
-            self.exec()
-            if self.is_running:
-                self.set_job_status(JobStatus.STOPPING)
-                self.stop()
-            self.set_job_status(JobStatus.VALIDATING)
-            try:
-                self.validate()
-            except AssertionError as e:
-                raise JobExceptionFailedValidation(e)
-            self.set_job_status(JobStatus.CLEANING_UP)
-            self.cleanup()
-            self.set_job_status(JobStatus.STOPPED)
-
-        except CalledProcessError as e:
-            if e.output:
-                self.logger.error(e, exc_info=True)
-                self.logger.error(e.output.decode('utf-8'))
-                self.record_run_error(e.output.decode('utf-8'))
-            else:
-                self.logger.error(e, exc_info=True)
-                self.logger.error(str(traceback.format_exc()))
-                self.record_run_error(traceback.format_exc())
-            self.set_job_status(JobStatus.ERROR)
-            self.checkin_run()
-        except Exception as e:
-            self.logger.error(e, exc_info=True)
-            self.logger.error(str(traceback.format_exc()))
-            self.record_run_error(traceback.format_exc())
-            self.set_job_status(JobStatus.ERROR)
-            self.checkin_run()
+            self.validate()
+        except AssertionError as e:
+            raise JobExceptionFailedValidation(e)
+        self.set_job_status(JobStatus.CLEANING_UP)
+        self.cleanup()
+        self.set_job_status(JobStatus.STOPPED)
 
     def exec(self) -> None:
         """Runs job
@@ -162,7 +166,8 @@ class Job(metaclass=JobMetaclass):
         return self._status
 
     @property
-    def is_running(self) -> Boolean:
+    def is_running(self) -> bool:
+        """Easily check if the state of the job is running or not"""
         return self._status.value < JobStatus.STOPPING.value
 
     @property
@@ -170,7 +175,7 @@ class Job(metaclass=JobMetaclass):
     def dir(self) -> Path:
         return self.run.dir
 
-    def set_job_status(self, status: "JobStatus"):
+    def set_job_status(self, status: "JobStatus") -> None:
         if self._status is status:
             return
         # Once stopping we can't go back
@@ -180,22 +185,22 @@ class Job(metaclass=JobMetaclass):
         self.logger.info(f"Job Status: {status.name}")
         # A callback could be added here to tell the client what the status is
         self._status = status
+        if self.run:
+            self.redis.hset(self.run.ref_id, 'job_status', status.name)
 
-    def start_message_loop(self, timeout=None):
+    def start_message_loop(self, timeout: float = None) -> None:
         # Should the timeout be total time since loop started? or time since last message?
-        start_time = time.time()
+        start_time = time()
         while self.is_running and self.run is not None:
-            if timeout is not None and time.time() - start_time > timeout:
+            if timeout is not None and time() - start_time > timeout:
                 break
             self.set_job_status(JobStatus.WAITING)
             self._check_messages()
         self.logger.info("message loop over")
 
     @with_run()
-    def _check_messages(self):
+    def _check_messages(self) -> None:
         message = self.redis_pubsub.get_message()
-        self.redis.hset(self.run.ref_id, 'control', 'idle')
-        # self.logger.info(message)
         try:
             if message and message['data'].__class__ == bytes:
                 self.logger.info(f"received message: {message}")
@@ -203,6 +208,7 @@ class Job(metaclass=JobMetaclass):
                 message_id = data.get('message_id')
                 method = data.get('method', None)
                 if method == "stop":
+                    self.logger.info("Received stop message")
                     self.set_job_status(JobStatus.STOPPING)
                 if method in self._message_handlers.keys():
                     if self.is_running:
@@ -211,15 +217,17 @@ class Job(metaclass=JobMetaclass):
                     try:
                         response['response'] = self._message_handlers[data['method']](**data.get('params', {}))
                         response['status'] = 'ok'
-                    except JobExceptionMessageHandler as e:
+                    except JobExceptionMessageHandler:
                         # JobExceptionMessageHandler errors are thrown when the operation fails but the job isn't tainted.
                         # They are caught here so they don't cause the job to exit.
-                        self.logger.error(e)
+                        exc_str = exc_to_str()
+                        self.logger.error(exc_str)
                         response['status'] = 'error'
-                        response['response'] = str(e)
+                        response['response'] = exc_str
                     except Exception as e:
+                        exc_str = exc_to_str()
                         response['status'] = 'error'
-                        response['response'] = str(e)
+                        response['response'] = exc_str
                         raise e
                     finally:
                         self.redis.hset(self.run.ref_id, message_id, json.dumps(response))
@@ -233,43 +241,74 @@ class Job(metaclass=JobMetaclass):
         return run
 
     @with_run()
-    def checkin_run(self):
+    def checkin_run(self) -> tuple[bool, str]:
         return self.run_manager.checkin_run(self.run)
 
     def create_run_from_model(self, model_id: str, sim_type=SimType.OPENSTUDIO, run_id=None) -> None:
         run = self.run_manager.create_run_from_model(model_id, sim_type, run_id=run_id)
         self.register_run(run)
 
-    def create_empty_run(self):
+    def create_empty_run(self) -> None:
         run = self.run_manager.create_empty_run()
         self.register_run(run)
 
     @with_run()
-    def set_run_status(self, status: RunStatus):
+    def set_run_status(self, status: RunStatus) -> None:
         self.logger.info(f"Setting run status to {status.name}")
         self.run.status = status
         self.run.save()
 
     @with_run()
-    def set_run_time(self, sim_time):
+    def set_run_time(self, sim_time: datetime) -> None:
         self.run.sim_time = sim_time
 
     @with_run(return_on_fail=True)
-    def record_run_error(self, error_log: str):
+    def record_run_error(self, error_log: str) -> None:
         self.set_run_status(RunStatus.ERROR)
         self.run.error_log = error_log
         self.run.save()
 
-    def register_run(self, run: Run):
+    def register_run(self, run: Run) -> None:
         self.run = run
         self.run.job_history.append(self.job_path())
         self.run.save()
-        self.logger.info(run.dir)
+        self.logger.debug(f"Attaching to run in directory: {run.dir}")
+
         self.redis_pubsub.subscribe(run.ref_id)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh = logging.FileHandler(self.dir / 'jobs.log')
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
+
+        redis_handler = RedisLogHandler(self.run, logging.INFO)
+        redis_handler.setFormatter(formatter)
+        self.logger.addHandler(redis_handler)
+
+    def log_subprocess(self, args: list[str], timeout: int = 300):
+        self.logger.info(f"Executing process with args: '{args}'")
+
+        process_log = []
+        process = Popen(args, stdout=PIPE, stderr=PIPE, encoding='utf-8')
+        wait_until = time() + timeout
+        while (time() < wait_until and process.poll() is None):
+            line = process.stdout.readline().rstrip()
+            if len(line) > 0:
+                process_log.append(line)
+                self.logger.info(line)
+            line = process.stderr.readline().rstrip()
+            if len(line) > 0:
+                process_log.append(line)
+                self.logger.error(line)
+        if time() > wait_until:
+            process.kill()
+            exception = JobExceptionTimeout(f"Process timedout after: {timeout} seconds")
+            exception.add_note(process_log)
+            raise exception
+        exitcode = process.returncode
+        if exitcode != 0:
+            exception = JobExceptionExternalProcess(f"Process returned non-zero exit code: {exitcode}")
+            exception.add_note('\n'.join(process_log))
+            raise exception
 
     @classmethod
     def job_path(cls):
@@ -287,37 +326,3 @@ class JobStatus(Enum):
     CLEANING_UP = 10
     STOPPED = 11
     ERROR = 63
-
-
-class JobException(Exception):
-    pass
-
-
-class JobExceptionMessageHandler(JobException):
-    """Thrown when there is an exception that occurs in an message handler.
-    This is caught and reported back to the caller via redis."""
-
-
-class JobExceptionInvalidModel(JobException):
-    """Thrown when working on a model.
-    ex: missing osw"""
-
-
-class JobExceptionInvalidRun(JobException):
-    """Thrown when working on run.
-    ex. run does not have necessary files"""
-
-
-class JobExceptionExternalProcess(JobException):
-    """Thrown when an external process throws an error.
-    ex. E+ can't run idf"""
-
-
-class JobExceptionFailedValidation(JobException):
-    """Thrown when the job fails validation for any reason.
-    ex. file that should have been generated was not"""
-
-
-class JobExceptionSimulation(JobException):
-    """Thrown when there is a simulation issue.
-    ex. Simulation falls too far behind in timescale run"""

@@ -106,7 +106,7 @@ router.param("pointId", (req, res, next, id) => {
   const error = validate(
     { id },
     {
-      id: "required|uuid"
+      id: "required|string"
     }
   );
   if (error) return res.status(400).json({ message: error });
@@ -161,6 +161,13 @@ router.get("/runs/:runId/time", async (req, res, next) => {
   api
     .getRunTime(req.run)
     .then((time) => res.json({ payload: { time } }))
+    .catch(next);
+});
+
+router.get("/runs/:runId/log", async (req, res, next) => {
+  api
+    .getRunLog(req.run)
+    .then((log) => res.json({ payload: { log } }))
     .catch(next);
 });
 

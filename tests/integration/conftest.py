@@ -1,7 +1,5 @@
 # Consider factoring this out of the test file
 import os
-import shutil
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -17,19 +15,29 @@ def pytest_generate_tests(metafunc):
 
         metafunc.parametrize("broken_model_path", model_paths)
 
+    if "broken_workflow_name" in metafunc.fixturenames:
+        workflow_names = [
+            "bad_callback.osw",
+            "bad_constructor.osw",
+            "bad_module_class.osw",
+            "bad_module_name.osw",
+            "missing_import.osw"
+        ]
+        metafunc.parametrize("broken_workflow_name", workflow_names)
+
     model_dir = Path(os.path.dirname(__file__)) / 'models'
     if "model_path" in metafunc.fixturenames:
         model_paths = [
-            model_dir / 'refrig_case_osw',
-            model_dir / 'simple_thermostat.fmu'
+            model_dir / 'small_office',
+            model_dir / 'wrapped.fmu'
         ]
 
         metafunc.parametrize("model_path", model_paths)
 
 
 @pytest.fixture
-def alfalfa():
-    client = AlfalfaClient(host="http://localhost")
+def alfalfa(alfalfa_host: str):
+    client = AlfalfaClient(host=alfalfa_host)
     yield client
 
 
@@ -41,14 +49,6 @@ def ref_id(model_path: Path, alfalfa: AlfalfaClient):
     status = alfalfa.status(ref_id)
     if status == "running":
         alfalfa.stop()
-
-
-def create_zip(model_dir):
-    zip_file_fd, zip_file_path = tempfile.mkstemp(suffix='.zip')
-    zip_file_path = Path(zip_file_path)
-    shutil.make_archive(zip_file_path.parent / zip_file_path.stem, "zip", model_dir)
-
-    return zip_file_path
 
 
 def prepare_model(model_path):
