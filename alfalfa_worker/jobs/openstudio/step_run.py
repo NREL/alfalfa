@@ -1,4 +1,5 @@
 import json
+import math
 import os
 from datetime import datetime, timedelta
 from typing import Callable
@@ -163,7 +164,7 @@ class StepRun(StepRunProcess):
         influx_points = []
         for point in self.ep_points:
             value = point.update_output(self.ep_api, self.ep_state)
-            if self.options.historian_enabled and value is not None:
+            if self.options.historian_enabled and value is not None and not math.isnan(value):
                 influx_points.append({"fields":
                                       {
                                           "value": value
