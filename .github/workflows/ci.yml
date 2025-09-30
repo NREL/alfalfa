@@ -251,7 +251,7 @@ jobs:
       contents: read
       packages: write
     name: Build and publish Docker images
-    # needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
+    needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     steps:
