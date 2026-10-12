@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-  pull_request: 
+  pull_request:
   release:
     types: [released]
 
@@ -254,7 +254,8 @@ jobs:
     name: Build and publish Docker images
     needs: [pre-commit, unit-tests, simulation-tests, integration-tests, integration-tests-historian]
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
+    # Fork PRs get a read-only GITHUB_TOKEN, so they cannot push to the registry
+    if: github.actor != 'dependabot[bot]' && github.event_name != 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
