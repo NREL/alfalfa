@@ -184,7 +184,11 @@ router.get("/runs/:runId/points", (req, res, next) => {
 });
 
 router.post("/runs/:runId/points", async (req, res, next) => {
-  const { points, pointTypes } = req.body;
+  const { points, pointTypes } = req.body ?? {};
+
+  if (!points && !pointTypes) {
+    return res.status(400).json({ message: "Either points or pointTypes is required" });
+  }
 
   var pointsArr;
   if (points) {
@@ -224,6 +228,10 @@ router.get("/runs/:runId/points/values", (req, res, next) => {
 router.post("/runs/:runId/points/values", async (req, res, next) => {
   const { points, pointTypes } = req.body;
 
+  if (!points && !pointTypes) {
+    return res.status(400).json({ message: "Either points or pointTypes is required" });
+  }
+
   var pointsArr;
   if (points) {
     pointsArr = await api.getPointsById(req.run, points);
@@ -245,6 +253,10 @@ router.post("/runs/:runId/points/values", async (req, res, next) => {
 
 router.put("/runs/:runId/points/values", async (req, res, next) => {
   const { points } = req.body;
+
+  if (points === null || typeof points !== "object") {
+    return res.status(400).json({ message: "The points field is required and must be an object" });
+  }
 
   const errors = [];
 

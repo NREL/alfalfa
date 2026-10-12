@@ -42,7 +42,7 @@
     "ky": "^0.33.2",
     "luxon": "^3.3.0",
     "mongodb": "^6.8.0",
-    "morgan": "^1.10.0",
+    "morgan": "^1.12.1",
     "nodehaystack": "github:NatLabRockies/nodehaystack#5ffec6835fb63dc2212c07f16e81d191ef05bffb",
     "normalize.css": "^8.0.1",
     "react": "^18.2.0",
