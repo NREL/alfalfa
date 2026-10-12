@@ -184,7 +184,7 @@ router.get("/runs/:runId/points", (req, res, next) => {
 });
 
 router.post("/runs/:runId/points", async (req, res, next) => {
-const { points, pointTypes } = req.body ?? {};
+  const { points, pointTypes } = req.body ?? {};
 
   if (!points && !pointTypes) {
     return res.status(400).json({ message: "Either points or pointTypes is required" });
