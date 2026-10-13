@@ -34,7 +34,7 @@ updates:
         patterns:
           - "*"
 
-  # Docker base images
+  # Docker base images; keep group definitions identical across Docker entries.
   - package-ecosystem: "docker"
     directory: "/alfalfa_web"
     schedule:
