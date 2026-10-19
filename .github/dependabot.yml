@@ -12,6 +12,10 @@ updates:
       python-dependencies:
         patterns:
           - "*"
+      python-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # JavaScript dependencies for the web app
   - package-ecosystem: "npm"
@@ -25,8 +29,12 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
-  # Docker base images
+  # Docker base images; keep group definitions identical across Docker entries.
   - package-ecosystem: "docker"
     directory: "/alfalfa_web"
     schedule:
@@ -34,6 +42,10 @@ updates:
     open-pull-requests-limit: 10
     groups:
       docker-dependencies:
+        patterns:
+          - "*"
+      docker-security:
+        applies-to: security-updates
         patterns:
           - "*"
 
@@ -46,6 +58,10 @@ updates:
       docker-dependencies:
         patterns:
           - "*"
+      docker-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   - package-ecosystem: "docker"
     directory: "/grafana"
@@ -54,6 +70,10 @@ updates:
     open-pull-requests-limit: 10
     groups:
       docker-dependencies:
+        patterns:
+          - "*"
+      docker-security:
+        applies-to: security-updates
         patterns:
           - "*"
 
@@ -65,5 +85,9 @@ updates:
     open-pull-requests-limit: 10
     groups:
       github-actions-dependencies:
+        patterns:
+          - "*"
+      github-actions-security:
+        applies-to: security-updates
         patterns:
           - "*"
