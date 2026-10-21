@@ -18,6 +18,7 @@ __pycache__/*
 */.ipynb_checkpoints/*
 .DS_Store
 *.autosave
+.build
 .playwright-mcp
 
 # Project files

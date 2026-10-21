@@ -1,16 +1,11 @@
-# Convenience overlay that combines development mode (live-reload web/worker)
-# with the optional historian stack (InfluxDB + Grafana), so you don't need
-# to chain three `-f` flags by hand.
-#
-# This intentionally duplicates the union of docker-compose.dev.yml and
-# docker-compose.historian.yml (Compose's `include:` directive does not
-# reliably deep-merge multiple override files here — it was found to drop
-# the worker/web `target: dev` build override). If you change
-# docker-compose.dev.yml or docker-compose.historian.yml, update this file
-# to match.
+# Docker-compose setup for local development with the Historian. This allows for a user
+# to modify the Alfalfa worker code and run tests in the Docker
+# container without needing to rebuild/restart Docker.
 #
 # Usage:
-#   docker compose -f docker-compose.yml -f docker-compose.dev.historian.yml up --build
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build --scale worker=2
+#     with historian use
+#   docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.historian.yml up --build --scale worker=2
 
 services:
   web: # main haystack application
