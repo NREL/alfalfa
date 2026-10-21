@@ -250,9 +250,22 @@ class Data_Manager(object):
         # The following will work in any OS because the zip format
         # specifies a forward slash.
 
-        # Load kpi json
-        json_str = z_fmu.open('resources/kpis.json').read()
-        self.case.kpi_json = json.loads(json_str)
+        # Load kpi json (optional; non-BOPTEST FMUs may not include one).
+        # Track whether it was present so the run can surface a user-facing
+        # notice explaining KPI reporting is disabled and how to enable it.
+        try:
+            json_str = z_fmu.open('resources/kpis.json').read()
+            self.case.kpi_json = json.loads(json_str)
+            self.case.kpi_json_missing = False
+        except KeyError:
+            warnings.warn(
+                "No 'resources/kpis.json' found inside the FMU; KPI reporting "
+                "is disabled for this run. To enable KPIs, add a "
+                "'resources/kpis.json' file inside the FMU (a BOPTEST-style KPI "
+                "definition, minimally '{}') and re-upload."
+            )
+            self.case.kpi_json = {}
+            self.case.kpi_json_missing = True
 
         # Find the test case data files
         files = []

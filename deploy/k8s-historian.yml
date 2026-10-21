@@ -484,6 +484,10 @@ items:
                   value: user
                 - name: AWS_SECRET_ACCESS_KEY
                   value: password
+                - name: GRAFANA_URL_EXTERNAL
+                  value: http://localhost:3000
+                - name: HISTORIAN_ENABLE
+                  value: "true"
                 - name: JOB_QUEUE_URL
                   value: http://goaws:4100/queue/local-queue1
                 - name: MONGO_DB_NAME

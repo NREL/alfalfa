@@ -1,8 +1,24 @@
+import os
 from datetime import datetime
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
 import requests
+from pymongo import MongoClient
+
+
+def _get_mongo_client():
+    mongo_url = os.environ.get("MONGO_URL")
+    if not mongo_url:
+        env_path = Path(__file__).resolve().parents[2] / ".env"
+        for line in env_path.read_text().splitlines():
+            if line.startswith("MONGO_URL="):
+                mongo_url = line.split("=", 1)[1].strip().strip("'\"")
+                break
+    if not mongo_url:
+        raise RuntimeError("MONGO_URL is not configured")
+    return MongoClient(mongo_url.replace("mongo:27017", "localhost:27017"))
 
 
 @pytest.mark.api
@@ -208,6 +224,33 @@ def test_point_writes(base_url, started_run_id):
     assert "payload" in response_body
     payload = response_body["payload"]
     assert len(payload) == len(outputs), "Error cardinality mismatch"
+
+
+@pytest.mark.api
+def test_point_write_outside_range_is_accepted(base_url, started_run_id):
+    run_id = started_run_id
+    response = requests.get(f"{base_url}/runs/{run_id}/points")
+    response.raise_for_status()
+    payload = response.json()["payload"]
+
+    writable_point = next(point for point in payload if point["type"] != "OUTPUT")
+
+    mongo = _get_mongo_client()
+    db = mongo.get_default_database()
+    run = db.run.find_one({"ref_id": run_id})
+    assert run is not None
+
+    result = db.point.update_one(
+        {"ref_id": writable_point["id"], "run": run["_id"]},
+        {"$set": {"minimum": 0.0, "maximum": 1.0}}
+    )
+    assert result.modified_count == 1
+
+    response = requests.put(
+        f"{base_url}/runs/{run_id}/points/{writable_point['id']}",
+        json={"value": 2.0}
+    )
+    assert response.status_code == 204
 
 
 @pytest.mark.api

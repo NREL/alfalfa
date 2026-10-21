@@ -660,6 +660,19 @@ components:
         errorLog:
           type: "string"
           example: "An unknown error occurred. Good luck!"
+        externalClock:
+          type: boolean
+          description: >-
+            Whether the run was started with an external clock. When true,
+            the simulation will not advance on its own and must be stepped
+            via POST /runs/{runId}/advance.
+          readOnly: true
+        notices:
+          type: array
+          description: Non-fatal, user-facing notices about a run.
+          items:
+            type: string
+          readOnly: true
     pointDataType:
       type: string
       enum:

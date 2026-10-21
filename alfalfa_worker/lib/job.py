@@ -268,6 +268,18 @@ class Job(metaclass=JobMetaclass):
         self.run.error_log = error_log
         self.run.save()
 
+    @with_run(return_on_fail=True)
+    def add_run_notice(self, notice: str) -> None:
+        """Attach a non-fatal, user-facing notice to the run.
+
+        Notices are surfaced in the web UI (unlike log output) so users can be
+        told why something is not ideal and how to fix it, without failing the
+        run. Duplicate notices are ignored so retries don't stack up."""
+        if notice not in self.run.notices:
+            self.logger.info(f"Adding run notice: {notice}")
+            self.run.notices.append(notice)
+            self.run.save()
+
     def register_run(self, run: Run) -> None:
         self.run = run
         self.run.job_history.append(self.job_path())

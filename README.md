@@ -47,7 +47,13 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 HISTORIAN_ENABLE=true docker compose -f docker-compose.yml -f docker-compose.historian.yml up --build
 ```
 
-Grafana is served at [http://localhost:3000](http://localhost:3000).
+Grafana is served at [http://localhost:3000](http://localhost:3000), with default login `admin` / `password` (set via `GF_SECURITY_ADMIN_USER` / `GF_SECURITY_ADMIN_PASSWORD` in `.env`). When enabled, a **Historian** button also appears in the Alfalfa web app's nav bar, opening Grafana in a new tab (it's hidden when the historian is disabled). The URL it links to is controlled by `GRAFANA_URL_EXTERNAL` in `.env` (defaults to `http://localhost:3000`) — update this if Grafana is reachable at a different host/port for your deployment.
+
+To run development mode (live-reload) together with the historian stack, use `docker-compose.dev.historian.yml` instead of chaining all three files:
+
+```bash
+HISTORIAN_ENABLE=true docker compose -f docker-compose.yml -f docker-compose.dev.historian.yml up --build
+```
 
 ### Stopping
 

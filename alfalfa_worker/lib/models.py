@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from mongoengine import (
     CASCADE,
+    BooleanField,
     DateTimeField,
     DictField,
     Document,
@@ -14,6 +15,7 @@ from mongoengine import (
     EmbeddedDocument,
     EmbeddedDocumentField,
     EnumField,
+    FloatField,
     ListField,
     ReferenceField,
     StringField
@@ -463,6 +465,9 @@ class Point(TimestampedDocument):
     name = StringField(default="", max_length=255)
     units = StringField(default="", max_length=10)
     point_type = EnumField(PointType, required=True)
+    # Valid range for writing to INPUT/BIDIRECTIONAL points, when known (e.g. from FMU variable metadata)
+    minimum = FloatField(null=True)
+    maximum = FloatField(null=True)
 
 
 class Run(TimestampedDocument):
@@ -528,6 +533,22 @@ class Run(TimestampedDocument):
     status = EnumField(RunStatus, default=RunStatus.CREATED)
 
     error_log = StringField(default="")
+
+    # Whether the run was last started with an external clock (i.e. must be
+    # stepped manually via the 'advance' message) rather than an internal or
+    # realtime clock. Set by the web API when a run is started.
+    external_clock = BooleanField(default=False)
+
+    # Simulated start/end datetime the run was last started with (format
+    # '%Y-%m-%d %H:%M:%S'). Set by the web API when a run is started, and used
+    # by the UI to link into the historian with the matching time window.
+    sim_datetime_start = StringField(default=None)
+    sim_datetime_end = StringField(default=None)
+
+    # Non-fatal, user-facing notices about a run (e.g. an uploaded FMU is
+    # missing resources/kpis.json so KPI reporting is disabled). Surfaced in
+    # the web UI so users know why/how to fix without failing the run.
+    notices = ListField(StringField(), default=list)
 
 
 class Simulation(TimestampedDocument):

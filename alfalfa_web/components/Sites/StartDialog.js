@@ -18,12 +18,12 @@ import { DateTime } from "luxon";
 export const StartDialog = ({ onClose, onStartSimulation }) => {
   const timeFormat = "y-LL-dd HH:mm:ss";
 
-  const currentTime = DateTime.now();
+  const currentTime = DateTime.now().set({ minute: 0, second: 0, millisecond: 0 });
   const [realtime, setRealtime] = useState(false);
   const [externalClock, setExternalClock] = useState(false);
   const [timescale, setTimescale] = useState(5);
   const [selectedStartTime, setSelectedStartTime] = useState(currentTime);
-  const [selectedEndTime, setSelectedEndTime] = useState(currentTime);
+  const [selectedEndTime, setSelectedEndTime] = useState(currentTime.plus({ hours: 8 }));
 
   const handleTimescaleChange = (event) => {
     setTimescale(Number(event.target.value));

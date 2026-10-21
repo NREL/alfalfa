@@ -19,6 +19,8 @@ services:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - GIT_COMMIT
+      - GRAFANA_URL_EXTERNAL
+      - HISTORIAN_ENABLE
       - JOB_QUEUE
       - MONGO_URL
       - NODE_ENV

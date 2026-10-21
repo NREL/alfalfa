@@ -354,11 +354,27 @@ class TestCase(object):
                 mini = None
                 maxi = None
             else:
-                unit = fmu.get_variable_unit(var)
-                description = fmu.get_variable_description(var)
+                # Non-BOPTEST FMUs (e.g. plain OpenModelica exports) may omit
+                # unit/min/max/description on some variables, such as a
+                # dimensionless control input. Tolerate their absence instead
+                # of failing the whole test case.
+                try:
+                    unit = fmu.get_variable_unit(var)
+                except Exception:
+                    unit = None
+                try:
+                    description = fmu.get_variable_description(var)
+                except Exception:
+                    description = None
                 if inputs:
-                    mini = fmu.get_variable_min(var)
-                    maxi = fmu.get_variable_max(var)
+                    try:
+                        mini = fmu.get_variable_min(var)
+                    except Exception:
+                        mini = None
+                    try:
+                        maxi = fmu.get_variable_max(var)
+                    except Exception:
+                        maxi = None
                 else:
                     mini = None
                     maxi = None
@@ -391,6 +407,10 @@ class TestCase(object):
         # Get minimum and maximum for variable
         mini = self.inputs_metadata[var]['Minimum']
         maxi = self.inputs_metadata[var]['Maximum']
+        # If bounds are undefined (e.g. a non-BOPTEST FMU variable without a
+        # declared min/max), skip the range check and use the value as-is.
+        if mini is None or maxi is None:
+            return value
         # Check the value and truncate if necessary
         if value > maxi:
             checked_value = maxi

@@ -310,23 +310,13 @@ router.get("/runs/:runId/points/:pointId", (req, res, next) => {
   }
 });
 
-router.put("/runs/:runId/points/:pointId", (req, res, next) => {
+router.put("/runs/:runId/points/:pointId", async (req, res, next) => {
   const { value } = req.body;
 
-  if (req.point.point_type == "OUTPUT") {
-    return res
-      .status(400)
-      .json({ message: `Point '${req.point.ref_id}' is of type '${req.point.point_type}' and cannot be written to` });
-  }
-
-  if (value !== null) {
-    const error = validate(
-      { value },
-      {
-        value: "required|strict|numeric"
-      }
-    );
-    if (error) return res.status(400).json({ message: error });
+  try {
+    await api.validatePointWrite(req.point, value);
+  } catch (message) {
+    return res.status(400).json({ message });
   }
 
   api
@@ -495,6 +485,21 @@ router.get("/version", (req, res) => {
     sha = JSON.parse(readFileSync(shaPath, "utf-8"));
   }
   res.json({ payload: { version, ...sha } });
+});
+
+// Path (including dashboard uid + slug) of the "Simple Dashboard" provisioned in
+// grafana/dashboards/Simple TS Dashboard.json. Kept alongside the historian config
+// so the UI can link directly into it without hard-coding Grafana details.
+const GRAFANA_DASHBOARD_PATH = "/d/YxaCy4PMk/simple-dashboard";
+
+router.get("/config", (req, res) => {
+  res.json({
+    payload: {
+      historianEnabled: process.env.HISTORIAN_ENABLE === "true",
+      grafanaUrl: process.env.GRAFANA_URL_EXTERNAL || "",
+      grafanaDashboardPath: GRAFANA_DASHBOARD_PATH
+    }
+  });
 });
 
 router.get("/models", async (req, res, next) => {

@@ -1,4 +1,8 @@
 services:
+  web:
+    environment:
+      - HISTORIAN_ENABLE=true
+      - GRAFANA_URL_EXTERNAL
   worker:
     environment:
       - HISTORIAN_ENABLE=true

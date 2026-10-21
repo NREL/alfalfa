@@ -16,3 +16,34 @@
 .hidden {
   display: none;
 }
+
+.fileInput {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.fileName {
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  border-radius: 4px;
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  overflow: hidden;
+  padding: 8px 14px;
+}
+
+.fileNameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
